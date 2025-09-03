@@ -57,6 +57,7 @@ Semua kategori & subkategori → setelah tracking & approval selesai → notifik
 
 
 
+🎨 Visualisasi Flowchart (Mermaid)
 flowchart TD
 
 subgraph SAMPLE
@@ -77,6 +78,28 @@ subgraph SAMPLE
     A3 -->|Sample Packaging RnD (5302)| P7[Inward WH Supervisor]
 end
 
+subgraph PACKAGING_REPLACEMENT
+    B1[Requester] --> B2[QA]
+    B2 -- Rejected --> B3[Upload Bukti Pembayaran]
+    B2 --> B4[Atasan Requester] --> B5[Business Controller]
+    B5 -->|Pengiriman| DIALOG
+end
+
+subgraph FREE_GOODS
+    C1[Requester]
+    C1 -->|Dept SnM| C2[SnM Manager] --> C3[Business Controller] --> C4[Outward WH Supervisor]
+    C1 -->|Dept selain SnM| C5[HCD Dept Head] --> C3
+end
+
+%% Notifikasi
+A4 --> N[Notifikasi ke Requester]
+A6 --> N
+A7 --> N
+P4 --> N
+P6 --> N
+P7 --> N
+B5 --> N
+C4 --> N
 subgraph PACKAGING_REPLACEMENT
     B1[Requester] --> B2[QA]
     B2 -- Rejected --> B3[Upload Bukti Pembayaran]
