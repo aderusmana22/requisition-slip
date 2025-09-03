@@ -1,5 +1,6 @@
 📌 Alur Proses Permintaan
 1. Kategori SAMPLE
+
 🔹 Sample Finished Goods
 
 RnD (5302) / QA (5302)
@@ -45,10 +46,10 @@ Sama dengan Sample Packaging SnM, dengan dialog "Print Batch Number?"
 
 3. Kategori FREE GOODS
 
-Dari Dept. SnM
+🔹Dari Dept. SnM
 Requester → SnM Manager (atasan) → Business Controller → Outward WH Supervisor (tracking)
 
-Dari Dept. selain SnM
+🔹Dari Dept. selain SnM
 Requester → HCD Dept. Head → Business Controller → Outward WH Supervisor (tracking)
 
 📢 Notifikasi
