@@ -10,7 +10,7 @@ Requester → Atasan Requester → Business Controller → Outward WH Supervisor
 
 SnM Special Order (5300)
 
-Requester mengisi form ukuran khusus
+Requester awal mengisi fom sample biasa, lalu memilih special requisition sample, requester mengisi form ukuran khusus
 
 Requester → Atasan Requester → Business Controller → QA (tracking & QA isi form, lalu submit)
 
