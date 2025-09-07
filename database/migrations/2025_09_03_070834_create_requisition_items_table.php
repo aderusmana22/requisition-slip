@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('requisition_items', function (Blueprint $table) {
             $table->id();
             $table->foreignId('requisition_id')->constrained('requisitions')->onDelete('cascade');
-            $table->foreignId('item_master_id')->constrained('item_master')->onDelete('cascade');
+            $table->foreignId('item_master_id')->constrained('item_masters')->onDelete('cascade');
             $table->integer('quantity');
             $table->integer('quantity_issued')->nullable();
             $table->string('batch_number')->nullable();

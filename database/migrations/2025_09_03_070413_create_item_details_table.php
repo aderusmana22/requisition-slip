@@ -13,15 +13,13 @@ return new class extends Migration
     {
         Schema::create('item_details', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('item_master_id');
+            $table->foreignId('item_master_id')->constrained()->onDelete('cascade');
             $table->string('material_type');
             $table->string('item_detail_code')->unique();
             $table->string('item_detail_name');
             $table->string('unit');
             $table->decimal('net_weight', 10, 2);
             $table->timestamps();
-
-            $table->foreign('item_master_id')->references('id')->on('item_masters')->onDelete('cascade');
         });
     }
 
