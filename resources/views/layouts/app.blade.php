@@ -304,7 +304,7 @@
 </head>
 
 <body>
-    <div class="app-wrapper">
+    <div class="app-wrapper gold">
 
         <div class="loader-wrapper">
             <div class="app-loader">

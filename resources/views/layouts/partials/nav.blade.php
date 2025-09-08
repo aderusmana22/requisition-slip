@@ -1,7 +1,7 @@
- <nav>
+ <nav class="semi-nav dark-sidebar selected">
      <div class="app-logo">
          <a class="logo d-inline-block" href="{{ route('dashboard') }}">
-             <img alt="#" src="{{ asset('assets') }}/images/logo/logoputih.png"> </a>
+             <img alt="#" src="{{ asset('assets') }}/images/logo/logohitam.png"> </a>
 
          <span class="bg-light-primary toggle-semi-nav">
              <i class="ti ti-chevrons-right f-s-20"></i>
