@@ -41,10 +41,9 @@
                 <div class="card-body d-flex align-items-center">
                     <div class="metric-icon"><i class="ti ti-file-invoice"></i></div>
                     <div class="ms-3 flex-grow-1">
-                        <div class="text-muted small mb-1">Approval Pending</div>
-                        <div class="metric-value animate-count" data-target="8">0</div>
-                        <div class="metric-change text-warning small">2 baru sejak login terakhir
-                        </div>
+                        <div class="text-muted small mb-1">Awaiting Approval</div>
+                        <div class="metric-value animate-count" data-target="5">0</div>
+                        <div class="metric-change text-warning small">1 new since last login</div>
                     </div>
                 </div>
             </div>
@@ -55,9 +54,9 @@
                 <div class="card-body d-flex align-items-center">
                     <div class="metric-icon"><i class="ti ti-loader-2"></i></div>
                     <div class="ms-3 flex-grow-1">
-                        <div class="text-muted small mb-1">Total Proses Berjalan</div>
-                        <div class="metric-value animate-count" data-target="34">0</div>
-                        <div class="metric-change text-muted small">Di semua departemen</div>
+                        <div class="text-muted small mb-1">In Process</div>
+                        <div class="metric-value animate-count" data-target="28">0</div>
+                        <div class="metric-change text-muted small">Across all departments</div>
                     </div>
                 </div>
             </div>
@@ -68,9 +67,9 @@
                 <div class="card-body d-flex align-items-center">
                     <div class="metric-icon"><i class="ti ti-circle-check"></i></div>
                     <div class="ms-3 flex-grow-1">
-                        <div class="text-muted small mb-1">Selesai Bulan Ini</div>
-                        <div class="metric-value animate-count" data-target="219">0</div>
-                        <div class="metric-change text-success small">+12% vs bulan lalu</div>
+                        <div class="text-muted small mb-1">Completed</div>
+                        <div class="metric-value animate-count" data-target="210">0</div>
+                        <div class="metric-change text-success small">+10% compared to last month</div>
                     </div>
                 </div>
             </div>
@@ -79,11 +78,11 @@
             <div class="card h-100 danger animate__animated animate__fadeInUp hover-effect b-t-4-danger"
                 style="animation-delay: 0.3s;">
                 <div class="card-body d-flex align-items-center">
-                    <div class="metric-icon"><i class="ti ti-clock-hour-4"></i></div>
+                    <div class="metric-icon"><i class="ti ti-ban"></i></div>
                     <div class="ms-3 flex-grow-1">
-                        <div class="text-muted small mb-1">Waktu Proses Rata-rata</div>
-                        <div class="metric-value">1.8 <span class="fs-5">hari</span></div>
-                        <div class="metric-change text-danger small">Perbaikan 0.2 hari</div>
+                        <div class="text-muted small mb-1">Rejected</div>
+                        <div class="metric-value">3<span class="fs-5"> slips</span></div>
+                        <div class="metric-change text-danger small">Down 1 slip</div>
                     </div>
                 </div>
             </div>
@@ -110,47 +109,38 @@
                         </thead>
                         <tbody>
                             <tr>
-                                <td><a href="#" class="fw-bold text-dark">#REQ-00821</a>
-                                </td>
+                                <td><a href="#" class="fw-bold text-dark">#REQ-00821</a></td>
                                 <td>Andi Wijaya (SnM)</td>
                                 <td>Sample Finished Goods</td>
-                                <td><span class="status-badge status-pending">Pending BC
-                                        Approval</span></td>
+                                <td><span class="status-badge status-pending">Menunggu Persetujuan BC</span></td>
                                 <td>15 menit lalu</td>
                             </tr>
                             <tr>
-                                <td><a href="#" class="fw-bold text-dark">#REQ-00820</a>
-                                </td>
+                                <td><a href="#" class="fw-bold text-dark">#REQ-00820</a></td>
                                 <td>Rina Hartono (RnD)</td>
                                 <td>Sample Packaging</td>
-                                <td><span class="status-badge status-processing">Proses di
-                                        Gudang</span></td>
+                                <td><span class="status-badge status-processing">Diproses di Gudang</span></td>
                                 <td>1 jam lalu</td>
                             </tr>
                             <tr>
-                                <td><a href="#" class="fw-bold text-dark">#REQ-00819</a>
-                                </td>
+                                <td><a href="#" class="fw-bold text-dark">#REQ-00819</a></td>
                                 <td>Budi Santoso (SnM)</td>
                                 <td>Packaging Replacement</td>
-                                <td><span class="status-badge status-rejected">Ditolak oleh
-                                        QA</span></td>
+                                <td><span class="status-badge status-rejected">Ditolak oleh QA</span></td>
                                 <td>2 jam lalu</td>
                             </tr>
                             <tr>
-                                <td><a href="#" class="fw-bold text-dark">#REQ-00818</a>
-                                </td>
+                                <td><a href="#" class="fw-bold text-dark">#REQ-00818</a></td>
                                 <td>Sales Team C</td>
                                 <td>Free Goods</td>
                                 <td><span class="status-badge status-approved">Selesai</span></td>
                                 <td>Kemarin</td>
                             </tr>
                             <tr>
-                                <td><a href="#" class="fw-bold text-dark">#REQ-00817</a>
-                                </td>
+                                <td><a href="#" class="fw-bold text-dark">#REQ-00817</a></td>
                                 <td>Citra Lestari (QA)</td>
                                 <td>Sample FG (Special)</td>
-                                <td><span class="status-badge status-processing">Pending QA
-                                        Tracking</span></td>
+                                <td><span class="status-badge status-processing">Menunggu Tracking QA</span></td>
                                 <td>Kemarin</td>
                             </tr>
                         </tbody>
@@ -162,45 +152,36 @@
         <div class="col-lg-4">
             <div class="card h-100 shadow-sm border-0">
                 <div class="card-header bg-white border-0 py-3">
-                    <h5 class="mb-0 card-title">Item Tindakan Saya (8)</h5>
+                    <h5 class="mb-0 card-title">Tindakan Saya (4)</h5>
                 </div>
                 <div class="card-body p-0 simplebar-scroll" style="max-height: 400px; overflow-y: auto;">
                     <ul class="list-unstyled mb-0">
                         <li class="action-list-item">
-                            <div class="action-icon bg-light-warning text-warning"><i
-                                    class="ti ti-file-check fs-4"></i>
-                            </div>
+                            <div class="action-icon bg-light-warning text-warning"><i class="ti ti-file-check fs-4"></i></div>
                             <div>
                                 <div class="fw-bold">Approve Request #REQ-00821</div>
-                                <div class="text-muted small">Dari: Andi Wijaya | Kategori: Sample
-                                    FG</div>
+                                <div class="text-muted small">Dari: Andi Wijaya | Kategori: Sample Finished Goods</div>
                             </div>
                         </li>
                         <li class="action-list-item">
-                            <div class="action-icon bg-light-danger text-danger"><i
-                                    class="ti ti-alert-triangle fs-4"></i></div>
+                            <div class="action-icon bg-light-danger text-danger"><i class="ti ti-alert-triangle fs-4"></i></div>
                             <div>
                                 <div class="fw-bold">Upload Bukti Bayar #REQ-00819</div>
-                                <div class="text-muted small">Status: Ditolak QA. Upload bukti
-                                    untuk lanjut.</div>
+                                <div class="text-muted small">Status: Ditolak oleh QA. Upload bukti pembayaran untuk melanjutkan.</div>
                             </div>
                         </li>
                         <li class="action-list-item">
-                            <div class="action-icon bg-light-info text-info"><i class="ti ti-truck-delivery fs-4"></i>
-                            </div>
+                            <div class="action-icon bg-light-info text-info"><i class="ti ti-truck-delivery fs-4"></i></div>
                             <div>
-                                <div class="fw-bold">Lacak Pengiriman #SHP-00312</div>
-                                <div class="text-muted small">Untuk Request #REQ-00815 | Status:
-                                    Dikirim</div>
+                                <div class="fw-bold">Lacak Pengiriman #REQ-00818</div>
+                                <div class="text-muted small">Untuk Request #REQ-00818 | Status: Dikirim</div>
                             </div>
                         </li>
                         <li class="action-list-item">
-                            <div class="action-icon bg-light-warning text-warning"><i
-                                    class="ti ti-file-check fs-4"></i></div>
+                            <div class="action-icon bg-light-warning text-warning"><i class="ti ti-file-check fs-4"></i></div>
                             <div>
-                                <div class="fw-bold">Approve Request #REQ-00816</div>
-                                <div class="text-muted small">Dari: Sales Team A | Kategori: Free
-                                    Goods</div>
+                                <div class="fw-bold">Approve Request #REQ-00817</div>
+                                <div class="text-muted small">Dari: Citra Lestari | Kategori: Sample FG (Special)</div>
                             </div>
                         </li>
                     </ul>

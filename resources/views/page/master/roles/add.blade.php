@@ -51,15 +51,19 @@
                         <div class="card-header bg-light-primary d-flex align-items-center justify-content-between">
                             <h6 class="mb-0">Permission: {{ ucfirst($lastWord) }}</h6>
                             <div class="form-check ms-2">
-                                <input class="form-check-input check-all-group" type="checkbox" id="check-all-{{ Str::slug($lastWord) }}" data-group="group-{{ Str::slug($lastWord) }}">
-                                <label class="form-check-label small" for="check-all-{{ Str::slug($lastWord) }}">All</label>
+                                <input class="form-check-input check-all-group" type="checkbox"
+                                    id="check-all-{{ Str::slug($lastWord) }}"
+                                    data-group="group-{{ Str::slug($lastWord) }}">
+                                <label class="form-check-label small"
+                                    for="check-all-{{ Str::slug($lastWord) }}">All</label>
                             </div>
                         </div>
                         <div class="card-body">
                             @foreach ($permissionsGroup as $permission)
                                 <div class="form-check mb-2">
-                                    <input class="form-check-input group-{{ Str::slug($lastWord) }}" type="checkbox" name="permissions[]"
-                                        id="perm-{{ $permission->id }}" value="{{ $permission->name }}"
+                                    <input class="form-check-input group-{{ Str::slug($lastWord) }}" type="checkbox"
+                                        name="permissions[]" id="perm-{{ $permission->id }}"
+                                        value="{{ $permission->name }}"
                                         {{ $role->hasPermissionTo($permission->name) ? 'checked' : '' }}>
                                     <label class="form-check-label" for="perm-{{ $permission->id }}">
                                         {{ $permission->name }}
@@ -82,7 +86,6 @@
 
     @push('scripts')
         <!-- SweetAlert -->
-        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
         <script>
             function successMessage(message, title = 'Success', timer = 1500) {
                 Swal.fire({

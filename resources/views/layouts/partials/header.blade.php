@@ -30,7 +30,7 @@
                         </div>
                     </li>
 
-                   
+
 
                     <li class="header-dark">
                         <div class="sun-logo head-icon">
@@ -41,7 +41,7 @@
                         </div>
                     </li>
 
-                    {{-- <li class="header-notification">
+                    <li class="header-notification">
                         <a aria-controls="notificationcanvasRight" class="d-block head-icon position-relative"
                             data-bs-target="#notificationcanvasRight" data-bs-toggle="offcanvas" href="#"
                             role="button">
@@ -199,7 +199,7 @@
                             </div>
                         </div>
 
-                    </li> --}}
+                    </li>
 
                     <li class="header-profile">
                         <a aria-controls="profilecanvasRight" class="d-block head-icon"
@@ -208,7 +208,7 @@
                             @if(Auth::user()->avatar)
                                 <img alt="avtar" class="b-r-50 h-35 w-35 bg-dark" src="{{ Auth::user()->avatar }}">
                             @else
-                                <img alt="avtar" class="b-r-50 h-35 w-35 bg-dark" src="../assets/images/avtar/woman.jpg">
+                                <img alt="avtar" class="b-r-50 h-35 w-35 bg-dark" src="{{ asset('assets/images/logo/sinarmeadow.png') }}">
                             @endif
                         </a>
 
@@ -223,7 +223,7 @@
                                                 @if(Auth::user()->avatar)
                                                     <img alt="" class="img-fluid b-r-10" src="{{ Auth::user()->avatar }}">
                                                 @else
-                                                    <img alt="" class="img-fluid b-r-10" src="../assets/images/avtar/woman.jpg">
+                                                    <img alt="" class="img-fluid b-r-10" src="{{ asset('assets/images/logo/sinarmeadow.png') }}">
                                                 @endif
                                             </span>
                                         </div>

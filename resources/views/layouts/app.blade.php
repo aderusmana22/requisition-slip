@@ -374,6 +374,8 @@
     <!-- Customizer js-->
     <script src="{{ asset('assets') }}/js/customizer.js"></script>
 
+    {{-- SweetAlert2 --}}
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <!-- latest jquery-->
     <script src="{{ asset('assets') }}/vendor/datatable/jquery.dataTables.min.js"></script>
