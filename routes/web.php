@@ -22,10 +22,7 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    Route::resource('users', UserController::class);
-    Route::resource('departments', DepartmentController::class);
-    Route::resource('permissions', PermissionController::class);
-    Route::resource('roles', RoleController::class);
+
 
     Route::resource('sample-form', SampleController::class);
     Route::resource('complain-form', ComplainController::class);
@@ -34,7 +31,21 @@ Route::middleware('auth')->group(function () {
     Route::get('/sample-form/reports', [SampleController::class, 'reports'])->name('sample-form.reports');
     Route::get('/complain-form/reports', [ComplainController::class, 'reports'])->name('complain-form.reports');
     Route::get('/free-goods/reports', [FreeGoodsController::class, 'reports'])->name('free-goods.reports');
+});
+
+
+
+Route::group(['middleware' => ['role:super-admin|admin']], function () {
+
+    Route::resource('users', UserController::class);
+    Route::get('/users-data', [UserController::class, 'getData'])->name('users.data');
+    Route::resource('departments', DepartmentController::class);
+    Route::resource('permissions', PermissionController::class);
+    Route::resource('roles', RoleController::class);
+    Route::get('roles/{roleId}/give-permissions', [RoleController::class, 'addPermissionToRole'])->name('roles.give-permissions');
+    Route::post('roles/{roleId}/give-permissions', [RoleController::class, 'givePermissionToRole'])->name('roles.give-permission');
 
 });
 
-require __DIR__.'/auth.php';
+
+require __DIR__ . '/auth.php';

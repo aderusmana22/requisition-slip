@@ -56,8 +56,8 @@
     <link href="{{ asset('assets/') }}/css/responsive.css" rel="stylesheet" type="text/css">
 
     <!-- Data Table css-->
-    <link href="{{ asset('assets/') }}/vendor/datatable/jquery.dataTables.min.css" rel="stylesheet" type="text/css">
-    <link href="{{ asset('assets/') }}/vendor/datatable/datatable2/buttons.dataTables.min.css" rel="stylesheet"
+    <link href="{{ asset('assets') }}/vendor/datatable/jquery.dataTables.min.css" rel="stylesheet" type="text/css">
+    <link href="{{ asset('assets') }}/vendor/datatable/datatable2/buttons.dataTables.min.css" rel="stylesheet"
         type="text/css">
 
     <style>
@@ -297,6 +297,8 @@
             }
         }
     </style>
+
+    @stack('css')
     <!-- Scripts -->
     @vite(['resources/js/app.js'])
 </head>
@@ -352,7 +354,7 @@
     </div>
 
     <!--customizer-->
-    <div id="customizer"></div>
+    {{-- <div id="customizer"></div> --}}
 
     <!-- latest jquery-->
     <script src="{{ asset('assets') }}/js/jquery-3.6.3.min.js"></script>
@@ -372,11 +374,11 @@
     <!-- Customizer js-->
     <script src="{{ asset('assets') }}/js/customizer.js"></script>
 
-    <!-- latest jquery-->
-    <script src="{{ asset('assets') }}/vendor/datatable/jquery-3.5.1.js"></script>
 
     <!-- latest jquery-->
     <script src="{{ asset('assets') }}/vendor/datatable/jquery.dataTables.min.js"></script>
+
+    @stack('scripts')
 
     {{-- // weather js --}}
     <script>
@@ -421,8 +423,6 @@
             console.error("Geolocation error:", error);
         });
     </script>
-
 </body>
-
 
 </html>

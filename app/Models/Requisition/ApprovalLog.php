@@ -2,7 +2,7 @@
 
 namespace App\Models\Requisition;
 
-use App\Models\Master\Requisition;
+
 use Illuminate\Database\Eloquent\Model;
 
 class ApprovalLog extends Model

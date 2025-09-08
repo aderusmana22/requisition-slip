@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Spatie\Permission\Models\Role;
+use Yajra\DataTables\Facades\DataTables;
 
 class UserController extends Controller
 {
@@ -21,18 +22,26 @@ class UserController extends Controller
     //     $this->middleware('permission:delete user', ['only' => ['destroy']]);
     // }
 
-    public function index(Request $request)
+    public function index()
     {
-        if ($request->ajax()) {
-            $users = User::with(['department', 'roles']);
-            return datatables()->of($users)
-                ->addIndexColumn()
-                ->addColumn('name', function ($user) {
-                    $avatar = $user->avatar
-                        ? asset('storage/' . $user->avatar)
-                        : asset('assets/images/logo/sinarmeadow.png');
+        $departments = Department::all();
+        $roles = Role::all();
 
-                    return '
+        return view('page.master.users.index', compact('roles', 'departments'));
+    }
+
+    public function getData()
+    {
+        $users = User::with(['department', 'roles']);
+
+        return DataTables::of($users)
+            ->addIndexColumn()
+            ->addColumn('name', function ($user) {
+                $avatar = $user->avatar
+                    ? asset($user->avatar)
+                    : asset('assets/images/logo/sinarmeadow.png');
+
+                return '
                     <div class="d-flex align-items-center">
                         <div class="h-30 w-30 d-flex-center b-r-50 overflow-hidden text-bg-dark">
                             <img src="' . $avatar . '" alt="avatar" class="img-fluid">
@@ -40,34 +49,37 @@ class UserController extends Controller
                         <p class="mb-0 ps-2">' . e($user->name) . '</p>
                     </div>
                 ';
-                })
-                ->addColumn('roles', function ($user) {
-                    $badges = '';
-                    foreach ($user->roles as $role) {
-                        $badges .= '<span class="badge bg-primary" style="margin-right:2px;">' . $role->name . '</span> ';
-                    }
-                    return $badges;
-                })
-                ->addColumn('department', function ($user) {
-                    return $user->department ? $user->department->name : '-';
-                })
-                ->addColumn('action', function ($user) {
-                    $roles = $user->roles->pluck('name')->toArray();
-                    return '
-                    <div class="flex justify-content-between gap-2">
+            })
+            ->addColumn('roles', function ($user) {
+                $badges = '';
+                foreach ($user->roles as $role) {
+                    $badges .= '<span class="badge bg-primary me-1">' . e($role->name) . '</span>';
+                }
+                return $badges;
+            })
+            ->addColumn('department', function ($user) {
+                return $user->department ? e($user->department->name) : '-';
+            })
+            ->addColumn('action', function ($user) {
+                $roles = $user->roles->pluck('name')->toArray();
+
+                return '
+                    <div class="d-flex gap-2">
                         <button type="button" class="btn btn-warning btn-edit-user"
                             data-id="' . $user->id . '"
                             data-nik="' . $user->nik . '"
                             data-username="' . $user->username . '"
-                            data-name="' . $user->name . '"
-                            data-email="' . $user->email . '"
+                            data-name="' . e($user->name) . '"
+                            data-email="' . e($user->email) . '"
                             data-department_id="' . $user->department_id . '"
                             data-roles=\'' . json_encode($roles) . '\'
+                            data-avatar="' . $user->avatar . '"
                             data-status="' . $user->status . '"
                         >
                             <i class="fa-solid fa-pencil text-white"></i>
                         </button>
-                        <form action="' . url('/users/' . $user->id . '/delete') . '" method="POST" class="delete-form" style="display:inline;">
+
+                        <form action="' . route('users.destroy', $user->id) . '" method="POST" class="delete-form delete-user-btn" style="display:inline;">
                             ' . csrf_field() . method_field('DELETE') . '
                             <button type="submit" class="btn btn-danger">
                                 <i class="fas fa-trash-alt text-white"></i>
@@ -75,20 +87,15 @@ class UserController extends Controller
                         </form>
                     </div>
                 ';
-                })
-                ->rawColumns(['action', 'roles', 'name'])
-                ->make(true);
-        }
-
-        $departments = Department::all();
-        $roles = Role::pluck('name', 'name')->all();
-
-        return view('page.master.users.index', compact('roles', 'departments'));
+            })
+            ->rawColumns(['name', 'roles', 'action'])
+            ->make(true);
     }
 
 
     public function store(Request $request)
     {
+
 
         $request->validate([
             'nik' => 'required|min:4|max:6|unique:users,nik',
@@ -96,10 +103,27 @@ class UserController extends Controller
             'username' => 'required|string|max:255|unique:users,username',
             'email' => 'required|email|max:255|unique:users,email',
             'password' => 'required|string|min:8|max:20',
-            'roles' => 'required|array',
-            'roles.*' => 'exists:roles,name',
             'department_id' => 'required|exists:departments,id',
+            'roles' => 'nullable|array',
+            'roles.*' => 'exists:roles,name', // pakai id, bukan name
         ]);
+
+         $avatarPath = null;
+
+        if ($request->hasFile('avatar')) {
+            // ambil ekstensi file (jpg/png/dll)
+            $extension = $request->file('avatar')->getClientOriginalExtension();
+
+            // simpan ke disk "public" (storage/app/public/avatar)
+            $avatarPath = $request->file('avatar')->storeAs(
+                'avatar',                          // folder di dalam storage/app/public
+                $request->nik . '.' . $extension,  // nama file = NIK
+                'public'                           // pakai disk public, bukan local
+            );
+
+            // simpan path relatif untuk dipanggil dengan asset()
+            $avatarPath = 'storage/' . $avatarPath;
+        }
 
         $user = User::create([
             'nik' => $request->nik,
@@ -109,9 +133,11 @@ class UserController extends Controller
             'password' => Hash::make($request->password),
             'department_id' => $request->department_id,
             'status' => 'active',
+            'avatar' => $avatarPath,
         ]);
 
-        $user->syncRoles($request->roles);
+            $user->syncRoles($request->roles);
+
 
         // Return JSON for AJAX
         return response()->json(['success' => true, 'message' => 'User created successfully!']);
@@ -128,7 +154,6 @@ class UserController extends Controller
             'roles' => 'required|array',
             'roles.*' => 'exists:roles,name',
             'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            'status' => 'required|in:active,non active',
             'department_id' => 'required|exists:departments,id',
         ]);
 
@@ -147,18 +172,31 @@ class UserController extends Controller
             $data['password'] = Hash::make($request->password);
         }
 
-        // Handle avatar upload
+           // Menangani unggahan avatar dengan nama file NIK
         if ($request->hasFile('avatar')) {
-            // Delete old avatar if exists
-            if ($user->avatar) {
-                Storage::disk('public')->delete('avatar/' . $user->avatar);
+            $allAvatarFiles = Storage::disk('public')->files('avatar');
+
+            // Filter untuk menemukan file yang namanya diawali dengan NIK pengguna.
+            $filesToDelete = array_filter($allAvatarFiles, function ($file) use ($user) {
+                return str_starts_with(basename($file), $user->nik . '.');
+            });
+
+            if (!empty($filesToDelete)) {
+                Storage::disk('public')->delete($filesToDelete);
             }
 
-            $extension = $request->avatar->getClientOriginalExtension();
-            $avatarName = $request->username . '.' . $extension;
+            // ambil ekstensi file (jpg/png/dll)
+            $extension = $request->file('avatar')->getClientOriginalExtension();
 
-            $request->avatar->storeAs('avatar', $avatarName, 'public');
-            $data['avatar'] = $avatarName;
+            // simpan ke disk "public" (storage/app/public/avatar)
+            $avatarPath = $request->file('avatar')->storeAs(
+                'avatar',                               // folder di dalam storage/app/public
+                $request->nik . '.' . $extension,       // nama file = NIK.ext
+                'public'                                // pakai disk public, bukan local
+            );
+
+            // simpan path relatif untuk dipanggil dengan asset()
+            $user->avatar = 'storage/' . $avatarPath;
         }
 
         // Update user
@@ -178,9 +216,11 @@ class UserController extends Controller
     {
         $user = User::findOrFail($userId);
 
-        // Hapus avatar jika ada
+        // Hapus file avatar jika ada sebelum menghapus user
         if ($user->avatar) {
-            Storage::delete('public/user_avatars/' . $user->avatar);
+            // Perbaikan: Hapus 'storage/' dari path sebelum menghapus file
+            $avatarPathToDelete = str_replace('storage/', '', $user->avatar);
+            Storage::disk('public')->delete($avatarPathToDelete);
         }
 
         $user->delete();
