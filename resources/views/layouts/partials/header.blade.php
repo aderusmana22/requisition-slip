@@ -30,187 +30,7 @@
                         </div>
                     </li>
 
-                    <li class="header-apps">
-                        <a aria-controls="appscanvasRights" class="d-block head-icon" data-bs-target="#appscanvasRights"
-                            data-bs-toggle="offcanvas" href="#" role="button">
-                            <i class="iconoir-key-command"></i>
-                        </a>
-
-                        <div aria-labelledby="appscanvasRightsLabel" class="offcanvas offcanvas-end header-apps-canvas"
-                            id="appscanvasRights" tabindex="-1">
-                            <div class="offcanvas-header">
-                                <h5 class="offcanvas-title" id="appscanvasRightsLabel">Shortcut</h5>
-                                <div class="app-dropdown flex-shrink-0">
-                                    <a aria-expanded="false" class=" p-1" data-bs-auto-close="outside"
-                                        data-bs-toggle="dropdown" href="#" role="button">
-                                        <i class="ph-bold  ph-faders-horizontal f-s-20"></i>
-                                    </a>
-                                    <ul class="dropdown-menu mb-3 p-2">
-                                        <li class="dropdown-item">
-                                            <a href="setting.html" target="_blank">
-                                                Privacy Settings
-                                            </a>
-                                        </li>
-                                        <li class="dropdown-item">
-                                            <a href="setting.html" target="_blank">
-                                                Account Settings
-                                            </a>
-                                        </li>
-                                        <li class="dropdown-item">
-                                            <a href="setting.html" target="_blank">
-                                                Accessibility
-                                            </a>
-                                        </li>
-                                        <li class="dropdown-divider"></li>
-                                        <li class="dropdown-item border-0">
-                                            <a aria-expanded="false" data-bs-toggle="dropdown" href="#"
-                                                role="button">
-                                                More Settings
-                                            </a>
-                                            <ul class="dropdown-menu sub-menu">
-                                                <li class="dropdown-item">
-                                                    <a href="setting.html" target="_blank">
-                                                        Backup and Restore
-                                                    </a>
-                                                </li>
-                                                <li class="dropdown-item">
-                                                    <a href="setting.html" target="_blank">
-                                                        <span>Data Usage</span>
-                                                    </a>
-                                                </li>
-                                                <li class="dropdown-item">
-                                                    <a href="setting.html" target="_blank">
-                                                        <span>Theme</span>
-                                                    </a>
-                                                </li>
-                                                <li
-                                                    class="dropdown-item d-flex align-items-center justify-content-between">
-                                                    <a href="setting.html" target="_blank">
-                                                        <p class="mb-0">Notification</p>
-                                                    </a>
-                                                    <div class="flex-shrink-0">
-                                                        <div class="form-check form-switch">
-                                                            <input class="form-check-input  form-check-primary"
-                                                                id="notificationSwitch" type="checkbox">
-                                                        </div>
-                                                    </div>
-                                                </li>
-                                            </ul>
-                                        </li>
-
-                                    </ul>
-                                </div>
-                            </div>
-                            <div class="offcanvas-body app-scroll">
-                                <div class="row row-cols-3">
-                                    <div class="d-flex-center text-center mb-3">
-                                        <a href="product.html" target="_blank">
-                                            <span class="text-light-info h-45 w-45 d-flex-center b-r-15">
-                                                <i class="ph-duotone  ph-shopping-bag-open f-s-30"></i>
-                                            </span>
-                                            <p class="mb-0 f-w-500 text-info">E-shop</p>
-                                        </a>
-                                    </div>
-                                    <div class="d-flex-center text-center mb-3">
-                                        <a href="email.html" target="_blank">
-                                            <span
-                                                class="text-light-primary h-45 w-45 d-flex-center b-r-15 position-relative">
-                                                <i class="ph-duotone  ph-envelope f-s-30"></i>
-                                                <span
-                                                    class="position-absolute top-space-5 start-100 translate-middle p-1 bg-primary-dark rounded-circle animate__animated animate__fadeIn animate__infinite animate__fast"></span>
-                                            </span>
-                                            <p class="mb-0 f-w-500 text-primary">Email</p>
-                                        </a>
-                                    </div>
-                                    <div class="d-flex-center text-center mb-3">
-                                        <a href="chat.html" target="_blank">
-                                            <span
-                                                class="text-light-danger h-45 w-45 d-flex-center b-r-15 position-relative">
-                                                <i class="ph-duotone  ph-chat-circle-text f-s-30"></i>
-                                                <span
-                                                    class="position-absolute top-space-5 start-100 translate-middle badge rounded-pill bg-success badge-notification">
-                                                    99+
-                                                    <span class="visually-hidden">unread messages</span>
-                                                </span>
-                                            </span>
-                                            <p class="mb-0 f-w-500 text-danger">Chat</p>
-                                        </a>
-                                    </div>
-                                    <div class="d-flex-center text-center mb-3">
-                                        <a href="project_app.html" target="_blank">
-                                            <span class="text-light-warning h-45 w-45 d-flex-center b-r-15">
-                                                <i class="ph-duotone ph-projector-screen-chart f-s-30"></i>
-                                            </span>
-                                            <p class="mb-0 f-w-500 text-warning">Project</p>
-                                        </a>
-                                    </div>
-                                    <div class="d-flex-center text-center mb-3">
-                                        <a href="invoice.html" target="_blank">
-                                            <span class="text-light-secondary h-45 w-45 d-flex-center b-r-15">
-                                                <i class="ph-duotone ph-scroll f-s-30"></i>
-                                            </span>
-                                            <p class="mb-0 f-w-500 text-secondary">Invoice</p>
-                                        </a>
-                                    </div>
-                                    <div class="d-flex-center text-center mb-3">
-                                        <a href="blog.html" target="_blank">
-                                            <span class="text-light-primary h-45 w-45 d-flex-center b-r-15">
-                                                <i class="ph-duotone ph-notebook f-s-30"></i>
-                                            </span>
-                                            <p class="mb-0 f-w-500 text-primary">Blog</p>
-                                        </a>
-                                    </div>
-                                    <div class="d-flex-center text-center mb-3">
-                                        <a href="profile.html" target="_blank">
-                                            <span
-                                                class="text-light-primary h-45 w-45 d-flex-center b-r-15 position-relative">
-                                                <i class="ph-duotone ph-users-three f-s-30"></i>
-                                                <span
-                                                    class="position-absolute top-space-5 start-100 translate-middle badge rounded-pill bg-danger badge-notification">
-                                                    <i class="ti ti-bell-ringing"></i>
-                                                </span>
-                                            </span>
-                                            <p class="mb-0 f-w-500 text-primary">Profile</p>
-                                        </a>
-                                    </div>
-                                    <div class="d-flex-center text-center mb-3">
-                                        <a href="gallery.html" target="_blank">
-                                            <span class="text-light-success h-45 w-45 d-flex-center b-r-15">
-                                                <i class="ph-duotone ph-google-photos-logo f-s-30"></i>
-                                            </span>
-                                            <p class="mb-0 f-w-500 text-success">Gallery</p>
-                                        </a>
-                                    </div>
-                                    <div class="d-flex-center text-center mb-3">
-                                        <a href="kanban_board.html" target="_blank">
-                                            <span class="text-light-info h-45 w-45 d-flex-center b-r-15">
-                                                <i class="ph-duotone ph-selection-foreground text-info f-s-30"></i>
-                                            </span>
-                                            <p class="mb-0 f-w-500 text-secondary">Task </p>
-                                        </a>
-                                    </div>
-                                    <div class="d-flex-center text-center mb-3">
-                                        <a href="calendar.html" target="_blank">
-                                            <span class="text-light-dark h-45 w-45 d-flex-center b-r-15">
-                                                <i class="ph-duotone ph-calendar f-s-30"></i>
-                                            </span>
-                                            <p class="mb-0 f-w-500 text-dark">Calen..</p>
-                                        </a>
-                                    </div>
-                                    <div class="d-flex-center text-center mb-3">
-                                        <a href="filemanager.html" target="_blank">
-                                            <span class="text-light-danger h-45 w-45 d-flex-center b-r-15">
-                                                <i class="ph-duotone ph-folder-open f-s-30"></i>
-                                            </span>
-                                            <p class="mb-0 f-w-500 text-danger">File Ma..</p>
-                                        </a>
-                                    </div>
-
-
-                                </div>
-                            </div>
-                        </div>
-                    </li>
+                   
 
                     <li class="header-dark">
                         <div class="sun-logo head-icon">
@@ -221,7 +41,7 @@
                         </div>
                     </li>
 
-                    <li class="header-notification">
+                    {{-- <li class="header-notification">
                         <a aria-controls="notificationcanvasRight" class="d-block head-icon position-relative"
                             data-bs-target="#notificationcanvasRight" data-bs-toggle="offcanvas" href="#"
                             role="button">
@@ -379,14 +199,17 @@
                             </div>
                         </div>
 
-                    </li>
+                    </li> --}}
 
                     <li class="header-profile">
                         <a aria-controls="profilecanvasRight" class="d-block head-icon"
                             data-bs-target="#profilecanvasRight" data-bs-toggle="offcanvas" href="#"
                             role="button">
-                            <img alt="avtar" class="b-r-50 h-35 w-35 bg-dark"
-                                src="../assets/images/avtar/woman.jpg">
+                            @if(Auth::user()->avatar)
+                                <img alt="avtar" class="b-r-50 h-35 w-35 bg-dark" src="{{ Auth::user()->avatar }}">
+                            @else
+                                <img alt="avtar" class="b-r-50 h-35 w-35 bg-dark" src="../assets/images/avtar/woman.jpg">
+                            @endif
                         </a>
 
                         <div aria-labelledby="profilecanvasRight"
@@ -397,100 +220,34 @@
                                     <li class="d-flex gap-3 mb-3">
                                         <div class="d-flex-center">
                                             <span class="h-45 w-45 d-flex-center b-r-10 position-relative">
-                                                <img alt="" class="img-fluid b-r-10"
-                                                    src="../assets/images/avtar/woman.jpg">
+                                                @if(Auth::user()->avatar)
+                                                    <img alt="" class="img-fluid b-r-10" src="{{ Auth::user()->avatar }}">
+                                                @else
+                                                    <img alt="" class="img-fluid b-r-10" src="../assets/images/avtar/woman.jpg">
+                                                @endif
                                             </span>
                                         </div>
                                         <div class="text-center mt-2">
-                                            <h6 class="mb-0"> Laura Monaldo <img alt="instagram-check-mark"
-                                                    class="w-20 h-20" src="../assets/images/profile-app/01.png"></h6>
-                                            <p class="f-s-12 mb-0 text-secondary">lauradesign@gmail.com</p>
+                                            <h6 class="mb-0"> {{ Auth::user()->name }}
+                                                </h6>
+                                            <p class="f-s-12 mb-0 text-secondary">{{ Auth::user()->email  }}</p>
                                         </div>
                                     </li>
 
                                     <li>
-                                        <a class="f-w-500" href="profile.html" target="_blank">
+                                        <a class="f-w-500" href="{{ route('profile.edit') }}" target="_blank">
                                             <i class="iconoir-user-love pe-1 f-s-20"></i> Profile
                                             Details
                                         </a>
                                     </li>
+                                    <!-- Authentication -->
                                     <li>
-                                        <a class="f-w-500" href="setting.html" target="_blank">
-                                            <i class="iconoir-settings pe-1 f-s-20"></i> Settings
-                                        </a>
-                                    </li>
-                                    <li class="app-divider-v dotted py-1"></li>
-                                    <li>
-                                        <div class="app-dropdown dropstart">
-                                            <a aria-expanded="false" class="f-w-500" data-bs-toggle="dropdown"
-                                                href="setting.html" role="button" target="_blank">
-                                                <i class="iconoir-eye-closed pe-1 f-s-20"></i> Hide
-                                                Settings
-                                            </a>
-                                            <ul class="dropdown-menu">
-                                                <li><a class="dropdown-item">Hide Comments</a></li>
-                                                <li><a class="dropdown-item">Advanced comment filtering</a>
-                                                </li>
-                                                <li><a class="dropdown-item">Hide mssage request</a></li>
-                                                <li>
-                                                    <hr class="dropdown-divider">
-                                                </li>
-                                                <li><a class="dropdown-item">Separated link</a></li>
-                                            </ul>
-                                        </div>
-                                    </li>
-                                    <li>
-                                        <div class="d-flex align-items-center justify-content-between">
-                                            <a class="f-w-500" href="#">
-                                                <i class="iconoir-bell-notification pe-1 f-s-20"></i>
-                                                Notification
-                                            </a>
-                                            <div class="flex-shrink-0">
-                                                <div class="form-check form-switch">
-                                                    <input checked="" class="form-check-input form-check-primary"
-                                                        id="basicSwitch" type="checkbox">
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </li>
-                                    <li>
-                                        <div class="d-flex align-items-center justify-content-between">
-                                            <div>
-                                                <a class="f-w-500" href="#">
-                                                    <i class="ph-duotone  ph-detective pe-1 f-s-20"></i>
-                                                    Incognito
-                                                </a>
-                                            </div>
-                                            <div class="flex-shrink-0">
-                                                <div class="form-check form-switch">
-                                                    <input class="form-check-input form-check-primary"
-                                                        id="incognitoSwitch" type="checkbox">
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </li>
-                                    <li class="app-divider-v dotted py-1"></li>
-                                    <li>
-                                        <a class="f-w-500" href="faq.html" target="_blank">
-                                            <i class="iconoir-help-circle pe-1 f-s-20"></i> Help
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a class="f-w-500" href="pricing.html" target="_blank">
-                                            <i class="iconoir-dollar pe-1 f-s-20"></i>
-                                            Pricing
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a class="mb-0 text-secondary f-w-500" href="sign_up.html" target="_blank">
-                                            <i class="iconoir-plus pe-1 f-s-20"></i> Add account
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a class="mb-0 btn btn-light-danger btn-sm justify-content-center "
-                                            href="sign_in.html" role="button">
-                                            <i class="ph-duotone  ph-sign-out pe-1 f-s-20"></i> Log Out
-                                        </a>
+                                        <form method="POST" action="{{ route('logout') }}">
+                                            @csrf
+                                            <button type="submit" class="dropdown-item f-w-500 bg-transparent border-0 p-0">
+                                                <i class="ph-duotone ph-sign-out pe-1 f-s-20"></i> {{ __('Log Out') }}
+                                            </button>
+                                        </form>
                                     </li>
                                 </ul>
                             </div>

@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Models\Master;
+namespace App\Models\Requisition;
 
+use App\Models\Master\ItemMaster;
 use Illuminate\Database\Eloquent\Model;
 
 class RequisitionItem extends Model

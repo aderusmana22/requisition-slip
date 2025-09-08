@@ -1,7 +1,9 @@
 <?php
 
-namespace App\Models\Master;
+namespace App\Models\Requisition;
 
+use App\Models\Master\Customer;
+use App\Models\Master\Revision;
 use Illuminate\Database\Eloquent\Model;
 
 class Requisition extends Model
@@ -26,12 +28,12 @@ class Requisition extends Model
     // Relasi ke Customer
     public function customer()
     {
-        return $this->belongsTo(\App\Models\Master\Customer::class, 'customer_id');
+        return $this->belongsTo(Customer::class, 'customer_id');
     }
 
     // Relasi ke Revision
     public function revision()
     {
-        return $this->belongsTo(\App\Models\Master\Revision::class, 'revision_id');
+        return $this->belongsTo(Revision::class, 'revision_id');
     }
 }

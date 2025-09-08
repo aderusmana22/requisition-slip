@@ -7,6 +7,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Storage; // Import Storage facade
 use Illuminate\View\View;
 
 class ProfileController extends Controller
@@ -26,13 +27,49 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $request->user()->fill($request->validated());
+        // Mengisi data user dari request yang sudah divalidasi
+        $user = $request->user();
+        $user->fill($request->validated());
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
+        // Jika user mengubah email, reset verifikasi email
+        if ($user->isDirty('email')) {
+            $user->email_verified_at = null;
         }
 
-        $request->user()->save();
+        // Menangani unggahan avatar dengan nama file NIK
+        if ($request->hasFile('avatar')) {
+            // PERBAIKAN: Cari dan hapus semua file avatar lama yang cocok dengan NIK.
+            // Ambil semua file dari direktori 'avatar'
+            $allAvatarFiles = Storage::disk('public')->files('avatar');
+
+            // Filter untuk menemukan file yang namanya diawali dengan NIK pengguna.
+            $filesToDelete = array_filter($allAvatarFiles, function ($file) use ($user) {
+                // $file akan berisi path seperti 'avatar/AG1315.jpeg'
+                // basename($file) akan mengambil 'AG1315.jpeg'
+                return str_starts_with(basename($file), $user->nik . '.');
+            });
+
+            if (!empty($filesToDelete)) {
+                Storage::disk('public')->delete($filesToDelete);
+            }
+
+            // ambil ekstensi file (jpg/png/dll)
+            $extension = $request->file('avatar')->getClientOriginalExtension();
+
+            // simpan ke disk "public" (storage/app/public/avatar)
+            // Menggunakan $request->nik karena $user->nik mungkin belum tersimpan jika NIK juga diubah
+            $avatarPath = $request->file('avatar')->storeAs(
+                'avatar',                               // folder di dalam storage/app/public
+                $request->nik . '.' . $extension,       // nama file = NIK.ext
+                'public'                                // pakai disk public, bukan local
+            );
+
+            // simpan path relatif untuk dipanggil dengan asset()
+            $user->avatar = 'storage/' . $avatarPath;
+        }
+
+        // Simpan semua perubahan ke database
+        $user->save();
 
         return Redirect::route('profile.edit')->with('status', 'profile-updated');
     }
@@ -48,6 +85,13 @@ class ProfileController extends Controller
 
         $user = $request->user();
 
+        // Hapus file avatar jika ada sebelum menghapus user
+        if ($user->avatar) {
+            // Perbaikan: Hapus 'storage/' dari path sebelum menghapus file
+            $avatarPathToDelete = str_replace('storage/', '', $user->avatar);
+            Storage::disk('public')->delete($avatarPathToDelete);
+        }
+
         Auth::logout();
 
         $user->delete();
@@ -58,3 +102,4 @@ class ProfileController extends Controller
         return Redirect::to('/');
     }
 }
+
