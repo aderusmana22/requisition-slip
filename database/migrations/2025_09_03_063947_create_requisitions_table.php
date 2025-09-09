@@ -17,13 +17,18 @@ return new class extends Migration
             $table->unsignedBigInteger('customer_id');
             $table->string('no_srs');
             $table->string('account');
-            $table->string('cost_center');
+            $table->string('cost_center')->nullable();
             $table->date('request_date');
             $table->unsignedBigInteger('revision_id')->unique();
             $table->string('category');
             $table->string('sub_category')->nullable();
             $table->string('route_to');
             $table->string('status');
+
+            $table->text('reason_for_replacement')->nullable();
+            $table->text('objectives')->nullable();
+            $table->string('estimated_potential')->nullable();
+            
             $table->timestamps();
 
             $table->foreign('customer_id')->references('id')->on('customers')->onDelete('cascade');

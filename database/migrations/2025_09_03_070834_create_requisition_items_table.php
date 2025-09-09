@@ -18,9 +18,6 @@ return new class extends Migration
             $table->integer('quantity');
             $table->integer('quantity_issued')->nullable();
             $table->string('batch_number')->nullable();
-            $table->text('reason_for_replacement')->nullable();
-            $table->text('objectives')->nullable();
-            $table->string('estimated_potential')->nullable();
             $table->string('remarks')->nullable();
             $table->timestamps();
         });

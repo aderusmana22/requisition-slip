@@ -2,10 +2,13 @@
 
 namespace App\Models\Master;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class ItemDetail extends Model
 {
+    use HasFactory;
+
     protected $table = 'item_details';
 
     protected $fillable = [

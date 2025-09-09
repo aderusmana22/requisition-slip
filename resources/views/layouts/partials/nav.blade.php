@@ -30,6 +30,15 @@
                      <li><a href="{{ route('roles.index') }}">Role</a></li>
                  </ul>
              </li>
+             <li>
+                 <a aria-expanded="false" class="" data-bs-toggle="collapse" href="#master-management">
+                     <i class="iconoir-database"></i> Master Management
+                 </a>
+                 <ul class="collapse" id="master-management">
+                     <li><a href="{{ route('requistion.path') }}">Approval Path</a></li>
+
+                 </ul>
+             </li>
 
              <li class="menu-title"><span>Requisition Slip Form</span></li>
              <li>
@@ -51,6 +60,28 @@
                      <li><a href="{{ route('sample-form.reports') }}">Sample Reports</a></li>
                      <li><a href="{{ route('complain-form.reports') }}">Complain Reports</a></li>
                      <li><a href="{{ route('free-goods.reports') }}">Free Goods Reports</a></li>
+                 </ul>
+             </li>
+             <li class="menu-title"><span>Requisition Slip Approval</span></li>
+             <li>
+                 <a aria-expanded="false" class="" data-bs-toggle="collapse" href="#requisition-slip-approval">
+                     <i class="iconoir-stats-report"></i> Requisition Slip Approval
+                 </a>
+                 <ul class="collapse" id="requisition-slip-approval">
+                     <li><a href="{{ route('sample-form.approval') }}">Sample Approval</a></li>
+                     <li><a href="{{ route('complain-form.approval') }}">Complain Approval</a></li>
+                     <li><a href="{{ route('free-goods.approval') }}">Free Goods Approval</a></li>
+                 </ul>
+             </li>
+             <li class="menu-title"><span>Requisition Slip Approval</span></li>
+             <li>
+                 <a aria-expanded="false" class="" data-bs-toggle="collapse" href="#requisition-slip-log">
+                     <i class="iconoir-stats-report"></i> Requisition Slip Log
+                 </a>
+                 <ul class="collapse" id="requisition-slip-log">
+                     <li><a href="{{ route('sample-form.log') }}">Sample Log</a></li>
+                     <li><a href="{{ route('complain-form.log') }}">Complain Log</a></li>
+                     <li><a href="{{ route('free-goods.log') }}">Free Goods Log</a></li>
                  </ul>
              </li>
          </ul>

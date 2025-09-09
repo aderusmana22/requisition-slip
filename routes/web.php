@@ -8,6 +8,7 @@ use App\Http\Controllers\Master\UserController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Requisition\ComplainController;
 use App\Http\Controllers\Requisition\FreeGoodsController;
+use App\Http\Controllers\Requisition\RequisitionPath;
 use App\Http\Controllers\Requisition\SampleController;
 use Illuminate\Support\Facades\Route;
 
@@ -31,6 +32,16 @@ Route::middleware('auth')->group(function () {
     Route::get('/sample-form/reports', [SampleController::class, 'reports'])->name('sample-form.reports');
     Route::get('/complain-form/reports', [ComplainController::class, 'reports'])->name('complain-form.reports');
     Route::get('/free-goods/reports', [FreeGoodsController::class, 'reports'])->name('free-goods.reports');
+
+    Route::get('/sample-form/approval', [SampleController::class, 'approval'])->name('sample-form.approval');
+    Route::get('/complain-form/approval', [ComplainController::class, 'approval'])->name('complain-form.approval');
+    Route::get('/free-goods/approval', [FreeGoodsController::class, 'approval'])->name('free-goods.approval');
+
+     Route::get('/sample-form/log', [SampleController::class, 'log'])->name('sample-form.log');
+    Route::get('/complain-form/log', [ComplainController::class, 'log'])->name('complain-form.log');
+    Route::get('/free-goods/log', [FreeGoodsController::class, 'log'])->name('free-goods.log');
+
+    Route::get('/requistion/path', [RequisitionPath::class, 'path'])->name('requistion.path');
 });
 
 
