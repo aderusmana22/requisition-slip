@@ -2,10 +2,14 @@
 
 namespace App\Models\Master;
 
+use App\Models\Requisition\Requisition;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Customer extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'name',
         'address',

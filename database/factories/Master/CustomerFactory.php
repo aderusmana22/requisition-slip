@@ -1,7 +1,8 @@
 <?php
 
-namespace Database\Factories;
+namespace Database\Factories\Master;
 
+use App\Models\Master\Customer;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -9,6 +10,8 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class CustomerFactory extends Factory
 {
+    protected $model = Customer::class;
+
     public function definition(): array
     {
         return [
