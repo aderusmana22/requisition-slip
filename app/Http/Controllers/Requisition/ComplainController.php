@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Requisition;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreComplainRequest;
 use App\Models\Requisition\Requisition;
 use Illuminate\Http\Request;
 
@@ -13,13 +14,13 @@ class ComplainController extends Controller
         return view('page.complain.index');
     }
 
-    public function store(Request $request)
+    public function store(StoreComplainRequest $request)
     {
         // Validate and store the complain form data
         // ...
-        $validated = $request->validate();
+        $validated = $request->validated();
 
-        return redirect()->route('complain-form.index')->with('success', 'Complain form submitted successfully.');
+        return redirect()->route('complain-form.index');
     }
 
     public function getData(Request $request)

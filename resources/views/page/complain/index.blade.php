@@ -66,16 +66,15 @@
 
     <!-- Modal Add/Edit User -->
     <div class="modal fade" id="complineModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-dialog modal-dialog-scrollable modal-xl">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title text-white" id="complineModalLabel">Create complain</h5>
-                    <button type="button" class="btn-close m-0 fs-5" data-bs-dismiss="modal"
-                        aria-label="Close"></button>
+                    <button type="button" class="btn-close m-0 fs-5" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <form action="{{ route('complain-form.store') }}" method="POST" data-mode="create" data-id="" id="complineForm">
-                        @csrf
+                    @csrf
                         <header class="row slip-header mb-2 align-items-center">
                             <div class="col-10">
                                 <img src="{{ asset('storage/logo.png') }}" alt="Sinar Meadow Logo" class="logo" style="max-height: 60px; width: auto;">
@@ -101,7 +100,7 @@
                                 <div class="mb-3 row align-items-center">
                                     <label for="customer_name" class="col-sm-4 col-form-label"><strong>Customer Name :</strong></label>
                                     <div class="col-sm-7">
-                                        <input type="text" class="form-control" id="customer_name" name="customer_name" required>
+                                        <input type="text" class="form-control" id="customer_name" name="customer_name">
                                     </div>
                                 </div>
                                 <div class="mb-3 row align-items-center">
@@ -136,12 +135,13 @@
                                 <div class="mb-3 row align-items-center">
                                     <label for="date" class="col-sm-3 col-form-label"><strong>Tanggal :</strong></label>
                                     <div class="col-sm-8">
-                                        <input type="date" class="form-control" id="date" name="date" value="{{ date('Y-m-d') }}" required>
+                                        <input type="date" class="form-control" id="date" name="date" value="{{ date('Y-m-d') }}">
                                     </div>
                                 </div>
                             </div>
                         </div>
                 
+                        <!-- tabel produk -->
                         <div class="row">
                             <div class="col-12">
                                 <table class="table table-bordered slip-table">
@@ -180,15 +180,17 @@
                                 </button>
                             </div>
                         </div>
-                
-                    </div>
-                    <div class="modal-footer">
-                        <button class="btn btn-secondary" type="submit" id="saveUserBtn">
-                            Save changes
-                        </button>
-                    <button class="btn btn-danger" data-bs-dismiss="modal" type="button">Close</button>
-                </form>
                 </div>
+
+                <!-- footer modal -->
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="submit" id="saveUserBtn">
+                        Save changes
+                    </button>
+                    <button class="btn btn-danger" data-bs-dismiss="modal" type="button">Close</button>
+                </div>
+                </form>
+            </div>
         </div>
     </div>
 
@@ -336,7 +338,7 @@
                 let url, method;
 
                 if (mode === 'create') {
-                    url = "{{ route('users.store') }}";
+                    url = "{{ route('complain-form.store') }}";
                     method = "POST";
                 } else {
                     url = "{{ url('users') }}/" + userId;
@@ -357,8 +359,8 @@
                     success: function(res) {
                         $('#complineModal').modal('hide');
                         $('#complainTable').DataTable().ajax.reload(null, false);
-                        successMessage((mode === 'create') ? 'User created successfully' :
-                            'User updated successfully');
+                        successMessage((mode === 'create') ? 'Complain created successfully' :
+                            'Complain updated successfully');
                     },
                     error: function(xhr) {
                         errorMessage(xhr.responseJSON?.message || 'Something went wrong');
@@ -390,14 +392,14 @@
                             },
                             success: function(res) {
                                 $('#users-table').DataTable().ajax.reload(null, false);
-                                successMessage(res.message || 'User deleted successfully!');
+                                successMessage(res.message || 'Complain deleted successfully!');
                             },
                             error: function(xhr) {
-                                errorMessage(xhr.responseJSON?.message || 'Failed to delete user');
+                                errorMessage(xhr.responseJSON?.message || 'Failed to delete complain');
                             }
                         });
                     } else {
-                        warningMessage('User deletion canceled');
+                        warningMessage('Complain deletion canceled');
                     }
                 });
             });
