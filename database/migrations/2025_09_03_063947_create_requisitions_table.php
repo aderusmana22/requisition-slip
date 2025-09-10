@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('account');
             $table->string('cost_center')->nullable();
             $table->date('request_date');
-            $table->unsignedBigInteger('revision_id')->unique();
+            $table->unsignedBigInteger('revision_id')->unique()->nullable();
             $table->string('category');
             $table->string('sub_category')->nullable();
             $table->string('route_to');
