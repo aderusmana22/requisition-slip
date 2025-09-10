@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreignId('item_master_id')->constrained('item_masters')->onDelete('cascade');
             $table->integer('quantity');
             $table->integer('quantity_issued')->nullable();
+            $table->integer('quantity_required')->nullable();
             $table->string('batch_number')->nullable();
             $table->string('remarks')->nullable();
             $table->timestamps();
