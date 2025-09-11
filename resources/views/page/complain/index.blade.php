@@ -140,9 +140,27 @@
                                 </div>
                             </div>
                         </div>
-                
-                        <!-- tabel produk -->
+
+                        <div class="row mb-4">
+                            <div class="col-4">
+                                <label for="requisition_items"><strong>List Product</strong></label>
+                                <select name="requisition_items[]" id="requisition_items" multiple class="form-select" style="display: none;">
+                                </select>
+                            </div>
+                            <div class="col-8">
+                                <label for="objectives"><strong>Objectives</strong></label>
+                                <textarea name="objectives" id="objectives" class="form-control"></textarea>
+                            </div>
+                        </div>
+
                         <div class="row">
+                            <div class="col-12">
+                                <div id="productDetailsContainer"></div>
+                            </div>
+                        </div>
+        
+                        <!-- tabel produk -->
+                        <!-- <div class="row">
                             <div class="col-12">
                                 <table class="table table-bordered slip-table">
                                     <thead>
@@ -179,7 +197,8 @@
                                     <i class="fa fa-plus"></i> Add Product
                                 </button>
                             </div>
-                        </div>
+                        </div> -->
+
                 </div>
 
                 <!-- footer modal -->
@@ -257,18 +276,7 @@
         $(document).ready(function() {
             let customerSelect = $('#customer_id');
             let addressField = $('#customer_address');
-            
-            // === hapus row ===
-            $(document).on('click', '.remove-row-btn', function() {
-                if ($('#product-list tr').length > 1) {
-                    $(this).closest('tr').remove();
-                }
-            });
-
-            // === clear row ===
-            $(document).on('click', '.clear-row-btn', function() {
-                $(this).closest('tr').find('input').val('');
-            });
+            let productselect = $('#requisition_items');
 
             // === DataTable ===
             $('#complainTable').DataTable({
@@ -308,26 +316,11 @@
                 ]
             });
 
-            $('#add-row-btn').on('click', function() {
-                let rowCount = $('#product-list tr').length;
-                let $lastRow = $('#product-list tr:last');
-                let $newRow = $lastRow.clone();
-                $newRow.find('input').each(function() {
-                    let name = $(this).attr('name');
-                    if (name) {
-                        let newName = name.replace(/\[\d+\]/, '[' + rowCount + ']');
-                        $(this).attr('name', newName);
-                    }
-                    $(this).val('');
-                });
-                $('#product-list').append($newRow);
-            });
-
             // === Modal Create ===
             $('#btn-create-compline').on('click', function() {
                 $('#complineForm')[0].reset();
-                $('#product-list tr:not(:first)').remove();
-                $('#product-list tr:first input').val('');
+                $('#requisition_items').empty();
+                $('#product-detail').remove();
                 var today = new Date().toISOString().split('T')[0];
                 $('#date').val(today);
 
@@ -366,6 +359,7 @@
                     }
                 });
 
+                // menarik data account dan serial number dari server
                 $.ajax({
                     url: "{{ route('get.serial') }}",
                     method: "GET",
@@ -381,6 +375,103 @@
                         errorMessage('Failed to generate RS number');
                     }
                 });
+
+                // menarik data product dari server
+                $.ajax({
+                    url: "{{ route('get.product.list') }}",
+                    method: "GET",
+                    success: function(data) {
+                        allProductData = data;
+
+                        productselect.empty();
+                        productselect.append('<option value=""></option>');
+                        data.items.forEach(function (item) {
+                            productselect.append('<option value="' + item.id + '">' + item.item_master_code + ' - ' + item.item_master_name + '</option>');
+                        });
+
+                        productselect.select2({
+                            theme: "bootstrap-5",
+                            placeholder: "Pilih atau cari produk",
+                            allowClear: true,
+                            dropdownParent: $('#complineModal'),
+                            width: '100%'
+                        });
+
+                        productselect.on('change', function () {
+                            const selectedProductIds = $(this).val();
+                            const detailsContainer = $('#productDetailsContainer');
+                            detailsContainer.empty();
+
+                            if (selectedProductIds && selectedProductIds.length > 0) {
+
+                                let tableHTML = `
+                                        <table class="table table-bordered table-striped">
+                                            <thead class="thead-dark">
+                                                <tr>
+                                                    <th>Tipe Material</th>
+                                                    <th>Kode Detail</th>
+                                                    <th>Nama Detail</th>
+                                                    <th>Unit</th>
+                                                    <th>QTY Required</th>
+                                                    <th>QTY Issued</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody> 
+                                    `;
+
+                                selectedProductIds.forEach(function (productId) {
+                                    const selectedProduct = allProductData.items.find(item => item.id == productId);
+
+                                    if (selectedProduct && selectedProduct.details.length > 0) {
+                                        //tableHTML += `
+                                        //    <tr class="table-info">
+                                        //        <td colspan="6" style="text-align: center;">
+                                        //            <strong>Produk: ${selectedProduct.item_master_code} - ${selectedProduct.item_master_name}</strong>
+                                        //        </td>
+                                        //    </tr>
+                                        //`;
+
+                                        selectedProduct.details.forEach(function (detail) {
+                                            tableHTML += `
+                                                <tr>
+                                                    <td>${detail.material_type}</td>
+                                                    <td>${detail.item_detail_code}</td>
+                                                    <td>${detail.item_detail_name}</td>
+                                                    <td>${detail.unit}</td>
+                                                    <td>
+                                                        <input 
+                                                            type="number" 
+                                                            class="form-control" 
+                                                            name="qty_required[${detail.id}]" 
+                                                            placeholder="0">
+                                                    </td>
+                                                    <td>
+                                                        <input 
+                                                            type="number" 
+                                                            class="form-control" 
+                                                            name="qty_issued[${detail.id}]" 
+                                                            placeholder="0">
+                                                    </td>
+                                                </tr>
+                                            `;
+                                        });
+                                    }
+                                });
+
+                                tableHTML += `
+                                        </tbody>
+                                    </table>
+                                `;
+
+                                detailsContainer.html(tableHTML);
+                            }
+                        });
+                    },
+                    error: function() {
+                        productselect.append('<option>produk gagal dimuat</option>');
+                        errorMessage('Failed to fetch product list');
+                    }
+                })
             });
 
             // === Submit Form ===

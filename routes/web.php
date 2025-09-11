@@ -23,7 +23,7 @@ Route::prefix('requisition')->group(function () {
     Route::get('/getComplainData', [ComplainController::class, 'getData'])->name('get.complain.data');
     Route::get('/getCostumerList', [ComplainController::class, 'getCustomerList'])->name('customers.list');
     Route::get('/getSerial', [ComplainController::class, 'getSerial'])->name('get.serial');
-    Route::get('/getCostumer/{id}', [ComplainController::class, 'getCustomerData'])->name('get.customer.data');
+    Route::get('/getProductList', [ComplainController::class, 'getProductList'])->name('get.product.list');
 });
 
 

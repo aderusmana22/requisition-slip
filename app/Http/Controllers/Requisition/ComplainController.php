@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreComplainRequest;
 use App\Models\Master\Customer;
 use App\Models\Master\Department;
+use App\Models\Master\ItemMaster;
 use App\Models\Requisition\Requisition;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -88,8 +89,9 @@ class ComplainController extends Controller
         return response()->json(['series_number' => $seriesNumber, 'account_number' => $accountNumber]);
     }
 
-    public function getCustomerData(Customer $customer)
+    public function getProductList()
     {
-        return response()->json($customer);
+        $items = ItemMaster::with('details')->get();
+        return response()->json(['items' => $items]);
     }
 }

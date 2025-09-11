@@ -29,45 +29,40 @@ class StoreComplainRequest extends FormRequest
             'cost_center'      => 'required|string|max:100',
             'rs_number'        => 'required|string|max:100',
             'date'             => 'required|date',
+            'objectives'       => 'nullable|string',
 
-            // Validasi untuk tabel produk (array)
-            // Pastikan setidaknya ada satu produk yang diinput
-            'codes'            => 'required|array|min:1',
-            'names'            => 'required|array|min:1',
-            'units'            => 'required|array|min:1',
-            'quantities'       => 'required|array|min:1',
-            'objectives'       => 'required|array|min:1',
+            // Validasi untuk array produk
+            'requisition_items'   => 'required|array',
+            'requisition_items.*' => 'required|integer|exists:item_masters,id',
 
-            // Tanda '*' berarti aturan ini berlaku untuk setiap item di dalam array
-            'codes.*'          => 'required|string|max:50',
-            'names.*'          => 'required|string|max:255',
-            'units.*'          => 'required|string|max:50',
-            'quantities.*'     => 'required|integer|min:1',
-            'objectives.*'     => 'nullable|string|max:255',
+            // Validasi untuk QTY Required
+            'qty_required'   => 'required|array',
+            'qty_required.*' => 'required|integer|min:0',
+
+            // Validasi untuk QTY Issued
+            'qty_issued'   => 'required|array',
+            'qty_issued.*' => 'required|integer|min:0|lte:qty_required.*',
         ];
     }
 
     public function messages(): array
     {
         return [
-            'customer_name.required' => 'Nama customer wajib diisi.',
+            'customer_id.required' => 'Nama customer wajib diisi.',
             'customer_address.required' => 'Alamat customer wajib diisi.',
             'date.required' => 'Tanggal wajib diisi.',
             'date.date' => 'Format tanggal tidak valid.',
+            'cost_center.required' => 'Cost center wajib diisi.',
+            'cost_center.max' => 'Cost center maksimal 100 karakter.',
 
-            // Pesan untuk array (jika array kosong)
-            'codes.required' => 'Setidaknya satu produk harus ditambahkan.',
-            'names.required' => 'Setidaknya satu produk harus ditambahkan.',
-            'units.required' => 'Setidaknya satu produk harus ditambahkan.',
-            'quantities.required' => 'Setidaknya satu produk harus ditambahkan.',
-
-            // Pesan untuk setiap item di dalam array
-            'codes.*.required' => 'Kode produk pada baris produk code wajib diisi.',
-            'names.*.required' => 'Nama produk pada baris produk name wajib diisi.',
-            'units.*.required' => 'Unit pada baris unit wajib diisi.',
-            'quantities.*.required' => 'Kuantitas pada baris quantity required wajib diisi.',
-            'quantities.*.integer' => 'Kuantitas pada baris quantity required harus berupa angka.',
-            'quantities.*.min' => 'Kuantitas pada baris quantity required minimal harus 1.',
+            'requisition_items.required' => 'Anda harus memilih minimal satu produk.',
+            'qty_required.required' => 'Harus ada QTY Required.',
+            'qty_issued.required' => 'Harus ada QTY Issued.',
+            'qty_issued.*.lte' => 'Jumlah "Issued" tidak boleh melebihi jumlah "Required" untuk item ini.',
+            'qty_required.*.required' => 'Semua field "QTY Required" wajib diisi.',
+            'qty_issued.*.required' => 'Semua field "QTY Issued" wajib diisi.',
+            '*.integer' => 'Input harus berupa angka.',
+            '*.min' => 'Input tidak boleh bernilai negatif.',
         ];
     }
 }
