@@ -16,9 +16,11 @@ class ComplainController extends Controller
 
     public function store(StoreComplainRequest $request)
     {
-        // Validate and store the complain form data
-        // ...
         $validated = $request->validated();
+
+        $requisition = new Requisition();
+
+        
 
         return redirect()->route('complain-form.index');
     }

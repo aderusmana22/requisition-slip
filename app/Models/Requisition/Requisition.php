@@ -3,6 +3,7 @@
 namespace App\Models\Requisition;
 
 use App\Models\Master\Customer;
+use App\Models\Master\ItemMaster;
 use App\Models\Master\Revision;
 use Illuminate\Database\Eloquent\Model;
 
