@@ -12,22 +12,10 @@ class RequisitionItem extends Model
     protected $fillable = [
         'requisition_id',
         'item_master_id',
-        'quantity',
+        'quantity_required',
         'quantity_issued',
         'batch_number',
-        'reason_for_replacement',
-        'objectives',
-        'estimated_potential',
-        'weight_selection',
-        'packaging_selection',
-        'sample_count',
-        'purpose',
-        'coa_required',
-        'shipment_method',
-        'source',
-        'sample_notes',
-        'production_date',
-        'preparation_method',
+        'remarks',
     ];
 
     public function requisition()

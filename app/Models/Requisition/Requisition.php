@@ -4,11 +4,13 @@ namespace App\Models\Requisition;
 
 use App\Models\Master\Customer;
 use App\Models\Master\Revision;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 
 class Requisition extends Model
 {
     protected $table = 'requisitions';
+    protected $guarded = ['id'];
 
     protected $fillable = [
         'requester_nik',
@@ -23,6 +25,9 @@ class Requisition extends Model
         'sub_category',
         'route_to',
         'status',
+        'objectives',
+        'estimated_potential',
+        'reason_for_replacement',
     ];
 
     // Relasi ke Customer
@@ -35,5 +40,17 @@ class Requisition extends Model
     public function revision()
     {
         return $this->belongsTo(Revision::class, 'revision_id');
+    }
+
+    // Relasi ke RequisitionItem
+    public function requisitionItems()
+    {
+        return $this->hasMany(RequisitionItem::class, 'requisition_id');
+    }
+
+    // Relasi ke User (requester)
+    public function requester()
+    {
+        return $this->belongsTo(User::class, 'requester_nik', 'nik');
     }
 }

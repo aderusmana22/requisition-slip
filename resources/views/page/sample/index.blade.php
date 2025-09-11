@@ -1,50 +1,42 @@
 <x-app-layout>
-    @section('title')
-        Requisition List
-    @endsection
+    @section('title') Sample Requisition @endsection
 
     @push('css')
-        <!-- Select2 CSS -->
-        <link href="{{ asset('assets/vendor/select/select2.min.css') }}" rel="stylesheet" type="text/css">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+    <style>
+        .is-invalid+.select2-container .select2-selection--single {
+            border-color: #dc3545;
+        }
+
+    </style>
     @endpush
 
-    <!-- Breadcrumb -->
     <div class="row m-1">
-        <div class="col-12 ">
-            <h4 class="main-title">Requisition List</h4>
-            <ul class="app-line-breadcrumbs mb-3">
-                <li>
-                    <a class="f-s-14 f-w-500" href="#">
-                        <i class="ph-duotone ph ph-address-book f-s-16"></i> Requisition Form
-                    </a>
-                </li>
-                <li class="active">
-                    <a class="f-s-14 f-w-500" href="#">Requisition List</a>
-                </li>
-            </ul>
+        <div class="col-12">
+            <h4 class="main-title">Sample Requisition List</h4>
         </div>
     </div>
 
-    <!-- Tabel Users -->
     <div class="row">
         <div class="col-12">
             <div class="d-flex justify-content-end mb-3">
-                <button class="btn btn-light-danger btn-md" type="button" data-bs-toggle="modal"
-                    data-bs-target="#userModal" id="btn-create-user">
-                    <i class="ph-bold ph-plus pe-2"></i> Add Requisition
+                <button class="btn btn-danger btn-md" type="button" data-bs-toggle="modal"
+                    data-bs-target="#requisitionModal">
+                    <i class="ph-bold ph-plus pe-2"></i> Add Sample Requisition
                 </button>
             </div>
             <div class="card">
                 <div class="card-body p-0">
-                    <div class="app-scroll table-responsive app-datatable-default">
-                        <table class="w-100 display" id="users-table">
+                    <div class="app-scroll table-responsive">
+                        <table class="w-100 display" id="requisitions-table">
                             <thead>
                                 <tr>
-                                    <th>Nik</th>
-                                    <th>Nama</th>
-                                    <th>Username</th>
-                                    <th>Department</th>
-                                    <th>Email</th>
+                                    <th>#</th>
+                                    <th>Requester</th>
+                                    <th>Customer</th>
+                                    <th>Request Date</th>
                                     <th>Route To</th>
                                     <th>Status</th>
                                     <th>Action</th>
@@ -57,346 +49,290 @@
         </div>
     </div>
 
-    <!-- Modal Add/Edit User -->
-    <div class="modal fade" id="userModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
+    <div class="modal fade" id="requisitionModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered modal-xl">
             <div class="modal-content">
-                <div class="modal-header bg-primary">
-                    <h5 class="modal-title text-white" id="userModalLabel">Create User</h5>
-                    <button type="button" class="btn-close m-0 fs-5" data-bs-dismiss="modal"
-                        aria-label="Close"></button>
+                <div class="modal-header bg-danger">
+                    <h5 class="modal-title text-white">Create Sample Requisition</h5><button type="button"
+                        class="btn-close m-0 fs-5" data-bs-dismiss="modal"></button>
                 </div>
-                <form id="userForm" enctype="multipart/form-data">
+                <form id="requisitionForm" novalidate>
                     @csrf
                     <div class="modal-body">
-                        <div class="row g-3">
-                            <div class="col-12 text-center">
-                                <img id="avatarPreview" src="{{ asset('assets/images/logo/sinarmeadow.png') }}"
-                                    alt="Avatar Preview" class="img-fluid b-r-10 mb-2"
-                                    style="max-width:100px;max-height:100px;">
-                                <input type="file" class="form-control" id="avatar" name="avatar"
-                                    accept="image/*" onchange="previewAvatar(event)">
-                            </div>
-                            <div class="col-12 col-md-6">
-                                <label for="nik" class="form-label">Nik</label>
-                                <input type="text" class="form-control" id="nik" name="nik" required>
-                            </div>
-                            <div class="col-12 col-md-6">
-                                <label for="nama" class="form-label">Nama</label>
-                                <input type="text" class="form-control" id="nama" name="name" required>
-                            </div>
-                            <div class="col-12 col-md-6">
-                                <label for="username" class="form-label">Username</label>
-                                <input type="text" class="form-control" id="username" name="username" required>
-                            </div>
-                            <div class="col-12 col-md-6">
-                                <label for="department_id" class="form-label">Department</label>
-                                <select class="form-select" id="department_id" name="department_id" required>
-                                    <option value="">-- Pilih Department --</option>
-                                    @foreach ($departments as $department)
-                                        <option value="{{ $department->id }}">{{ $department->name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="col-12 col-md-6">
-                                <label for="email" class="form-label">Email</label>
-                                <input type="email" class="form-control" id="email" name="email" required>
-                            </div>
-                            <div class="col-12 col-md-6">
-                                <label for="password" class="form-label">Password</label>
-                                <input type="password" class="form-control" id="password" name="password"
-                                    autocomplete="new-password">
-                            </div>
-                            <div class="col-12 col-md-12">
-                                <div class="select_info">
-                                    <label for="roles" class="form-label">Roles</label>
-                                    <select class="select-basic-multiple-four form-select" style="width: 100%"
-                                        multiple="multiple" id="roles" name="roles[]">
-                                        @foreach ($roles as $role)
-                                            <option value="{{ $role->name }}">{{ $role->name }}</option>
+                        <div class="mb-3"><label for="sub_category" class="form-label fw-bold">1. Pilih Sub
+                                Category</label><select class="form-select" id="sub_category" name="sub_category"
+                                data-placeholder="-- Pilih Sub Category --"></select>
+                            <div class="invalid-feedback"></div>
+                        </div>
+
+                        <div id="mainRequisitionForm" style="display: none;">
+                            <h5 class="mt-4 mb-3 border-bottom pb-2">2. Requisition Details</h5>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="customer_id" class="form-label">Customer</label>
+                                    <select id="customer_id" name="customer_id" class="form-select"
+                                        data-placeholder="-- Pilih Customer --">
+                                        <option></option>
+                                        @foreach($customers as $customer)
+                                        <option value="{{ $customer->id }}">{{ $customer->name }}</option>
                                         @endforeach
                                     </select>
+                                    <div class="invalid-feedback"></div>
                                 </div>
-                            </div>
-                            <div class="col-12 col-md-6" id="row-status" style="display:none;">
-                                <label for="status" class="form-label">Status</label>
-                                <select class="form-select" id="status" name="status" required>
-                                    <option value="active">Active</option>
-                                    <option value="inactive">Inactive</option>
-                                </select>
+                                <div class="col-md-6"><label for="no_srs" class="form-label">No. SRS</label><input
+                                        type="text" class="form-control" id="no_srs" name="no_srs">
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                                <div class="col-md-4"><label for="account" class="form-label">Account</label><input
+                                        type="text" class="form-control" id="account" name="account">
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                                <div class="col-md-4"><label for="cost_center" class="form-label">Cost
+                                        Center</label><input type="text" class="form-control" id="cost_center"
+                                        name="cost_center">
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                                <div class="col-md-4"><label for="request_date" class="form-label">Request
+                                        Date</label><input type="date" class="form-control" id="request_date"
+                                        name="request_date" value="{{ date('Y-m-d') }}">
+                                    <div class="invalid-feedback"></div>
+                                </div>
+
+                                {{-- Objectives & Est. Potential DIHAPUS DARI SINI --}}
                             </div>
 
+                            <hr class="my-4">
+
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="mb-0">3. Item Details</h5><button type="button"
+                                    class="btn btn-sm btn-primary" id="add-item-btn"><i class="fas fa-plus pe-1"></i>
+                                    Add Item</button>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-bordered align-middle">
+                                    <thead class="table-light">
+                                        <tr>
+                                            {{-- PERBAIKAN PADA HEADER TABEL --}}
+                                            <th style="width: 30%;">Product</th>
+                                            <th>Unit</th>
+                                            <th>Qty Req.</th>
+                                            <th>Qty Issued</th>
+                                            <th>Objectives</th>
+                                            <th>Est. Potential</th>
+                                            <th class="text-center">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="items-container"></tbody>
+                                </table>
+                            </div>
+                            <div id="item-validation-error" class="text-danger mt-2"></div>
                         </div>
                     </div>
-                    <div class="modal-footer">
-                        <button class="badge text-light-primary fs-6" type="submit" id="saveUserBtn">
-                            Save changes
-                        </button>
-                        <button class="btn btn-light-secondary" data-bs-dismiss="modal" type="button">Close</button>
-                    </div>
+                    <div class="modal-footer"><button class="btn btn-primary" type="submit" id="saveRequisitionBtn">Save
+                            changes</button><button class="btn btn-light-secondary" data-bs-dismiss="modal"
+                            type="button">Close</button></div>
                 </form>
             </div>
         </div>
     </div>
 
+    {{-- Template untuk Baris Item (Diperbarui) --}}
+    <table style="display: none;">
+        <tr id="item-row-template">
+            <td><select class="form-control select-product" name="items[__INDEX__][item_master_id]"></select>
+                <div class="invalid-feedback"></div>
+            </td>
+            <td><input type="text" class="form-control item-unit bg-light" readonly></td>
+            <td><input type="number" class="form-control" name="items[__INDEX__][quantity_required]" min="1">
+                <div class="invalid-feedback"></div>
+            </td>
+            <td><input type="number" class="form-control bg-light" name="items[__INDEX__][quantity_issued]" value="0"
+                    readonly></td>
+            {{-- INPUT DIKEMBALIKAN KE SINI --}}
+            <td><textarea class="form-control" name="items[__INDEX__][objectives]" rows="1"></textarea>
+                <div class="invalid-feedback"></div>
+            </td>
+            <td><input type="text" class="form-control" name="items[__INDEX__][estimated_potential]">
+                <div class="invalid-feedback"></div>
+            </td>
+            <td class="text-center"><button type="button" class="btn btn-danger btn-sm remove-item-btn"><i
+                        class="fas fa-trash"></i></button></td>
+        </tr>
+    </table>
+
     @push('scripts')
-        <!-- Select2 -->
-        <script src="{{ asset('assets/vendor/select/select2.min.js') }}"></script>
-        <!--js-->
-        <script src="{{ asset('assets') }}/js/select.js"></script>
-        <!-- SweetAlert -->
-        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    {{-- SCRIPT DI BAWAH INI TIDAK ADA PERUBAHAN --}}
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        $(document).ready(function () {
+            let itemIndex = 0;
+            const modalElement = document.getElementById('requisitionModal');
+            const requisitionModal = new bootstrap.Modal(modalElement);
+            const successMessage = (msg) => Swal.fire({
+                icon: 'success',
+                title: 'Success',
+                text: msg,
+                timer: 1500,
+                showConfirmButton: false
+            });
+            const errorMessage = (msg, title = 'Error') => Swal.fire({
+                icon: 'error',
+                title: title,
+                text: msg
+            });
 
-        <script>
-            // === SweetAlert2 Reusable Functions ===
-            function successMessage(message, title = 'Success', timer = 1500) {
-                Swal.fire({
-                    icon: 'success',
-                    title: title,
-                    text: message,
-                    timer: timer,
-                    showConfirmButton: false
-                });
-            }
-
-            function errorMessage(message, title = 'Error') {
-                Swal.fire({
-                    icon: 'error',
-                    title: title,
-                    text: message
-                });
-            }
-
-            function warningMessage(message, title = 'Warning') {
-                Swal.fire({
-                    icon: 'warning',
-                    title: title,
-                    text: message
-                });
-            }
-
-            // confirmDialog: returns a Promise, so you can use .then()
-            function confirmDialog({
-                title = 'Are you sure?',
-                text = 'This action cannot be undone!',
-                confirmButtonText = 'Yes',
-                cancelButtonText = 'Cancel',
-                confirmButtonColor = '#3085d6',
-                cancelButtonColor = '#d33',
-                icon = 'warning',
-                reverseButtons = true
-            } = {}) {
-                return Swal.fire({
-                    title,
-                    text,
-                    icon,
-                    showCancelButton: true,
-                    confirmButtonColor,
-                    cancelButtonColor,
-                    confirmButtonText,
-                    cancelButtonText,
-                    reverseButtons
-                });
-            }
-
-            $(document).ready(function() {
-                // === DataTable ===
-                $('#users-table').DataTable({
-                    processing: true,
-                    serverSide: true,
-                    ajax: {
-                        url: "{{ route('users.data') }}"
+            const table = $('#requisitions-table').DataTable({
+                processing: true,
+                serverSide: true,
+                ajax: "{{ route('sample.data') }}",
+                columns: [{
+                        data: 'DT_RowIndex',
+                        name: 'DT_RowIndex',
+                        orderable: false,
+                        searchable: false
                     },
-                    columns: [{
-                            data: 'nik',
-                            name: 'nik'
-                        },
-                        {
-                            data: 'name',
-                            name: 'name'
-                        },
-                        {
-                            data: 'username',
-                            name: 'username'
-                        },
-                        {
-                            data: 'department',
-                            name: 'department'
-                        },
-                        {
-                            data: 'email',
-                            name: 'email'
-                        },
-                        {
-                            data: 'roles',
-                            name: 'roles',
-                            orderable: false,
-                            searchable: false
-                        },
-                        {
-                            data: 'status',
-                            name: 'status',
-                            render: function(data, type, row) {
-                                if (data === 'active') {
-                                    return '<span class="badge bg-success">Active</span>';
-                                } else {
-                                    return '<span class="badge bg-danger">Non Active</span>';
-                                }
-                            }
-                        },
-                        {
-                            data: 'action',
-                            name: 'action',
-                            orderable: false,
-                            searchable: false
+                    {
+                        data: 'requester_name',
+                        name: 'requester.name'
+                    },
+                    {
+                        data: 'customer_name',
+                        name: 'customer.name'
+                    },
+                    {
+                        data: 'request_date',
+                        name: 'request_date'
+                    },
+                    {
+                        data: 'route_to',
+                        name: 'route_to'
+                    },
+                    {
+                        data: 'status',
+                        name: 'status'
+                    },
+                    {
+                        data: 'action',
+                        name: 'action',
+                        orderable: false,
+                        searchable: false
+                    }
+                ]
+            });
+
+            // Inisialisasi Select2
+            const commonSelect2Options = {
+                theme: 'bootstrap-5',
+                dropdownParent: $('#requisitionModal'),
+                allowClear: true
+            };
+
+            // === BAGIAN YANG DIPERBAIKI ===
+            // Ambil data sub category yang sudah difilter dari controller
+            const allowedSubCategories = @json($allowedSubCategories);
+
+            $('#sub_category').select2({
+                ...commonSelect2Options,
+                // Gunakan data dinamis tersebut, tambahkan opsi placeholder
+                data: [{
+                    id: '',
+                    text: '-- Pilih Sub Category --'
+                }].concat(allowedSubCategories)
+            });
+
+            $('#customer_id').select2({
+                ...commonSelect2Options
+            });
+
+            const resetModal = () => {
+                $('#requisitionForm')[0].reset();
+                $('#mainRequisitionForm').hide();
+                $('#items-container').empty();
+                itemIndex = 0;
+                $('.is-invalid').removeClass('is-invalid');
+                $('.invalid-feedback, #item-validation-error').text('');
+                $('#sub_category, #customer_id').val(null).trigger('change');
+            };
+            modalElement.addEventListener('hidden.bs.modal', resetModal);
+
+            $('#sub_category').on('change', function () {
+                $(this).val() ? $('#mainRequisitionForm').slideDown() : $('#mainRequisitionForm')
+                    .slideUp();
+            });
+
+            const initProductSelect = (element) => {
+                element.select2({
+                        ...commonSelect2Options,
+                        placeholder: 'Cari produk...',
+                        ajax: {
+                            url: "{{ route('sample.searchItems') }}",
+                            dataType: 'json',
+                            delay: 250,
+                            processResults: data => ({
+                                results: data
+                            }),
+                            cache: true
                         }
-                    ]
-                });
+                    })
+                    .on('select2:select', e => $(e.currentTarget).closest('tr').find('.item-unit').val(e
+                        .params.data.unit || 'N/A'));
+            };
 
-                // === Select2 ===
-                $('#roles').select2({
-                    dropdownParent: $('#userModal'),
-                    placeholder: "Pilih Roles"
-                });
+            $('#add-item-btn').on('click', () => {
+                const newRowHtml = $('#item-row-template').html().replace(/__INDEX__/g, itemIndex);
+                $('#items-container').append(`<tr>${newRowHtml}</tr>`);
+                initProductSelect($(`select[name="items[${itemIndex}][item_master_id]"]`));
+                itemIndex++;
+            });
 
-                // === Avatar Preview ===
-                window.previewAvatar = function(event) {
-                    const input = event.target;
-                    const preview = $('#avatarPreview');
-                    if (input.files && input.files[0]) {
-                        const reader = new FileReader();
-                        reader.onload = e => preview.attr('src', e.target.result);
-                        reader.readAsDataURL(input.files[0]);
-                    }
-                };
+            $('#items-container').on('click', '.remove-item-btn', function () {
+                $(this).closest('tr').remove();
+            });
 
-                // === Modal Create ===
-                $('#btn-create-user').on('click', function() {
-                    $('#userModalLabel').text('Create User');
-                    $('#userForm')[0].reset();
-                    $('#password').val('');
-                    $('#avatarPreview').attr('src', '{{ asset('assets/images/logo/sinarmeadow.png') }}');
-                    $('#roles').val(null).trigger('change');
+            $('#requisitionForm').on('submit', function (e) {
+                e.preventDefault();
+                const btn = $('#saveRequisitionBtn');
+                btn.prop('disabled', true).html(
+                    '<span class="spinner-border spinner-border-sm"></span> Saving...');
+                $('.is-invalid').removeClass('is-invalid');
+                $('.invalid-feedback, #item-validation-error').text('');
 
-                    $('#userForm').attr('data-mode', 'create').removeAttr('data-id');
-
-                    // Hide status field on create
-                    $('#row-status').hide();
-
-                    // clear error state kalau ada
-                    $('#userForm .is-invalid').removeClass('is-invalid');
-                    $('#userForm .invalid-feedback').remove();
-                });
-
-                // === Modal Edit ===
-                $(document).on('click', '.btn-edit-user', function() {
-                    const btn = $(this);
-                    $('#userModalLabel').text('Edit User');
-
-                    $('#nik').val(btn.data('nik'));
-                    $('#nama').val(btn.data('name'));
-                    $('#username').val(btn.data('username'));
-                    $('#department_id').val(btn.data('department_id'));
-                    $('#email').val(btn.data('email'));
-                    $('#password').val('');
-                    $('#roles').val(btn.data('roles')).trigger('change');
-
-                    let avatar = btn.data('avatar');
-                    if (avatar) {
-                        $('#avatarPreview').attr('src', avatar.startsWith('http') ? avatar : avatar);
-                    } else {
-                        $('#avatarPreview').attr('src', '{{ asset('assets/images/logo/sinarmeadow.png') }}');
-                    }
-
-                    $('#userForm').attr('data-mode', 'edit').attr('data-id', btn.data('id'));
-
-                    // Show status field on edit
-                    $('#row-status').show();
-                    // Set status value if available
-                    if (btn.data('status')) {
-                        $('#status').val(btn.data('status'));
-                    } else {
-                        $('#status').val('active');
-                    }
-
-                    new bootstrap.Modal(document.getElementById('userModal')).show();
-                });
-
-                // === Submit Form ===
-                $('#userForm').on('submit', function(e) {
-                    e.preventDefault();
-
-                    let mode = $(this).attr('data-mode');
-                    let userId = $(this).attr('data-id');
-                    let url, method;
-
-                    if (mode === 'create') {
-                        url = "{{ route('users.store') }}";
-                        method = "POST";
-                    } else {
-                        url = "{{ url('users') }}/" + userId;
-                        method = "POST"; // tetap POST, override pakai _method
-                    }
-
-                    let formData = new FormData(this);
-                    if (mode === 'edit') {
-                        formData.append('_method', 'PUT'); // override
-                    }
-
-                    $.ajax({
-                        url: url,
-                        method: method,
-                        data: formData,
-                        processData: false,
-                        contentType: false,
-                        success: function(res) {
-                            $('#userModal').modal('hide');
-                            $('#users-table').DataTable().ajax.reload(null, false);
-                            successMessage((mode === 'create') ? 'User created successfully' :
-                                'User updated successfully');
-                        },
-                        error: function(xhr) {
-                            errorMessage(xhr.responseJSON?.message || 'Something went wrong');
-                        }
-                    });
-                });
-
-                // === SweetAlert Delete ===
-                $(document).on('click', '.delete-user-btn', function(e) {
-                    e.preventDefault();
-                    const btn = $(this);
-                    confirmDialog({
-                        title: 'Are you sure?',
-                        text: 'This action cannot be undone!',
-                        confirmButtonText: 'Yes, delete it!',
-                        cancelButtonText: 'Cancel',
-                        confirmButtonColor: '#d33',
-                        cancelButtonColor: '#6c757d',
-                        icon: 'warning',
-                        reverseButtons: true
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            $.ajax({
-                                url: btn.closest('form').attr('action'),
-                                method: 'POST',
-                                data: {
-                                    _method: 'DELETE',
-                                    _token: '{{ csrf_token() }}'
-                                },
-                                success: function(res) {
-                                    $('#users-table').DataTable().ajax.reload(null, false);
-                                    successMessage(res.message || 'User deleted successfully!');
-                                },
-                                error: function(xhr) {
-                                    errorMessage(xhr.responseJSON?.message || 'Failed to delete user');
-                                }
+                $.ajax({
+                    url: "{{ route('sample-form.store') }}",
+                    method: "POST",
+                    data: $(this).serialize(),
+                    success: (res) => {
+                        requisitionModal.hide();
+                        table.ajax.reload(null, false);
+                        successMessage(res.message);
+                    },
+                    error: (xhr) => {
+                        if (xhr.status === 422) {
+                            const errors = xhr.responseJSON.errors;
+                            if (errors.items) $('#item-validation-error').text(errors.items[
+                                0]);
+                            $.each(errors, (key, value) => {
+                                const name = key.replace(/\./g, '\\][').replace(/^/,
+                                    '[') + ']';
+                                const input = $(
+                                    `[name="${key}"], [name^="${name.substring(0, name.indexOf('['))}"]`
+                                ).last();
+                                input.addClass('is-invalid').closest('td, div')
+                                    .find('.invalid-feedback').text(value[0]);
                             });
+                            errorMessage('Periksa kembali data yang Anda masukkan.',
+                                'Validasi Gagal');
                         } else {
-                            warningMessage('User deletion canceled');
+                            errorMessage(xhr.responseJSON.message ||
+                                'Terjadi kesalahan tak terduga.');
                         }
-                    });
+                    },
+                    complete: () => btn.prop('disabled', false).html('Save changes')
                 });
             });
-        </script>
+        });
+
+    </script>
     @endpush
 </x-app-layout>

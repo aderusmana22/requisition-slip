@@ -26,8 +26,8 @@ Route::middleware('auth')->group(function () {
 
     // Requisition Routes
     Route::resource('sample-form', SampleController::class);
-    Route::post('sample-form/{sample_form}/approve', [SampleController::class, 'approve'])->name('sample-form.approve');
-    Route::post('sample-form/{sample_form}/reject', [SampleController::class, 'reject'])->name('sample-form.reject');
+    Route::get('/sample-data', [SampleController::class, 'getData'])->name('sample.data');
+    Route::get('/search-items', [SampleController::class, 'searchItems'])->name('sample.searchItems');
 
     Route::resource('complain-form', ComplainController::class);
     Route::resource('free-goods', FreeGoodsController::class);
