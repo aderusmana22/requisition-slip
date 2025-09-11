@@ -12,8 +12,8 @@
         background-color: #f8f8f8;
     }
     </style>
-    <!-- Select2 CSS -->
-    <link href="{{ asset('assets/vendor/select/select2.min.css') }}" rel="stylesheet" type="text/css">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
     @endpush
 
     <!-- Breadcrumb -->
@@ -65,7 +65,7 @@
     </div>
 
     <!-- Modal Add/Edit User -->
-    <div class="modal fade" id="complineModal" tabindex="-1" aria-hidden="true">
+    <div class="modal fade" id="complineModal" aria-hidden="true">
         <div class="modal-dialog modal-dialog-scrollable modal-xl">
             <div class="modal-content">
                 <div class="modal-header">
@@ -98,15 +98,16 @@
                         <div class="row mb-4 g-2">
                             <div class="col">
                                 <div class="mb-3 row align-items-center">
-                                    <label for="customer_name" class="col-sm-4 col-form-label"><strong>Customer Name :</strong></label>
+                                    <label for="customer_id" class="col-sm-4 col-form-label"><strong>Customer Name :</strong></label>
                                     <div class="col-sm-7">
-                                        <input type="text" class="form-control" id="customer_name" name="customer_name">
+                                        <select name="customer_id" id="customer_id" class="form-select">
+                                        </select>
                                     </div>
                                 </div>
                                 <div class="mb-3 row align-items-center">
                                     <label for="customer_address" class="col-sm-4 col-form-label"><strong>Customer Address :</strong></label>
                                     <div class="col-sm-7">
-                                        <textarea class="form-control" id="customer_address" name="customer_address" rows="2"></textarea>
+                                        <textarea class="form-control" id="customer_address" name="customer_address" rows="2" readonly></textarea>
                                     </div>
                                 </div>
                             </div>
@@ -114,7 +115,8 @@
                                 <div class="mb-3 row align-items-center">
                                     <label for="account" class="col-sm-3 col-form-label"><strong>Account :</strong></label>
                                     <div class="col-sm-8">
-                                        <input type="text" class="form-control" id="account" name="account">
+                                        <h5 id="account_display" style="font-weight: bold; text-align: center;"></h5>
+                                        <input type="hidden" class="form-control" id="account" name="account">
                                     </div>
                                 </div>
                                 <div class="mb-3 row align-items-center">
@@ -126,10 +128,8 @@
                                 <div class="mb-3 row align-items-center">
                                     <label for="rs_number" class="col-sm-3 col-form-label"><strong>Nomor RS :</strong></label>
                                     <div class="col-sm-8">
-                                        <div class="input-group">
-                                            <span class="input-group-text">S</span>
-                                            <input type="text" class="form-control" id="rs_number" name="rs_number">
-                                        </div>
+                                        <h5 id="rs_number_display" style="font-weight: bold; text-align: center;"></h5>
+                                        <input type="hidden" class="form-control" id="rs_number" name="rs_number">
                                     </div>
                                 </div>
                                 <div class="mb-3 row align-items-center">
@@ -196,7 +196,7 @@
 
     @push('scripts')
     <!-- Select2 -->
-    <script src="{{ asset('assets/vendor/select/select2.min.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <!--js-->
     <script src="{{ asset('assets') }}/js/select.js"></script>
     <!-- SweetAlert -->
@@ -255,6 +255,9 @@
         }
 
         $(document).ready(function() {
+            let customerSelect = $('#customer_id');
+            let addressField = $('#customer_address');
+            
             // === hapus row ===
             $(document).on('click', '.remove-row-btn', function() {
                 if ($('#product-list tr').length > 1) {
@@ -327,6 +330,57 @@
                 $('#product-list tr:first input').val('');
                 var today = new Date().toISOString().split('T')[0];
                 $('#date').val(today);
+
+                // menarik data costumer dari server
+                $.ajax({
+                    url: "{{ route('customers.list') }}",
+                    method: "GET",
+                    success: function(data) {
+
+                        customerSelect.empty();
+                        customerSelect.append('<option value=""></option>');
+                        data.forEach(function(customer) {
+                            customerSelect.append('<option value="' + customer.id + '">' + customer.name + '</option>');
+                        });
+
+                        customerSelect.select2({
+                            theme: "bootstrap-5",
+                            placeholder: "Pilih atau cari customer",
+                            allowClear: true,
+                            dropdownParent: $('#complineModal')
+                        });
+
+                        customerSelect.on('change', function() {
+                            let selectedCustomer = $(this).val();
+                            if (!selectedCustomer) {
+                                addressField.val('');
+                                return;
+                            }
+                            let selectedAddress = data.find(c => c.id == selectedCustomer)?.address || '';
+                            addressField.val(selectedAddress);
+                            
+                        });
+                    },
+                    error: function() {
+                        errorMessage('Failed to load customers');
+                    }
+                });
+
+                $.ajax({
+                    url: "{{ route('get.serial') }}",
+                    method: "GET",
+                    success: function(data) {
+                        // menampilkan nomor account dan serial number di modal
+                        $('#account_display').text(data.account_number);
+                        $('#account').val(data.account_number);
+                        $('#rs_number_display').text(data.series_number);
+                        $('#rs_number').val(data.series_number);
+                    },
+                    error: function() {
+                        $('#rs_number_display').text('serial number gagal dibuat');
+                        errorMessage('Failed to generate RS number');
+                    }
+                });
             });
 
             // === Submit Form ===

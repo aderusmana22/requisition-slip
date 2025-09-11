@@ -23,7 +23,7 @@ class StoreComplainRequest extends FormRequest
     {
         return [
             // Validasi untuk data utama
-            'customer_name'    => 'required|string|max:255',
+            'customer_id'    => 'required|string|max:255',
             'customer_address' => 'required|string',
             'account'          => 'required|string|max:100',
             'cost_center'      => 'required|string|max:100',
