@@ -26,6 +26,7 @@
                  <ul class="collapse" id="master-data">
                      <li><a href="{{ route('users.index') }}">Users</a></li>
                      <li><a href="{{ route('departments.index') }}">Department</a></li>
+                        <li><a href="{{ route('customers.index') }}">Customer</a></li>
                      <li><a href="{{ route('permissions.index') }}">Permission</a></li>
                      <li><a href="{{ route('roles.index') }}">Role</a></li>
                  </ul>

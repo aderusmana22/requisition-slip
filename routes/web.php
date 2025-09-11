@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Master\DepartmentController;
+use App\Http\Controllers\Master\CustomerController;
 use App\Http\Controllers\Master\PermissionController;
 use App\Http\Controllers\Master\RoleController;
 use App\Http\Controllers\Master\UserController;
@@ -28,9 +29,11 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-
-
+    // Requisition Routes
     Route::resource('sample-form', SampleController::class);
+    Route::get('/sample-data', [SampleController::class, 'getData'])->name('sample.data');
+    Route::get('/search-items', [SampleController::class, 'searchItems'])->name('sample.searchItems');
+
     Route::resource('complain-form', ComplainController::class);
     Route::resource('free-goods', FreeGoodsController::class);
 
@@ -56,6 +59,7 @@ Route::group(['middleware' => ['role:super-admin|admin']], function () {
     Route::resource('users', UserController::class);
     Route::get('/users-data', [UserController::class, 'getData'])->name('users.data');
     Route::resource('departments', DepartmentController::class);
+    Route::resource('customers', CustomerController::class);
     Route::resource('permissions', PermissionController::class);
     Route::resource('roles', RoleController::class);
     Route::get('roles/{roleId}/give-permissions', [RoleController::class, 'addPermissionToRole'])->name('roles.give-permissions');

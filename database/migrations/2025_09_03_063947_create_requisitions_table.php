@@ -28,7 +28,7 @@ return new class extends Migration
             $table->text('reason_for_replacement')->nullable();
             $table->text('objectives')->nullable();
             $table->string('estimated_potential')->nullable();
-            
+
             $table->timestamps();
 
             $table->foreign('customer_id')->references('id')->on('customers')->onDelete('cascade');
