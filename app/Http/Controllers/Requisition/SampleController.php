@@ -122,8 +122,8 @@ class SampleController extends Controller
                 'sub_category'      => $request->sub_category,
                 'route_to'          => $routeTo, // Menggunakan $routeTo dari logika baru
                 'status'            => 'PENDING',
-                'objectives'        => $request->items[0]['objectives'],
-                'estimated_potential' => $request->items[0]['estimated_potential'],
+                'objectives'        => $request->objectives,
+                'estimated_potential' => $request->estimated_potential,
             ]);
 
             foreach ($request->items as $itemData) {

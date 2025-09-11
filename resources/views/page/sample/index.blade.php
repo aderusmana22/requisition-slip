@@ -14,8 +14,18 @@
     @endpush
 
     <div class="row m-1">
-        <div class="col-12">
+        <div class="col-12 ">
             <h4 class="main-title">Sample Requisition List</h4>
+            <ul class="app-line-breadcrumbs mb-3">
+                <li>
+                    <a class="f-s-14 f-w-500" href="#">
+                        <i class="ph-duotone ph ph-address-book f-s-16"></i> Requisition Slip Form
+                    </a>
+                </li>
+                <li class="active">
+                    <a class="f-s-14 f-w-500" href="#">Sample Requisition List</a>
+                </li>
+            </ul>
         </div>
     </div>
 
@@ -24,7 +34,7 @@
             <div class="d-flex justify-content-end mb-3">
                 <button class="btn btn-danger btn-md" type="button" data-bs-toggle="modal"
                     data-bs-target="#requisitionModal">
-                    <i class="ph-bold ph-plus pe-2"></i> Add Sample Requisition
+                    <i class="ph-bold ph-plus pe-2"></i> Add Sample
                 </button>
             </div>
             <div class="card">
@@ -33,7 +43,7 @@
                         <table class="w-100 display" id="requisitions-table">
                             <thead>
                                 <tr>
-                                    <th>#</th>
+                                    <th>No</th>
                                     <th>Requester</th>
                                     <th>Customer</th>
                                     <th>Request Date</th>
@@ -69,7 +79,7 @@
                             <h5 class="mt-4 mb-3 border-bottom pb-2">2. Requisition Details</h5>
                             <div class="row g-3">
                                 <div class="col-md-6">
-                                    <label for="customer_id" class="form-label">Customer</label>
+                                    <label for="customer_id" class="form-label">Customer<i class="text-danger">*</i><i class="text-danger">*</i></label>
                                     <select id="customer_id" name="customer_id" class="form-select"
                                         data-placeholder="-- Pilih Customer --">
                                         <option></option>
@@ -79,26 +89,40 @@
                                     </select>
                                     <div class="invalid-feedback"></div>
                                 </div>
-                                <div class="col-md-6"><label for="no_srs" class="form-label">No. SRS</label><input
-                                        type="text" class="form-control" id="no_srs" name="no_srs">
+                                <div class="col-md-6">
+                                    <label for="no_srs" class="form-label">No. SRS<i class="text-danger">*</i></label>
+                                    <input type="text" class="form-control" id="no_srs" name="no_srs">
                                     <div class="invalid-feedback"></div>
                                 </div>
-                                <div class="col-md-4"><label for="account" class="form-label">Account</label><input
-                                        type="text" class="form-control" id="account" name="account">
+                                <div class="col-md-4">
+                                    <label for="account" class="form-label">Account<i class="text-danger">*</i></label>
+                                    <input type="text" class="form-control" id="account" name="account">
                                     <div class="invalid-feedback"></div>
                                 </div>
-                                <div class="col-md-4"><label for="cost_center" class="form-label">Cost
-                                        Center</label><input type="text" class="form-control" id="cost_center"
+                                <div class="col-md-4">
+                                    <label for="cost_center" class="form-label">Cost Center<i class="text-danger">*</i></label>
+                                        <input type="text" class="form-control" id="cost_center"
                                         name="cost_center">
                                     <div class="invalid-feedback"></div>
                                 </div>
-                                <div class="col-md-4"><label for="request_date" class="form-label">Request
-                                        Date</label><input type="date" class="form-control" id="request_date"
+                                <div class="col-md-4">
+                                    <label for="request_date" class="form-label">Request Date<i class="text-danger">*</i></label>
+                                        <input type="date" class="form-control" id="request_date"
                                         name="request_date" value="{{ date('Y-m-d') }}">
                                     <div class="invalid-feedback"></div>
                                 </div>
-
-                                {{-- Objectives & Est. Potential DIHAPUS DARI SINI --}}
+                                <div class="col-md-4">
+                                    <label for="objectives" class="form-label">Objectives<i class="text-danger">*</i></label>
+                                        <input type="text" class="form-control" id="objectives" name="objectives">
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="estimated_potential" class="form-label">Estimate Potential<i class="text-danger">*</i></label>
+                                        <textarea type="text" class="form-control"
+                                        id="estimated_potential" name="estimated_potential">
+                                    </textarea>
+                                    <div class="invalid-feedback"></div>
+                                </div>
                             </div>
 
                             <hr class="my-4">
@@ -117,8 +141,6 @@
                                             <th>Unit</th>
                                             <th>Qty Req.</th>
                                             <th>Qty Issued</th>
-                                            <th>Objectives</th>
-                                            <th>Est. Potential</th>
                                             <th class="text-center">Action</th>
                                         </tr>
                                     </thead>
@@ -142,19 +164,13 @@
             <td><select class="form-control select-product" name="items[__INDEX__][item_master_id]"></select>
                 <div class="invalid-feedback"></div>
             </td>
-            <td><input type="text" class="form-control item-unit bg-light" readonly></td>
-            <td><input type="number" class="form-control" name="items[__INDEX__][quantity_required]" min="1">
+            <td><input type="text" class="form-control item-unit" readonly></td>
+            <td><input type="number" class="form-control" name="items[__INDEX__][quantity_required]" min="10">
                 <div class="invalid-feedback"></div>
             </td>
-            <td><input type="number" class="form-control bg-light" name="items[__INDEX__][quantity_issued]" value="0"
-                    readonly></td>
-            {{-- INPUT DIKEMBALIKAN KE SINI --}}
-            <td><textarea class="form-control" name="items[__INDEX__][objectives]" rows="1"></textarea>
-                <div class="invalid-feedback"></div>
-            </td>
-            <td><input type="text" class="form-control" name="items[__INDEX__][estimated_potential]">
-                <div class="invalid-feedback"></div>
-            </td>
+
+            {{-- PERBAIKAN: Hapus readonly, value, dan class --}}
+            <td><input type="number" class="form-control" name="items[__INDEX__][quantity_issued]" min="10"></td>
             <td class="text-center"><button type="button" class="btn btn-danger btn-sm remove-item-btn"><i
                         class="fas fa-trash"></i></button></td>
         </tr>

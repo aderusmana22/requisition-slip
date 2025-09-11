@@ -24,8 +24,8 @@ class StoreSampleRequisitionRequest extends FormRequest
             'items.*.item_master_id'    => 'required|exists:item_masters,id',
             'items.*.quantity_required'   => 'required|integer|min:1',
             'items.*.quantity_issued'     => 'required|integer|min:0',
-            'items.*.objectives'          => 'required|string',
-            'items.*.estimated_potential' => 'required|string',
+            'objectives'          => 'required|string',
+            'estimated_potential' => 'required|string',
         ];
     }
 
@@ -36,8 +36,8 @@ class StoreSampleRequisitionRequest extends FormRequest
             'items.required' => 'Minimal harus ada 1 item yang ditambahkan.',
             'items.*.item_master_id.required' => 'Produk wajib dipilih.',
             'items.*.quantity_required.required' => 'Qty Required wajib diisi.',
-            'items.*.objectives.required' => 'Objectives wajib diisi.',
-            'items.*.estimated_potential.required' => 'Estimasi Potensi wajib diisi.',
+            'objectives.required' => 'Objectives wajib diisi.',
+            'estimated_potential.required' => 'Estimasi Potensi wajib diisi.',
         ];
     }
 }
