@@ -42,6 +42,9 @@ class StoreComplainRequest extends FormRequest
             // Validasi untuk QTY Issued
             'qty_issued'   => 'required|array',
             'qty_issued.*' => 'required|integer|min:0|lte:qty_required.*',
+
+            'material_type' => 'required|array',
+            'material_type.*' => 'required|string|in:Raw,Semi-Finished,Finished',
         ];
     }
 
@@ -55,12 +58,15 @@ class StoreComplainRequest extends FormRequest
             'cost_center.required' => 'Cost center wajib diisi.',
             'cost_center.max' => 'Cost center maksimal 100 karakter.',
 
+            'material_type.required' => 'Anda harus memilih minimal satu tipe material.',
+            'material_type.*.in' => 'Tipe material tidak valid. Pilihan yang tersedia: Raw, Semi-Finished, Finished.',
+
             'requisition_items.required' => 'Anda harus memilih minimal satu produk.',
-            'qty_required.required' => 'Harus ada QTY Required.',
-            'qty_issued.required' => 'Harus ada QTY Issued.',
-            'qty_issued.*.lte' => 'Jumlah "Issued" tidak boleh melebihi jumlah "Required" untuk item ini.',
-            'qty_required.*.required' => 'Semua field "QTY Required" wajib diisi.',
-            'qty_issued.*.required' => 'Semua field "QTY Issued" wajib diisi.',
+            'qty_required.required' => 'Harus ada quantity Required.',
+            'qty_issued.required' => 'Harus ada quantity Issued.',
+            'qty_issued.*.lte' => 'quantity tidak boleh melebihi jumlah Required.',
+            'qty_required.*.required' => 'quantity Required wajib diisi.',
+            'qty_issued.*.required' => 'quantity Issued wajib diisi.',
             '*.integer' => 'Input harus berupa angka.',
             '*.min' => 'Input tidak boleh bernilai negatif.',
         ];

@@ -102,12 +102,14 @@
                                     <div class="col-sm-7">
                                         <select name="customer_id" id="customer_id" class="form-select">
                                         </select>
+                                        <div data-error-for="customer_id" class="text-danger mt-1 error-message"></div>
                                     </div>
                                 </div>
                                 <div class="mb-3 row align-items-center">
                                     <label for="customer_address" class="col-sm-4 col-form-label"><strong>Customer Address :</strong></label>
                                     <div class="col-sm-7">
                                         <textarea class="form-control" id="customer_address" name="customer_address" rows="2" readonly></textarea>
+                                        <div data-error-for="customer_address" class="text-danger mt-1 error-message"></div>
                                     </div>
                                 </div>
                             </div>
@@ -123,6 +125,7 @@
                                     <label for="cost_center" class="col-sm-3 col-form-label"><strong>Cost Center :</strong></label>
                                     <div class="col-sm-8">
                                         <input type="text" class="form-control" id="cost_center" name="cost_center">
+                                        <div data-error-for="cost_center" class="text-danger mt-1 error-message"></div>
                                     </div>
                                 </div>
                                 <div class="mb-3 row align-items-center">
@@ -137,6 +140,7 @@
                                     <div class="col-sm-8">
                                         <input type="date" class="form-control" id="date" name="date" value="{{ date('Y-m-d') }}">
                                     </div>
+                                    <div data-error-for="date" class="text-danger mt-1 error-message"></div>
                                 </div>
                             </div>
                         </div>
@@ -146,10 +150,30 @@
                                 <label for="requisition_items"><strong>List Product</strong></label>
                                 <select name="requisition_items[]" id="requisition_items" multiple class="form-select" style="display: none;">
                                 </select>
+                                <div data-error-for="requisition_items" class="text-danger mt-1 error-message"></div>
                             </div>
-                            <div class="col-8">
+                            <div class="col-3">
+                                <label for="material_type"><strong>Material Type</strong></label>
+                                <div id="material_type_wrapper">
+                                    <div class="form-check">
+                                        <input class="form-check-input material-type-filter" type="checkbox" name="material_type[]" value="Raw" id="mt-raw">
+                                        <label class="form-check-label" for="mt-raw">Raw Material</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input material-type-filter" type="checkbox" name="material_type[]" value="Semi-Finished" id="mt-semi">
+                                        <label class="form-check-label" for="mt-semi">Semi Finished Material</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input material-type-filter" type="checkbox" name="material_type[]" value="Finished" id="mt-finished">
+                                        <label class="form-check-label" for="mt-finished">Finished Material</label>
+                                    </div>
+                                </div>
+                                <div data-error-for="material_type" class="text-danger mt-1 error-message"></div>
+                            </div>
+                            <div class="col-5">
                                 <label for="objectives"><strong>Objectives</strong></label>
                                 <textarea name="objectives" id="objectives" class="form-control"></textarea>
+                                <div data-error-for="objectives" class="text-danger mt-1 error-message"></div>
                             </div>
                         </div>
 
@@ -277,6 +301,10 @@
             let customerSelect = $('#customer_id');
             let addressField = $('#customer_address');
             let productselect = $('#requisition_items');
+            let materialtype = $('#material_type_wrapper');
+            
+            // Cache untuk menyimpan inputan jika ddilakukan render
+            let qtyCache = {};
 
             // === DataTable ===
             $('#complainTable').DataTable({
@@ -321,9 +349,15 @@
                 $('#complineForm')[0].reset();
                 $('#requisition_items').empty();
                 $('#product-detail').remove();
+                $('[data-error-for]').text('');
+                $('#complineForm .is-invalid').removeClass('is-invalid');
+
+
+
                 var today = new Date().toISOString().split('T')[0];
                 $('#date').val(today);
 
+                
                 // menarik data costumer dari server
                 $.ajax({
                     url: "{{ route('customers.list') }}",
@@ -397,75 +431,101 @@
                             width: '100%'
                         });
 
-                        productselect.on('change', function () {
-                            const selectedProductIds = $(this).val();
+                        function renderProductDetails() {
+                            const selectedProductIds = productselect.val();
+                            const selectedTypes = $('input.material-type-filter:checked')
+                                .map(function () { return this.value; }).get();
                             const detailsContainer = $('#productDetailsContainer');
+
+                            // Simpan nilai input sebelumnya kalo ada
+                            detailsContainer.find('input[name^="qty_required"], input[name^="qty_issued"]').each(function () {
+                                qtyCache[$(this).attr('name')] = $(this).val();
+                            });
+
                             detailsContainer.empty();
 
-                            if (selectedProductIds && selectedProductIds.length > 0) {
-
-                                let tableHTML = `
-                                        <table class="table table-bordered table-striped">
-                                            <thead class="thead-dark">
-                                                <tr>
-                                                    <th>Tipe Material</th>
-                                                    <th>Kode Detail</th>
-                                                    <th>Nama Detail</th>
-                                                    <th>Unit</th>
-                                                    <th>QTY Required</th>
-                                                    <th>QTY Issued</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody> 
-                                    `;
-
-                                selectedProductIds.forEach(function (productId) {
-                                    const selectedProduct = allProductData.items.find(item => item.id == productId);
-
-                                    if (selectedProduct && selectedProduct.details.length > 0) {
-                                        //tableHTML += `
-                                        //    <tr class="table-info">
-                                        //        <td colspan="6" style="text-align: center;">
-                                        //            <strong>Produk: ${selectedProduct.item_master_code} - ${selectedProduct.item_master_name}</strong>
-                                        //        </td>
-                                        //    </tr>
-                                        //`;
-
-                                        selectedProduct.details.forEach(function (detail) {
-                                            tableHTML += `
-                                                <tr>
-                                                    <td>${detail.material_type}</td>
-                                                    <td>${detail.item_detail_code}</td>
-                                                    <td>${detail.item_detail_name}</td>
-                                                    <td>${detail.unit}</td>
-                                                    <td>
-                                                        <input 
-                                                            type="number" 
-                                                            class="form-control" 
-                                                            name="qty_required[${detail.id}]" 
-                                                            placeholder="0">
-                                                    </td>
-                                                    <td>
-                                                        <input 
-                                                            type="number" 
-                                                            class="form-control" 
-                                                            name="qty_issued[${detail.id}]" 
-                                                            placeholder="0">
-                                                    </td>
-                                                </tr>
-                                            `;
-                                        });
-                                    }
-                                });
-
-                                tableHTML += `
-                                        </tbody>
-                                    </table>
-                                `;
-
-                                detailsContainer.html(tableHTML);
+                            if (!selectedProductIds || selectedProductIds.length === 0) {
+                                return;
                             }
-                        });
+
+                            let tableRowsHTML = '';
+
+                            selectedProductIds.forEach(function (productId) {
+                                const selectedProduct = allProductData.items.find(item => item.id == productId);
+                                if (!selectedProduct || !selectedProduct.details.length) return;
+
+                                // Filter data
+                                const filteredDetails = selectedProduct.details.filter(d =>
+                                    selectedTypes.length === 0 || selectedTypes.includes(d.material_type)
+                                );
+
+                                if (filteredDetails.length > 0) {
+                                    tableRowsHTML += filteredDetails.map(detail => {
+                                        const rqName = `qty_required[${detail.id}]`;
+                                        const isName = `qty_issued[${detail.id}]`;
+                                        return `
+                                            <tr>
+                                                <td>${detail.material_type}</td>
+                                                <td>${detail.item_detail_code}</td>
+                                                <td>${detail.item_detail_name}</td>
+                                                <td>${detail.unit}</td>
+                                                <td>
+                                                    <input 
+                                                        type="number" 
+                                                        class="form-control" 
+                                                        name="${rqName}" 
+                                                        placeholder="0"
+                                                        value="${qtyCache[rqName] ?? ''}">
+                                                    <div data-error-for="${rqName}" class="text-danger mt-1 error-message"></div>
+                                                </td>
+                                                <td>
+                                                    <input 
+                                                        type="number" 
+                                                        class="form-control" 
+                                                        name="${isName}" 
+                                                        placeholder="0"
+                                                        value="${qtyCache[isName] ?? ''}">
+                                                    <div data-error-for="${isName}" class="text-danger mt-1 error-message"></div>
+                                                </td>
+                                            </tr>
+                                        `;
+                                    }).join(''); // Gabungkan semua baris menjadi satu string HTML
+                                } else {
+                                    // data dengan filter tidak ditemukan
+                                    tableRowsHTML += `
+                                        <tr>
+                                            <td colspan="6" class="bg-light text-danger text-center">
+                                                Tidak ada material tipe <strong>${selectedTypes.join(", ")}</strong> pada produk <strong>${selectedProduct.item_master_code}</strong>
+                                            </td>
+                                        </tr>
+                                    `;
+                                }
+                            });
+
+                            const tableHTML = `
+                                <table class="table table-bordered table-striped" id="product-detail">
+                                    <thead class="thead-dark">
+                                        <tr>
+                                            <th>Tipe Material</th>
+                                            <th>Kode Detail</th>
+                                            <th>Nama Detail</th>
+                                            <th>Unit</th>
+                                            <th>QTY Required</th>
+                                            <th>QTY Issued</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${tableRowsHTML}
+                                    </tbody>
+                                </table>
+                            `;
+
+                            detailsContainer.html(tableHTML);
+                        }
+                        productselect.on('change', renderProductDetails);
+
+                        materialtype.on('change', renderProductDetails);
+
                     },
                     error: function() {
                         productselect.append('<option>produk gagal dimuat</option>');
@@ -477,6 +537,9 @@
             // === Submit Form ===
             $('#complineForm').on('submit', function(e) {
                 e.preventDefault();
+
+                $('#complineForm .is-invalid').removeClass('is-invalid');
+                $('[data-error-for]').text('');
 
                 let mode = $(this).attr('data-mode');
                 let userId = $(this).attr('data-id');
@@ -504,11 +567,38 @@
                     success: function(res) {
                         $('#complineModal').modal('hide');
                         $('#complainTable').DataTable().ajax.reload(null, false);
+                        qtyCache = {}
                         successMessage((mode === 'create') ? 'Complain created successfully' :
                             'Complain updated successfully');
                     },
-                    error: function(xhr) {
-                        errorMessage(xhr.responseJSON?.message || 'Something went wrong');
+                    error: function (xhr) {
+                        if (xhr.status === 422) {
+                            let errors = xhr.responseJSON.errors;
+
+                            for (let key in errors) {
+                                let fieldName;
+
+                                if (key.includes('.')) {
+                                    // Untuk array input: qty_required.123 -> qty_required[123]
+                                    fieldName = key.replace('.', '[') + ']';
+                                } else {
+                                    // Untuk input biasa: title -> title
+                                    fieldName = key;
+                                }
+
+                                // Cari input & container error
+                                let input = $(`[name="${fieldName}"]`);
+                                let errorContainer = $(`[data-error-for="${fieldName}"]`);
+
+                                input.addClass('is-invalid');
+                                errorContainer.text(errors[key][0]);
+                            }
+
+                            errorMessage('Lengkapi data yang diperlukan');
+                        } else {
+                            // Untuk error lainnya (misal: 500 Server Error)
+                            errorMessage(xhr.responseJSON?.message || 'Something went wrong');
+                        }
                     }
                 });
             });

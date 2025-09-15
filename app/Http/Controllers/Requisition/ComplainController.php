@@ -23,7 +23,7 @@ class ComplainController extends Controller
     {
         $validated = $request->validated();
 
-        $requisition = new Requisition();
+        
 
         return redirect()->route('complain-form.index');
     }
@@ -89,7 +89,7 @@ class ComplainController extends Controller
         return response()->json(['series_number' => $seriesNumber, 'account_number' => $accountNumber]);
     }
 
-    public function getProductList()
+    public function getProductList(Request $request)
     {
         $items = ItemMaster::with('details')->get();
         return response()->json(['items' => $items]);
