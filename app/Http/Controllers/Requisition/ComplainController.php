@@ -5,12 +5,16 @@ namespace App\Http\Controllers\Requisition;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreComplainRequest;
 use App\Models\Master\Customer;
-use App\Models\Master\Department;
 use App\Models\Master\ItemMaster;
 use App\Models\Requisition\Requisition;
+use App\Models\Requisition\RequisitionItem;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+
+use function Illuminate\Log\log;
 
 class ComplainController extends Controller
 {
@@ -21,11 +25,43 @@ class ComplainController extends Controller
 
     public function store(StoreComplainRequest $request)
     {
-        $validated = $request->validated();
+        try{
+            $validated = $request->validated();
+            Log::info('Validated Data: ', $validated);
+            $user = Auth::user();
+            $casuer = User::where('nik', $user->nik)->first();
 
-        
+            if (!$user) {
+                return response()->json(['message' => 'User belum login.'], 401);
+            }
+            if (!$user->atasan) {
+                return response()->json(['message' => 'Atasan tidak ditemukan. Coba hubungi admin.'], 400);
+            }
+    
+            $requisition = Requisition::create([
+                'requester_nik' => $user->nik,
+                'customer_id' => $validated['customer_id'],
+                'no_srs' => str_replace(' ', '', $validated['rs_number']),
+                'account' => $validated['account'],
+                'cost_center' => $validated['cost_center'],
+                'request_date' => $validated['date'],
+                'category' => 'Complain',
+                'status' => 'Pending',
+                'objectives' => $validated['objectives'] ?? null,
+                'route_to' => $user->atasan->name,
+            ]);
 
-        return redirect()->route('complain-form.index');
+            activity()
+                ->causedBy($casuer)
+                ->performedOn($requisition)
+                ->withProperties(['ip' => request()->ip(), 'user_agent' => request()->userAgent()])
+                ->log('user ' . $casuer->name . ' Membuat Requisition Complain dengan ID: ' . $requisition->id);
+
+            return response()->json(['message' => 'Form Requisition berhasil disimpan.'], 200);
+        }catch(\Exception $e){
+            Log::error('Gagal menyimpan requisition: ' . $e->getMessage());
+            return response()->json(['message' => 'Terdapat kesalahan dalam menyimpan form Requisition. Silakan coba lagi.'], 500);
+        }
     }
 
     public function getData(Request $request)

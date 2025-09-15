@@ -597,7 +597,7 @@
                             errorMessage('Lengkapi data yang diperlukan');
                         } else {
                             // Untuk error lainnya (misal: 500 Server Error)
-                            errorMessage(xhr.responseJSON?.message || 'Something went wrong');
+                            errorMessage(xhr.responseJSON?.message || 'blablabla bli bli bli');
                         }
                     }
                 });
