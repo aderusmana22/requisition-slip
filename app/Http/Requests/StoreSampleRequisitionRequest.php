@@ -11,33 +11,64 @@ class StoreSampleRequisitionRequest extends FormRequest
         return true;
     }
 
-     public function rules(): array
+    public function rules(): array
     {
         return [
-            'sub_category'        => 'required|string|in:Packaging,Finished Good,Special Order',
+            'sub_category'        => 'required|string|in:Packaging,"Finished Good","Special Order"',
             'customer_id'         => 'required|exists:customers,id',
-            'no_srs'              => 'required|string|max:255|unique:requisitions,no_srs',
+            'no_srs'              => 'required|string|max:255|unique:requisitions,no_srs,' . $this->id,
             'account'             => 'required|string|max:255',
             'cost_center'         => 'nullable|string|max:255',
             'request_date'        => 'required|date',
-            'items'                     => 'required|array|min:1',
-            'items.*.item_master_id'    => 'required|exists:item_masters,id',
-            'items.*.quantity_required'   => 'required|integer|min:1',
-            'items.*.quantity_issued'     => 'required|integer|min:0',
             'objectives'          => 'required|string',
             'estimated_potential' => 'required|string',
+            'items'               => 'required|array|min:1',
+            'items.*.quantity_required' => 'required|integer|min:1',
+            'items.*.quantity_issued'   => 'nullable|integer|min:0',
+            'sample_completion_date' => 'required_if:sub_category,Special Order|nullable|date',
+            'sample_weight' => 'required_if:sub_category,Special Order|nullable|string',
+            'sample_packaging' => 'required_if:sub_category,Special Order|nullable|string',
+            'sample_quantity_details' => 'required_if:sub_category,Special Order|nullable|string',
+            'coa_required' => 'required_if:sub_category,Special Order|nullable|boolean',
+            'delivery_method' => 'required_if:sub_category,Special Order|nullable|string',
+            'sample_origin' => 'nullable|string|max:255',
+            'sample_description_batch' => 'nullable|string|max:255',
+            'sample_description_wb' => 'nullable|string|max:255',
+            'sample_description_tank' => 'nullable|string|max:255',
+            'production_date' => 'nullable|date',
+            'sample_preparation' => 'nullable|string|max:255',
+            'qa_notes' => 'nullable|string',
         ];
     }
 
     public function messages(): array
     {
         return [
+            'sub_category.required' => 'Sub Kategori wajib dipilih.',
             'customer_id.required' => 'Customer wajib dipilih.',
-            'items.required' => 'Minimal harus ada 1 item yang ditambahkan.',
-            'items.*.item_master_id.required' => 'Produk wajib dipilih.',
-            'items.*.quantity_required.required' => 'Qty Required wajib diisi.',
-            'objectives.required' => 'Objectives wajib diisi.',
+            'no_srs.required' => 'Nomor SRS wajib diisi.',
+            'no_srs.unique' => 'Nomor SRS sudah terdaftar.',
+            'account.required' => 'Akun wajib diisi.',
+            'request_date.required' => 'Tanggal Permintaan wajib diisi.',
+            'objectives.required' => 'Tujuan wajib diisi.',
             'estimated_potential.required' => 'Estimasi Potensi wajib diisi.',
+            'items.required' => 'Minimal harus ada 1 item yang diminta.',
+            'items.min' => 'Minimal harus ada 1 item yang diminta.',
+            'items.*.quantity_required.required' => 'Qty Required wajib diisi untuk setiap item.',
+            'items.*.quantity_required.min' => 'Qty Required minimal 1.',
+            'sample_completion_date.required_if' => 'Tanggal Penyelesaian Sampel wajib diisi untuk Special Order.',
+            'sample_weight.required_if' => 'Berat Sampel wajib diisi untuk Special Order.',
+            'sample_packaging.required_if' => 'Kemasan Sampel wajib diisi untuk Special Order.',
+            'sample_quantity_details.required_if' => 'Rincian Jumlah Sampel wajib diisi untuk Special Order.',
+            'coa_required.required_if' => 'COA Required wajib dipilih untuk Special Order.',
+            'delivery_method.required_if' => 'Metode Pengiriman wajib diisi untuk Special Order.',
+            'sample_origin.max' => 'Asal Sampel maksimal 255 karakter.',
+            'sample_description_batch.max' => 'Deskripsi Sampel (Batch) maksimal 255 karakter.',
+            'sample_description_wb.max' => 'Deskripsi Sampel (WB) maksimal 255 karakter.',
+            'sample_description_tank.max' => 'Deskripsi Sampel (Tank) maksimal 255 karakter.',
+            'production_date.date' => 'Tanggal Produksi tidak valid.',
+            'sample_preparation.max' => 'Persiapan Sampel maksimal 255 karakter.',
+            'qa_notes.string' => 'Catatan QA harus berupa teks.',
         ];
     }
 }

@@ -13,6 +13,7 @@ class ItemDetail extends Model
 
     protected $fillable = [
         'item_master_id',
+        'component_item_master_id',
         'material_type',
         'item_detail_code',
         'item_detail_name',

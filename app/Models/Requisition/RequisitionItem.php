@@ -2,8 +2,9 @@
 
 namespace App\Models\Requisition;
 
-use App\Models\Master\ItemMaster;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Master\ItemDetail;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class RequisitionItem extends Model
 {
@@ -11,7 +12,7 @@ class RequisitionItem extends Model
 
     protected $fillable = [
         'requisition_id',
-        'item_master_id',
+        'item_detail_id',
         'quantity_required',
         'quantity_issued',
         'batch_number',
@@ -23,8 +24,8 @@ class RequisitionItem extends Model
         return $this->belongsTo(Requisition::class, 'requisition_id');
     }
 
-    public function itemMaster()
+    public function itemDetail()
     {
-        return $this->belongsTo(ItemMaster::class, 'item_master_id');
+        return $this->belongsTo(ItemDetail::class, 'item_detail_id');
     }
 }
