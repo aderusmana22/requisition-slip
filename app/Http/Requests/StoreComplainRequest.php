@@ -31,44 +31,55 @@ class StoreComplainRequest extends FormRequest
             'date'             => 'required|date',
             'objectives'       => 'nullable|string',
 
-            // Validasi untuk array produk
-            'requisition_items'   => 'required|array',
-            'requisition_items.*' => 'required|integer|exists:item_masters,id',
-
-            // Validasi untuk QTY Required
-            'qty_required'   => 'required|array',
-            'qty_required.*' => 'required|integer|min:0',
-
-            // Validasi untuk QTY Issued
-            'qty_issued'   => 'required|array',
-            'qty_issued.*' => 'required|integer|min:0|lte:qty_required.*',
-
             'material_type' => 'required|array',
             'material_type.*' => 'required|string|in:Raw,Semi-Finished,Finished',
+
+            'items'                 => 'required|array|min:1',
+            'items.*'               => 'required|array',
+            'items.*.details'       => 'required|array|min:1',
+            'items.*.details.*'     => 'required|array',
+
+            // Validasi untuk kuantitas
+            'items.*.details.*.qty_required' => 'required|numeric|min:0',
+            'items.*.details.*.qty_issued'   => 'required|numeric|min:0|lte:items.*.details.*.qty_required',
+
         ];
     }
 
     public function messages(): array
     {
         return [
-            'customer_id.required' => 'Nama customer wajib diisi.',
+            // Pesan untuk data utama
+            'customer_id.required'      => 'Nama customer wajib diisi.',
             'customer_address.required' => 'Alamat customer wajib diisi.',
-            'date.required' => 'Tanggal wajib diisi.',
-            'date.date' => 'Format tanggal tidak valid.',
-            'cost_center.required' => 'Cost center wajib diisi.',
-            'cost_center.max' => 'Cost center maksimal 100 karakter.',
+            'account.required'          => 'Akun wajib diisi.',
+            'cost_center.required'      => 'Cost center wajib diisi.',
+            'rs_number.required'        => 'Nomor RS/S wajib diisi.',
+            'date.required'             => 'Tanggal wajib diisi.',
+            'date.date'                 => 'Format tanggal tidak valid.',
 
-            'material_type.required' => 'Anda harus memilih minimal satu tipe material.',
+
+            'material_type.required' => 'Pilih minimal satu tipe material.',
             'material_type.*.in' => 'Tipe material tidak valid. Pilihan yang tersedia: Raw, Semi-Finished, Finished.',
 
-            'requisition_items.required' => 'Anda harus memilih minimal satu produk.',
-            'qty_required.required' => 'Harus ada quantity Required.',
-            'qty_issued.required' => 'Harus ada quantity Issued.',
-            'qty_issued.*.lte' => 'quantity tidak boleh melebihi jumlah Required.',
-            'qty_required.*.required' => 'quantity Required wajib diisi.',
-            'qty_issued.*.required' => 'quantity Issued wajib diisi.',
-            '*.integer' => 'Input harus berupa angka.',
-            '*.min' => 'Input tidak boleh bernilai negatif.',
+            // Pesan untuk validasi array 'items'
+            'items.required'            => 'Anda harus memilih setidaknya satu produk.',
+            'items.min'                 => 'Anda harus memilih setidaknya satu produk.',
+
+            // Pesan untuk validasi 'details' di dalam 'items'
+            // Tanda '*' akan secara otomatis digantikan oleh Laravel
+            'items.*.details.required'  => 'Detail material untuk produk yang dipilih wajib ada.',
+            'items.*.details.min'       => 'Setiap produk yang dipilih harus memiliki minimal satu detail material.',
+
+            // Pesan untuk validasi kuantitas
+            'items.*.details.*.qty_required'         => 'Kuantitas yang diminta harus diisi.',
+            'items.*.details.*.qty_required.numeric' => 'Kuantitas yang diminta harus berupa angka.',
+            'items.*.details.*.qty_required.min'     => 'Kuantitas yang diminta tidak boleh negatif.',
+            'items.*.details.*.qty_issued'           => 'Kuantitas yang dikeluarkan harus diisi.',
+            'items.*.details.*.qty_issued.numeric'   => 'Kuantitas yang dikeluarkan harus berupa angka.',
+            'items.*.details.*.qty_issued.min'       => 'Kuantitas yang dikeluarkan tidak boleh negatif.',
+            'items.*.details.*.qty_issued.lte'       => 'Kuantitas yang dikeluarkan tidak boleh lebih besar dari kuantitas yang diminta.',
+
         ];
     }
 }

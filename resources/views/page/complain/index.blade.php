@@ -438,7 +438,7 @@
                             const detailsContainer = $('#productDetailsContainer');
 
                             // Simpan nilai input sebelumnya kalo ada
-                            detailsContainer.find('input[name^="qty_required"], input[name^="qty_issued"]').each(function () {
+                            detailsContainer.find('input[name$="[qty_required]"], input[name$="[qty_issued]"]').each(function () {
                                 qtyCache[$(this).attr('name')] = $(this).val();
                             });
 
@@ -461,8 +461,8 @@
 
                                 if (filteredDetails.length > 0) {
                                     tableRowsHTML += filteredDetails.map(detail => {
-                                        const rqName = `qty_required[${detail.id}]`;
-                                        const isName = `qty_issued[${detail.id}]`;
+                                        const rqName = `items[${productId}][details][${detail.id}][qty_required]`;
+                                        const isName = `items[${productId}][details][${detail.id}][qty_issued]`;
                                         return `
                                             <tr>
                                                 <td>${detail.material_type}</td>
@@ -535,10 +535,11 @@
             });
 
             // === Submit Form ===
-            $('#complineForm').on('submit', function(e) {
+            $('#complineForm').on('submit', function (e) {
                 e.preventDefault();
 
                 $('#complineForm .is-invalid').removeClass('is-invalid');
+                $('.select2-selection.is-invalid').removeClass('is-invalid'); // Khusus untuk select2
                 $('[data-error-for]').text('');
 
                 let mode = $(this).attr('data-mode');
@@ -564,40 +565,50 @@
                     data: formData,
                     processData: false,
                     contentType: false,
-                    success: function(res) {
+                    success: function (res) {
                         $('#complineModal').modal('hide');
                         $('#complainTable').DataTable().ajax.reload(null, false);
                         qtyCache = {}
-                        successMessage((mode === 'create') ? 'Complain created successfully' :
+                        successMessage((mode === 'create') ? res.message :
                             'Complain updated successfully');
                     },
                     error: function (xhr) {
-                        if (xhr.status === 422) {
+                        if (xhr.status === 422) { // Unprocessable Entity -> Error Validasi
                             let errors = xhr.responseJSON.errors;
 
                             for (let key in errors) {
-                                let fieldName;
 
-                                if (key.includes('.')) {
-                                    // Untuk array input: qty_required.123 -> qty_required[123]
-                                    fieldName = key.replace('.', '[') + ']';
+                                if (key === 'items') {
+
+                                    productselect.next('.select2-container').find('.select2-selection').addClass('is-invalid');
+
+                                    let errorContainer = $('[data-error-for="requisition_items"]');
+                                    if (errorContainer.length) {
+                                        errorContainer.text(errors[key][0]);
+                                    }
                                 } else {
-                                    // Untuk input biasa: title -> title
-                                    fieldName = key;
+                                    let parts = key.split('.');
+                                    let fieldName = parts[0] + parts.slice(1).map(part => `[${part}]`).join('');
+
+                                    let input = $(`[name="${fieldName}"]`);
+                                    let errorContainer = $(`[data-error-for="${fieldName}"]`);
+
+                                    if (input.length) {
+                                        if (input.hasClass('select2-hidden-accessible')) {
+                                            input.next('.select2-container').find('.select2-selection').addClass('is-invalid');
+                                        } else {
+                                            input.addClass('is-invalid');
+                                        }
+                                    }
+                                    if (errorContainer.length) {
+                                        errorContainer.text(errors[key][0]);
+                                    }
                                 }
-
-                                // Cari input & container error
-                                let input = $(`[name="${fieldName}"]`);
-                                let errorContainer = $(`[data-error-for="${fieldName}"]`);
-
-                                input.addClass('is-invalid');
-                                errorContainer.text(errors[key][0]);
                             }
 
                             errorMessage('Lengkapi data yang diperlukan');
                         } else {
-                            // Untuk error lainnya (misal: 500 Server Error)
-                            errorMessage(xhr.responseJSON?.message || 'blablabla bli bli bli');
+                            errorMessage(xhr.responseJSON?.message || 'Terjadi kesalahan pada server.');
                         }
                     }
                 });

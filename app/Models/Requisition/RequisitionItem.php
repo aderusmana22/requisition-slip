@@ -12,7 +12,8 @@ class RequisitionItem extends Model
     protected $fillable = [
         'requisition_id',
         'item_master_id',
-        'quantity',
+        'item_detail_id',
+        'quantity_required',
         'quantity_issued',
         'batch_number',
         'remarks',

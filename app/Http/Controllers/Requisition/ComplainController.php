@@ -12,6 +12,7 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 use function Illuminate\Log\log;
@@ -25,19 +26,19 @@ class ComplainController extends Controller
 
     public function store(StoreComplainRequest $request)
     {
-        try{
-            $validated = $request->validated();
-            Log::info('Validated Data: ', $validated);
-            $user = Auth::user();
-            $casuer = User::where('nik', $user->nik)->first();
-
-            if (!$user) {
-                return response()->json(['message' => 'User belum login.'], 401);
-            }
-            if (!$user->atasan) {
-                return response()->json(['message' => 'Atasan tidak ditemukan. Coba hubungi admin.'], 400);
-            }
+        $validated = $request->validated();
+        $user = Auth::user();
     
+        if (!$user) {
+            return response()->json(['message' => 'User belum login.'], 401);
+        }
+        if (!$user->atasan) {
+            return response()->json(['message' => 'Atasan tidak ditemukan. Coba hubungi admin.'], 400);
+        }
+
+        try{
+            DB::transaction(function () use ($validated, $user) {
+        
             $requisition = Requisition::create([
                 'requester_nik' => $user->nik,
                 'customer_id' => $validated['customer_id'],
@@ -51,13 +52,41 @@ class ComplainController extends Controller
                 'route_to' => $user->atasan->name,
             ]);
 
+            $requisitionitems = [];
+            $now = Carbon::now();
+    
+            foreach ($validated['items'] as $itemMasterId => $masterData) {
+                foreach ($masterData['details'] as $itemDetailId => $detailData) {
+                    $requisitionitems[] = [
+                        'requisition_id'    => $requisition->id,
+                        'item_master_id'    => $itemMasterId,
+                        'item_detail_id'    => $itemDetailId,
+                        'quantity_required' => $detailData['qty_required'] ?? 0,
+                        'quantity_issued'   => $detailData['qty_issued'] ?? 0,
+                        'created_at'        => $now,
+                        'updated_at'        => $now,
+                    ];
+                }
+            }
+
+            if (!empty($requisitionitems)) {
+                RequisitionItem::insert($requisitionitems);
+            } else {
+                throw new \Exception('Tidak ada item yang valid untuk disimpan.');
+            }
+
+            $casuer = User::where('nik', $user->nik)->first();
+
             activity()
                 ->causedBy($casuer)
-                ->performedOn($requisition)
+                ->performedOn($requisition, $requisitionitems)
+                ->event('created form requisition complain')
                 ->withProperties(['ip' => request()->ip(), 'user_agent' => request()->userAgent()])
                 ->log('user ' . $casuer->name . ' Membuat Requisition Complain dengan ID: ' . $requisition->id);
 
-            return response()->json(['message' => 'Form Requisition berhasil disimpan.'], 200);
+            });
+
+            return response()->json(['message' => 'Form Requisition complain berhasil dibuat.'], 201);
         }catch(\Exception $e){
             Log::error('Gagal menyimpan requisition: ' . $e->getMessage());
             return response()->json(['message' => 'Terdapat kesalahan dalam menyimpan form Requisition. Silakan coba lagi.'], 500);
@@ -112,7 +141,10 @@ class ComplainController extends Controller
         $sequence = 1;
 
         if ($lastRecordThisYear) {
-            $lastSequence = (int) substr($lastRecordThisYear->series_number, -4);
+            $lastSeriesNumber = $lastRecordThisYear->no_srs;
+
+            $lastSequence = (int) substr($lastSeriesNumber, -4);
+
             $sequence = $lastSequence + 1;
         }
 
