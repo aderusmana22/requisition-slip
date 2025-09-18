@@ -49,6 +49,7 @@ class Requisition extends Model
         return $this->hasMany(RequisitionItem::class, 'requisition_id');
     }
 
+
     // Relasi ke User (requester)
     public function requester()
     {

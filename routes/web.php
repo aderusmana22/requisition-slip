@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ApproverController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Master\DepartmentController;
 use App\Http\Controllers\Master\CustomerController;
@@ -24,6 +25,7 @@ Route::prefix('requisition')->group(function () {
     Route::get('/getCostumerList', [ComplainController::class, 'getCustomerList'])->name('customers.list');
     Route::get('/getSerial', [ComplainController::class, 'getSerial'])->name('get.serial');
     Route::get('/getProductList', [ComplainController::class, 'getProductList'])->name('get.product.list');
+    Route::get('/getformdetail/{id}', [ComplainController::class, 'getFormDetail'])->name('get.form.detail');
 });
 
 
@@ -67,6 +69,8 @@ Route::group(['middleware' => ['role:super-admin|admin']], function () {
     Route::resource('roles', RoleController::class);
     Route::get('roles/{roleId}/give-permissions', [RoleController::class, 'addPermissionToRole'])->name('roles.give-permissions');
     Route::post('roles/{roleId}/give-permissions', [RoleController::class, 'givePermissionToRole'])->name('roles.give-permission');
+
+    Route::get('/getapproverlist', [ApproverController::class, 'approverList'])->name('get.approverlist');
 
 });
 

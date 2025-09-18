@@ -5,20 +5,23 @@
 
     @push('css')
     <style>
-    .modal-header {
-        background-color: #cc982f;
-    }
-    .modal-footer {
-        background-color: #f8f8f8;
-    }
-    .status-badge-lg {
-    font-size: 0.9em;
-    padding: 0.5em 0.7em;
-    font-weight: 700;
-}
+        .modal-header {
+            background-color: #cc982f;
+        }
+
+        .modal-footer {
+            background-color: #f8f8f8;
+        }
+
+        .status-badge-lg {
+            font-size: 0.9em;
+            padding: 0.5em 0.7em;
+            font-weight: 700;
+        }
     </style>
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+    <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
     @endpush
 
     <!-- Breadcrumb -->
@@ -76,14 +79,17 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title text-white" id="complineModalLabel">Create complain</h5>
-                    <button type="button" class="btn-close m-0 fs-5" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close m-0 fs-5" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <form action="{{ route('complain-form.store') }}" method="POST" data-mode="create" data-id="" id="complineForm">
-                    @csrf
+                    <form action="{{ route('complain-form.store') }}" method="POST" data-mode="create" data-id=""
+                        id="complineForm">
+                        @csrf
                         <header class="row slip-header mb-2 align-items-center">
                             <div class="col-10">
-                                <img src="{{ asset('storage/logo.png') }}" alt="Sinar Meadow Logo" class="logo" style="max-height: 60px; width: auto;">
+                                <img src="{{ asset('storage/logo.png') }}" alt="Sinar Meadow Logo" class="logo"
+                                    style="max-height: 60px; width: auto;">
                             </div>
                             <div class="col-2">
                                 <p class="form-text text-start">
@@ -99,12 +105,13 @@
                             <h4><strong>REQUISITION SLIP</strong></h4>
                             <p class="">SALES & MARKETING<br>SAMPLE PRODUCT</p>
                         </div>
-                
+
                         <!-- data modal -->
                         <div class="row mb-4 g-2">
                             <div class="col">
                                 <div class="mb-3 row align-items-center">
-                                    <label for="customer_id" class="col-sm-4 col-form-label"><strong>Customer Name :</strong></label>
+                                    <label for="customer_id" class="col-sm-4 col-form-label"><strong>Customer Name
+                                            :</strong></label>
                                     <div class="col-sm-7">
                                         <select name="customer_id" id="customer_id" class="form-select">
                                         </select>
@@ -112,30 +119,36 @@
                                     </div>
                                 </div>
                                 <div class="mb-3 row align-items-center">
-                                    <label for="customer_address" class="col-sm-4 col-form-label"><strong>Customer Address :</strong></label>
+                                    <label for="customer_address" class="col-sm-4 col-form-label"><strong>Customer
+                                            Address :</strong></label>
                                     <div class="col-sm-7">
-                                        <textarea class="form-control" id="customer_address" name="customer_address" rows="2" readonly></textarea>
-                                        <div data-error-for="customer_address" class="text-danger mt-1 error-message"></div>
+                                        <textarea class="form-control" id="customer_address" name="customer_address"
+                                            rows="2" readonly></textarea>
+                                        <div data-error-for="customer_address" class="text-danger mt-1 error-message">
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                             <div class="col">
                                 <div class="mb-3 row align-items-center">
-                                    <label for="account" class="col-sm-3 col-form-label"><strong>Account :</strong></label>
+                                    <label for="account" class="col-sm-3 col-form-label"><strong>Account
+                                            :</strong></label>
                                     <div class="col-sm-8">
                                         <h5 id="account_display" style="font-weight: bold; text-align: center;"></h5>
                                         <input type="hidden" class="form-control" id="account" name="account">
                                     </div>
                                 </div>
                                 <div class="mb-3 row align-items-center">
-                                    <label for="cost_center" class="col-sm-3 col-form-label"><strong>Cost Center :</strong></label>
+                                    <label for="cost_center" class="col-sm-3 col-form-label"><strong>Cost Center
+                                            :</strong></label>
                                     <div class="col-sm-8">
                                         <input type="text" class="form-control" id="cost_center" name="cost_center">
                                         <div data-error-for="cost_center" class="text-danger mt-1 error-message"></div>
                                     </div>
                                 </div>
                                 <div class="mb-3 row align-items-center">
-                                    <label for="rs_number" class="col-sm-3 col-form-label"><strong>Nomor RS :</strong></label>
+                                    <label for="rs_number" class="col-sm-3 col-form-label"><strong>Nomor RS
+                                            :</strong></label>
                                     <div class="col-sm-8">
                                         <h5 id="rs_number_display" style="font-weight: bold; text-align: center;"></h5>
                                         <input type="hidden" class="form-control" id="rs_number" name="rs_number">
@@ -144,7 +157,8 @@
                                 <div class="mb-3 row align-items-center">
                                     <label for="date" class="col-sm-3 col-form-label"><strong>Tanggal :</strong></label>
                                     <div class="col-sm-8">
-                                        <input type="date" class="form-control" id="date" name="date" value="{{ date('Y-m-d') }}">
+                                        <input type="date" class="form-control" id="date" name="date"
+                                            value="{{ date('Y-m-d') }}">
                                     </div>
                                     <div data-error-for="date" class="text-danger mt-1 error-message"></div>
                                 </div>
@@ -154,7 +168,8 @@
                         <div class="row mb-4">
                             <div class="col-4">
                                 <label for="requisition_items"><strong>List Product</strong></label>
-                                <select name="requisition_items[]" id="requisition_items" multiple="multiple" class="form-control" style="display: none;">
+                                <select name="requisition_items[]" id="requisition_items" multiple="multiple"
+                                    class="form-control" style="display: none;">
                                 </select>
                                 <div data-error-for="requisition_items" class="text-danger mt-1 error-message"></div>
                             </div>
@@ -162,15 +177,18 @@
                                 <label for="material_type"><strong>Material Type</strong></label>
                                 <div id="material_type_wrapper">
                                     <div class="form-check">
-                                        <input class="form-check-input material-type-filter" type="checkbox" name="material_type[]" value="Raw" id="mt-raw">
+                                        <input class="form-check-input material-type-filter" type="checkbox"
+                                            name="material_type[]" value="Raw" id="mt-raw">
                                         <label class="form-check-label" for="mt-raw">Raw Material</label>
                                     </div>
                                     <div class="form-check">
-                                        <input class="form-check-input material-type-filter" type="checkbox" name="material_type[]" value="Semi-Finished" id="mt-semi">
+                                        <input class="form-check-input material-type-filter" type="checkbox"
+                                            name="material_type[]" value="Semi-Finished" id="mt-semi">
                                         <label class="form-check-label" for="mt-semi">Semi Finished Material</label>
                                     </div>
                                     <div class="form-check">
-                                        <input class="form-check-input material-type-filter" type="checkbox" name="material_type[]" value="Finished" id="mt-finished">
+                                        <input class="form-check-input material-type-filter" type="checkbox"
+                                            name="material_type[]" value="Finished" id="mt-finished">
                                         <label class="form-check-label" for="mt-finished">Finished Material</label>
                                     </div>
                                 </div>
@@ -188,7 +206,7 @@
                                 <div id="productDetailsContainer"></div>
                             </div>
                         </div>
-        
+
                         <!-- tabel produk -->
                         <!-- <div class="row">
                             <div class="col-12">
@@ -249,7 +267,8 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title text-white" id="detailModalLabel">Detail Requisition Complain</h5>
-                    <button type="button" class="btn-close m-0 fs-5" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close m-0 fs-5" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <header class="row slip-header mb-2 align-items-center">
@@ -402,12 +421,12 @@
             });
         }
 
-        $(document).ready(function() {
+        $(document).ready(function () {
             let customerSelect = $('#customer_id');
             let addressField = $('#customer_address');
             let productselect = $('#requisition_items');
             let materialtype = $('#material_type_wrapper');
-            
+
             // define url detail
             let detailUrlTemplate = "{{ route('get.form.detail', ['id' => ':id']) }}";
 
@@ -420,97 +439,97 @@
                 serverSide: true,
                 ajax: "{{ route('get.complain.data') }}",
                 columns: [{
-                        data: 'id',
-                        name: 'id',
-                        orderable: false,
-                        searchable: false,
-                        render: function (data, type, row, meta) {
-                                return meta.row + meta.settings._iDisplayStart + 1;
+                    data: 'id',
+                    name: 'id',
+                    orderable: false,
+                    searchable: false,
+                    render: function (data, type, row, meta) {
+                        return meta.row + meta.settings._iDisplayStart + 1;
+                    }
+                },
+                {
+                    data: 'requester.name',
+                    name: 'requester.name',
+                    render: function (data, type, row) {
+                        return (row.requester && row.requester.name) ? row.requester.name : '-';
+                    }
+                },
+                {
+                    data: 'customer_id',
+                    name: 'customer_id',
+                    render: function (data, type, row) {
+                        return (row.customer && row.customer.name) ? row.customer.name : '-';
+                    }
+                },
+                {
+                    data: 'cost_center',
+                    name: 'cost_center',
+                    render: function (data, type, row) {
+                        if (data) {
+                            let formatted = new Intl.NumberFormat('id-ID', {
+                                style: 'currency',
+                                currency: 'IDR',
+                                minimumFractionDigits: 0
+                            }).format(data);
+                            return formatted;
                         }
-                    },
-                    {
-                        data: 'requester.name',
-                        name: 'requester.name',
-                        render: function (data, type, row) {
-                            return (row.requester && row.requester.name) ? row.requester.name : '-';
+                        return '-';
+                    }
+                },
+                {
+                    data: 'request_date',
+                    name: 'request_date',
+                    render: function (data, type, row) {
+                        if (!data) return '-';
+                        const d = new Date(data);
+                        if (isNaN(d.getTime())) return '-';
+                        // Format DD/MM/YYYY
+                        return String(d.getDate()).padStart(2, '0') + '/' +
+                            String(d.getMonth() + 1).padStart(2, '0') + '/' +
+                            d.getFullYear();
+                    }
+                },
+                {
+                    data: 'route_to',
+                    name: 'route_to'
+                },
+                {
+                    data: 'status',
+                    name: 'status',
+                    render: function (data, type, row) {
+                        if (data == 'Pending') {
+                            return '<span class="badge status-badge-lg bg-warning text-dark">Pending</span>';
+                        } else if (data == 'In Progress') {
+                            return '<span class="badge status-badge-lg bg-info text-white">In Progress</span>';
+                        } else if (data == 'Completed' || data == 'Success') {
+                            return '<span class="badge status-badge-lg bg-success">Completed</span>';
+                        } else if (data == 'Rejected' || data == 'Failed') {
+                            return '<span class="badge status-badge-lg bg-danger">Rejected</span>';
+                        } else {
+                            return '<span class="badge status-badge-lg bg-secondary">' + data + '</span>';
                         }
-                    },
-                    {
-                        data: 'customer_id',
-                        name: 'customer_id',
-                        render: function (data, type, row) {
-                            return (row.customer && row.customer.name) ? row.customer.name : '-';
-                        }
-                    },
-                    {
-                        data: 'cost_center',
-                        name: 'cost_center',
-                        render: function (data, type, row) {
-                            if (data) {
-                                let formatted = new Intl.NumberFormat('id-ID', {
-                                    style: 'currency',
-                                    currency: 'IDR',
-                                    minimumFractionDigits: 0
-                                }).format(data);
-                                return formatted;
-                            }
-                            return '-';
-                        }
-                    },
-                    {
-                        data: 'request_date',
-                        name: 'request_date',
-                        render: function (data, type, row) {
-                            if (!data) return '-';
-                            const d = new Date(data);
-                            if (isNaN(d.getTime())) return '-';
-                            // Format DD/MM/YYYY
-                            return String(d.getDate()).padStart(2,'0') + '/' +
-                                String(d.getMonth() + 1).padStart(2,'0') + '/' +
-                                d.getFullYear();
-                        }
-                    },
-                    {
-                        data: 'route_to',
-                        name: 'route_to'
-                    },
-                    {
-                        data: 'status',
-                        name: 'status',
-                        render: function (data, type, row) {
-                            if (data == 'Pending') {
-                                return '<span class="badge status-badge-lg bg-warning text-dark">Pending</span>';
-                            } else if (data == 'In Progress') {
-                                return '<span class="badge status-badge-lg bg-info text-white">In Progress</span>';
-                            } else if (data == 'Completed' || data == 'Success') {
-                                return '<span class="badge status-badge-lg bg-success">Completed</span>';
-                            } else if (data == 'Rejected' || data == 'Failed') {
-                                return '<span class="badge status-badge-lg bg-danger">Rejected</span>';
-                            } else {
-                                return '<span class="badge status-badge-lg bg-secondary">' + data + '</span>';
-                            }
-                        }
-                    },
-                    {
-                        data: 'id',
-                        name: 'action',
-                        orderable: false,
-                        searchable: false,
-                        render: function (data, type, row) {
-                            console.info(data);
-                            let editUrl = `/complain/${data}/edit`;
-                            let status = (row.status || '').toLowerCase();
-                            let editButton = (status === 'pending')
-                                ? `<a href="${editUrl}" class="btn btn-secondary btn-sm" title="Edit Data"><i class="ph-duotone ph-eraser"></i></a>`
-                                : '';
-                            return `
+                    }
+                },
+                {
+                    data: 'id',
+                    name: 'action',
+                    orderable: false,
+                    searchable: false,
+                    render: function (data, type, row) {
+                        console.info(data);
+                        let editUrl = `/complain/${data}/edit`;
+                        let status = (row.status || '').toLowerCase();
+                        let editButton = (status === 'pending')
+                            ? `<a href="${editUrl}" class="btn btn-secondary btn-sm" title="Edit Data"><i class="ph-duotone ph-eraser"></i></a>`
+                            : '';
+                        return `
                                 <button type="button" class="btn btn-info btn-sm detail-button" data-id="${data}" title="Lihat Detail">
                                     <i class="ph-duotone ph-info"></i>
                                 </button>
                                 ${editButton}
                             `;
-                        }
                     }
+                }
                 ]
             });
 
@@ -548,7 +567,7 @@
                         const selectedProductsDiv = $('#requisition_product_list');
                         const items = data.requisition_items;
 
-                        selectedProductsDiv.empty(); 
+                        selectedProductsDiv.empty();
 
                         if (items && items.length > 0) {
                             const uniqueMastersMap = new Map();
@@ -636,7 +655,7 @@
                 container.html(tableHTML);
             }
             // === Modal Create ===
-            $('#btn-create-compline').on('click', function() {
+            $('#btn-create-compline').on('click', function () {
                 $('#complineForm')[0].reset();
                 $('#requisition_items').empty();
                 $('#product-detail').remove();
@@ -648,16 +667,16 @@
                 var today = new Date().toISOString().split('T')[0];
                 $('#date').val(today);
 
-                
+
                 // menarik data costumer dari server
                 $.ajax({
                     url: "{{ route('customers.list') }}",
                     method: "GET",
-                    success: function(data) {
+                    success: function (data) {
 
                         customerSelect.empty();
                         customerSelect.append('<option value=""></option>');
-                        data.forEach(function(customer) {
+                        data.forEach(function (customer) {
                             customerSelect.append('<option value="' + customer.id + '">' + customer.name + '</option>');
                         });
 
@@ -668,7 +687,7 @@
                             dropdownParent: $('#complineModal')
                         });
 
-                        customerSelect.on('change', function() {
+                        customerSelect.on('change', function () {
                             let selectedCustomer = $(this).val();
                             if (!selectedCustomer) {
                                 addressField.val('');
@@ -676,10 +695,10 @@
                             }
                             let selectedAddress = data.find(c => c.id == selectedCustomer)?.address || '';
                             addressField.val(selectedAddress);
-                            
+
                         });
                     },
-                    error: function() {
+                    error: function () {
                         errorMessage('Failed to load customers');
                     }
                 });
@@ -688,14 +707,14 @@
                 $.ajax({
                     url: "{{ route('get.serial') }}",
                     method: "GET",
-                    success: function(data) {
+                    success: function (data) {
                         // menampilkan nomor account dan serial number di modal
                         $('#account_display').text(data.account_number);
                         $('#account').val(data.account_number);
                         $('#rs_number_display').text(data.series_number);
                         $('#rs_number').val(data.series_number);
                     },
-                    error: function() {
+                    error: function () {
                         $('#rs_number_display').text('serial number gagal dibuat');
                         errorMessage('Failed to generate RS number');
                     }
@@ -705,7 +724,7 @@
                 $.ajax({
                     url: "{{ route('get.product.list') }}",
                     method: "GET",
-                    success: function(data) {
+                    success: function (data) {
                         allProductData = data;
 
                         productselect.empty();
@@ -818,7 +837,7 @@
                         materialtype.on('change', renderProductDetails);
 
                     },
-                    error: function() {
+                    error: function () {
                         productselect.append('<option>produk gagal dimuat</option>');
                         errorMessage('Failed to fetch product list');
                     }
@@ -906,7 +925,7 @@
             });
 
             // === SweetAlert Delete ===
-            $(document).on('click', '.delete-user-btn', function(e) {
+            $(document).on('click', '.delete-user-btn', function (e) {
                 e.preventDefault();
                 const btn = $(this);
                 confirmDialog({
@@ -927,11 +946,11 @@
                                 _method: 'DELETE',
                                 _token: '{{ csrf_token() }}'
                             },
-                            success: function(res) {
+                            success: function (res) {
                                 $('#users-table').DataTable().ajax.reload(null, false);
                                 successMessage(res.message || 'Complain deleted successfully!');
                             },
-                            error: function(xhr) {
+                            error: function (xhr) {
                                 errorMessage(xhr.responseJSON?.message || 'Failed to delete complain');
                             }
                         });

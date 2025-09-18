@@ -15,7 +15,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
-use function Illuminate\Log\log;
 
 class ComplainController extends Controller
 {
@@ -95,18 +94,44 @@ class ComplainController extends Controller
 
     public function getData(Request $request)
     {
+        $draw = $request->input('draw');
         $start = $request->input('start', 0);
         $length = $request->input('length', 10);
-        $draw = $request->input('draw');
+        $searchValue = $request->input('search.value');
+        $orderColumnIndex = $request->input('order.0.column');
+        $orderDirection = $request->input('order.0.dir', 'asc');
 
+        // Dapatkan nama kolom untuk sorting dari request berdasarkan indexnya
+        $orderColumnName = $request->input("columns.{$orderColumnIndex}.name");
+
+        // Hitung total data tanpa filter apa pun
         $totalData = Requisition::count();
 
+        // Mulai query builder
         $query = Requisition::query();
 
-        $totalFiltered = $totalData;
+        // 2. Terapkan filter pencarian jika ada input dari kotak search
+        if (!empty($searchValue)) {
+            $query->where(function ($q) use ($searchValue) {
+                $q->where('requester_nik', 'like', "%{$searchValue}%")
+                    ->orWhere('customer_id', 'like', "%{$searchValue}%")
+                    ->orWhere('cost_center', 'like', "%{$searchValue}%")
+                    ->orWhere('category', 'like', "%{$searchValue}%")
+                    ->orWhere('route_to', 'like', "%{$searchValue}%")
+                    ->orWhere('status', 'like', "%{$searchValue}%");
+            });
+        }
 
-        // Ambil data untuk halaman saat ini menggunakan offset dan limit
-        $data = $query->offset($start)->limit($length)->get();
+        $totalFiltered = $query->count();
+
+        if (!empty($orderColumnName)) {
+            $query->orderBy($orderColumnName, $orderDirection);
+        }
+
+        $data = $query->with(['customer', 'revision', 'requester'])
+            ->offset($start)
+            ->limit($length)
+            ->get();
 
         $response = [
             'draw' => intval($draw),
@@ -161,5 +186,20 @@ class ComplainController extends Controller
     {
         $items = ItemMaster::with('details')->get();
         return response()->json(['items' => $items]);
+    }
+
+    public function getFormDetail($id){
+        try {
+            // Eager load relasi yang dibutuhkan: customer dan items beserta detail dari item
+            // 'items' adalah nama relasi pivot, 'items.detail' mengambil detail produk dari pivot
+            $complain = Requisition::with(['customer', 'requisitionItems.itemMaster.details'])->findOrFail($id);
+
+            return response()->json($complain);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json(['message' => 'Complain data not found.'], 404);
+        } catch (\Exception $e) {
+            // Log error jika perlu: Log::error($e->getMessage());
+            return response()->json(['message' => 'An error occurred on the server.'], 500);
+        }
     }
 }
