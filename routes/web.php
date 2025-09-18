@@ -29,6 +29,14 @@ Route::prefix('requisition')->group(function () {
 });
 
 
+//! pindahkan ke midddleware approver
+Route::get('/getapproverlist', [RequisitionPath::class, 'approverList'])->name('get.approverlist');
+Route::resource('/approvers', RequisitionPath::class);
+Route::get('/categories', [RequisitionPath::class, 'categories'])->name('get.categories');
+Route::get('/approver-name', [RequisitionPath::class, 'approverName'])->name('get.approver.name');
+
+
+
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -54,7 +62,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/complain-form/log', [ComplainController::class, 'log'])->name('complain-form.log');
     Route::get('/free-goods/log', [FreeGoodsController::class, 'log'])->name('free-goods.log');
 
-    Route::get('/requistion/path', [RequisitionPath::class, 'path'])->name('requistion.path');
+    //! pindahkan ke midddleware approver
+    Route::get('/getapproverlist', [RequisitionPath::class, 'approverList'])->name('get.approverlist');
 });
 
 
@@ -70,7 +79,7 @@ Route::group(['middleware' => ['role:super-admin|admin']], function () {
     Route::get('roles/{roleId}/give-permissions', [RoleController::class, 'addPermissionToRole'])->name('roles.give-permissions');
     Route::post('roles/{roleId}/give-permissions', [RoleController::class, 'givePermissionToRole'])->name('roles.give-permission');
 
-    Route::get('/getapproverlist', [ApproverController::class, 'approverList'])->name('get.approverlist');
+    Route::get('/requistion/path', [RequisitionPath::class, 'index'])->name('requistion.path');
 
 });
 
