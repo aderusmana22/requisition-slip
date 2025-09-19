@@ -321,7 +321,13 @@ class SampleController extends Controller
             }
 
             DB::commit();
-            return response()->json(['success' => true, 'message' => 'Sample Requisition berhasil dibuat.']);
+            $nextSrsNumber = $this->generateSrsNumber();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Sample Requisition berhasil dibuat dan permintaan persetujuan telah dikirim.',
+                'next_srs_number' => $nextSrsNumber
+            ]);
 
         } catch (\Exception $e) {
             DB::rollBack();
