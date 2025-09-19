@@ -184,7 +184,7 @@ class ComplainController extends Controller
 
     public function getProductList(Request $request)
     {
-        $items = ItemMaster::with('details')->get();
+        $items = ItemMaster::with('ItemDetails')->get();
         return response()->json(['items' => $items]);
     }
 
