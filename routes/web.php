@@ -45,7 +45,9 @@ Route::middleware('auth')->group(function () {
     // Requisition Routes
     Route::resource('sample-form', SampleController::class);
     Route::get('/sample-data', [SampleController::class, 'getData'])->name('sample.data');
-    Route::get('/search-items', [SampleController::class, 'searchItems'])->name('sample.searchItems');
+    Route::post('/get-products-by-material-types', [SampleController::class, 'getProductsByMaterialTypes'])->name('sample.getProductsByMaterialTypes');
+    Route::post('/get-item-details-by-products', [SampleController::class, 'getItemDetailsByProducts'])->name('sample.getItemDetailsByProducts');
+    Route::get('/get-all-item-masters', [SampleController::class, 'getAllItemMasters'])->name('sample.getAllItemMasters');
 
     Route::resource('complain-form', ComplainController::class);
     Route::resource('free-goods', FreeGoodsController::class);

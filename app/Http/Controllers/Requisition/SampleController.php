@@ -4,11 +4,15 @@ namespace App\Http\Controllers\Requisition;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreSampleRequisitionRequest;
+use App\Http\Requests\UpdateSampleRequisitionRequest;
 use App\Models\Master\Customer;
 use App\Models\Master\ItemMaster;
+use App\Models\Master\ItemDetail;
 use App\Models\Requisition\Requisition;
-use Exception;
+use App\Models\Requisition\RequisitionItem;
+use App\Models\Requisition\RequisitionSpecial;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -16,142 +20,324 @@ use Yajra\DataTables\Facades\DataTables;
 
 class SampleController extends Controller
 {
-    public function index()
+    private function generateSrsNumber()
     {
-        $customers = Customer::orderBy('name')->get();
+        // 1. Definisikan format yang baru
+        $prefix = 'S';
+        $year = date('y');   // Format: 25 (untuk tahun 2025)
+        $month = date('m');  // Format: 09 (untuk bulan September)
 
-        // === LOGIKA BARU UNTUK FILTER SUB CATEGORY ===
-        $userDepartment = Auth::user()->department->name ?? null;
+        // 2. Cari nomor terakhir yang dibuat pada bulan dan tahun ini
+        $lastRequisition = Requisition::whereYear('created_at', date('Y'))
+                                    ->whereMonth('created_at', date('m'))
+                                    ->orderBy('id', 'desc') // Urutkan berdasarkan ID terbaru
+                                    ->first();
 
-        // Definisikan aturan bisnis Anda di sini
-        $rules = [
-            'Packaging'     => ['Engineering & Maintenance','Sales & Marketing', 'R&D'],
-            'Finished Good' => ['Engineering & Maintenance','R&D', 'QA', 'Sales & Marketing'],
-            'Special Order' => ['Engineering & Maintenance','Sales & Marketing'],
-        ];
-
-        $allowedSubCategories = [];
-        // Loop melalui aturan dan cek apakah departemen user ada di dalamnya
-        foreach ($rules as $subCategory => $allowedDepartments) {
-            if (in_array($userDepartment, $allowedDepartments)) {
-                // Jika diizinkan, tambahkan ke daftar untuk dikirim ke view
-                $allowedSubCategories[] = ['id' => $subCategory, 'text' => $subCategory];
-            }
+        $runningNumber = 1; // Nomor awal jika tidak ada data sebelumnya
+        if ($lastRequisition) {
+            $lastParts = explode(' ', $lastRequisition->no_srs);
+            $lastRunningNumber = end($lastParts); // Mengambil bagian terakhir
+            $runningNumber = intval($lastRunningNumber) + 1;
         }
 
-        // Kirim data customers dan sub category yang sudah difilter ke view
-        return view('page.sample.index', compact('customers', 'allowedSubCategories'));
+        // 3. Gabungkan semua bagian menjadi format yang diinginkan sprintf('%03d', $runningNumber) akan membuat nomor urut menjadi 3 digit (e.g., 1 -> 001, 13 -> 013)
+        return "$prefix $year $month " . sprintf('%03d', $runningNumber);
+    }
+
+    public function getProductsByMaterialTypes(Request $request)
+    {
+        $request->validate(['material_types' => 'required|array']);
+
+        $products = ItemMaster::whereHas('itemDetails', function ($query) use ($request) {
+            $query->whereIn('material_type', $request->material_types);
+        })->select('id', 'item_master_name')->distinct()->get();
+
+        return response()->json($products);
+    }
+
+    public function getAllItemMasters()
+    {
+        $masters = ItemMaster::select('id', 'item_master_code', 'item_master_name', 'unit')->get();
+        return response()->json($masters);
+    }
+
+    public function getItemDetailsByProducts(Request $request)
+    {
+        $request->validate(['product_ids' => 'required|array']);
+
+        // Ambil semua item detail yang terkait dengan item master yang dipilih
+        $details = ItemDetail::whereIn('item_master_id', $request->product_ids)->get();
+
+        return response()->json($details);
+    }
+
+    public function index()
+    {
+        $customers = Customer::all();
+        $materialTypes = ItemDetail::distinct()->pluck('material_type');
+        $generatedSrs = $this->generateSrsNumber();
+        $userAccount = Auth::user()->department->code ?? null;
+        $userDepartmentName = Auth::user()->department?->name ?? null;
+        $allowedSubCategories = [];
+        if (in_array($userAccount, ['5300', '5302'])) {
+            $allowedSubCategories[] = 'Packaging';
+        }
+        if (in_array($userAccount, ['5300', '5302', '5303'])) {
+            $allowedSubCategories[] = 'Finished Good';
+        }
+        if ($userAccount == '5300') {
+            $allowedSubCategories[] = 'Special Order';
+        }
+        $allowedSubCategories = array_unique($allowedSubCategories);
+
+        return view('page.sample.index', compact(
+            'customers', 'materialTypes', 'allowedSubCategories',
+            'generatedSrs', 'userAccount', 'userDepartmentName'));
     }
 
     public function getData()
     {
-        $requisitions = Requisition::with(['customer', 'requester'])
-            ->where('category', 'SAMPLE')->select('requisitions.*');
+        $requisitions = DB::table('requisitions')
+            ->leftJoin('users', 'requisitions.requester_nik', '=', 'users.nik')
+            ->leftJoin('customers', 'requisitions.customer_id', '=', 'customers.id')
+            ->where('requisitions.category', 'SAMPLE')
+            ->select(
+                'requisitions.id',
+                'requisitions.requester_nik',
+                'requisitions.request_date',
+                'requisitions.sub_category',
+                'requisitions.route_to',
+                'requisitions.status',
+                'users.name as requester_name',
+                'users.avatar',
+                'customers.name as customer_name'
+            );
 
         return DataTables::of($requisitions)
-            ->addIndexColumn()
-            ->addColumn('requester_name', fn($req) => $req->requester->name ?? $req->requester_nik)
-            ->addColumn('customer_name', fn($req) => $req->customer->name ?? 'N/A')
-            ->editColumn('request_date', fn($req) => \Carbon\Carbon::parse($req->request_date)->format('d M Y'))
-            ->editColumn('status', function ($req) {
-                $badges = ['PENDING' => 'bg-warning text-dark', 'APPROVED' => 'bg-success', 'REJECTED' => 'bg-danger'];
-                return '<span class="badge ' . ($badges[$req->status] ?? 'bg-secondary') . '">' . $req->status . '</span>';
+            ->addColumn('requester_info', function ($requisition) { // HANYA GUNAKAN addColumn
+                $avatar = $requisition->avatar ? asset($requisition->avatar) : asset('assets/images/logo/sinarmeadow.png');
+                $nik = e($requisition->requester_nik);
+
+                return '
+                    <div class="d-flex align-items-center">
+                        <div class="h-30 w-30 d-flex-center b-r-50 overflow-hidden text-bg-dark me-2">
+                            <img src="' . $avatar . '" alt="avatar" class="img-fluid">
+                        </div>
+                        <div>
+                            <small class="text-muted">' . $nik . '</small>
+                        </div>
+                    </div>
+                ';
             })
-            ->addColumn('action', function ($req) {
-                return '<div class="d-flex gap-2">
-                            <button class="btn btn-sm btn-warning btn-edit" data-id="' . $req->id . '"><i class="fas fa-pencil-alt text-white"></i></button>
-                            <button class="btn btn-sm btn-danger btn-delete" data-id="' . $req->id . '"><i class="fas fa-trash-alt"></i></button>
-                        </div>';
+            ->editColumn('request_date', fn($req) => Carbon::parse($req->request_date)->format('d M Y'))
+            ->editColumn('sub_category', function ($requisition) {
+                $subCategory = $requisition->sub_category;
+                $badgeClass = 'bg-secondary';
+                if ($subCategory == 'Packaging') $badgeClass = 'bg-info';
+                elseif ($subCategory == 'Finished Good') $badgeClass = 'bg-primary';
+                elseif ($subCategory == 'Special Order') $badgeClass = 'bg-warning text-dark';
+                return '<span class="badge ' . $badgeClass . '">' . e($subCategory) . '</span>';
             })
-            ->rawColumns(['status', 'action'])
+            ->editColumn('route_to', fn($req) => '<span class="badge bg-warning text-dark"><i class="ph-bold ph-user-switch me-1"></i>' . e($req->route_to) . '</span>')
+            ->editColumn('status', function ($requisition) {
+                $status = $requisition->status;
+                $badgeClass = 'bg-primary text-white';
+                if (in_array($status, ['Submitted', 'Pending'])) $badgeClass = 'bg-primary';
+                elseif (in_array($status, ['Approved', 'Completed'])) $badgeClass = 'bg-success';
+                elseif (in_array($status, ['Rejected', 'Cancelled'])) $badgeClass = 'bg-danger';
+                elseif ($status == 'In Progress') $badgeClass = 'bg-info';
+                return '<span class="badge ' . $badgeClass . '">' . e($status) . '</span>';
+            })
+            ->addColumn('action', function ($row) {
+                return '
+                    <div class="d-flex gap-1">
+                        <button type="button" class="btn btn-sm btn-warning btn-edit-requisition" data-id="' . $row->id . '" title="Edit">
+                            <i class="fa-solid fa-pencil text-white"></i>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-danger btn-delete-requisition" data-id="' . $row->id . '" title="Delete">
+                            <i class="fa-solid fa-trash-alt text-white"></i>
+                        </button>
+                    </div>';
+            })
+            ->rawColumns(['requester_info', 'sub_category', 'route_to', 'status', 'action'])
             ->make(true);
     }
 
     public function store(StoreSampleRequisitionRequest $request)
     {
-        // 1. Ambil data user yang login beserta departemennya
-        $user = Auth::user();
-        // Gunakan 'load' untuk efisiensi query, pastikan relasi 'department' ada di model User
-        $user->load('department');
-
-        // Ambil nama departemen dari user. Beri nilai default jika tidak ada.
-        $departmentName = $user->department->name ?? 'Unknown';
-
-        // 2. Tentukan tujuan approval (route to) berdasarkan departemen dan sub category
-        $routeTo = '';
-
-        // Logika utama berdasarkan departemen
-        if ($departmentName === 'SnM') {
-            switch ($request->sub_category) {
-                case 'Packaging':
-                    $routeTo = 'SnM Requester Manager';
-                    break;
-                case 'Finished Good':
-                    $routeTo = 'Marketing Head'; // Mungkin ini tetap? Sesuaikan jika perlu
-                    break;
-                case 'Special Order':
-                    $routeTo = 'SnM Requester Manager';
-                    break;
-            }
-        } elseif ($departmentName === 'RnD') {
-            // Jika dari RnD, semua sub category akan ke RnD Manager
-            $routeTo = 'RnD Manager';
-
-        } elseif ($departmentName === 'QA') {
-            // Contoh lain: jika dari QA, semua sub category akan ke QA Manager
-            $routeTo = 'QA Manager';
-        }
-
-        // 3. Fallback jika departemen tidak terdefinisi di logika di atas
-        // Ini akan merutekan ke atasan langsung user tersebut (perlu implementasi lebih lanjut)
-        if (empty($routeTo)) {
-            $routeTo = 'Atasan Requester'; // Default fallback
-        }
-
-        // Proses penyimpanan ke database (kode ini tidak berubah)
         DB::beginTransaction();
         try {
+            $validated = $request->validated();
+            $user = Auth::user();
+
             $requisition = Requisition::create([
-                'requester_nik'     => $user->nik,
-                'customer_id'       => $request->customer_id,
-                'no_srs'            => $request->no_srs,
-                'account'           => $request->account,
-                'cost_center'       => $request->cost_center,
-                'request_date'      => $request->request_date,
-                'category'          => 'SAMPLE',
-                'sub_category'      => $request->sub_category,
-                'route_to'          => $routeTo, // Menggunakan $routeTo dari logika baru
-                'status'            => 'PENDING',
-                'objectives'        => $request->items[0]['objectives'],
-                'estimated_potential' => $request->items[0]['estimated_potential'],
+                'requester_nik' => $user->nik,
+                'customer_id' => $validated['customer_id'],
+                'no_srs' => $this->generateSrsNumber(),
+                'account' => $validated['account'],
+                'cost_center' => $validated['cost_center'],
+                'request_date' => $validated['request_date'],
+                'category' => 'SAMPLE',
+                'sub_category' => $validated['sub_category'],
+                'objectives' => $validated['objectives'],
+                'estimated_potential' => $validated['estimated_potential'],
+                'status' => 'Pending',
+                'route_to' => $validated['sub_category'] === 'Special Order' ? 'Atasan SnM' : 'Atasan ' . ($user->department?->name ?? 'Requester'),
             ]);
 
-            foreach ($request->items as $itemData) {
-                $requisition->requisitionItems()->create([
-                    'item_master_id'     => $itemData['item_master_id'],
-                    'quantity_required'  => $itemData['quantity_required'],
-                    'quantity_issued'    => $itemData['quantity_issued'] ?? 0,
+            // **MODIFIED**: Save to requisition_specials if it's a Special Order
+            if ($validated['sub_category'] === 'Special Order') {
+                RequisitionSpecial::create([
+                    'requisition_id' => $requisition->id,
+                    'requested_date' => $validated['requested_date'] ?? null,
+                    'weight_selection' => $validated['weight_selection'] ?? null,
+                    'packaging_selection' => $validated['packaging_selection'] ?? null,
+                    'sample_count' => $validated['sample_count'] ?? null,
+                    'coa_required' => $validated['coa_required'] ?? false,
+                    'shipment_method' => $validated['shipment_method'] ?? null,
                 ]);
             }
 
-            DB::commit();
-            return response()->json(['success' => true, 'message' => 'Sample Requisition berhasil dibuat!']);
+           if ($validated['sub_category'] === 'Finished Good') {
+                foreach ($validated['items'] as $itemMasterId => $itemData) {
+                    RequisitionItem::create([
+                        'requisition_id' => $requisition->id,
+                        'item_master_id' => $itemMasterId,
+                        'item_detail_id' => null,
+                        'material_type' => 'Finished Good', // <-- TAMBAHKAN INI
+                        'quantity_required' => $itemData['quantity_required'],
+                        'quantity_issued' => $itemData['quantity_issued'] ?? null,
+                    ]);
+                }
+            } else { // For Packaging and Special Order
+                $itemDetails = ItemDetail::whereIn('id', array_keys($validated['items']))->get()->keyBy('id');
+                foreach ($validated['items'] as $itemDetailId => $itemData) {
+                    if (isset($itemDetails[$itemDetailId])) {
+                        $itemDetail = $itemDetails[$itemDetailId];
+                        RequisitionItem::create([
+                            'requisition_id' => $requisition->id,
+                            'item_master_id' => $itemDetail->item_master_id,
+                            'item_detail_id' => $itemDetail->id,
+                            'material_type' => $itemDetail->material_type, // <-- TAMBAHKAN INI
+                            'quantity_required' => $itemData['quantity_required'],
+                            'quantity_issued' => $itemData['quantity_issued'] ?? null,
+                        ]);
+                    }
+                }
+            }
 
-        } catch (Exception $e) {
+            DB::commit();
+            return response()->json(['success' => true, 'message' => 'Sample Requisition berhasil dibuat dan dikirim ke Atasan.']);
+
+        } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Error creating sample requisition: ' . $e->getMessage() . ' at ' . $e->getFile() . ':' . $e->getLine());
-            return response()->json(['success' => false, 'message' => 'Terjadi kesalahan sistem.'], 500);
+            Log::error('Gagal membuat sample requisition: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'An error occurred: ' . $e->getMessage()], 500);
         }
     }
 
-    public function searchItems(Request $request)
+    public function edit($id)
     {
-        $term = $request->input('term', '');
-        $items = ItemMaster::where(fn($q) => $q->where('item_master_code', 'LIKE', "%{$term}%")->orWhere('item_master_name', 'LIKE', "%{$term}%"))
-            ->limit(15)->get();
+        $requisition = Requisition::with([
+            'requisitionItems.itemDetail',
+            'requisitionItems.itemMaster',
+            'requisitionSpecial'
+        ])->findOrFail($id);
+        return response()->json($requisition);
+    }
 
-        return response()->json($items->map(fn($item) => [
-            'id' => $item->id, 'text' => "{$item->item_master_code} - {$item->item_master_name}", 'unit' => $item->unit,
-        ]));
+    public function update(UpdateSampleRequisitionRequest $request, $id)
+    {
+        $requisition = Requisition::findOrFail($id);
+        $user = Auth::user();
+
+        DB::beginTransaction();
+        try {
+            if ($user->department?->name === 'QA/QM' && $requisition->route_to === 'Atasan QA/QM') {
+                $validatedQa = $request->validate([
+                    'sample_origin' => 'required|string',
+                    'sample_description_batch' => 'nullable|string',
+                    'sample_description_wb' => 'nullable|string',
+                    'sample_description_tank' => 'nullable|string',
+                    'production_date' => 'required|date',
+                    'sample_preparation' => 'required|string',
+                    'qa_notes' => 'nullable|string',
+                ]);
+
+                $requisition->update($validatedQa);
+                $requisition->route_to = 'Atasan QA/QM';
+                $requisition->save();
+            } else {
+                $validated = $request->validated();
+                $requisition->update($validated);
+
+                // Hapus item lama sebelum menambahkan yang baru
+                $requisition->requisitionItems()->delete();
+
+                // Logika baru yang disesuaikan seperti di method store
+                if ($validated['sub_category'] === 'Finished Good') {
+                    foreach ($validated['items'] as $itemMasterId => $itemData) {
+                        RequisitionItem::create([
+                            'requisition_id' => $requisition->id,
+                            'item_master_id' => $itemMasterId,
+                            'item_detail_id' => null,
+                            'quantity_required' => $itemData['quantity_required'],
+                            'quantity_issued' => $itemData['quantity_issued'] ?? null,
+                        ]);
+                    }
+                } else { // Untuk Packaging dan Special Order
+                    $itemDetails = ItemDetail::whereIn('id', array_keys($validated['items']))->get()->keyBy('id');
+                    foreach ($validated['items'] as $itemDetailId => $itemData) {
+                        if (isset($itemDetails[$itemDetailId])) {
+                            $itemDetail = $itemDetails[$itemDetailId];
+                            RequisitionItem::create([
+                                'requisition_id' => $requisition->id,
+                                'item_master_id' => $itemDetail->item_master_id,
+                                'item_detail_id' => $itemDetail->id,
+                                'quantity_required' => $itemData['quantity_required'],
+                                'quantity_issued' => $itemData['quantity_issued'] ?? null,
+                            ]);
+                        }
+                    }
+                }
+
+                // Logika untuk update RequisitionSpecial jika ada
+                if ($validated['sub_category'] === 'Special Order' && $requisition->requisitionSpecial) {
+                    $requisition->requisitionSpecial->update([
+                        'requested_date' => $validated['sample_completion_date'] ?? null,
+                        'weight_selection' => $validated['sample_weight'] ?? null,
+                        'packaging_selection' => $validated['sample_weight'] ?? null,
+                        'sample_count' => $validated['sample_weight'] ?? null,
+                        'purpose' => $validated['sample_weight'] ?? null,
+                        'coa_required' => $validated['sample_weight'] ?? null,
+                        'shipment_method' => $validated['sample_weight'] ?? null,
+                        'source' => $validated['sample_weight'] ?? null,
+                        'sample_notes' => $validated['sample_weight'] ?? null,
+                        'production_date' => $validated['sample_weight'] ?? null,
+                        'description' => $validated['sample_weight'] ?? null,
+                    ]);
+                }
+            }
+
+            DB::commit();
+            return response()->json(['success' => true, 'message' => 'Sample Requisition berhasil diubah.']);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Gagal mengubah sample requisition: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'An error occurred: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function destroy($id)
+    {
+        try {
+            $requisition = Requisition::findOrFail($id);
+            $requisition->delete();
+
+            return response()->json(['success' => true, 'message' => 'Requisition has been deleted successfully.']);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Failed to delete requisition.'], 500);
+        }
     }
 }

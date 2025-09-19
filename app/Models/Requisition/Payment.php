@@ -2,7 +2,7 @@
 
 namespace App\Models\Requisition;
 
-use App\Models\Master\Requisition;
+use App\Models\Requisition\Requisition;
 use Illuminate\Database\Eloquent\Model;
 
 class Payment extends Model

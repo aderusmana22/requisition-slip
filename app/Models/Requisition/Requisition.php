@@ -11,7 +11,6 @@ use Illuminate\Database\Eloquent\Model;
 class Requisition extends Model
 {
     protected $table = 'requisitions';
-    protected $guarded = ['id'];
 
     protected $fillable = [
         'requester_nik',
@@ -54,5 +53,10 @@ class Requisition extends Model
     public function requester()
     {
         return $this->belongsTo(User::class, 'requester_nik', 'nik');
+    }
+
+    public function requisitionSpecial()
+    {
+        return $this->hasOne(RequisitionSpecial::class);
     }
 }

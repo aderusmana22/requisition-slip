@@ -71,6 +71,7 @@ class AllSeeder extends Seeder
             [
                 'id' => 1,
                 'name' => 'Engineering & Maintenance',
+                'code' => '5300',
                 'slug' => 'engineering-maintainance',
                 'created_at' => $now,
                 'updated_at' => $now,
@@ -78,6 +79,7 @@ class AllSeeder extends Seeder
             [
                 'id' => 2,
                 'name' => 'Finance Admin',
+                'code' => '5300',
                 'slug' => 'finance-admin',
                 'created_at' => $now,
                 'updated_at' => $now,
@@ -85,6 +87,7 @@ class AllSeeder extends Seeder
             [
                 'id' => 3,
                 'name' => 'HCD',
+                'code' => '5300',
                 'slug' => 'hcd',
                 'created_at' => $now,
                 'updated_at' => $now,
@@ -92,6 +95,7 @@ class AllSeeder extends Seeder
             [
                 'id' => 4,
                 'name' => 'Manufacturing',
+                'code' => '5300',
                 'slug' => 'manufacturing',
                 'created_at' => $now,
                 'updated_at' => $now,
@@ -99,6 +103,7 @@ class AllSeeder extends Seeder
             [
                 'id' => 5,
                 'name' => 'QM & HSE',
+                'code' => '5300',
                 'slug' => 'qm-hse',
                 'created_at' => $now,
                 'updated_at' => $now,
@@ -106,6 +111,7 @@ class AllSeeder extends Seeder
             [
                 'id' => 6,
                 'name' => 'R&D',
+                'code' => '5303',
                 'slug' => 'rd',
                 'created_at' => $now,
                 'updated_at' => $now,
@@ -113,6 +119,7 @@ class AllSeeder extends Seeder
             [
                 'id' => 7,
                 'name' => 'Sales & Marketing',
+                'code' => '5302',
                 'slug' => 'sales-marketing',
                 'created_at' => $now,
                 'updated_at' => $now,
@@ -120,13 +127,15 @@ class AllSeeder extends Seeder
             [
                 'id' => 8,
                 'name' => 'Supply Chain',
+                'code' => '5300',
                 'slug' => 'supply-chain',
                 'created_at' => $now,
                 'updated_at' => $now,
             ],
             [
-                'id' => 11,
+                'id' => 9,
                 'name' => 'Supply & Maintenance',
+                'code' => '5300',
                 'slug' => 'supply-and-maintenance',
                 'created_at' => $now,
                 'updated_at' => $now,

@@ -17,7 +17,7 @@ class ItemMaster extends Model
         'unit',
     ];
 
-    public function details()
+    public function ItemDetails()
     {
         return $this->hasMany(ItemDetail::class, 'item_master_id');
     }
