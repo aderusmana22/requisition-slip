@@ -596,7 +596,7 @@
                 }
 
                 let tableRowsHTML = items.map(item => {
-                    const allDetails = item.item_master ? item.item_master.details : [];
+                    const allDetails = item.item_master ? item.item_master.item_details : [];
 
                     const specificDetail = allDetails.find(detail => detail.id === item.item_detail_id);
 

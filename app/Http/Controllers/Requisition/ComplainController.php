@@ -192,13 +192,13 @@ class ComplainController extends Controller
         try {
             // Eager load relasi yang dibutuhkan: customer dan items beserta detail dari item
             // 'items' adalah nama relasi pivot, 'items.detail' mengambil detail produk dari pivot
-            $complain = Requisition::with(['customer', 'requisitionItems.itemMaster.details'])->findOrFail($id);
+            $complain = Requisition::with(['customer', 'requisitionItems.itemMaster.ItemDetails'])->findOrFail($id);
 
             return response()->json($complain);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return response()->json(['message' => 'Complain data not found.'], 404);
         } catch (\Exception $e) {
-            // Log error jika perlu: Log::error($e->getMessage());
+            Log::error($e->getMessage());
             return response()->json(['message' => 'An error occurred on the server.'], 500);
         }
     }
