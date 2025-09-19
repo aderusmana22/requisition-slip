@@ -7,7 +7,9 @@ use App\Http\Requests\approvalpathRequest;
 use App\Models\Requisition\ApprovalPath;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class RequisitionPath extends Controller
 {
@@ -19,14 +21,34 @@ class RequisitionPath extends Controller
     public function store(approvalpathRequest $request)
     {
         $validated = $request->validated();
+        $causer = Auth::user();
 
         try{
-            DB::transaction(function() use($validated){
+            DB::transaction(function() use($validated, $causer){
+
+                Log::info('Validated Data: ', $validated);
+
+                if ($validated['category_id'] === 'Sample') {
+                    if (empty($validated['sub_category_id'])) {
+                        throw new \Exception('Sub-category is required for the Sample category.');
+                    }
+                }
+                elseif ($validated['category_id'] === 'Complain' || $validated['category_id'] === 'Free Goods') {
+                    if ($validated['sub_category_id'] !== null) {
+                        throw new \Exception('Sub-category must be empty/null for Complain or Free Goods categories.');
+                    }
+                }
+
                 $data = ApprovalPath::create([
                     'category' => $validated['category_id'],
                     'sub_category' => $validated['sub_category_id'],
                     'sequence_approvers' => $validated['approvers'],
                 ]);
+
+                activity()
+                    ->causedBy($causer)
+                    ->withProperties(['approval_path_id' => $data->id])
+                    ->log('Created new approval path');
     
             });
             return response()->json(['message' => 'Approver successfully created'], 201);
@@ -44,8 +66,8 @@ class RequisitionPath extends Controller
         ];
         $subCategories = [
             'packaging',
-            'finished_goods',
-            'special_order',
+            'finished goods',
+            'special order',
         ];
         return response()->json(['categories' => $categories, 'subCategories' => $subCategories]);
     }
@@ -112,5 +134,19 @@ class RequisitionPath extends Controller
         ];
 
         return response()->json($response);
+    }
+
+    public function destroy($id)
+    {
+        try {
+            DB::transaction(function () use ($id) {
+                $data = ApprovalPath::where('id', $id)->first();
+                if ($data) {
+                    $data->delete();
+                }
+            });
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error: ' . $e->getMessage()], 500);
+        }
     }
 }

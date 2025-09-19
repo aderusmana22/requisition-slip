@@ -22,8 +22,8 @@ class approvalpathRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'category_id' => 'required|string|max:255',
-            'sub_category_id' => 'required|string|max:255',
+            'category_id' => 'required|string|max:15',
+            'sub_category_id' => 'nullable|string|max:15',
             'approvers' => 'required|array|min:1',
             'approvers.*' => 'required|string|exists:users,nik',
         ];
@@ -33,7 +33,7 @@ class approvalpathRequest extends FormRequest
     {
         return [
             'category_id.required' => 'Category is required.',
-            'sub_category_id.required' => 'Sub-category is required.',
+            'sub_category_id.string' => 'Sub-category must be a string.',
             'approvers.required' => 'At least one approver must be selected.',
             'approvers.*.exists' => 'Selected approver does not exist.',
         ];

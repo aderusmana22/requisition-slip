@@ -434,15 +434,25 @@
                         render: function (data, type, row) {
                             return (row.requester && row.requester.name) ? row.requester.name : '-';
                         }
-                    },
-                    {
+                    },{
                         data: 'customer_id',
                         name: 'customer_id',
                         render: function (data, type, row) {
                             return (row.customer && row.customer.name) ? row.customer.name : '-';
                         }
-                    },
-                    {
+                    },{
+                        data: 'request_date',
+                        name: 'request_date',
+                        render: function (data, type, row) {
+                            if (!data) return '-';
+                            const d = new Date(data);
+                            if (isNaN(d.getTime())) return '-';
+                            // Format DD/MM/YYYY
+                            return String(d.getDate()).padStart(2,'0') + '/' +
+                                String(d.getMonth() + 1).padStart(2,'0') + '/' +
+                                d.getFullYear();
+                        }
+                    },{
                         data: 'cost_center',
                         name: 'cost_center',
                         render: function (data, type, row) {
@@ -456,25 +466,10 @@
                             }
                             return '-';
                         }
-                    },
-                    {
-                        data: 'request_date',
-                        name: 'request_date',
-                        render: function (data, type, row) {
-                            if (!data) return '-';
-                            const d = new Date(data);
-                            if (isNaN(d.getTime())) return '-';
-                            // Format DD/MM/YYYY
-                            return String(d.getDate()).padStart(2,'0') + '/' +
-                                String(d.getMonth() + 1).padStart(2,'0') + '/' +
-                                d.getFullYear();
-                        }
-                    },
-                    {
+                    },{
                         data: 'route_to',
                         name: 'route_to'
-                    },
-                    {
+                    },{
                         data: 'status',
                         name: 'status',
                         render: function (data, type, row) {
@@ -501,13 +496,16 @@
                             let editUrl = `/complain/${data}/edit`;
                             let status = (row.status || '').toLowerCase();
                             let editButton = (status === 'pending')
-                                ? `<a href="${editUrl}" class="btn btn-secondary btn-sm" title="Edit Data"><i class="ph-duotone ph-eraser"></i></a>`
+                                ? `<a href="${editUrl}" class="btn btn-secondary btn-sm me-1" title="Edit Data"><i class="ph-duotone ph-eraser"></i></a>`
                                 : '';
+                            let deleteButton = (status === 'pending')
+                                ? `<button type="button" class="btn btn-danger btn-sm delete-button" data-id="${data}" title="Delete Data"><i class="ph-duotone ph-trash"></i></button>`
+                                : ''; 
                             return `
                                 <button type="button" class="btn btn-info btn-sm detail-button" data-id="${data}" title="Lihat Detail">
                                     <i class="ph-duotone ph-info"></i>
                                 </button>
-                                ${editButton}
+                                ${editButton}${deleteButton}
                             `;
                         }
                     }
@@ -596,7 +594,7 @@
                 }
 
                 let tableRowsHTML = items.map(item => {
-                    const allDetails = item.item_master ? item.item_master.details : [];
+                    const allDetails = item.item_master ? item.item_master.item_details : [];
 
                     const specificDetail = allDetails.find(detail => detail.id === item.item_detail_id);
 
@@ -743,10 +741,10 @@
 
                             selectedProductIds.forEach(function (productId) {
                                 const selectedProduct = allProductData.items.find(item => item.id == productId);
-                                if (!selectedProduct || !selectedProduct.details.length) return;
+                                if (!selectedProduct || !selectedProduct.item_details.length) return;
 
                                 // Filter data
-                                const filteredDetails = selectedProduct.details.filter(d =>
+                                const filteredDetails = selectedProduct.item_details.filter(d =>
                                     selectedTypes.length === 0 || selectedTypes.includes(d.material_type)
                                 );
 
@@ -906,7 +904,7 @@
             });
 
             // === SweetAlert Delete ===
-            $(document).on('click', '.delete-user-btn', function(e) {
+            $(document).on('click', '.delete-button', function(e) {
                 e.preventDefault();
                 const btn = $(this);
                 confirmDialog({
@@ -920,15 +918,18 @@
                     reverseButtons: true
                 }).then((result) => {
                     if (result.isConfirmed) {
+                        const complainId = btn.data('id');
+                        let deleteUrl = "{{ route('complain-form.destroy', ':id') }}".replace(':id', complainId);
+            
                         $.ajax({
-                            url: btn.closest('form').attr('action'),
-                            method: 'POST',
+                            url: deleteUrl,
+                            method: 'DELETE',
                             data: {
                                 _method: 'DELETE',
                                 _token: '{{ csrf_token() }}'
                             },
                             success: function(res) {
-                                $('#users-table').DataTable().ajax.reload(null, false);
+                                $('#complainTable').DataTable().ajax.reload(null, false);
                                 successMessage(res.message || 'Complain deleted successfully!');
                             },
                             error: function(xhr) {

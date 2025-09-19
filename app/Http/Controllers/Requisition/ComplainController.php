@@ -23,6 +23,19 @@ class ComplainController extends Controller
         return view('page.complain.index');
     }
 
+    public function destroy($id){
+        try{
+            DB::transaction(function() use ($id){
+                $data = Requisition::where('id', $id)->first();
+                if($data){
+                    $data->delete();
+                }
+            });
+        }catch(\Exception $e){
+            return response()->json(['message' => 'Error: '.$e->getMessage()], 500);
+        }
+    }
+
     public function store(StoreComplainRequest $request)
     {
         $validated = $request->validated();
@@ -129,6 +142,7 @@ class ComplainController extends Controller
         }
 
         $data = $query->with(['customer', 'revision', 'requester'])
+            ->where('category', 'Complain')
             ->offset($start)
             ->limit($length)
             ->get();
@@ -184,7 +198,7 @@ class ComplainController extends Controller
 
     public function getProductList(Request $request)
     {
-        $items = ItemMaster::with('details')->get();
+        $items = ItemMaster::with('ItemDetails')->get();
         return response()->json(['items' => $items]);
     }
 
@@ -192,13 +206,13 @@ class ComplainController extends Controller
         try {
             // Eager load relasi yang dibutuhkan: customer dan items beserta detail dari item
             // 'items' adalah nama relasi pivot, 'items.detail' mengambil detail produk dari pivot
-            $complain = Requisition::with(['customer', 'requisitionItems.itemMaster.details'])->findOrFail($id);
+            $complain = Requisition::with(['customer', 'requisitionItems.itemMaster.ItemDetails'])->findOrFail($id);
 
             return response()->json($complain);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return response()->json(['message' => 'Complain data not found.'], 404);
         } catch (\Exception $e) {
-            // Log error jika perlu: Log::error($e->getMessage());
+            Log::error($e->getMessage());
             return response()->json(['message' => 'An error occurred on the server.'], 500);
         }
     }

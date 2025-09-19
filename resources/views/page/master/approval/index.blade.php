@@ -82,8 +82,9 @@
 
                         <div class="mb-3">
                             <label for="sub_category_id" class="form-label">Sub Category</label>
-                            <select class="form-select" id="sub_category_id" name="sub_category_id" required>
+                            <select class="form-select" id="sub_category_id" name="sub_category_id">
                             </select>
+                            <input type="hidden" name="sub_category_id" id="hidden_sub_category_id" disabled>
                             <div class="invalid-feedback" data-error-for="sub_category_id"></div>
                         </div>
 
@@ -180,9 +181,51 @@
                 option.appendTo(this);
             });
 
+            // === Dynamic Sub-Category Handling ===
+            let allSubCategories = [];
+            $('#category_id').on('change', function () {
+                let selectedCategory = $(this).val();
+                let subCategorySelect = $('#sub_category_id');
+                let hiddenSubCategoryInput = $('#hidden_sub_category_id');
+
+                if (selectedCategory === 'Complain' || selectedCategory === 'Free Goods') {
+                    // Nonaktifkan select yang terlihat agar tidak bisa diubah
+                    subCategorySelect.prop('disabled', true);
+                    subCategorySelect.val(null).trigger('change');
+                    subCategorySelect.select2({
+                        theme: 'bootstrap-5',
+                        dropdownParent: $('#ApproverModal'),
+                        placeholder: 'This category has no sub-category'
+                    });
+
+                    // Aktifkan hidden input dan beri nilai kosong
+                    hiddenSubCategoryInput.prop('disabled', false);
+                    hiddenSubCategoryInput.val(null);
+                } else {
+                    // Aktifkan kembali select yang terlihat
+                    subCategorySelect.prop('disabled', false);
+
+                    // Nonaktifkan hidden input agar nilainya tidak bentrok
+                    hiddenSubCategoryInput.prop('disabled', true);
+
+                    // Atur ulang Select2 dan isi kembali datanya
+                    subCategorySelect.select2({
+                        theme: 'bootstrap-5',
+                        dropdownParent: $('#ApproverModal'),
+                        placeholder: 'Select a sub-category'
+                    });
+
+                    subCategorySelect.empty();
+                    allSubCategories.forEach(subCat => {
+                        subCategorySelect.append(new Option(subCat.text, subCat.value));
+                    });
+                    subCategorySelect.trigger('change');
+                }
+            });
+
             // === Load ALL Dropdown Data via AJAX ===
             function loadDropdownData() {
-                // 1. Fetch Categories & Sub-Categories
+                // Fetch Categories & Sub-Categories
                 $.ajax({
                     url: "{{ route('get.categories') }}",
                     method: 'GET',
@@ -198,10 +241,11 @@
                             data.categories.forEach(cat => categorySelect.append(new Option(cat, cat)));
                         }
                         if (data.subCategories) {
-                            data.subCategories.forEach(subCat => subCategorySelect.append(new Option(subCat, subCat)));
+                            data.subCategories.forEach(subCat => { subCategorySelect.append(new Option(subCat, subCat));
+                                allSubCategories.push({ value: subCat, text: subCat });
+                            });
                         }
                         categorySelect.trigger('change');
-                        subCategorySelect.trigger('change');
                     },
                     error: function () {
                         errorMessage('Failed to load category data.');
@@ -253,7 +297,10 @@
                     name: 'category'
                 }, {
                     data: 'sub_category',
-                    name: 'sub_category'
+                    name: 'sub_category',
+                    render: function (data, type, row) {
+                        return data ? data  : `<span class="text-muted" style="font-style: italic; text-color: gray;"> Non Sub-category </span>`;
+                    }
                 }, {
                     data: 'sequence_approvers',
                     name: 'sequence_approvers',
