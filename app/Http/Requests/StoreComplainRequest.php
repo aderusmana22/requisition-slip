@@ -23,51 +23,63 @@ class StoreComplainRequest extends FormRequest
     {
         return [
             // Validasi untuk data utama
-            'customer_name'    => 'required|string|max:255',
+            'customer_id'    => 'required|string|max:255',
             'customer_address' => 'required|string',
             'account'          => 'required|string|max:100',
             'cost_center'      => 'required|string|max:100',
             'rs_number'        => 'required|string|max:100',
             'date'             => 'required|date',
+            'objectives'       => 'nullable|string',
 
-            // Validasi untuk tabel produk (array)
-            // Pastikan setidaknya ada satu produk yang diinput
-            'codes'            => 'required|array|min:1',
-            'names'            => 'required|array|min:1',
-            'units'            => 'required|array|min:1',
-            'quantities'       => 'required|array|min:1',
-            'objectives'       => 'required|array|min:1',
+            'material_type' => 'required|array',
+            'material_type.*' => 'required|string|in:Raw,Semi-Finished,Finished',
 
-            // Tanda '*' berarti aturan ini berlaku untuk setiap item di dalam array
-            'codes.*'          => 'required|string|max:50',
-            'names.*'          => 'required|string|max:255',
-            'units.*'          => 'required|string|max:50',
-            'quantities.*'     => 'required|integer|min:1',
-            'objectives.*'     => 'nullable|string|max:255',
+            'items'                 => 'required|array|min:1',
+            'items.*'               => 'required|array',
+            'items.*.details'       => 'required|array|min:1',
+            'items.*.details.*'     => 'required|array',
+
+            // Validasi untuk kuantitas
+            'items.*.details.*.qty_required' => 'required|numeric|min:0',
+            'items.*.details.*.qty_issued'   => 'required|numeric|min:0|lte:items.*.details.*.qty_required',
+
         ];
     }
 
     public function messages(): array
     {
         return [
-            'customer_name.required' => 'Nama customer wajib diisi.',
+            // Pesan untuk data utama
+            'customer_id.required'      => 'Nama customer wajib diisi.',
             'customer_address.required' => 'Alamat customer wajib diisi.',
-            'date.required' => 'Tanggal wajib diisi.',
-            'date.date' => 'Format tanggal tidak valid.',
+            'account.required'          => 'Akun wajib diisi.',
+            'cost_center.required'      => 'Cost center wajib diisi.',
+            'rs_number.required'        => 'Nomor RS/S wajib diisi.',
+            'date.required'             => 'Tanggal wajib diisi.',
+            'date.date'                 => 'Format tanggal tidak valid.',
 
-            // Pesan untuk array (jika array kosong)
-            'codes.required' => 'Setidaknya satu produk harus ditambahkan.',
-            'names.required' => 'Setidaknya satu produk harus ditambahkan.',
-            'units.required' => 'Setidaknya satu produk harus ditambahkan.',
-            'quantities.required' => 'Setidaknya satu produk harus ditambahkan.',
 
-            // Pesan untuk setiap item di dalam array
-            'codes.*.required' => 'Kode produk pada baris produk code wajib diisi.',
-            'names.*.required' => 'Nama produk pada baris produk name wajib diisi.',
-            'units.*.required' => 'Unit pada baris unit wajib diisi.',
-            'quantities.*.required' => 'Kuantitas pada baris quantity required wajib diisi.',
-            'quantities.*.integer' => 'Kuantitas pada baris quantity required harus berupa angka.',
-            'quantities.*.min' => 'Kuantitas pada baris quantity required minimal harus 1.',
+            'material_type.required' => 'Pilih minimal satu tipe material.',
+            'material_type.*.in' => 'Tipe material tidak valid. Pilihan yang tersedia: Raw, Semi-Finished, Finished.',
+
+            // Pesan untuk validasi array 'items'
+            'items.required'            => 'Anda harus memilih setidaknya satu produk.',
+            'items.min'                 => 'Anda harus memilih setidaknya satu produk.',
+
+            // Pesan untuk validasi 'details' di dalam 'items'
+            // Tanda '*' akan secara otomatis digantikan oleh Laravel
+            'items.*.details.required'  => 'Detail material untuk produk yang dipilih wajib ada.',
+            'items.*.details.min'       => 'Setiap produk yang dipilih harus memiliki minimal satu detail material.',
+
+            // Pesan untuk validasi kuantitas
+            'items.*.details.*.qty_required'         => 'Kuantitas yang diminta harus diisi.',
+            'items.*.details.*.qty_required.numeric' => 'Kuantitas yang diminta harus berupa angka.',
+            'items.*.details.*.qty_required.min'     => 'Kuantitas yang diminta tidak boleh negatif.',
+            'items.*.details.*.qty_issued'           => 'Kuantitas yang dikeluarkan harus diisi.',
+            'items.*.details.*.qty_issued.numeric'   => 'Kuantitas yang dikeluarkan harus berupa angka.',
+            'items.*.details.*.qty_issued.min'       => 'Kuantitas yang dikeluarkan tidak boleh negatif.',
+            'items.*.details.*.qty_issued.lte'       => 'Kuantitas yang dikeluarkan tidak boleh lebih besar dari kuantitas yang diminta.',
+
         ];
     }
 }
