@@ -1,7 +1,7 @@
 <?php
 
-use App\Http\Controllers\ApproverController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\Requisition\MailController;
 use App\Http\Controllers\Master\DepartmentController;
 use App\Http\Controllers\Master\CustomerController;
 use App\Http\Controllers\Master\PermissionController;
@@ -12,10 +12,12 @@ use App\Http\Controllers\Requisition\ComplainController;
 use App\Http\Controllers\Requisition\FreeGoodsController;
 use App\Http\Controllers\Requisition\RequisitionPath;
 use App\Http\Controllers\Requisition\SampleController;
-use App\Http\Controllers\Requisition\ApprovalController;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [AuthenticatedSessionController::class, 'create'])->name('login');
+
+Route::get('/mail-test', [MailController::class, 'sendTestEmail']);
 
 Route::get('/dashboard', function () {
     return view('dashboard');
@@ -42,10 +44,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-
-    Route::get('/requisition/approve/{token}', [ApprovalController::class, 'approve'])->name('requisition.approve');
-    Route::get('/requisition/reject/{token}', [ApprovalController::class, 'showRejectForm'])->name('requisition.reject.form');
-    Route::post('/requisition/reject/{token}', [ApprovalController::class, 'reject'])->name('requisition.reject.submit');
 
     // Requisition Routes
     Route::resource('sample-form', SampleController::class);
