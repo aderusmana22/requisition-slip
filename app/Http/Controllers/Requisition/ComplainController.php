@@ -23,6 +23,19 @@ class ComplainController extends Controller
         return view('page.complain.index');
     }
 
+    public function destroy($id){
+        try{
+            DB::transaction(function() use ($id){
+                $data = Requisition::where('id', $id)->first();
+                if($data){
+                    $data->delete();
+                }
+            });
+        }catch(\Exception $e){
+            return response()->json(['message' => 'Error: '.$e->getMessage()], 500);
+        }
+    }
+
     public function store(StoreComplainRequest $request)
     {
         $validated = $request->validated();
@@ -129,6 +142,7 @@ class ComplainController extends Controller
         }
 
         $data = $query->with(['customer', 'revision', 'requester'])
+            ->where('category', 'Complain')
             ->offset($start)
             ->limit($length)
             ->get();
