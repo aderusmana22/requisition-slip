@@ -3,9 +3,114 @@
 namespace App\Http\Controllers\Requisition;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\approvalpathRequest;
+use App\Models\Requisition\ApprovalPath;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class RequisitionPath extends Controller
 {
-    //
+    public function index()
+    {
+        return view('page.master.approval.index');
+    }
+
+    public function store(approvalpathRequest $request)
+    {
+        $validated = $request->validated();
+
+        try{
+            DB::transaction(function() use($validated){
+                $data = ApprovalPath::create([
+                    'category' => $validated['category_id'],
+                    'sub_category' => $validated['sub_category_id'],
+                    'sequence_approvers' => $validated['approvers'],
+                ]);
+    
+            });
+            return response()->json(['message' => 'Approver successfully created'], 201);
+        }catch(\Exception $e){
+            return response()->json(['message' => 'Error: '.$e->getMessage()], 500);
+        }
+    }
+
+    public function categories()
+    {
+        $categories = [
+            'Sample',
+            'Complain',
+            'Free Goods',
+        ];
+        $subCategories = [
+            'packaging',
+            'finished_goods',
+            'special_order',
+        ];
+        return response()->json(['categories' => $categories, 'subCategories' => $subCategories]);
+    }
+
+    public function approverName()
+    {
+        $name = User::all()->pluck('name', 'nik');
+        return response()->json(['approverName' => $name]);
+    }
+    
+    public function approverList(Request $request)
+    {
+        $draw = $request->input('draw');
+        $start = $request->input('start', 0);
+        $length = $request->input('length', 10);
+        $searchValue = $request->input('search.value');
+        $orderColumnIndex = $request->input('order.0.column');
+        $orderDirection = $request->input('order.0.dir', 'asc');
+
+        // Dapatkan nama kolom untuk sorting dari request berdasarkan indexnya
+        $orderColumnName = $request->input("columns.{$orderColumnIndex}.name");
+
+        // Hitung total data tanpa filter apa pun
+        $totalData = ApprovalPath::count();
+
+        // Mulai query builder
+        $query = ApprovalPath::query();
+
+        // 2. Terapkan filter pencarian jika ada input dari kotak search
+        if (!empty($searchValue)) {
+            $query->where(function ($q) use ($searchValue) {
+                $q->where('category', 'like', "%{$searchValue}%")
+                    ->orWhere('sub_category', 'like', "%{$searchValue}%")
+                    ->orWhere('sequence_approvers', 'like', "%{$searchValue}%");
+            });
+        }
+
+        $totalFiltered = $query->count();
+
+        if (!empty($orderColumnName)) {
+            $query->orderBy($orderColumnName, $orderDirection);
+        }
+
+        $approvalPaths = $query->offset($start)
+            ->limit($length)
+            ->get();
+
+        $data = $approvalPaths->map(function ($path) {
+            return [
+                'id' => $path->id,
+                'category' => $path->category,
+                'sub_category' => $path->sub_category,
+                'sequence_approvers' => $path->getNik()->pluck('name')->all(),
+                'created_at' => $path->created_at,
+                'updated_at' => $path->updated_at,
+            ];
+        });
+
+        $response = [
+            'draw' => intval($draw),
+            'recordsTotal' => $totalData,
+            'recordsFiltered' => $totalFiltered,
+            'data' => $data,
+        ];
+
+        return response()->json($response);
+    }
 }

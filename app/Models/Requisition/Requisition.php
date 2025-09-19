@@ -3,6 +3,7 @@
 namespace App\Models\Requisition;
 
 use App\Models\Master\Customer;
+use App\Models\Master\ItemMaster;
 use App\Models\Master\Revision;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
@@ -46,6 +47,7 @@ class Requisition extends Model
     {
         return $this->hasMany(RequisitionItem::class, 'requisition_id');
     }
+
 
     // Relasi ke User (requester)
     public function requester()

@@ -60,6 +60,10 @@
     <link href="{{ asset('assets') }}/vendor/datatable/datatable2/buttons.dataTables.min.css" rel="stylesheet"
         type="text/css">
 
+    <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/2.3.4/css/dataTables.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.3/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.3.4/css/dataTables.bootstrap5.css">
+
     <style>
         /* --- Definisi Warna Status --- */
         :root {
@@ -364,7 +368,7 @@
 
         <div class="offcanvas-header flex-wrap bg-primary">
             <h5 class="offcanvas-title text-white" id="customizerOptionsLabel"> Admin Customizer </h5>
-            <p class="d-block text-white opacity-75">it's time to style according to your choice ..!</p>
+            <p class="d-block text-white opacity-75">its time to style according to your choice ..!</p>
             <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
         </div>
 
@@ -470,6 +474,8 @@
 
     <!-- latest jquery-->
     <script src="{{ asset('assets') }}/js/jquery-3.6.3.min.js"></script>
+
+    <script src="//cdn.datatables.net/2.3.4/js/dataTables.min.js"></script>
 
     <!-- Simple bar js-->
     <script src="{{ asset('assets') }}/vendor/simplebar/simplebar.js"></script>
