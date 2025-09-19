@@ -173,6 +173,12 @@
             $('#sub_category_id').select2({ theme: 'bootstrap-5', placeholder: 'Select a sub-category', dropdownParent: $('#ApproverModal') });
             $('#approvers').select2({ theme: 'bootstrap-5', placeholder: 'Select approvers in order', dropdownParent: $('#ApproverModal') });
 
+            // atur urutan selected approvers
+            $('#approvers').on('select2:select', function (e) {
+                let id = e.params.data.id;
+                let option = $(this).find('option[value="' + id + '"]');
+                option.appendTo(this);
+            });
 
             // === Load ALL Dropdown Data via AJAX ===
             function loadDropdownData() {
