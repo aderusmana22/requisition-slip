@@ -596,7 +596,7 @@
                 }
 
                 let tableRowsHTML = items.map(item => {
-                    const allDetails = item.item_master ? item.item_master.details : [];
+                    const allDetails = item.item_master ? item.item_master.item_details : [];
 
                     const specificDetail = allDetails.find(detail => detail.id === item.item_detail_id);
 
@@ -743,10 +743,10 @@
 
                             selectedProductIds.forEach(function (productId) {
                                 const selectedProduct = allProductData.items.find(item => item.id == productId);
-                                if (!selectedProduct || !selectedProduct.details.length) return;
+                                if (!selectedProduct || !selectedProduct.item_details.length) return;
 
                                 // Filter data
-                                const filteredDetails = selectedProduct.details.filter(d =>
+                                const filteredDetails = selectedProduct.item_details.filter(d =>
                                     selectedTypes.length === 0 || selectedTypes.includes(d.material_type)
                                 );
 
