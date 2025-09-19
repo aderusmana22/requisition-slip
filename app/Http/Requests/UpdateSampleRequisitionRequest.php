@@ -41,12 +41,12 @@ class UpdateSampleRequisitionRequest extends FormRequest
 
         // BARU tambahkan aturan kondisional ke array $rules
         if ($this->input('sub_category') === 'Special Order') {
-            $rules['sample_completion_date']    = 'required|nullable|date';
-            $rules['sample_weight']             = 'required|nullable|string';
-            $rules['sample_packaging']          = 'required|nullable|string';
-            $rules['sample_quantity_details']   = 'required|nullable|string';
-            $rules['coa_required']              = 'required|nullable|boolean';
-            $rules['delivery_method']           = 'required|nullable|string';
+            $rules['requested_date']      = 'nullable|date';
+            $rules['weight_selection']    = 'nullable|string';
+            $rules['packaging_selection'] = 'nullable|string';
+            $rules['sample_count']        = 'nullable|string';
+            $rules['coa_required']        = 'nullable|boolean';
+            $rules['shipment_method']     = 'nullable|string';
         }
 
         // Terakhir, kembalikan array $rules yang sudah lengkap

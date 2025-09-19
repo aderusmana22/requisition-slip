@@ -57,4 +57,9 @@ class Requisition extends Model
     {
         return $this->hasOne(RequisitionSpecial::class);
     }
+
+     public function approvalLogs()
+    {
+        return $this->hasMany(ApprovalLog::class);
+    }
 }

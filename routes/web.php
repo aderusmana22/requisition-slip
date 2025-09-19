@@ -11,6 +11,7 @@ use App\Http\Controllers\Requisition\ComplainController;
 use App\Http\Controllers\Requisition\FreeGoodsController;
 use App\Http\Controllers\Requisition\RequisitionPath;
 use App\Http\Controllers\Requisition\SampleController;
+use App\Http\Controllers\Requisition\ApprovalController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [AuthenticatedSessionController::class, 'create'])->name('login');
@@ -23,6 +24,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    Route::get('/requisition/approve/{token}', [ApprovalController::class, 'approve'])->name('requisition.approve');
+    Route::get('/requisition/reject/{token}', [ApprovalController::class, 'showRejectForm'])->name('requisition.reject.form');
+    Route::post('/requisition/reject/{token}', [ApprovalController::class, 'reject'])->name('requisition.reject.submit');
 
     // Requisition Routes
     Route::resource('sample-form', SampleController::class);
