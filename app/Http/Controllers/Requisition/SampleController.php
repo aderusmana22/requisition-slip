@@ -88,7 +88,7 @@ class SampleController extends Controller
             $allowedSubCategories[] = 'Packaging';
         }
         if (in_array($userAccount, ['5300', '5302', '5303'])) {
-            $allowedSubCategories[] = 'Finished Good';
+            $allowedSubCategories[] = 'Finished Goods';
         }
         if ($userAccount == '5300') {
             $allowedSubCategories[] = 'Special Order';

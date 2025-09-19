@@ -63,7 +63,7 @@ class RequisitionApprovalMail extends Mailable
     public function content()
     {
         return new Content(
-            view: 'emails.requisition_approval',
+            view: 'mail.mail-sample',
         );
     }
 
