@@ -21,6 +21,9 @@ Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
+Route::get('/approval/process/{token}', [ApprovalController::class, 'processApproval'])->name('approval.process');
+Route::get('/approval', [ComplainController::class, 'processApproval'])->name('approval.process');
+
 Route::prefix('requisition')->group(function () {
     Route::get('/getComplainData', [ComplainController::class, 'getData'])->name('get.complain.data');
     Route::get('/getCostumerList', [ComplainController::class, 'getCustomerList'])->name('customers.list');

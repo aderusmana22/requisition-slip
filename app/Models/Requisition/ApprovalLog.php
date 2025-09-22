@@ -16,6 +16,7 @@ class ApprovalLog extends Model
         'level',
         'token',
         'notes',
+        'approved_at',
     ];
 
     public function requisition()
