@@ -335,25 +335,29 @@ class ComplainController extends Controller
 
         // Jika ID atau token tidak ada dalam request
         if (!$token || !$id) {
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'message' => 'Invalid approval link - missing required parameters (ID or Token).',
-                    'error_type' => 'missing_params'
-                ], 400);
-            }
-
             return view('page.complain.approval-invalid', [
                 'message' => 'The approval link is missing required parameters.',
                 'errorType' => 'missing_params'
             ]);
         }
 
-        // Cek apakah requisition ID dengan token ditemukan
+        // Cek apakah requisition ID ada terlebih dahulu
+        $requisitionExists = ApprovalLog::where('requisition_id', $id)->exists();
+        
+        // Jika requisition ID tidak ditemukan sama sekali
+        if (!$requisitionExists) {
+            return view('page.complain.approval-invalid', [
+                'message' => 'Invalid approval link - requisition not found.',
+                'errorType' => 'invalid_link'
+            ]);
+        }
+
+        // Jika requisition ID ada, cek apakah token masih valid
         $approvalLog = ApprovalLog::where('requisition_id', $id)
             ->where('token', $token)
             ->first();
 
-        // Jika tidak ditemukan, berarti token sudah kosong/digunakan
+        // Jika token tidak ditemukan (sudah null/digunakan), berarti link expired
         if (!$approvalLog) {
             // Cari approval log berdasarkan requisition_id saja untuk mendapatkan updated_at terakhir
             $lastApprovalLog = ApprovalLog::where('requisition_id', $id)
@@ -362,18 +366,12 @@ class ComplainController extends Controller
 
             $lastActionDate = $lastApprovalLog ? $this->formatToIndonesianTime($lastApprovalLog->updated_at) : 'Unknown';
 
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'message' => 'This approval link has already been used or is no longer valid.',
-                    'error_type' => 'token_not_found',
-                    'last_action_date' => $lastActionDate
-                ], 400);
-            }
-
-            return view('page.complain.approval-invalid', [
-                'message' => 'This approval link has already been used or is no longer valid.',
-                'errorType' => 'token_not_found',
-                'lastActionDate' => $lastActionDate
+            return view('page.complain.approval-expired', [
+                'message' => 'This approval link has already been used and is no longer valid.',
+                'errorType' => 'token_expired',
+                'lastActionDate' => $lastActionDate,
+                'requisition' => Requisition::with('customer')->find($id),
+                'approvalLog' => $lastApprovalLog
             ]);
         }
 
@@ -385,14 +383,6 @@ class ComplainController extends Controller
         // Jika approval log ditemukan tapi sudah diproses (bukan Pending)
         $requisition = Requisition::with('customer')->find($id);
         
-        if ($request->expectsJson()) {
-            return response()->json([
-                'message' => 'This approval link has already been processed.',
-                'processed_at' => $approvalLog->updated_at ? $this->formatToIndonesianTime($approvalLog->updated_at) : null,
-                'status' => $approvalLog->status
-            ], 400);
-        }
-
         return view('page.complain.approval-expired', compact('requisition', 'approvalLog'));
     }
 
@@ -466,17 +456,29 @@ class ComplainController extends Controller
                     ->log('User ' . ($approvalLog->approver_nik ?? 'Unknown') . ' has ' . $approvalLog->status . ' requisition ID: ' . $approvalLog->requisition_id);
             });
 
-            return response()->json(['message' => 'Approval berhasil diproses.'], 200);
+            // Untuk approval with validation, tampilkan halaman hasil
+            return view('page.complain.approval-result', compact('requisition', 'status'));
 
         } catch (\Exception $e) {
             $errorMessage = $e->getMessage();
             
+            // Untuk semua error, redirect ke halaman error dengan pesan
             if (str_contains($errorMessage, 'Invalid approval link') || str_contains($errorMessage, 'expired')) {
-                return response()->json(['message' => $errorMessage], 400);
+                return view('page.complain.approval-invalid', [
+                    'message' => $errorMessage,
+                    'errorType' => 'token_expired'
+                ]);
             } elseif (str_contains($errorMessage, 'not found')) {
-                return response()->json(['message' => $errorMessage], 404);
+                return view('page.complain.approval-invalid', [
+                    'message' => $errorMessage,
+                    'errorType' => 'not_found'
+                ]);
             }
-            return response()->json(['message' => 'Terjadi kesalahan saat memproses approval.'], 500);
+            
+            return view('page.complain.approval-invalid', [
+                'message' => 'Terjadi kesalahan saat memproses approval.',
+                'errorType' => 'server_error'
+            ]);
         }
     }
 
@@ -491,7 +493,10 @@ class ComplainController extends Controller
             $status = $request->query('status');
 
             if (!$token || !$id || !in_array($status, ['approve', 'reject'])) {
-                return redirect()->back()->with('error', 'Invalid approval link.');
+                return view('page.complain.approval-invalid', [
+                    'message' => 'Invalid approval link - missing parameters.',
+                    'errorType' => 'missing_params'
+                ]);
             }
 
             $requisition = null;
@@ -547,7 +552,25 @@ class ComplainController extends Controller
             return view('page.complain.approval-result', compact('requisition', 'status'));
 
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', $e->getMessage());
+            $errorMessage = $e->getMessage();
+            
+            // Untuk semua error, tampilkan halaman error yang sesuai
+            if (str_contains($errorMessage, 'Invalid approval link') || str_contains($errorMessage, 'expired')) {
+                return view('page.complain.approval-invalid', [
+                    'message' => $errorMessage,
+                    'errorType' => 'token_expired'
+                ]);
+            } elseif (str_contains($errorMessage, 'not found')) {
+                return view('page.complain.approval-invalid', [
+                    'message' => $errorMessage,
+                    'errorType' => 'not_found'
+                ]);
+            }
+            
+            return view('page.complain.approval-invalid', [
+                'message' => 'Terjadi kesalahan saat memproses approval.',
+                'errorType' => 'server_error'
+            ]);
         }
     }
 
@@ -561,7 +584,10 @@ class ComplainController extends Controller
             $id = $request->query('id');
 
             if (!$token || !$id) {
-                return redirect()->back()->with('error', 'Invalid approval link.');
+                return view('page.complain.approval-invalid', [
+                    'message' => 'Invalid approval link - missing parameters.',
+                    'errorType' => 'missing_params'
+                ]);
             }
 
             // Check if token is already used/expired first
@@ -577,7 +603,10 @@ class ComplainController extends Controller
                 ->first();
 
             if (!$approvalLog) {
-                return redirect()->back()->with('error', 'Invalid or expired approval link.');
+                return view('page.complain.approval-invalid', [
+                    'message' => 'Invalid or expired approval link.',
+                    'errorType' => 'token_expired'
+                ]);
             }
 
             // Get requisition with related data
@@ -585,13 +614,19 @@ class ComplainController extends Controller
                 ->find($id);
 
             if (!$requisition) {
-                return redirect()->back()->with('error', 'Requisition not found.');
+                return view('page.complain.approval-invalid', [
+                    'message' => 'Requisition not found.',
+                    'errorType' => 'not_found'
+                ]);
             }
 
             return view('page.complain.review', compact('requisition', 'token'));
         } catch (\Exception $e) {
             Log::error('Error showing review page: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'An error occurred while loading the review page.');
+            return view('page.complain.approval-invalid', [
+                'message' => 'An error occurred while loading the review page.',
+                'errorType' => 'server_error'
+            ]);
         }
     }
 
