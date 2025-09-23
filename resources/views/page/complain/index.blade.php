@@ -431,6 +431,8 @@
                     {
                         data: 'requester.name',
                         name: 'requester.name',
+                        orderable: true,
+                        searchable: true,
                         render: function (data, type, row) {
                             return (row.requester && row.requester.name) ? row.requester.name : '-';
                         }
@@ -492,20 +494,22 @@
                         orderable: false,
                         searchable: false,
                         render: function (data, type, row) {
-                            console.info(data);
                             let editUrl = `/complain/${data}/edit`;
                             let status = (row.status || '').toLowerCase();
                             let editButton = (status === 'pending')
-                                ? `<a href="${editUrl}" class="btn btn-secondary btn-sm me-1" title="Edit Data"><i class="ph-duotone ph-eraser"></i></a>`
+                                ? `<a href="${editUrl}" class="btn btn-secondary btn-sm" title="Edit Data"><i class="ph-duotone ph-eraser"></i></a>`
                                 : '';
                             let deleteButton = (status === 'pending')
                                 ? `<button type="button" class="btn btn-danger btn-sm delete-button" data-id="${data}" title="Delete Data"><i class="ph-duotone ph-trash"></i></button>`
-                                : ''; 
+                                : '';
                             return `
-                                <button type="button" class="btn btn-info btn-sm detail-button" data-id="${data}" title="Lihat Detail">
-                                    <i class="ph-duotone ph-info"></i>
-                                </button>
-                                ${editButton}${deleteButton}
+                                <div class="d-flex gap-1">
+                                    <button type="button" class="btn btn-info btn-sm detail-button" data-id="${data}" title="Lihat Detail">
+                                        <i class="ph-duotone ph-info"></i>
+                                    </button>
+                                    ${editButton}
+                                    ${deleteButton}
+                                </div>
                             `;
                         }
                     }
