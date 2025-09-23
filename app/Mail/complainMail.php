@@ -20,17 +20,19 @@ class complainMail extends Mailable
     public $requisition;
     public $approvalLog;
     public $approveLink;
+    public $approveWithReviewLink;
     public $rejectLink;
 
     /**
      * Create a new message instance.
      */
-    public function __construct(User $approver, Requisition $requisition, ApprovalLog $approvalLog, $approveLink, $rejectLink)
+    public function __construct(User $approver, Requisition $requisition, ApprovalLog $approvalLog, $approveLink, $approveWithReviewLink, $rejectLink)
     {
         $this->approver = $approver;
         $this->requisition = $requisition;
         $this->approvalLog = $approvalLog;
         $this->approveLink = $approveLink;
+        $this->approveWithReviewLink = $approveWithReviewLink;
         $this->rejectLink = $rejectLink;
     }
 

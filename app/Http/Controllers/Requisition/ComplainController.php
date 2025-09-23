@@ -22,6 +22,18 @@ use function Pest\Laravel\json;
 
 class ComplainController extends Controller
 {
+    /**
+     * Helper method to format datetime to Indonesian timezone
+     */
+    private function formatToIndonesianTime($datetime, $format = 'd M Y, H:i:s')
+    {
+        if (!$datetime) {
+            return 'Unknown';
+        }
+        
+        return Carbon::parse($datetime)->setTimezone('Asia/Jakarta')->format($format);
+    }
+
     public function index()
     {
         return view('page.complain.index');
@@ -202,12 +214,16 @@ class ComplainController extends Controller
         // 2. Terapkan filter pencarian jika ada input dari kotak search
         if (!empty($searchValue)) {
             $query->where(function ($q) use ($searchValue) {
-                $q->where('requester_nik', 'like', "%{$searchValue}%")
-                    ->orWhere('customer_id', 'like', "%{$searchValue}%")
-                    ->orWhere('cost_center', 'like', "%{$searchValue}%")
-                    ->orWhere('category', 'like', "%{$searchValue}%")
-                    ->orWhere('route_to', 'like', "%{$searchValue}%")
-                    ->orWhere('status', 'like', "%{$searchValue}%");
+                $q->whereHas('requester', function ($q) use ($searchValue) {
+                    $q->where('name', 'like', "%{$searchValue}%");
+                })
+                ->orWhereHas('customer', function ($q) use ($searchValue) {
+                    $q->where('name', 'like', "%{$searchValue}%");
+                })
+                ->orWhere('cost_center', 'like', "%{$searchValue}%")
+                ->orWhere('category', 'like', "%{$searchValue}%")
+                ->orWhere('route_to', 'like', "%{$searchValue}%")
+                ->orWhere('status', 'like', "%{$searchValue}%");
             });
         }
 
@@ -280,8 +296,6 @@ class ComplainController extends Controller
 
     public function getFormDetail($id){
         try {
-            // Eager load relasi yang dibutuhkan: customer dan items beserta detail dari item
-            // 'items' adalah nama relasi pivot, 'items.detail' mengambil detail produk dari pivot
             $complain = Requisition::with(['customer', 'requisitionItems.itemMaster.ItemDetails'])->findOrFail($id);
 
             return response()->json($complain);
@@ -298,16 +312,114 @@ class ComplainController extends Controller
      */
     public function processApproval(Request $request)
     {
+        // Check if token is already used/expired first
+        $tokenStatus = $this->checkTokenStatus($request);
+        if ($tokenStatus !== null) {
+            return $tokenStatus;
+        }
+
+        if ($request->isMethod('post')) {
+            return $this->processApprovalWithValidation($request);
+        } else {
+            return $this->processDirectApproval($request);
+        }
+    }
+
+    /**
+     * Check if token is already used or expired
+     */
+    private function checkTokenStatus(Request $request)
+    {
+        $token = $request->query('token') ?? $request->input('token');
+        $id = $request->query('id') ?? $request->input('id');
+
+        // Jika ID atau token tidak ada dalam request
+        if (!$token || !$id) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Invalid approval link - missing required parameters (ID or Token).',
+                    'error_type' => 'missing_params'
+                ], 400);
+            }
+
+            return view('page.complain.approval-invalid', [
+                'message' => 'The approval link is missing required parameters.',
+                'errorType' => 'missing_params'
+            ]);
+        }
+
+        // Cek apakah requisition ID dengan token ditemukan
+        $approvalLog = ApprovalLog::where('requisition_id', $id)
+            ->where('token', $token)
+            ->first();
+
+        // Jika tidak ditemukan, berarti token sudah kosong/digunakan
+        if (!$approvalLog) {
+            // Cari approval log berdasarkan requisition_id saja untuk mendapatkan updated_at terakhir
+            $lastApprovalLog = ApprovalLog::where('requisition_id', $id)
+                ->orderBy('updated_at', 'desc')
+                ->first();
+
+            $lastActionDate = $lastApprovalLog ? $this->formatToIndonesianTime($lastApprovalLog->updated_at) : 'Unknown';
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'This approval link has already been used or is no longer valid.',
+                    'error_type' => 'token_not_found',
+                    'last_action_date' => $lastActionDate
+                ], 400);
+            }
+
+            return view('page.complain.approval-invalid', [
+                'message' => 'This approval link has already been used or is no longer valid.',
+                'errorType' => 'token_not_found',
+                'lastActionDate' => $lastActionDate
+            ]);
+        }
+
+        // Jika approval log ditemukan dan masih pending, lanjut ke proses normal
+        if ($approvalLog->status === 'Pending') {
+            return null;
+        }
+
+        // Jika approval log ditemukan tapi sudah diproses (bukan Pending)
+        $requisition = Requisition::with('customer')->find($id);
+        
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'This approval link has already been processed.',
+                'processed_at' => $approvalLog->updated_at ? $this->formatToIndonesianTime($approvalLog->updated_at) : null,
+                'status' => $approvalLog->status
+            ], 400);
+        }
+
+        return view('page.complain.approval-expired', compact('requisition', 'approvalLog'));
+    }
+
+    /**
+     * Process approval with validation (from review form)
+     */
+    private function processApprovalWithValidation(Request $request)
+    {
+        $request->validate([
+            'token' => 'required|string',
+            'id' => 'required|integer',
+            'status' => 'required|in:approve,reject',
+            'notes' => $request->input('status') === 'reject' ? 'required|string|max:1000' : 'nullable|string|max:1000',
+        ], [
+            'notes.required' => 'Notes/reason is required for rejection.',
+            'notes.max' => 'Notes cannot exceed 1000 characters.',
+        ]);
+
         try {
-            DB::transaction(function () use ($request) {
-                $token = $request->query('token');
-                $id = $request->query('id');
-                $status = $request->query('status');
+            $token = $request->input('token');
+            $id = $request->input('id');
+            $status = $request->input('status');
+            $notes = $request->input('notes');
 
-                if (!$token || !$id || !in_array($status, ['approve', 'reject'])) {
-                    throw new \Exception('Invalid approval link.');
-                }
+            $requisition = null;
 
+            DB::transaction(function () use ($token, $id, $status, $notes, &$requisition) {
                 $approvalLog = ApprovalLog::where('requisition_id', $id)
                     ->where('token', $token)
                     ->where('status', 'Pending')
@@ -317,13 +429,13 @@ class ComplainController extends Controller
                     throw new \Exception('Invalid or expired approval link.');
                 }
 
-                // Update status approval log
+                // Update status approval log 
                 $approvalLog->status = ($status === 'approve') ? 'Approved' : 'Rejected';
-                $approvalLog->notes = $request->input('notes', null);
+                $approvalLog->notes = $notes;
                 $approvalLog->token = null;
                 $approvalLog->save();
 
-                $requisition = Requisition::find($approvalLog->requisition_id);
+                $requisition = Requisition::with('customer')->find($approvalLog->requisition_id);
 
                 // Jika diapprove, cek apakah ada level berikutnya
                 if ($status === 'approve') {
@@ -331,11 +443,13 @@ class ComplainController extends Controller
                         throw new \Exception('Requisition not found.');
                     }
 
+                    // simpan perubahan status requisition karna diapprove
                     $requisition->status = 'In Progress';
                     $requisition->save();
                     $this->mailOtherLevel($approvalLog->requisition_id, $approvalLog->level);
                 } else {
                 
+                    // Jika direject, langsung set status requisition ke Rejected
                     if (!$requisition) {
                         throw new \Exception('Requisition not found.');
                     }
@@ -353,15 +467,131 @@ class ComplainController extends Controller
             });
 
             return response()->json(['message' => 'Approval berhasil diproses.'], 200);
+
         } catch (\Exception $e) {
-        
             $errorMessage = $e->getMessage();
+            
             if (str_contains($errorMessage, 'Invalid approval link') || str_contains($errorMessage, 'expired')) {
                 return response()->json(['message' => $errorMessage], 400);
             } elseif (str_contains($errorMessage, 'not found')) {
                 return response()->json(['message' => $errorMessage], 404);
             }
             return response()->json(['message' => 'Terjadi kesalahan saat memproses approval.'], 500);
+        }
+    }
+
+    /**
+     * Process direct approval (from email links)
+     */
+    private function processDirectApproval(Request $request)
+    {
+        try {
+            $token = $request->query('token');
+            $id = $request->query('id');
+            $status = $request->query('status');
+
+            if (!$token || !$id || !in_array($status, ['approve', 'reject'])) {
+                return redirect()->back()->with('error', 'Invalid approval link.');
+            }
+
+            $requisition = null;
+
+            DB::transaction(function () use ($token, $id, $status, &$requisition) {
+                $approvalLog = ApprovalLog::where('requisition_id', $id)
+                    ->where('token', $token)
+                    ->where('status', 'Pending')
+                    ->first();
+
+                if (!$approvalLog) {
+                    throw new \Exception('Invalid or expired approval link.');
+                }
+
+                // Update status approval log 
+                $approvalLog->status = ($status === 'approve') ? 'Approved' : 'Rejected';
+                $approvalLog->notes = null;
+                $approvalLog->token = null;
+                $approvalLog->save();
+
+                $requisition = Requisition::with('customer')->find($approvalLog->requisition_id);
+
+                // Jika diapprove, cek apakah ada level berikutnya
+                if ($status === 'approve') {
+                    if (!$requisition) {
+                        throw new \Exception('Requisition not found.');
+                    }
+
+                    // simpan perubahan status requisition karna diapprove
+                    $requisition->status = 'In Progress';
+                    $requisition->save();
+                    $this->mailOtherLevel($approvalLog->requisition_id, $approvalLog->level);
+                } else {
+                
+                    if (!$requisition) {
+                        throw new \Exception('Requisition not found.');
+                    }
+                
+                    // Jika direject, langsung set status requisition ke Rejected
+                    $requisition->status = 'Rejected';
+                    $requisition->save();
+                }
+
+                activity()
+                    ->causedBy(User::where('nik', $approvalLog->approver_nik)->first())
+                    ->performedOn($approvalLog)
+                    ->event('processed approval')
+                    ->withProperties(['ip' => request()->ip(), 'user_agent' => request()->userAgent()])
+                    ->log('User ' . ($approvalLog->approver_nik ?? 'Unknown') . ' has ' . $approvalLog->status . ' requisition ID: ' . $approvalLog->requisition_id);
+            });
+
+            // tampilkan halaman hasil approval
+            return view('page.complain.approval-result', compact('requisition', 'status'));
+
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        }
+    }
+
+    /**
+     * Show review page for approval with review
+     */
+    public function showReviewPage(Request $request)
+    {
+        try {
+            $token = $request->query('token');
+            $id = $request->query('id');
+
+            if (!$token || !$id) {
+                return redirect()->back()->with('error', 'Invalid approval link.');
+            }
+
+            // Check if token is already used/expired first
+            $tokenStatus = $this->checkTokenStatus($request);
+            if ($tokenStatus !== null) {
+                return $tokenStatus;
+            }
+
+            // Verify approval log exists and is valid
+            $approvalLog = ApprovalLog::where('requisition_id', $id)
+                ->where('token', $token)
+                ->where('status', 'Pending')
+                ->first();
+
+            if (!$approvalLog) {
+                return redirect()->back()->with('error', 'Invalid or expired approval link.');
+            }
+
+            // Get requisition with related data
+            $requisition = Requisition::with(['customer', 'requisitionItems.itemMaster.ItemDetails'])
+                ->find($id);
+
+            if (!$requisition) {
+                return redirect()->back()->with('error', 'Requisition not found.');
+            }
+
+            return view('page.complain.review', compact('requisition', 'token'));
+        } catch (\Exception $e) {
+            Log::error('Error showing review page: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'An error occurred while loading the review page.');
         }
     }
 

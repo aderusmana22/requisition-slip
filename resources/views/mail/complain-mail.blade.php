@@ -15,6 +15,11 @@ Approve
 Reject
 @endcomponent
 
+@component('mail::button', ['url' => $approveWithReviewLink, 'color' => 'primary'])
+action with note
+@endcomponent
+
+
 Terima kasih,<br>
 {{ config('app.name') }}
 @endcomponent

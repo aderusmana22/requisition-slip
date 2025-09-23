@@ -23,6 +23,8 @@ Route::get('/dashboard', function () {
 
 Route::get('/approval/process/{token}', [ApprovalController::class, 'processApproval'])->name('approval.process');
 Route::get('/approval', [ComplainController::class, 'processApproval'])->name('approval.process');
+Route::get('/complain/approval/review', [ComplainController::class, 'showReviewPage'])->name('complain.approval.review');
+Route::post('/complain/approval/process', [ComplainController::class, 'processApproval'])->name('complain.approval.process');
 
 Route::prefix('requisition')->group(function () {
     Route::get('/getComplainData', [ComplainController::class, 'getData'])->name('get.complain.data');

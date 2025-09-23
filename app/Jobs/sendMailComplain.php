@@ -43,6 +43,11 @@ class sendMailComplain implements ShouldQueue
             'status' => 'approve',
         ]);
 
+        $approveWithReviewLink = route('complain.approval.review', [
+            'id' => $this->approvalLog->requisition_id,
+            'token' => $this->approvalLog->token,
+        ]);
+
         $rejectLink = route('approval.process', [
             'id' => $this->approvalLog->requisition_id,
             'token' => $this->approvalLog->token,
@@ -54,6 +59,7 @@ class sendMailComplain implements ShouldQueue
             $this->requisition,
             $this->approvalLog,
             $approveLink,
+            $approveWithReviewLink,
             $rejectLink
         ));
     }
