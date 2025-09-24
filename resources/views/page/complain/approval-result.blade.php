@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, rgb(192, 127, 0) 0%, rgb(180, 115, 0) 50%, rgb(160, 100, 0) 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;

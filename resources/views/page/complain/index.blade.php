@@ -3,23 +3,8 @@
     Users List
     @endsection
 
-    @push('css')
-    <style>
-    .modal-header {
-        background-color: #cc982f;
-    }
-    .modal-footer {
-        background-color: #f8f8f8;
-    }
-    .status-badge-lg {
-    font-size: 0.9em;
-    padding: 0.5em 0.7em;
-    font-weight: 700;
-}
-    </style>
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
-    @endpush
+    {{-- Include Complaint Table Styles Template --}}
+    @include('components.complaint-table-styles')
 
     <!-- Breadcrumb -->
     <div class="row m-1">
@@ -38,33 +23,59 @@
         </div>
     </div>
 
-    <!-- Tabel Users -->
+    <!-- Enhanced Table Section -->
     <div class="row">
         <div class="col-12">
-            <div class="d-flex justify-content-end mb-3">
-                <button class="btn btn-light-danger btn-md" type="button" data-bs-toggle="modal"
-                    data-bs-target="#complineModal" id="btn-create-compline">
-                    <i class="ph-bold ph-plus pe-2"></i> New Complain
-                </button>
+            <!-- Action Bar -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <!-- <h5 class="mb-1" style="color: rgb(76, 61, 61); font-weight: 700;">
+                        <i class="ph-duotone ph-table me-2 text-warning"></i>
+                        Complaint Management
+                    </h5>
+                    <p class="text-muted mb-0 small">
+                        <i class="ph-duotone ph-info me-1"></i>
+                        Manage and track all complaint submissions
+                    </p> -->
+                </div>
+                <div>
+                    <button class="btn new-complain-btn" type="button" data-bs-toggle="modal"
+                        data-bs-target="#complineModal" id="btn-create-compline">
+                        <i class="ph-bold ph-plus"></i>
+                        <span>New Complain</span>
+                    </button>
+                </div>
             </div>
-            <div class="card">
-                <div class="card-body p-0">
-                    <div class="app-scroll table-responsive app-datatable-default">
-                        <table class="w-100 display" id="complainTable">
-                            <thead>
-                                <tr>
-                                    <th>No</th>
-                                    <th>Requester</th>
-                                    <th>Customer</th>
-                                    <th>Request Date</th>
-                                    <th>Cost Center</th>
-                                    <th>Route To</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                        </table>
-                    </div>
+            
+            <!-- Enhanced Table Container -->
+            <div class="main-table-container">
+                <!-- Table Header -->
+                <div class="table-header-enhanced">
+                    <h4 class="table-title">
+                        <i class="ph-duotone ph-list-dashes"></i>
+                        Complaints List
+                    </h4>
+                    <p class="table-subtitle">
+                        View, manage and track all complaint submissions
+                    </p>
+                </div>
+                
+                <!-- Table Content -->
+                <div class="table-responsive">
+                    <table class="w-100 display" id="complainTable">
+                        <thead>
+                            <tr>
+                                <th><i class="ph-duotone ph-hash me-1"></i>No</th>
+                                <th><i class="ph-duotone ph-user me-1"></i>Requester</th>
+                                <th><i class="ph-duotone ph-buildings me-1"></i>Customer</th>
+                                <th><i class="ph-duotone ph-calendar me-1"></i>Request Date</th>
+                                <th><i class="ph-duotone ph-currency-dollar me-1"></i>Cost Center</th>
+                                <th><i class="ph-duotone ph-map-pin me-1"></i>Route To</th>
+                                <th><i class="ph-duotone ph-flag me-1"></i>Status</th>
+                                <th><i class="ph-duotone ph-gear me-1"></i>Actions</th>
+                            </tr>
+                        </thead>
+                    </table>
                 </div>
             </div>
         </div>
@@ -247,96 +258,145 @@
     <div class="modal fade" id="detailModal" aria-hidden="true">
         <div class="modal-dialog modal-dialog-scrollable modal-xl">
             <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title text-white" id="detailModalLabel">Detail Requisition Complain</h5>
-                    <button type="button" class="btn-close m-0 fs-5" data-bs-dismiss="modal" aria-label="Close"></button>
+                <div class="modal-header modal-header-enhanced">
+                    <h5 class="modal-title modal-title-enhanced" id="detailModalLabel">
+                        <i class="ph-duotone ph-file-text"></i>
+                        Detail Requisition Complain
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white m-0 fs-5" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
-                    <header class="row slip-header mb-2 align-items-center">
-                        <div class="col-10">
-                            <img src="{{ asset('storage/logo.png') }}" alt="Sinar Meadow Logo" class="logo"
-                                style="max-height: 60px; width: auto;">
+                <div class="modal-body modal-body-enhanced">
+                    <!-- Header Section -->
+                    <div class="slip-header-enhanced">
+                        <div class="row align-items-center">
+                            <div class="col-10">
+                                <img src="{{ asset('storage/logo.png') }}" alt="Sinar Meadow Logo" class="logo"
+                                    style="max-height: 60px; width: auto;">
+                            </div>
+                            <div class="col-2">
+                                <div class="text-muted small">
+                                    <strong>FORM NO:</strong> FA-INV-05<br>
+                                    <strong>REVISION:</strong> 3<br>
+                                    <strong>DATE:</strong> 18 FEBRUARY 2021
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-2">
-                            <p class="form-text text-start">
-                                FORM NO: FA-INV-05<br>
-                                REVISION: 3<br>
-                                DATE: 18 FEBRUARY 2021
-                            </p>
-                        </div>
-                    </header>
+                    </div>
 
-                    <div class="row mb-4 text-center">
+                    <!-- Title Section -->
+                    <div class="slip-title-enhanced">
                         <h4><strong>REQUISITION SLIP</strong></h4>
                         <p class="">SALES & MARKETING<br>SAMPLE PRODUCT</p>
                     </div>
 
-                    <div class="row mb-4 g-2">
-                        <div class="col">
-                            <div class="mb-3 row align-items-center">
-                                <label class="col-sm-4 col-form-label"><strong>Customer Name :</strong></label>
-                                <div class="col-sm-7">
-                                    <input type="text" id="detail_customer_name" class="form-control" readonly>
-                                </div>
-                            </div>
-                            <div class="mb-3 row align-items-center">
-                                <label class="col-sm-4 col-form-label"><strong>Customer Address :</strong></label>
-                                <div class="col-sm-7">
-                                    <textarea class="form-control" id="detail_customer_address" rows="2"
-                                        readonly></textarea>
-                                </div>
-                            </div>
+                    <!-- Customer & Basic Info Section -->
+                    <div class="detail-section">
+                        <div class="section-header">
+                            <i class="ph-duotone ph-user-circle"></i>
+                            Customer & Basic Information
                         </div>
-                        <div class="col">
-                            <div class="mb-3 row align-items-center">
-                                <label class="col-sm-3 col-form-label"><strong>Account :</strong></label>
-                                <div class="col-sm-8">
-                                    <input type="text" class="form-control" id="detail_account" readonly>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="info-card">
+                                    <div class="info-row">
+                                        <div class="info-label">
+                                            <i class="ph-duotone ph-user text-primary"></i>
+                                            Customer Name:
+                                        </div>
+                                        <div class="info-value readonly" id="detail_customer_name"></div>
+                                    </div>
+                                    <div class="info-row">
+                                        <div class="info-label">
+                                            <i class="ph-duotone ph-map-pin text-info"></i>
+                                            Address:
+                                        </div>
+                                        <div class="info-value readonly" id="detail_customer_address" style="min-height: 60px; white-space: pre-wrap;"></div>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="mb-3 row align-items-center">
-                                <label class="col-sm-3 col-form-label"><strong>Cost Center :</strong></label>
-                                <div class="col-sm-8">
-                                    <input type="text" class="form-control" id="detail_cost_center" readonly>
-                                </div>
-                            </div>
-                            <div class="mb-3 row align-items-center">
-                                <label class="col-sm-3 col-form-label"><strong>Nomor RS :</strong></label>
-                                <div class="col-sm-8">
-                                    <input type="text" class="form-control" id="detail_rs_number" readonly>
-                                </div>
-                            </div>
-                            <div class="mb-3 row align-items-center">
-                                <label class="col-sm-3 col-form-label"><strong>Tanggal :</strong></label>
-                                <div class="col-sm-8">
-                                    <input type="date" class="form-control" id="detail_date" readonly>
+                            <div class="col-md-6">
+                                <div class="info-card">
+                                    <div class="info-row">
+                                        <div class="info-label">
+                                            <i class="ph-duotone ph-bank text-success"></i>
+                                            Account:
+                                        </div>
+                                        <div class="info-value readonly" id="detail_account"></div>
+                                    </div>
+                                    <div class="info-row">
+                                        <div class="info-label">
+                                            <i class="ph-duotone ph-currency-dollar text-warning"></i>
+                                            Cost Center:
+                                        </div>
+                                        <div class="info-value readonly" id="detail_cost_center"></div>
+                                    </div>
+                                    <div class="info-row">
+                                        <div class="info-label">
+                                            <i class="ph-duotone ph-hash text-secondary"></i>
+                                            RS Number:
+                                        </div>
+                                        <div class="info-value readonly" id="detail_rs_number"></div>
+                                    </div>
+                                    <div class="info-row">
+                                        <div class="info-label">
+                                            <i class="ph-duotone ph-calendar text-danger"></i>
+                                            Date:
+                                        </div>
+                                        <div class="info-value readonly" id="detail_date"></div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="row mb-4">
-                        <div class="col-4">
-                            <label><strong>List Product</strong></label>
-                            <div id="requisition_product_list"></div>
+                    <!-- Products & Objectives Section -->
+                    <div class="detail-section">
+                        <div class="section-header">
+                            <i class="ph-duotone ph-package"></i>
+                            Products & Objectives
                         </div>
-                        <div class="col-8">
-                            <label><strong>Objectives</strong></label>
-                            <textarea id="detail_objectives" class="form-control" readonly></textarea>
+                        <div class="row">
+                            <div class="col-md-5">
+                                <h6 class="mb-3 fw-bold text-muted">
+                                    <i class="ph-duotone ph-list-bullets me-2"></i>
+                                    Selected Products
+                                </h6>
+                                <div class="product-list-container" id="requisition_product_list">
+                                    <!-- Products will be populated here -->
+                                </div>
+                            </div>
+                            <div class="col-md-7">
+                                <h6 class="mb-3 fw-bold text-muted">
+                                    <i class="ph-duotone ph-target me-2"></i>
+                                    Objectives
+                                </h6>
+                                <div class="objectives-container">
+                                    <div class="objectives-text" id="detail_objectives">
+                                        <!-- Objectives will be populated here -->
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="row">
-                        <div class="col-12">
-                            <h5><strong>Product Details:</strong></h5>
+                    <!-- Product Details Section -->
+                    <div class="detail-section">
+                        <div class="section-header">
+                            <i class="ph-duotone ph-table"></i>
+                            Detailed Product Information
+                        </div>
+                        <div class="detail-table-container">
                             <div id="detail_productDetailsContainer">
+                                <!-- Product details table will be populated here -->
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="modal-footer">
-                    <button class="btn btn-danger" data-bs-dismiss="modal" type="button">Close</button>
+                    <button class="btn btn-danger" data-bs-dismiss="modal" type="button">
+                        <i class="ph-duotone ph-x me-2"></i>Close
+                    </button>
                 </div>
             </div>
         </div>
@@ -496,16 +556,26 @@
                         render: function (data, type, row) {
                             let editUrl = `/complain/${data}/edit`;
                             let status = (row.status || '').toLowerCase();
+                            
+                            // Enhanced button styling with custom tooltips
                             let editButton = (status === 'pending')
-                                ? `<a href="${editUrl}" class="btn btn-secondary btn-sm" title="Edit Data"><i class="ph-duotone ph-eraser"></i></a>`
+                                ? `<a href="${editUrl}" class="btn btn-secondary btn-sm action-btn-hover" data-tooltip="Edit Complaint">
+                                    <i class="ph-duotone ph-pencil-simple"></i>
+                                   </a>`
                                 : '';
+                            
                             let deleteButton = (status === 'pending')
-                                ? `<button type="button" class="btn btn-danger btn-sm delete-button" data-id="${data}" title="Delete Data"><i class="ph-duotone ph-trash"></i></button>`
+                                ? `<button type="button" class="btn btn-danger btn-sm delete-button action-btn-hover" data-id="${data}" 
+                                    data-tooltip="Delete Complaint">
+                                    <i class="ph-duotone ph-trash"></i>
+                                   </button>`
                                 : '';
+                                
                             return `
-                                <div class="d-flex gap-1">
-                                    <button type="button" class="btn btn-info btn-sm detail-button" data-id="${data}" title="Lihat Detail">
-                                        <i class="ph-duotone ph-info"></i>
+                                <div class="action-btn-group">
+                                    <button type="button" class="btn btn-info btn-sm detail-button action-btn-hover" data-id="${data}" 
+                                        data-tooltip="View Details">
+                                        <i class="ph-duotone ph-eye"></i>
                                     </button>
                                     ${editButton}
                                     ${deleteButton}
@@ -527,6 +597,163 @@
                 }, 500);
             });
 
+            // Custom Tooltip Handler for Action Buttons
+            function initActionTooltips() {
+                // Remove any existing event handlers to prevent duplicates
+                $(document).off('mouseenter.customTooltip mouseleave.customTooltip', '.action-btn-hover');
+                
+                $(document).on('mouseenter.customTooltip', '.action-btn-hover', function(e) {
+                    const tooltipText = $(this).attr('data-tooltip');
+                    if (tooltipText && !$(this).data('tooltip-element')) {
+                        const tooltip = $('<div class="action-tooltip">' + tooltipText + '</div>');
+                        $('body').append(tooltip);
+                        
+                        const button = $(this);
+                        let isDestroyed = false;
+                        
+                        // Function to update tooltip position
+                        function updateTooltipPosition() {
+                            if (isDestroyed || !button.is(':visible') || !tooltip.parent().length) {
+                                return;
+                            }
+                            
+                            // Get button position
+                            const buttonOffset = button.offset();
+                            if (!buttonOffset) return;
+                            
+                            const buttonWidth = button.outerWidth();
+                            const buttonHeight = button.outerHeight();
+                            const tooltipWidth = tooltip.outerWidth();
+                            const tooltipHeight = tooltip.outerHeight();
+                            const windowWidth = $(window).width();
+                            const windowHeight = $(window).height();
+                            const scrollTop = $(window).scrollTop();
+                            
+                            // Calculate position
+                            let left = buttonOffset.left + (buttonWidth / 2) - (tooltipWidth / 2);
+                            let top = buttonOffset.top - tooltipHeight - 12;
+                            
+                            // Horizontal bounds checking
+                            if (left < 10) {
+                                left = 10;
+                            } else if (left + tooltipWidth > windowWidth - 10) {
+                                left = windowWidth - tooltipWidth - 10;
+                            }
+                            
+                            // Vertical bounds checking
+                            if (top < scrollTop + 10) {
+                                top = buttonOffset.top + buttonHeight + 12;
+                                tooltip.addClass('below');
+                            } else {
+                                tooltip.removeClass('below');
+                            }
+                            
+                            tooltip.css({
+                                position: 'absolute',
+                                left: left + 'px',
+                                top: top + 'px',
+                                zIndex: 9999
+                            });
+                        }
+                        
+                        // Initial positioning
+                        setTimeout(() => {
+                            updateTooltipPosition();
+                        }, 10);
+                        
+                        // Show tooltip with delay
+                        setTimeout(() => {
+                            if (!isDestroyed) {
+                                tooltip.addClass('show');
+                            }
+                        }, 100);
+                        
+                        // Store tooltip element and update function
+                        button.data('tooltip-element', tooltip);
+                        button.data('update-tooltip-position', updateTooltipPosition);
+                        button.data('tooltip-destroyed', false);
+                        
+                        // Create unique namespace for this tooltip
+                        const tooltipId = 'tooltip_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                        button.data('tooltip-id', tooltipId);
+                        
+                        // Listen for scroll events with throttling
+                        let scrollTimeout;
+                        function throttledUpdate() {
+                            if (scrollTimeout) {
+                                clearTimeout(scrollTimeout);
+                            }
+                            scrollTimeout = setTimeout(() => {
+                                if (!isDestroyed) {
+                                    updateTooltipPosition();
+                                }
+                            }, 10);
+                        }
+                        
+                        $(window).on('scroll.' + tooltipId + ' resize.' + tooltipId, throttledUpdate);
+                        $('.dataTables_scrollBody').on('scroll.' + tooltipId, throttledUpdate);
+                        $('.table-responsive').on('scroll.' + tooltipId, throttledUpdate);
+                        $('#complainTable_wrapper').on('scroll.' + tooltipId, throttledUpdate);
+                        
+                        // Store cleanup function
+                        button.data('tooltip-cleanup', function() {
+                            isDestroyed = true;
+                            $(window).off('.' + tooltipId);
+                            $('.dataTables_scrollBody').off('.' + tooltipId);
+                            $('.table-responsive').off('.' + tooltipId);
+                            $('#complainTable_wrapper').off('.' + tooltipId);
+                            if (scrollTimeout) {
+                                clearTimeout(scrollTimeout);
+                            }
+                        });
+                    }
+                });
+                
+                $(document).on('mouseleave.customTooltip', '.action-btn-hover', function(e) {
+                    const button = $(this);
+                    const tooltip = button.data('tooltip-element');
+                    const cleanup = button.data('tooltip-cleanup');
+                    
+                    if (tooltip) {
+                        button.data('tooltip-destroyed', true);
+                        
+                        tooltip.removeClass('show');
+                        setTimeout(() => {
+                            tooltip.remove();
+                        }, 200);
+                        
+                        // Execute cleanup
+                        if (cleanup) {
+                            cleanup();
+                        }
+                        
+                        // Clear all data
+                        button.removeData('tooltip-element');
+                        button.removeData('update-tooltip-position');
+                        button.removeData('tooltip-id');
+                        button.removeData('tooltip-cleanup');
+                        button.removeData('tooltip-destroyed');
+                    }
+                });
+            }
+            
+            // Initialize tooltips after DataTable is ready
+            table.on('draw', function() {
+                initActionTooltips();
+            });
+            
+            // Initialize tooltips for the first load
+            initActionTooltips();
+            
+            // Disable Bootstrap tooltips on action buttons to prevent conflicts
+            $(document).ready(function() {
+                // Remove any existing Bootstrap tooltip instances
+                $('.action-btn-hover').tooltip('dispose');
+                
+                // Prevent Bootstrap tooltip initialization
+                $(document).off('mouseenter.bs.tooltip', '.action-btn-hover');
+            });
+
 
             // detail trigger
             $('#complainTable tbody').on('click', '.detail-button', function () {
@@ -539,14 +766,29 @@
                     url: finalUrl,
                     method: 'GET',
                     success: function (data) {
-                        $('#detail_customer_name').val(data.customer ? data.customer.name : '-');
-                        $('#detail_customer_address').val(data.customer ? data.customer.address : '-');
-                        $('#detail_account').val(data.account);
-                        $('#detail_cost_center').val(data.cost_center);
-                        $('#detail_rs_number').val(data.no_srs);
-                        $('#detail_date').val(data.request_date);
-                        $('#detail_objectives').val(data.objectives);
+                        // Populate basic information with new structure
+                        $('#detail_customer_name').text(data.customer ? data.customer.name : '-');
+                        $('#detail_customer_address').text(data.customer ? data.customer.address : '-');
+                        $('#detail_account').text(data.account || '-');
+                        $('#detail_cost_center').text(data.cost_center || '-');
+                        $('#detail_rs_number').text(data.no_srs || '-');
+                        
+                        // Format date nicely
+                        if (data.request_date) {
+                            const date = new Date(data.request_date);
+                            const formattedDate = date.toLocaleDateString('en-GB', {
+                                day: '2-digit',
+                                month: 'short', 
+                                year: 'numeric'
+                            });
+                            $('#detail_date').text(formattedDate);
+                        } else {
+                            $('#detail_date').text('-');
+                        }
+                        
+                        $('#detail_objectives').text(data.objectives || 'No objectives specified');
 
+                        // Enhanced product list with better styling
                         const selectedProductsDiv = $('#requisition_product_list');
                         const items = data.requisition_items;
 
@@ -562,20 +804,28 @@
                             });
 
                             const uniqueMasters = Array.from(uniqueMastersMap.values());
-                            let productListHtml = '<ul class="list-unstyled mb-0">';
+                            let productListHtml = '';
 
-                            // Gunakan .map() untuk iterasi dan ambil nama item master
+                            // Create enhanced product items
                             uniqueMasters.forEach(function (master) {
                                 const masterName = `${master.item_master_code} - ${master.item_master_name}`;
-                                productListHtml += `<li><i class="ph-duotone ph-package text-primary me-1"></i>${masterName}</li>`;
+                                productListHtml += `
+                                    <div class="product-item">
+                                        <i class="ph-duotone ph-package"></i>
+                                        <span class="fw-medium">${masterName}</span>
+                                    </div>
+                                `;
                             });
 
-                            productListHtml += '</ul>';
                             selectedProductsDiv.html(productListHtml);
 
                         } else {
-                            // Jika tidak ada produk, tampilkan pesan placeholder
-                            selectedProductsDiv.html('<span class="text-muted">No products selected.</span>');
+                            selectedProductsDiv.html(`
+                                <div class="text-center py-4 text-muted">
+                                    <i class="ph-duotone ph-package fs-2 mb-2 d-block"></i>
+                                    <span>No products selected</span>
+                                </div>
+                            `);
                         }
 
                         renderDetailProductTable(data.requisition_items);
@@ -587,47 +837,94 @@
                 });
             });
 
-            // modal detail
+            // Enhanced modal detail table
             function renderDetailProductTable(items) {
                 const container = $('#detail_productDetailsContainer');
                 container.empty();
 
                 if (!items || items.length === 0) {
-                    container.html('<p class="text-muted">No products found for this requisition.</p>');
+                    container.html(`
+                        <div class="text-center py-5">
+                            <i class="ph-duotone ph-table fs-1 text-muted mb-3 d-block"></i>
+                            <h6 class="text-muted mb-2">No Product Details</h6>
+                            <p class="text-muted small mb-0">No product details found for this requisition.</p>
+                        </div>
+                    `);
                     return;
                 }
 
-                let tableRowsHTML = items.map(item => {
+                let tableRowsHTML = items.map((item, index) => {
                     const allDetails = item.item_master ? item.item_master.item_details : [];
-
                     const specificDetail = allDetails.find(detail => detail.id === item.item_detail_id);
 
                     if (!specificDetail) {
-                        return `<tr><td colspan="6" class="text-center text-danger">Product Detail with ID ${item.item_detail_id} not found.</td></tr>`;
+                        return `
+                            <tr class="table-danger">
+                                <td colspan="6" class="text-center py-3">
+                                    <i class="ph-duotone ph-warning-circle text-danger me-2"></i>
+                                    Product Detail with ID ${item.item_detail_id} not found.
+                                </td>
+                            </tr>
+                        `;
+                    }
+
+                    // Add material type badge styling
+                    let materialTypeBadge = '';
+                    const materialType = specificDetail.material_type || '-';
+                    if (materialType === 'Raw') {
+                        materialTypeBadge = `<span class="badge bg-primary">${materialType}</span>`;
+                    } else if (materialType === 'Semi-Finished') {
+                        materialTypeBadge = `<span class="badge bg-warning text-dark">${materialType}</span>`;
+                    } else if (materialType === 'Finished') {
+                        materialTypeBadge = `<span class="badge bg-success">${materialType}</span>`;
+                    } else {
+                        materialTypeBadge = `<span class="badge bg-secondary">${materialType}</span>`;
                     }
 
                     return `
-                        <tr>
-                            <td>${specificDetail.material_type || '-'}</td>
-                            <td>${specificDetail.item_detail_code || '-'}</td>
+                        <tr class="animate-row" style="animation-delay: ${index * 0.1}s">
+                            <td class="text-center">${materialTypeBadge}</td>
+                            <td class="fw-medium">${specificDetail.item_detail_code || '-'}</td>
                             <td>${specificDetail.item_detail_name || '-'}</td>
-                            <td>${specificDetail.unit || '-'}</td>
-                            <td><input type="number" class="form-control" value="${item.quantity_required}" readonly></td>
-                            <td><input type="number" class="form-control" value="${item.quantity_issued}" readonly></td>
+                            <td class="text-center">
+                                <span class="badge bg-light text-dark">${specificDetail.unit || '-'}</span>
+                            </td>
+                            <td class="text-center">
+                                <input type="number" class="form-control text-center fw-bold" 
+                                       value="${item.quantity_required}" readonly 
+                                       style="background: rgba(192, 127, 0, 0.1); border-color: rgba(192, 127, 0, 0.3);">
+                            </td>
+                            <td class="text-center">
+                                <input type="number" class="form-control text-center fw-bold" 
+                                       value="${item.quantity_issued}" readonly
+                                       style="background: rgba(25, 135, 84, 0.1); border-color: rgba(25, 135, 84, 0.3);">
+                            </td>
                         </tr>
                     `;
                 }).join('');
 
                 const tableHTML = `
-                    <table class="table table-bordered table-striped">
-                        <thead class="thead-dark">
+                    <table class="table detail-table table-hover mb-0">
+                        <thead>
                             <tr>
-                                <th>Tipe Material</th>
-                                <th>Kode Detail</th>
-                                <th>Nama Detail</th>
-                                <th>Unit</th>
-                                <th>QTY Required</th>
-                                <th>QTY Issued</th>
+                                <th style="width: 15%;">
+                                    <i class="ph-duotone ph-tag me-2"></i>Material Type
+                                </th>
+                                <th style="width: 15%;">
+                                    <i class="ph-duotone ph-barcode me-2"></i>Detail Code
+                                </th>
+                                <th style="width: 25%;">
+                                    <i class="ph-duotone ph-package me-2"></i>Detail Name
+                                </th>
+                                <th style="width: 10%;">
+                                    <i class="ph-duotone ph-ruler me-2"></i>Unit
+                                </th>
+                                <th style="width: 17%;">
+                                    <i class="ph-duotone ph-shopping-cart me-2"></i>QTY Required
+                                </th>
+                                <th style="width: 17%;">
+                                    <i class="ph-duotone ph-check-circle me-2"></i>QTY Issued
+                                </th>
                             </tr>
                         </thead>
                         <tbody>
@@ -636,6 +933,28 @@
                     </table>
                 `;
                 container.html(tableHTML);
+
+                // Add animation styles to head if not already present
+                if (!$('head').find('#animate-styles').length) {
+                    $('head').append(`
+                        <style id="animate-styles">
+                            @keyframes slideInUp {
+                                from {
+                                    opacity: 0;
+                                    transform: translateY(20px);
+                                }
+                                to {
+                                    opacity: 1;
+                                    transform: translateY(0);
+                                }
+                            }
+                            .animate-row {
+                                animation: slideInUp 0.6s ease-out forwards;
+                                opacity: 0;
+                            }
+                        </style>
+                    `);
+                }
             }
             // === Modal Create ===
             $('#btn-create-compline').on('click', function() {
@@ -945,6 +1264,51 @@
                     }
                 });
             });
+            
+            // Initialize Bootstrap tooltips for action buttons
+            $(document).on('draw.dt', function() {
+                $('[data-bs-toggle="tooltip"]').tooltip();
+            });
+            
+            // Initialize tooltips on page load
+            $('[data-bs-toggle="tooltip"]').tooltip();
+            
+            // Enhanced DataTable draw callback for animations
+            table.on('draw', function() {
+                // Add staggered animation to table rows
+                $('#complainTable tbody tr').each(function(index) {
+                    $(this).css({
+                        'animation': 'fadeInUp 0.6s ease-out forwards',
+                        'animation-delay': (index * 0.05) + 's',
+                        'opacity': '0'
+                    });
+                });
+                
+                // Initialize tooltips for new content
+                setTimeout(function() {
+                    $('[data-bs-toggle="tooltip"]').tooltip();
+                }, 100);
+            });
+            
+            // Add enhanced search placeholder
+            $('#complainTable_filter input').attr({
+                'placeholder': '🔍 Search complaints...',
+                'class': 'form-control'
+            });
+            
+            // Add icons to DataTable controls
+            //$('.dataTables_filter label').prepend('<i class="ph-duotone ph-magnifying-glass me-2"></i>');
+            //$('.dataTables_length label').prepend('<i class="ph-duotone ph-list-numbers me-2"></i>');
+            
+            // Add fade-in animation to DataTable wrapper
+            $('.dataTables_wrapper').css({
+                'animation': 'fadeInUp 0.8s ease-out forwards',
+                'opacity': '0'
+            });
+            
+            setTimeout(function() {
+                $('.dataTables_wrapper').css('opacity', '1');
+            }, 200);
         });
     </script>
     @endpush
