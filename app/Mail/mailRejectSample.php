@@ -3,7 +3,6 @@
 namespace App\Mail;
 
 use App\Models\Requisition\Requisition;
-use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
@@ -11,35 +10,24 @@ use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Mail\Mailables\Address;
 
-class RequisitionApprovalMail extends Mailable
+class MailRejectSample extends Mailable
 {
     use Queueable, SerializesModels;
 
-    /**
-     * The requisition instance.
-     *
-     * @var \App\Models\Requisition\Requisition
-     */
     public $requisition;
-
-    /**
-     * The approver instance.
-     *
-     * @var \App\Models\User
-     */
-    public $approver;
+    public $rejectingApproverName;
+    public $notes;
 
     /**
      * Create a new message instance.
      *
-     * @param  \App\Models\Requisition\Requisition  $requisition
-     * @param  \App\Models\User  $approver
      * @return void
      */
-    public function __construct(Requisition $requisition, User $approver)
+    public function __construct(Requisition $requisition, string $rejectingApproverName, string $notes)
     {
         $this->requisition = $requisition;
-        $this->approver = $approver;
+        $this->rejectingApproverName = $rejectingApproverName;
+        $this->notes = $notes;
     }
 
     /**
@@ -51,7 +39,7 @@ class RequisitionApprovalMail extends Mailable
     {
         return new Envelope(
             from: new Address(config('mail.from.address'), config('mail.from.name')),
-            subject: 'Permintaan Persetujuan Requisition Baru: ' . $this->requisition->no_srs,
+            subject: 'Informasi: Requisition Anda (' . $this->requisition->no_srs . ') Ditolak',
         );
     }
 
@@ -63,7 +51,7 @@ class RequisitionApprovalMail extends Mailable
     public function content()
     {
         return new Content(
-            view: 'mail.mail-sample',
+            view: 'page.sample.reject',
         );
     }
 

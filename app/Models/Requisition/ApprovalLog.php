@@ -2,7 +2,7 @@
 
 namespace App\Models\Requisition;
 
-
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 
 class ApprovalLog extends Model
@@ -21,5 +21,10 @@ class ApprovalLog extends Model
     public function requisition()
     {
         return $this->belongsTo(Requisition::class, 'requisition_id');
+    }
+
+    public function approver()
+    {
+        return $this->belongsTo(User::class, 'approver_nik', 'nik');
     }
 }
