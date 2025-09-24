@@ -3,20 +3,8 @@
     Approver List
     @endsection
 
-    @push('css')
-    <style>
-        .modal-header {
-            background-color: #cc982f;
-        }
-
-        .modal-footer {
-            background-color: #f8f8f8;
-        }
-    </style>
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <link rel="stylesheet"
-        href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
-    @endpush
+    {{-- Include Complaint Table Styles Component --}}
+    @include('components.complaint-table-styles')
 
     <div class="row m-1">
         <div class="col-12 ">
@@ -34,42 +22,73 @@
         </div>
     </div>
 
+    <!--  -->
     <div class="row">
         <div class="col-12">
-            <div class="d-flex justify-content-end mb-3">
-                <button class="btn btn-light-danger btn-md" type="button" id="btn-create-approver">
-                    <i class="ph-bold ph-plus pe-2"></i> New Approver
-                </button>
+            <!-- Action Bar with Enhanced Styling -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <!-- <h5 class="mb-1" style="color: rgb(76, 61, 61); font-weight: 700;">
+                        <i class="ph-duotone ph-users-three me-2 text-warning"></i>
+                        Approver Management
+                    </h5>
+                    <p class="text-muted mb-0 small">
+                        <i class="ph-duotone ph-info me-1"></i>
+                        Configure approval workflow and sequences
+                    </p> -->
+                </div>
+                <div>
+                    <button class="btn new-complain-btn" type="button" id="btn-create-approver">
+                        <i class="ph-bold ph-plus"></i>
+                        <span>New Approver</span>
+                    </button>
+                </div>
             </div>
-            <div class="card">
-                <div class="card-body p-0">
-                    <div class="app-scroll table-responsive app-datatable-default">
-                        <table class="w-100 display" id="approvertable">
-                            <thead>
-                                <tr>
-                                    <th>No</th>
-                                    <th>Category</th>
-                                    <th>Sub Category</th>
-                                    <th>Approver</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                        </table>
-                    </div>
+            
+            <!-- Enhanced Table Container -->
+            <div class="main-table-container">
+                <!-- Table Header -->
+                <div class="table-header-enhanced">
+                    <h4 class="table-title">
+                        <i class="ph-duotone ph-list-checks"></i>
+                        Approvers List
+                    </h4>
+                    <p class="table-subtitle">
+                        Manage approval workflow configurations and sequences
+                    </p>
+                </div>
+                
+                <!-- Table Content -->
+                <div class="table-responsive">
+                    <table class="w-100 display" id="approvertable">
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>Category</th>
+                                <th>Sub Category</th>
+                                <th>Approver</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                    </table>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- modal create approver -->
     <div class="modal fade" id="ApproverModal" aria-hidden="true" tabindex="-1">
         <div class="modal-dialog modal-dialog-scrollable modal-lg">
             <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title text-white" id="ApproverModalLabel">Create Approver</h5>
-                    <button type="button" class="btn-close m-0 fs-5" data-bs-dismiss="modal"
+                <div class="modal-header-enhanced">
+                    <h5 class="modal-title-enhanced" id="ApproverModalLabel">
+                        <i class="ph-duotone ph-user-plus"></i>
+                        Create Approver
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white m-0 fs-5" data-bs-dismiss="modal"
                         aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body modal-body-enhanced">
                     <form action="#" method="POST" data-mode="create" id="ApproverForm">
                         @csrf
 
@@ -323,12 +342,14 @@
                     searchable: false,
                     render: function (data, type, row) {
                         return `
-                                <button type="button" class="btn btn-secondary btn-sm edit-approver-btn" data-id="${data}" title="Edit Approver">
-                                    <i class="ph-duotone ph-eraser"></i>
-                                </button>
-                                <button type="button" class="btn btn-danger btn-sm delete-approver-btn" data-id="${data}" title="Delete Approver">
-                                    <i class="ph-duotone ph-trash"></i>
-                                </button>
+                                <div class="action-btn-group">
+                                    <button type="button" class="btn btn-secondary action-btn-hover" data-id="${data}" data-tooltip="Edit Approver">
+                                        <i class="ph-duotone ph-eraser"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-danger action-btn-hover" data-id="${data}" data-tooltip="Delete Approver">
+                                        <i class="ph-duotone ph-trash"></i>
+                                    </button>
+                                </div>
                             `;
                     }
                 }]
@@ -356,7 +377,7 @@
                 $('.is-invalid').removeClass('is-invalid');
                 $('.invalid-feedback').text('');
 
-                $('#ApproverModalLabel').text('Create New Approver');
+                $('#ApproverModalLabel').html('<i class="ph-duotone ph-user-plus"></i> Create New Approver');
                 // Reset Select2 fields
                 $('#category_id, #sub_category_id, #approvers').val(null).trigger('change');
 
@@ -364,35 +385,68 @@
             });
 
             // === Modal: Show for Edit ===
-            $('#approvertable').on('click', '.edit-approver-btn', function (e) {
+            $('#approvertable').on('click', '.action-btn-hover', function (e) {
                 e.preventDefault();
-                let approverId = $(this).data('id');
-                // IMPORTANT: Replace with your actual edit/update routes
-                let editUrl = `/approvers/${approverId}/edit`;
-                let updateUrl = `/approvers/${approverId}`;
+                
+                // Check if this is edit button (btn-secondary) or delete button (btn-danger)
+                if ($(this).hasClass('btn-secondary')) {
+                    // Edit functionality
+                    let approverId = $(this).data('id');
+                    // IMPORTANT: Replace with your actual edit/update routes
+                    let editUrl = `/approvers/${approverId}/edit`;
+                    let updateUrl = `/approvers/${approverId}`;
 
-                $.ajax({
-                    url: editUrl,
-                    method: 'GET',
-                    success: function (data) {
-                        $('#ApproverForm')[0].reset();
-                        $('.is-invalid').removeClass('is-invalid');
-                        $('.invalid-feedback').text('');
-                        $('#ApproverForm').attr('data-mode', 'edit');
-                        $('#ApproverForm').attr('action', updateUrl);
+                    $.ajax({
+                        url: editUrl,
+                        method: 'GET',
+                        success: function (data) {
+                            $('#ApproverForm')[0].reset();
+                            $('.is-invalid').removeClass('is-invalid');
+                            $('.invalid-feedback').text('');
+                            $('#ApproverForm').attr('data-mode', 'edit');
+                            $('#ApproverForm').attr('action', updateUrl);
 
-                        // Populate form fields with data from server
-                        $('#category_id').val(data.category_id).trigger('change');
-                        $('#sub_category_id').val(data.sub_category_id).trigger('change');
-                        $('#approvers').val(data.approver_user_ids).trigger('change'); // Assuming the server returns an array of user IDs
+                            // Populate form fields with data from server
+                            $('#category_id').val(data.category_id).trigger('change');
+                            $('#sub_category_id').val(data.sub_category_id).trigger('change');
+                            $('#approvers').val(data.approver_user_ids).trigger('change'); // Assuming the server returns an array of user IDs
 
-                        $('#ApproverModalLabel').text('Edit Approver');
-                        $('#ApproverModal').modal('show');
-                    },
-                    error: function (xhr) {
-                        errorMessage(xhr.responseJSON?.message || 'Could not fetch approver data.');
-                    }
-                });
+                            $('#ApproverModalLabel').html('<i class="ph-duotone ph-user-gear"></i> Edit Approver');
+                            $('#ApproverModal').modal('show');
+                        },
+                        error: function (xhr) {
+                            errorMessage(xhr.responseJSON?.message || 'Could not fetch approver data.');
+                        }
+                    });
+                } else if ($(this).hasClass('btn-danger')) {
+                    // Delete functionality
+                    let approverId = $(this).data('id');
+                    // IMPORTANT: Replace with your actual destroy route
+                    let deleteUrl = `/approvers/${approverId}`;
+
+                    confirmDialog({
+                        text: 'You won\'t be able to revert this!',
+                        confirmButtonText: 'Yes, delete it!'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            $.ajax({
+                                url: deleteUrl,
+                                method: 'POST',
+                                data: {
+                                    _method: 'DELETE',
+                                    _token: '{{ csrf_token() }}'
+                                },
+                                success: function (res) {
+                                    table.ajax.reload(null, false);
+                                    successMessage(res.message || 'Approver deleted successfully!');
+                                },
+                                error: function (xhr) {
+                                    errorMessage(xhr.responseJSON?.message || 'Failed to delete approver.');
+                                }
+                            });
+                        }
+                    });
+                }
             });
 
             // === Form Submit Handler (Create & Edit) ===
@@ -475,6 +529,154 @@
                     }
                 });
             });
+
+            // Custom Tooltip Handler for Action Buttons
+            function initActionTooltips() {
+                // Remove any existing event handlers to prevent duplicates
+                $(document).off('mouseenter.customTooltip mouseleave.customTooltip', '.action-btn-hover');
+                
+                $(document).on('mouseenter.customTooltip', '.action-btn-hover', function(e) {
+                    const tooltipText = $(this).attr('data-tooltip');
+                    if (tooltipText && !$(this).data('tooltip-element')) {
+                        const tooltip = $('<div class="action-tooltip">' + tooltipText + '</div>');
+                        $('body').append(tooltip);
+                        
+                        const button = $(this);
+                        let isDestroyed = false;
+                        
+                        // Function to update tooltip position
+                        function updateTooltipPosition() {
+                            if (isDestroyed || !button.is(':visible') || !tooltip.parent().length) {
+                                return;
+                            }
+                            
+                            // Get button position
+                            const buttonOffset = button.offset();
+                            if (!buttonOffset) return;
+                            
+                            const buttonWidth = button.outerWidth();
+                            const buttonHeight = button.outerHeight();
+                            const tooltipWidth = tooltip.outerWidth();
+                            const tooltipHeight = tooltip.outerHeight();
+                            const windowWidth = $(window).width();
+                            const windowHeight = $(window).height();
+                            const scrollTop = $(window).scrollTop();
+                            
+                            // Calculate position
+                            let left = buttonOffset.left + (buttonWidth / 2) - (tooltipWidth / 2);
+                            let top = buttonOffset.top - tooltipHeight - 12;
+                            
+                            // Horizontal bounds checking
+                            if (left < 10) {
+                                left = 10;
+                            } else if (left + tooltipWidth > windowWidth - 10) {
+                                left = windowWidth - tooltipWidth - 10;
+                            }
+                            
+                            // Vertical bounds checking
+                            if (top < scrollTop + 10) {
+                                top = buttonOffset.top + buttonHeight + 12;
+                                tooltip.addClass('below');
+                            } else {
+                                tooltip.removeClass('below');
+                            }
+                            
+                            tooltip.css({
+                                position: 'absolute',
+                                left: left + 'px',
+                                top: top + 'px',
+                                zIndex: 9999
+                            });
+                        }
+                        
+                        // Initial positioning
+                        setTimeout(() => {
+                            updateTooltipPosition();
+                        }, 10);
+                        
+                        // Show tooltip with delay
+                        setTimeout(() => {
+                            if (!isDestroyed) {
+                                tooltip.addClass('show');
+                            }
+                        }, 100);
+                        
+                        // Store tooltip element and update function
+                        button.data('tooltip-element', tooltip);
+                        button.data('update-tooltip-position', updateTooltipPosition);
+                        button.data('tooltip-destroyed', false);
+                        
+                        // Create unique namespace for this tooltip
+                        const tooltipId = 'tooltip_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                        button.data('tooltip-id', tooltipId);
+                        
+                        // Listen for scroll events with throttling
+                        let scrollTimeout;
+                        function throttledUpdate() {
+                            if (scrollTimeout) {
+                                clearTimeout(scrollTimeout);
+                            }
+                            scrollTimeout = setTimeout(() => {
+                                if (!isDestroyed) {
+                                    updateTooltipPosition();
+                                }
+                            }, 10);
+                        }
+                        
+                        $(window).on('scroll.' + tooltipId + ' resize.' + tooltipId, throttledUpdate);
+                        $('.dataTables_scrollBody').on('scroll.' + tooltipId, throttledUpdate);
+                        $('.table-responsive').on('scroll.' + tooltipId, throttledUpdate);
+                        $('#approvertable_wrapper').on('scroll.' + tooltipId, throttledUpdate);
+                        
+                        // Store cleanup function
+                        button.data('tooltip-cleanup', function() {
+                            isDestroyed = true;
+                            $(window).off('.' + tooltipId);
+                            $('.dataTables_scrollBody').off('.' + tooltipId);
+                            $('.table-responsive').off('.' + tooltipId);
+                            $('#approvertable_wrapper').off('.' + tooltipId);
+                            if (scrollTimeout) {
+                                clearTimeout(scrollTimeout);
+                            }
+                        });
+                    }
+                });
+                
+                $(document).on('mouseleave.customTooltip', '.action-btn-hover', function(e) {
+                    const button = $(this);
+                    const tooltip = button.data('tooltip-element');
+                    const cleanup = button.data('tooltip-cleanup');
+                    
+                    if (tooltip) {
+                        button.data('tooltip-destroyed', true);
+                        
+                        tooltip.removeClass('show');
+                        setTimeout(() => {
+                            tooltip.remove();
+                        }, 200);
+                        
+                        // Execute cleanup
+                        if (cleanup) {
+                            cleanup();
+                        }
+                        
+                        // Clear all data
+                        button.removeData('tooltip-element');
+                        button.removeData('update-tooltip-position');
+                        button.removeData('tooltip-id');
+                        button.removeData('tooltip-cleanup');
+                        button.removeData('tooltip-destroyed');
+                    }
+                });
+            }
+            
+            // Initialize tooltips after DataTable is ready
+            table.on('draw', function() {
+                initActionTooltips();
+            });
+            
+            // Initialize tooltips for the first load
+            initActionTooltips();
         });
     </script>
     @endpush
