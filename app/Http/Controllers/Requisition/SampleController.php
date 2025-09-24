@@ -5,14 +5,15 @@ namespace App\Http\Controllers\Requisition;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreSampleRequisitionRequest;
 use App\Http\Requests\UpdateSampleRequisitionRequest;
+use App\Jobs\sendSample;
+use App\Mail\MailRejectSample;
 use App\Models\Master\Customer;
 use App\Models\Master\ItemMaster;
 use App\Models\Master\ItemDetail;
 use App\Models\Requisition\Requisition;
 use App\Models\Requisition\RequisitionItem;
 use App\Models\Requisition\RequisitionSpecial;
-use App\Jobs\SendRequisitionEmailJob; // Import Job yang baru dibuat
-use App\Models\Requisition\ApprovalPath; // Import model ApprovalPath
+use App\Models\Requisition\ApprovalPath;
 use App\Models\User;
 use App\Models\Requisition\ApprovalLog;
 use Illuminate\Support\Str;
@@ -21,31 +22,29 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Yajra\DataTables\Facades\DataTables;
 
 class SampleController extends Controller
 {
-    // ... (fungsi-fungsi lainnya tidak berubah: generateSrsNumber, getProductsByMaterialTypes, dll) ...
     private function generateSrsNumber()
     {
         $prefix = 'S';
         $year = date('y');
         $month = date('m');
-        $currentPrefix = "$prefix $year $month"; // Contoh: "S 25 09"
+        $currentPrefix = "$prefix $year $month";
 
-        // CARI NOMOR TERAKHIR BERDASARKAN KOLOM no_srs, BUKAN created_at
         $lastRequisition = Requisition::where('no_srs', 'LIKE', $currentPrefix . ' %')
-                                    ->orderBy('no_srs', 'desc') // Urutkan berdasarkan no_srs itu sendiri
+                                    ->orderBy('no_srs', 'desc')
                                     ->first();
 
-        $runningNumber = 1; // Default nomor urut adalah 1
+        $runningNumber = 1;
         if ($lastRequisition) {
             $lastParts = explode(' ', $lastRequisition->no_srs);
-            $lastRunningNumber = end($lastParts); // Ambil bagian nomor urut (e.g., "002")
-            $runningNumber = intval($lastRunningNumber) + 1; // Tambah 1
+            $lastRunningNumber = end($lastParts);
+            $runningNumber = intval($lastRunningNumber) + 1;
         }
 
-        // Gabungkan kembali dengan format 3 digit
         return $currentPrefix . ' ' . sprintf('%03d', $runningNumber);
     }
 
@@ -81,18 +80,24 @@ class SampleController extends Controller
         $customers = Customer::all();
         $materialTypes = ItemDetail::distinct()->pluck('material_type');
         $generatedSrs = $this->generateSrsNumber();
-        $userAccount = Auth::user()->department->code ?? null;
-        $userDepartmentName = Auth::user()->department?->name ?? null;
+        $user = Auth::user();
+        $userAccount = $user->department->code ?? null;
+        $userDepartmentName = $user->department?->name ?? null;
         $allowedSubCategories = [];
-        if (in_array($userAccount, ['5300', '5302'])) {
-            $allowedSubCategories[] = 'Packaging';
+
+        if ($user->hasRole('super-admin')) {
+            $allowedSubCategories = ['Packaging', 'Finished Goods', 'Special Order'];
+        } else {
+            if (in_array($userAccount, ['5300', '5302'])) {
+                $allowedSubCategories[] = 'Packaging';
+                $allowedSubCategories[] = 'Finished Goods';
+            }
+
+            if ($userDepartmentName === 'Sales & Marketing') {
+                $allowedSubCategories[] = 'Special Order';
+            }
         }
-        if (in_array($userAccount, ['5300', '5302', '5303'])) {
-            $allowedSubCategories[] = 'Finished Goods';
-        }
-        if ($userAccount == '5300') {
-            $allowedSubCategories[] = 'Special Order';
-        }
+
         $allowedSubCategories = array_unique($allowedSubCategories);
 
         return view('page.sample.index', compact(
@@ -120,7 +125,7 @@ class SampleController extends Controller
 
         return DataTables::of($requisitions)
             ->addIndexColumn()
-            ->addColumn('requester_info', function ($requisition) { // HANYA GUNAKAN addColumn
+            ->addColumn('requester_info', function ($requisition) {
                 $avatar = $requisition->avatar ? asset($requisition->avatar) : asset('assets/images/logo/sinarmeadow.png');
                 $nik = e($requisition->requester_nik);
 
@@ -155,18 +160,24 @@ class SampleController extends Controller
                 return '<span class="badge ' . $badgeClass . '">' . e($status) . '</span>';
             })
             ->addColumn('action', function ($row) {
-                return '
-                    <div class="d-flex gap-1">
-                        <button type="button" class="btn btn-sm btn-info btn-view-requisition" data-id="' . $row->id . '" title="Lihat Detail">
-                            <i class="fa-solid fa-eye text-white"></i>
-                        </button>
-                        <button type="button" class="btn btn-sm btn-warning btn-edit-requisition" data-id="' . $row->id . '" title="Edit">
-                            <i class="fa-solid fa-pencil text-white"></i>
-                        </button>
-                        <button type="button" class="btn btn-sm btn-danger btn-delete-requisition" data-id="' . $row->id . '" title="Delete">
-                            <i class="fa-solid fa-trash-alt text-white"></i>
-                        </button>
-                    </div>';
+                $user = Auth::user();
+
+                $viewBtn = '<button type="button" class="btn btn-sm btn-info btn-view-requisition" data-id="' . $row->id . '" title="Show Detail"><i class="fa-solid fa-eye text-white"></i></button>';
+                $editBtn = '<button type="button" class="btn btn-sm btn-warning btn-edit-requisition" data-id="' . $row->id . '" title="Edit"><i class="fa-solid fa-pencil text-white"></i></button>';
+                $deleteBtn = '<button type="button" class="btn btn-sm btn-danger btn-delete-requisition" data-id="' . $row->id . '" title="Delete"><i class="fa-solid fa-trash-alt text-white"></i></button>';
+
+                $qaFillBtn = '';
+                if (
+                    $user->department?->name === 'QM & HSE' &&
+                    $row->sub_category === 'Special Order' &&
+                    $row->status === 'Approved'
+                ) {
+                    $qaFillBtn = '<button type="button" class="btn btn-sm btn-success btn-qa-form" data-id="' . $row->id . '" title="Complete QA Form"><i class="fa-solid fa-check-double text-white"></i></button>';
+                    $editBtn = '';
+                    $deleteBtn = '';
+                }
+
+                return "<div class='d-flex gap-1'>{$viewBtn} {$qaFillBtn} {$editBtn} {$deleteBtn}</div>";
             })
             ->rawColumns(['requester_info', 'sub_category', 'route_to', 'status', 'action'])
             ->make(true);
@@ -175,61 +186,73 @@ class SampleController extends Controller
     public function show($id)
     {
         $requisition = Requisition::with([
-            'customer',
-            'requester',
-            'requisitionItems.itemMaster',
-            'requisitionItems.itemDetail',
-            'requisitionSpecial'
+            'customer:id,name,address',
+            'requester:nik,name,email',
+            'requisitionItems:requisition_id,item_master_id,item_detail_id,quantity_required,quantity_issued',
+            'requisitionItems.itemMaster:id,item_master_code,item_master_name,unit',
+            'requisitionItems.itemDetail:id,item_detail_code,item_detail_name,unit',
+            'requisitionSpecial',
+            'approvalLogs:id,requisition_id,approver_nik,status,notes,updated_at',
+            'approvalLogs.approver:nik,name'
         ])->findOrFail($id);
 
         $trackingHistory = [];
 
         $trackingHistory[] = [
-            'status' => 'Permintaan Dibuat',
+            'status' => 'Request Created',
             'user' => $requisition->requester->name ?? 'N/A',
             'date' => $requisition->created_at->format('d M Y, H:i'),
-            'notes' => 'Formulir Sample Requisition berhasil dibuat dan disimpan sebagai draf.',
+            'notes' => 'Sample Requisition form was created.',
             'icon' => 'fa-solid fa-file-circle-plus',
             'color' => 'bg-secondary'
         ];
 
-        if ($requisition->status != 'Draft') {
-            $trackingHistory[] = [
-                'status' => 'Dikirim ke ' . $requisition->route_to,
-                'user' => $requisition->requester->name ?? 'N/A',
-                'date' => $requisition->updated_at->format('d M Y, H:i'),
-                'notes' => 'Menunggu persetujuan dari atasan.',
-                'icon' => 'fa-solid fa-paper-plane',
-                'color' => 'bg-primary'
-            ];
-        }
+        foreach ($requisition->approvalLogs as $log) {
+            $statusText = '';
+            $userText = $log->approver->name ?? 'Unknown Approver';
+            $dateText = $log->updated_at ? $log->updated_at->format('d M Y, H:i') : $requisition->updated_at->format('d M Y, H:i');
+            $notesText = $log->notes ?? '';
+            $icon = 'fa-solid fa-clock';
+            $color = 'bg-info';
 
-        if (in_array($requisition->status, ['Approved', 'Completed'])) {
-            $trackingHistory[] = [
-                'status' => 'Disetujui',
-                'user' => $requisition->route_to, // Nama approver seharusnya dinamis
-                'date' => $requisition->updated_at->addMinutes(rand(5, 55))->format('d M Y, H:i'), // Waktu approval (simulasi)
-                'notes' => 'Permintaan sampel telah disetujui dan akan diproses lebih lanjut.',
-                'icon' => 'fa-solid fa-circle-check',
-                'color' => 'bg-success'
-            ];
-        } else if (in_array($requisition->status, ['Rejected', 'Cancelled'])) {
-            $trackingHistory[] = [
-                'status' => 'Ditolak',
-                'user' => $requisition->route_to,
-                'date' => $requisition->updated_at->addMinutes(rand(5, 55))->format('d M Y, H:i'),
-                'notes' => 'Permintaan sampel ditolak.',
-                'icon' => 'fa-solid fa-circle-xmark',
-                'color' => 'bg-danger'
-            ];
+            switch ($log->status) {
+                case 'Pending':
+                    $statusText = 'Sent for Approval';
+                    $notesText = 'Waiting for approval from ' . $userText;
+                    $icon = 'fa-solid fa-paper-plane';
+                    $color = 'bg-primary';
+                    break;
+                case 'Approved':
+                    $statusText = 'Approved';
+                    $notesText = $log->notes ?: 'Approved by ' . $userText;
+                    $icon = 'fa-solid fa-circle-check';
+                    $color = 'bg-success';
+                    break;
+                case 'Rejected':
+                    $statusText = 'Rejected';
+                    $notesText = $log->notes ?: 'Rejected by ' . $userText;
+                    $icon = 'fa-solid fa-circle-xmark';
+                    $color = 'bg-danger';
+                    break;
+            }
+
+            if ($statusText) {
+                 $trackingHistory[] = [
+                    'status' => $statusText,
+                    'user'   => $userText,
+                    'date'   => $dateText,
+                    'notes'  => $notesText,
+                    'icon'   => $icon,
+                    'color'  => $color,
+                ];
+            }
         }
 
         $responseData = $requisition->toArray();
-        $responseData['tracking_history'] = $trackingHistory; // Tambahkan data tracking ke response
+        $responseData['tracking_history'] = $trackingHistory;
 
         return response()->json($responseData);
     }
-
 
     public function store(StoreSampleRequisitionRequest $request)
     {
@@ -249,12 +272,12 @@ class SampleController extends Controller
                 'sub_category' => $validated['sub_category'],
                 'objectives' => $validated['objectives'],
                 'estimated_potential' => $validated['estimated_potential'],
-                'status' => 'Draft', // Status awal adalah Draft
+                'status' => 'Draft',
                 'route_to' => 'N/A',
             ]);
+
             Log::info("Requisition #{$requisition->id} berhasil dibuat sebagai Draft.");
 
-            // ... (logika create RequisitionSpecial dan RequisitionItem tetap sama) ...
             if ($validated['sub_category'] === 'Special Order') {
                 RequisitionSpecial::create([
                     'requisition_id' => $requisition->id,
@@ -282,28 +305,24 @@ class SampleController extends Controller
                         ]);
                     }
                 }
-            } else { // Ini sekarang berlaku untuk 'Finished Good' DAN 'Special Order'
+            } else {
                 foreach ($validated['items'] as $itemMasterId => $itemData) {
                     RequisitionItem::create([
                         'requisition_id' => $requisition->id,
                         'item_master_id' => $itemMasterId,
                         'item_detail_id' => null,
-                        'material_type' => $validated['sub_category'], // Simpan nama sub-kategori
+                        'material_type' => $validated['sub_category'],
                         'quantity_required' => $itemData['quantity_required'],
                         'quantity_issued' => $itemData['quantity_issued'] ?? null,
                     ]);
                 }
             }
 
-
-            // =========== PERUBAHAN LOGIKA APPROVAL DIMULAI DI SINI ===========
             Log::info("Mencari approval path untuk: SAMPLE / {$validated['sub_category']}");
-            // 1. Cari Approval Path berdasarkan Kategori dan Sub Kategori
             $approvalPath = ApprovalPath::where('category', 'SAMPLE')
                 ->where('sub_category', $validated['sub_category'])
                 ->first();
 
-            // 2. Periksa apakah path ditemukan dan memiliki approver
             if ($approvalPath && !empty($approvalPath->sequence_approvers)) {
                 Log::info("Approval path ditemukan untuk Requisition #{$requisition->id}. Approver NIKs: " . implode(', ', $approvalPath->sequence_approvers));
 
@@ -313,39 +332,31 @@ class SampleController extends Controller
                 if ($firstApprover) {
                     Log::info("Approver pertama (NIK: {$firstApproverNik}) ditemukan: {$firstApprover->name}.");
 
-                    // 3. Update status requisition dan arahkan ke approver pertama
                     $requisition->update([
                         'status' => 'Pending',
                         'route_to' => $firstApprover->name
                     ]);
 
-                    // 4. Buat log approval pertama
-                    ApprovalLog::create([
+                    $approvalLog = ApprovalLog::create([
                         'requisition_id' => $requisition->id,
                         'approver_nik'   => $firstApprover->nik,
                         'status'         => 'Pending',
-                        'level'          => 1, // Urutan pertama
+                        'level'          => 1,
                         'token'          => Str::uuid()->toString(),
                     ]);
                     Log::info("ApprovalLog berhasil dibuat untuk Requisition #{$requisition->id}.");
 
-                    // 5. Kirim email ke approver pertama menggunakan Job
-                    SendRequisitionEmailJob::dispatch($requisition, $firstApprover);
+                    sendSample::dispatch($requisition, $firstApprover, $approvalLog->token);
                     Log::info("Job pengiriman email untuk Requisition #{$requisition->id} telah di-dispatch ke queue.");
 
                 } else {
-                    // Jika NIK approver ada di path tapi user tidak ditemukan di database
                     $requisition->update(['status' => 'Completed', 'route_to' => 'Error: Approver Not Found']);
                     Log::warning("Approver dengan NIK {$firstApproverNik} tidak ditemukan untuk Requisition ID {$requisition->id}.");
                 }
             } else {
-                // Jika tidak ada approval path yang di-setting, otomatis selesaikan
                 $requisition->update(['status' => 'Completed', 'route_to' => 'Finished (No Path)']);
                 Log::warning("Tidak ada approval path yang cocok untuk Sample/{$validated['sub_category']}. Auto-complete Requisition ID {$requisition->id}.");
             }
-
-            // =========== AKHIR PERUBAHAN LOGIKA APPROVAL ===========
-
 
             DB::commit();
             Log::info("Transaksi untuk Requisition #{$requisition->id} berhasil di-commit.");
@@ -401,6 +412,21 @@ class SampleController extends Controller
     public function update(UpdateSampleRequisitionRequest $request, $id)
     {
         $requisition = Requisition::findOrFail($id);
+        $user = Auth::user();
+        $userDepartmentName = $user->department?->name;
+        $validated = $request->validated();
+
+        if (
+            $validated['sub_category'] === 'Special Order' &&
+            !$user->hasRole('super-admin') &&
+            $userDepartmentName !== 'QM & HSE' &&
+            ($request->has('sample_origin') || $request->has('production_date'))
+        ) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Hanya departemen QM & HSE yang dapat mengubah detail ini.'
+            ], 403);
+        }
         DB::beginTransaction();
         try {
             $validated = $request->validated();
@@ -423,7 +449,7 @@ class SampleController extends Controller
                         ]);
                     }
                 }
-            } else { // Ini sekarang berlaku untuk 'Finished Good' DAN 'Special Order'
+            } else {
                 foreach ($validated['items'] as $itemMasterId => $itemData) {
                     RequisitionItem::create([
                         'requisition_id' => $requisition->id,
@@ -445,6 +471,11 @@ class SampleController extends Controller
                     'coa_required'        => $validated['coa_required'] ?? false,
                     'shipment_method'     => $validated['shipment_method'] ?? null,
                 ]);
+            }
+
+            if ($userDepartmentName === 'QM & HSE' && $requisition->status === 'Approved') {
+                $requisition->update(['status' => 'Completed']);
+                Log::info("Requisition #{$requisition->id} diselesaikan oleh QM & HSE.");
             }
 
             DB::commit();
@@ -469,4 +500,140 @@ class SampleController extends Controller
         }
     }
 
+    // ================ Approval via Email Link ================== //
+    public function showResponseForm(Request $request, $token)
+    {
+        $action = $request->query('action');
+        $validActions = ['approve', 'review', 'reject'];
+
+        if (!in_array($action, $validActions)) {
+            return view('page.sample.invalid', ['message' => 'Invalid action or incorrect link.']);
+        }
+
+        $approvalLog = ApprovalLog::where('token', $token)->where('status', 'Pending')->first();
+
+        if (!$approvalLog) {
+            return view('page.sample.invalid', ['message' => 'This approval request is invalid or has already been processed.']);
+        }
+
+        $requisition = $approvalLog->requisition->load([
+            'requester',
+            'customer',
+            'requisitionItems.itemMaster',
+            'requisitionItems.itemDetail',
+            'approvalLogs.approver'
+        ]);
+
+        if ($action === 'approve') {
+            return view('page.sample.response-form', [
+                'token' => $token,
+                'action' => $action,
+                'requisition' => $requisition,
+            ]);
+        }
+
+        return view('page.sample.response-form', [
+            'token' => $token,
+            'action' => $action,
+            'requisition' => $requisition,
+        ]);
+    }
+
+    public function processApproval(Request $request)
+    {
+        $validated = $request->validate([
+            'token' => 'required|string|exists:approval_logs,token',
+            'action' => 'required|string|in:approve,review,reject',
+            'notes' => 'nullable|string|max:500|required_if:action,review,reject',
+        ], [
+            'token.exists' => 'Approval token not found or already used.',
+            'notes.required_if' => 'Notes are required for review or reject actions.',
+        ]);
+
+        $approvalLog = ApprovalLog::where('token', $validated['token'])->where('status', 'Pending')->first();
+        if (!$approvalLog) {
+            return response()->json(['success' => false, 'message' => 'This request has already been processed.'], 422);
+        }
+
+        DB::beginTransaction();
+        try {
+            $requisition = $approvalLog->requisition->load('customer');
+            $action = $validated['action'];
+            $notes = ($action === 'approve') ? 'Approved without notes' : $validated['notes'];
+            $approverName = $approvalLog->approver->name;
+
+            $newStatus = '';
+
+            $approvalLog->update([
+                'status' => ($action === 'reject') ? 'Rejected' : 'Approved',
+                'notes' => $notes,
+                'responded_at' => now(),
+            ]);
+
+            if ($action === 'reject') {
+                $requisition->update([
+                    'status' => 'Rejected',
+                    'route_to' => 'Finished (Rejected)'
+                ]);
+                $newStatus = 'Rejected';
+
+                $requester = $requisition->requester;
+                if ($requester && $requester->email) {
+                    Mail::to($requester->email)->send(new MailRejectSample($requisition, $approverName, $notes));
+                }
+            } else {
+                $approvalPath = ApprovalPath::where('category', $requisition->category)
+                    ->where('sub_category', $requisition->sub_category)
+                    ->first();
+
+                $approvers = $approvalPath->sequence_approvers ?? [];
+                $nextLevel = $approvalLog->level + 1;
+
+                if (isset($approvers[$nextLevel - 1])) {
+                    $nextApproverNik = $approvers[$nextLevel - 1];
+                    $nextApprover = User::where('nik', $nextApproverNik)->first();
+
+                    if ($nextApprover) {
+                        $requisition->update(['status' => 'In Progress', 'route_to' => $nextApprover->name]);
+                        $newStatus = 'In Progress';
+                        $newLog = ApprovalLog::create([
+                            'requisition_id' => $requisition->id, 'approver_nik' => $nextApprover->nik,
+                            'status' => 'Pending', 'level' => $nextLevel, 'token' => Str::uuid()->toString(),
+                        ]);
+                        sendSample::dispatch($requisition, $nextApprover, $newLog->token);
+                    } else {
+                        throw new \Exception("Next approver user (NIK: {$nextApproverNik}) not found.");
+                    }
+                } else {
+                    $requisition->update(['status' => 'Approved', 'route_to' => 'Finished (Approved)']);
+                    $newStatus = 'Approved';
+                }
+                if ($requisition->sub_category === 'Special Order') {
+                    $qaUsers = User::whereHas('department', function ($query) {
+                        $query->where('name', 'QM & HSE');
+                    })->get();
+
+                    if ($qaUsers->isNotEmpty()) {
+                        Log::info("Notifikasi untuk melengkapi form dikirim ke {$qaUsers->count()} user QM & HSE untuk Requisition #{$requisition->id}.");
+                    }
+                }
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success'       => true,
+                'message'       => 'Your response has been successfully recorded.',
+                'no_srs'        => $requisition->no_srs,
+                'customer_name' => $requisition->customer->name ?? 'N/A',
+                'approver_name' => $approverName,
+                'new_status'    => $newStatus,
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error("Failed to process approval: " . $e->getMessage() . " in " . $e->getFile() . " line " . $e->getLine());
+            return response()->json(['success' => false, 'message' => 'A system error occurred. Please contact the administrator.'], 500);
+        }
+    }
 }
