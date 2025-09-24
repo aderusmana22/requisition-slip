@@ -36,7 +36,7 @@ class UpdateSampleRequisitionRequest extends FormRequest
             'estimated_potential' => 'required|string',
             'items'               => 'required|array|min:1',
             'items.*.quantity_required' => 'required|integer|min:1',
-            'items.*.quantity_issued'   => 'nullable|integer|min:0',
+            'items.*.quantity_issued'   => 'required|integer|min:0',
         ];
 
         // BARU tambahkan aturan kondisional ke array $rules
@@ -61,16 +61,31 @@ class UpdateSampleRequisitionRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'items.required' => 'Pilih produk terlebih dahulu untuk menampilkan komponen.',
-            'customer_id.required' => 'Customer wajib diisi.',
-            'customer_id.exists' => 'Customer yang dipilih tidak valid.',
-            'account.required' => 'Account wajib diisi.',
+            'sub_category.required' => 'Sub Kategori wajib dipilih.',
+            'customer_id.required' => 'Customer wajib dipilih.',
             'no_srs.required' => 'Nomor SRS wajib diisi.',
-            'no_srs.unique' => 'Nomor SRS ini sudah pernah digunakan.',
-            'items.*.component_item_master_id.required' => 'Komponen wajib dipilih.',
-            'items.*.quantity_required.required' => 'Qty Required untuk setiap komponen wajib diisi.',
-            'objectives.required' => 'Objectives wajib diisi.',
+            'no_srs.unique' => 'Nomor SRS sudah terdaftar.',
+            'account.required' => 'Akun wajib diisi.',
+            'request_date.required' => 'Tanggal Permintaan wajib diisi.',
+            'objectives.required' => 'Tujuan wajib diisi.',
             'estimated_potential.required' => 'Estimasi Potensi wajib diisi.',
+            'items.required' => 'Minimal harus ada 1 item yang diminta.',
+            'items.min' => 'Minimal harus ada 1 item yang diminta.',
+            'items.*.quantity_required.required' => 'Qty Required wajib diisi untuk setiap item.',
+            'items.*.quantity_required.min' => 'Qty Required minimal 1.',
+            'request_date.required_if' => 'Tanggal Penyelesaian Sampel wajib diisi untuk Special Order.',
+            'weight_selection.required_if' => 'Berat Sampel wajib diisi untuk Special Order.',
+            'packaging_selection.required_if' => 'Kemasan Sampel wajib diisi untuk Special Order.',
+            'sample_count.required_if' => 'Rincian Jumlah Sampel wajib diisi untuk Special Order.',
+            'shipment_method.required_if' => 'Metode Pengiriman wajib dipilih untuk Special Order.',
+            'coa_required.required_if' => 'COA Required wajib diisi untuk Special Order.',
+            'sample_origin.max' => 'Asal Sampel maksimal 255 karakter.',
+            'sample_description_batch.max' => 'Deskripsi Sampel (Batch) maksimal 255 karakter.',
+            'sample_description_wb.max' => 'Deskripsi Sampel (WB) maksimal 255 karakter.',
+            'sample_description_tank.max' => 'Deskripsi Sampel (Tank) maksimal 255 karakter.',
+            'production_date.date' => 'Tanggal Produksi tidak valid.',
+            'sample_preparation.max' => 'Persiapan Sampel maksimal 255 karakter.',
+            'qa_notes.string' => 'Catatan QA harus berupa teks.',
         ];
     }
 }

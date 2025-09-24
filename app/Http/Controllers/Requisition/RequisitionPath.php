@@ -49,7 +49,7 @@ class RequisitionPath extends Controller
                     ->causedBy($causer)
                     ->withProperties(['approval_path_id' => $data->id])
                     ->log('Created new approval path');
-    
+
             });
             return response()->json(['message' => 'Approver successfully created'], 201);
         }catch(\Exception $e){
@@ -65,9 +65,9 @@ class RequisitionPath extends Controller
             'Free Goods',
         ];
         $subCategories = [
-            'packaging',
-            'finished goods',
-            'special order',
+            'Packaging',
+            'Finished Goods',
+            'Special Order',
         ];
         return response()->json(['categories' => $categories, 'subCategories' => $subCategories]);
     }
@@ -77,7 +77,7 @@ class RequisitionPath extends Controller
         $name = User::all()->pluck('name', 'nik');
         return response()->json(['approverName' => $name]);
     }
-    
+
     public function approverList(Request $request)
     {
         $draw = $request->input('draw');

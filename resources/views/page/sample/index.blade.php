@@ -435,7 +435,7 @@
                             </div>
 
                             <hr>
-                            
+
                             <div id="view-special-order-section" class="mb-4" style="display: none;">
                                 <h5 class="fw-bold text-primary d-flex align-items-center mb-3">
                                     <i class="ph-bold ph-star-four me-2"></i>
@@ -490,13 +490,15 @@
     <script src="{{ asset('assets/vendor/select/select2.min.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        let nextSrsNumber = "{{ $generatedSrs }}";
+
         function successMessage(message) {
             Swal.fire({
                 icon: 'success',
                 title: 'Berhasil',
                 text: message,
                 timer: 1500,
-                showConfirmButton: false
+                showConfirmButton: true
             });
         }
 
@@ -615,6 +617,7 @@
                 resetForm();
                 $('#sampleModalLabel').text('Buat Sample Requisition');
                 $('#sampleForm').attr('data-mode', 'create').removeAttr('data-id');
+                $('#no_srs').val(nextSrsNumber);
             });
 
             $('#sub_category').on('change', function () {
@@ -779,6 +782,9 @@
                             $('#sampleModal').modal('hide');
                             table.ajax.reload();
                             successMessage(res.message);
+                        }
+                        if (res.next_srs_number) {
+                            nextSrsNumber = res.next_srs_number;
                         }
                     },
                     error: function (xhr) {
