@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
-use App\Http\Controllers\Requisition\MailController;
 use App\Http\Controllers\Master\DepartmentController;
 use App\Http\Controllers\Master\CustomerController;
 use App\Http\Controllers\Master\PermissionController;
@@ -12,12 +11,9 @@ use App\Http\Controllers\Requisition\ComplainController;
 use App\Http\Controllers\Requisition\FreeGoodsController;
 use App\Http\Controllers\Requisition\RequisitionPath;
 use App\Http\Controllers\Requisition\SampleController;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [AuthenticatedSessionController::class, 'create'])->name('login');
-
-Route::get('/mail-test', [MailController::class, 'sendTestEmail']);
 
 Route::get('/dashboard', function () {
     return view('dashboard');
@@ -46,7 +42,8 @@ Route::resource('/approvers', RequisitionPath::class);
 Route::get('/categories', [RequisitionPath::class, 'categories'])->name('get.categories');
 Route::get('/approver-name', [RequisitionPath::class, 'approverName'])->name('get.approver.name');
 
-
+Route::get('/approval/response/{token}', [SampleController::class, 'showResponseForm'])->name('approval.response');
+Route::post('/approval/process', [SampleController::class, 'processApproval'])->name('approval.process');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

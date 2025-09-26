@@ -6,12 +6,53 @@
     @push('css')
     <link href="{{ asset('assets/vendor/select/select2.min.css') }}" rel="stylesheet" type="text/css">
     <style>
-        .modal-xl {
-            max-width: 80vw !important;
+        .modal-xl { max-width: 80vw !important; }
+        .modal-body { max-height: calc(100vh - 210px); overflow-y: auto; }
+        .view-modal-card { border: none; border-radius: .75rem; box-shadow: 0 4px 12px rgba(0,0,0, .08); margin-bottom: 1.5rem !important; }
+        .view-modal-card-header { background-color: transparent; border-bottom: 1px solid #e9ecef; padding: 1rem 1.25rem; }
+        .view-modal-card-header h5 { color: var(--bs-primary); font-weight: 600; margin-bottom: 0; }
+        .view-label { color: #6c757d; font-size: 0.85rem; margin-bottom: .25rem; display: block; }
+        .view-data { font-weight: 600; color: #212529; margin-bottom: 0; }
+
+        /* NEW: Style for clickable badge */
+        #view_status_badge a.badge:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0, .2);
+            transition: all .2s ease;
         }
-        .modal-body {
-            max-height: calc(100vh - 210px);
-            overflow-y: auto;
+
+        /* Tracker Styles */
+        .tracker-container { display: flex; justify-content: space-between; position: relative; padding: 10px 0; }
+        .tracker-line { position: absolute; top: 29px; left: 5%; right: 5%; height: 3px; background-color: #e9ecef; z-index: 1; }
+        .tracker-line-progress { position: absolute; top: 0; left: 0; height: 100%; background-color: #0d6efd; z-index: 2; width: 0%; transition: width 0.5s ease-in-out; }
+        .tracker-step { position: relative; z-index: 3; text-align: center; width: 16%; }
+        .tracker-icon { width: 30px; height: 30px; border-radius: 50%; background-color: #ced4da; color: #fff; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; border: 2px solid #ced4da; transition: all 0.3s ease; }
+        .tracker-step.completed .tracker-icon { background-color: #0d6efd; border-color: #0d6efd; }
+        .tracker-step.active .tracker-icon { background-color: #ffc107; border-color: #ffc107; }
+        .tracker-step.rejected .tracker-icon { background-color: #dc3545; border-color: #dc3545; }
+        .tracker-label { font-size: 0.8rem; font-weight: 600; color: #6c757d; }
+        .tracker-step.completed .tracker-label, .tracker-step.active .tracker-label { color: #212529; }
+        .tracker-details { font-size: 0.75rem; margin-top: 5px; min-height: 30px; }
+        .tracker-user { font-weight: 500; color: #495057; }
+        .tracker-date { color: #6c757d; }
+
+        .modal-content {
+            position: relative; /* Penting agar overlay bisa diposisikan di dalamnya */
+        }
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.65);
+            z-index: 10; /* Pastikan berada di atas semua elemen lain */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: .75rem; /* Samakan dengan radius modal */
+            color: white;
         }
     </style>
     @endpush
@@ -63,15 +104,22 @@
         </div>
     </div>
 
+    {{-- Create/Edit Modal --}}
     <div class="modal fade" id="sampleModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static"
         data-bs-keyboard="false">
         <div class="modal-dialog modal-dialog-centered modal-xl">
             <div class="modal-content">
+                <div class="loading-overlay" style="display: none;">
+                    <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <h5 class="text-white mt-3 fw-bold">Processing...</h5>
+                </div>
                 <div class="modal-header bg-primary">
                     <div class="d-flex align-items-center">
                         <img src="{{ asset('assets/images/logo/logohitam.png') }}" alt="Logo" style="height: 24px;"
                             class="me-3">
-                        <h5 class="modal-title text-white mb-0" id="sampleModalLabel">Buat Sample Requisition</h5>
+                        <h5 class="modal-title text-white mb-0" id="sampleModalLabel">Create New Sample Requisition</h5>
                     </div>
                     <button type="button" class="btn-close btn-close-white m-0 fs-5" data-bs-dismiss="modal"
                         aria-label="Close"></button>
@@ -79,10 +127,9 @@
                 <form id="sampleForm" enctype="multipart/form-data">
                     @csrf
                     <div class="modal-body">
-                        {{-- BAGIAN ATAS: PEMILIHAN KATEGORI --}}
                         <div class="row g-3 mb-3">
                             <div class="col-md-6">
-                                <label for="sub_category" class="form-label fw-bold">1. Pilih Sub Kategori<i
+                                <label for="sub_category" class="form-label fw-bold">1. Select Sub Category<i
                                         class="text-danger">*</i></label>
                                 <select class="form-select select2-styled" id="sub_category" name="sub_category"
                                     style="width: 100%;">
@@ -91,234 +138,233 @@
                                     <option value="{{ $subCat }}">{{ $subCat }}</option>
                                     @endforeach
                                 </select>
+                                <input type="hidden" id="sub_category_hidden">
                                 <div class="invalid-feedback" id="sub_category_error"></div>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">Kategori</label>
+                                <label class="form-label">Category</label>
                                 <input type="text" class="form-control" value="SAMPLE" readonly>
                             </div>
                         </div>
 
-                        {{-- CONTAINER UTAMA: Muncul setelah sub category dipilih --}}
                         <div id="requisition-form-details" style="display: none;">
-                            <hr>
-                            {{-- BAGIAN REQUISITION DETAILS --}}
-                            <h5 class="fw-bold text-primary mb-3">Detail Requisition</h5>
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <label for="customer_id" class="form-label">Nama Customer<i
-                                            class="text-danger">*</i></label>
-                                    <select class="form-select select2-styled" id="customer_id" name="customer_id"
-                                        style="width: 100%;">
-                                        <option></option>
-                                        @foreach ($customers as $customer)
-                                        <option value="{{ $customer->id }}" data-address="{{ $customer->address }}">
-                                            {{ $customer->name }}</option>
-                                        @endforeach
-                                    </select>
-                                    <div class="invalid-feedback" id="customer_id_error"></div>
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="customer_address" class="form-label">Alamat</label>
-                                    <textarea class="form-control" id="customer_address" rows="2"
-                                        readonly></textarea>
-                                </div>
-                                <div class="col-md-3">
-                                    <label for="no_srs" class="form-label">No. SRS<i class="text-danger">*</i></label>
-                                    <input type="text" class="form-control" id="no_srs" name="no_srs"
-                                        value="{{ $generatedSrs }}" readonly>
-                                </div>
-                                <div class="col-md-3">
-                                    <label for="account" class="form-label">Akun<i class="text-danger">*</i></label>
-                                    <input type="text" class="form-control" id="account" name="account"
-                                        value="{{ $userAccount }}" readonly>
-                                </div>
-                                <div class="col-md-3">
-                                    <label for="request_date" class="form-label">Tanggal Permintaan<i
-                                            class="text-danger">*</i></label>
-                                    <input type="date" class="form-control" id="request_date" name="request_date"
-                                        value="{{ date('Y-m-d') }}">
-                                </div>
-                                <div class="col-md-3">
-                                    <label for="cost_center" class="form-label">Cost Center</label>
-                                    <input type="text" class="form-control" id="cost_center" name="cost_center">
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="objectives" class="form-label">Tujuan<i
-                                            class="text-danger">*</i></label>
-                                    <textarea class="form-control" id="objectives" name="objectives"
-                                        rows="2"></textarea>
-                                    <div class="invalid-feedback" id="objectives_error"></div>
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="estimated_potential" class="form-label">Estimasi Potensi<i
-                                            class="text-danger">*</i></label>
-                                    <textarea class="form-control" id="estimated_potential"
-                                        name="estimated_potential" rows="2"></textarea>
-                                    <div class="invalid-feedback" id="estimated_potential_error"></div>
-                                </div>
-                            </div>
-
-                            <hr class="mt-4">
-
-                            {{-- BAGIAN PRODUCT DETAILS --}}
-                            <h5 class="fw-bold text-primary mb-3">Detail Produk</h5>
-
-                            {{-- HANYA UNTUK PACKAGING --}}
-                            <div class="mb-3" id="material-type-selection-container" style="display:none;">
-                                <label class="form-label fw-bold">2. Pilih Tipe Material<i
-                                        class="text-danger">*</i></label>
-                                <div>
-                                    @foreach ($materialTypes as $type)
-                                    <div class="form-check">
-                                        <input class="form-check-input material-type-checkbox" type="checkbox"
-                                            id="type_{{ Str::slug($type) }}" value="{{ $type }}">
-                                        <label class="form-check-label"
-                                            for="type_{{ Str::slug($type) }}">{{ $type }}</label>
+                            <div id="main-requisition-data">
+                                <hr>
+                                <h5 class="fw-bold text-primary mb-3">Requisition Details</h5>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="customer_id" class="form-label">Customer Name<i
+                                                class="text-danger">*</i></label>
+                                        <select class="form-select select2-styled" id="customer_id" name="customer_id"
+                                            style="width: 100%;">
+                                            <option></option>
+                                            @foreach ($customers as $customer)
+                                            <option value="{{ $customer->id }}" data-address="{{ $customer->address }}">
+                                                {{ $customer->name }}</option>
+                                            @endforeach
+                                        </select>
+                                        <input type="hidden" id="customer_id_hidden">
+                                        <div class="invalid-feedback" id="customer_id_error"></div>
                                     </div>
-                                    @endforeach
+                                    <div class="col-md-6">
+                                        <label for="customer_address" class="form-label">Address</label>
+                                        <textarea class="form-control" id="customer_address" rows="2" readonly></textarea>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label for="no_srs" class="form-label">SRS No.<i class="text-danger">*</i></label>
+                                        <input type="text" class="form-control" id="no_srs" name="no_srs"
+                                            value="{{ $generatedSrs }}" readonly>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label for="account" class="form-label">Account<i class="text-danger">*</i></label>
+                                        <input type="text" class="form-control" id="account" name="account"
+                                            value="{{ $userAccount }}" readonly>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label for="request_date" class="form-label">Request Date<i
+                                                class="text-danger">*</i></label>
+                                        <input type="date" class="form-control" id="request_date" name="request_date"
+                                            value="{{ date('Y-m-d') }}">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label for="cost_center" class="form-label">Cost Center</label>
+                                        <input type="text" class="form-control" id="cost_center" name="cost_center"
+                                        placeholder="e.g: CC1001, CC2002e">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="objectives" class="form-label">Objectives<i
+                                                class="text-danger">*</i></label>
+                                        <textarea class="form-control" id="objectives" name="objectives"
+                                            placeholder="e.g: New Product Development, Quality Improvement, Others: Market Testing"
+                                            rows="2"></textarea>
+                                        <div class="invalid-feedback" id="objectives_error"></div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="estimated_potential" class="form-label">Estimated Potential<i
+                                                class="text-danger">*</i></label>
+                                        <textarea class="form-control" id="estimated_potential" name="estimated_potential"
+                                            placeholder="e.g.: High, Medium, Low, Others: Specify Here"
+                                            rows="2"></textarea>
+                                        <div class="invalid-feedback" id="estimated_potential_error"></div>
+                                    </div>
+                                </div>
+
+                                <hr class="mt-4">
+
+                                <h5 class="fw-bold text-primary mb-2">Product Details</h5>
+                                <div class="mb-3" id="material-type-selection-container" style="display:none;">
+                                    <label class="form-label fw-bold">2. Select Material Type<i
+                                            class="text-danger">*</i></label>
+                                    <div>
+                                        @foreach ($materialTypes as $type)
+                                        <div class="form-check">
+                                            <input class="form-check-input material-type-checkbox" type="checkbox"
+                                                id="type_{{ Str::slug($type) }}" value="{{ $type }}">
+                                            <label class="form-check-label"
+                                                for="type_{{ Str::slug($type) }}">{{ $type }}</label>
+                                        </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+
+                                <div class="mb-3" id="product-selection-container" style="display:none;">
+                                    <label for="product_select" class="form-label fw-bold">3. Select Product Name<i
+                                            class="text-danger">*</i></label>
+                                    <select class="form-select select2-styled" id="product_select" multiple="multiple"
+                                        style="width: 100%;" disabled></select>
+                                    <div id="product_select_note"
+                                        class="form-text text-warning fw-semibold fst-italic mt-1">
+                                        <i class="ph ph-arrow-fat-up me-1"></i>
+                                        Please select a Material Type above to enable this.
+                                    </div>
+                                    <button type="button" class="btn btn-success btn-sm mt-2" id="btn-add-items-detail">
+                                        <i class="ph-bold ph-plus"></i> Add Item to List
+                                    </button>
+                                </div>
+
+                                <div class="mb-3" id="product-selection-container-fg" style="display:none;">
+                                    <label for="product_select_fg" class="form-label fw-bold">2. Select Product Name<i
+                                            class="text-danger">*</i></label>
+                                    <select class="form-select select2-styled" id="product_select_fg" multiple="multiple"
+                                        style="width: 100%;"></select>
+                                    <button type="button" class="btn btn-success btn-sm mt-2" id="btn-add-items-master">
+                                        <i class="ph-bold ph-plus"></i> Add Item to List
+                                    </button>
+                                </div>
+
+                                <div class="alert alert-danger" id="items_error" style="display: none;"></div>
+
+                                <div class="table-responsive mt-4">
+                                    <h6 class="fw-bold">3. Requested Item List</h6>
+                                    <table class="table table-bordered w-100">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Item Code</th>
+                                                <th>Item Name</th>
+                                                <th>Unit</th>
+                                                <th style="width: 15%;">Qty Required</th>
+                                                <th style="width: 15%;">Qty Issued</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="requisition-items-tbody">
+                                            <tr id="no-items-row">
+                                                <td colspan="5" class="text-center">No items have been added yet.</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
 
-                            {{-- HANYA UNTUK PACKAGING --}}
-                            <div class="mb-3" id="product-selection-container" style="display:none;">
-                                <label for="product_select" class="form-label fw-bold">3. Pilih Nama Produk<i
-                                        class="text-danger">*</i></label>
-                                <select class="form-select select2-styled" id="product_select"
-                                    multiple="multiple" style="width: 100%;" disabled></select>
-                                <div id="product_select_note" class="form-text text-warning fw-semibold fst-italic mt-1">
-                                    <i class="ph ph-arrow-fat-up me-1"></i>
-                                    Silakan pilih Tipe Material di atas untuk mengaktifkan.
-                                </div>
-                                <button type="button" class="btn btn-success btn-sm mt-2"
-                                    id="btn-add-items-detail">
-                                    <i class="ph-bold ph-plus"></i> Tambah Item ke Daftar
-                                </button>
-                            </div>
-
-                            {{-- UNTUK FINISHED GOOD & SPECIAL ORDER --}}
-                            <div class="mb-3" id="product-selection-container-fg" style="display:none;">
-                                <label for="product_select_fg" class="form-label fw-bold">2. Pilih Nama Produk<i class="text-danger">*</i></label>
-                                <select class="form-select select2-styled" id="product_select_fg"
-                                    multiple="multiple" style="width: 100%;"></select>
-                                <button type="button" class="btn btn-success btn-sm mt-2"
-                                    id="btn-add-items-master">
-                                    <i class="ph-bold ph-plus"></i> Tambah Item ke Daftar
-                                </button>
-                            </div>
-
-                            <div class="alert alert-danger" id="items_error" style="display: none;"></div>
-
-                            <div class="table-responsive mt-4">
-                                <h6 class="fw-bold">3. Daftar Item yang Diminta</h6>
-                                <table class="table table-bordered w-100">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th>Kode Item</th>
-                                            <th>Nama Item</th>
-                                            <th>Unit</th>
-                                            <th style="width: 15%;">Qty Diminta</th>
-                                            <th style="width: 15%;">Qty Diberikan</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="requisition-items-tbody">
-                                        <tr id="no-items-row">
-                                            <td colspan="5" class="text-center">Belum ada item yang ditambahkan.</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            {{-- BAGIAN SPECIAL ORDER --}}
                             <div id="special-order-fields" style="display: none;">
                                 <hr class="mt-4">
                                 <h5 class="text-primary fw-bold">Special Order Details</h5>
 
-                                {{-- Bagian Marketing (selalu tampil jika Special Order dipilih) --}}
                                 <h6 class="text-danger fw-bold">
-                                    <center><i>Diisi oleh Marketing</i></center>
+                                    <center><i>To be filled by Marketing</i></center>
                                 </h6>
                                 <div class="row g-3 mt-1">
                                     <div class="col-md-4">
-                                        <label for="requested_date" class="form-label">Tgl. Selesai Sample<i
+                                        <label for="requested_date" class="form-label">Sample Completion Date<i
                                                 class="text-danger">*</i></label>
-                                        <input type="date" class="form-control" name="requested_date">
+                                        <input type="date" class="form-control sm-field" name="requested_date">
                                     </div>
                                     <div class="col-md-8">
-                                        <label class="form-label">Berat Sample<i class="text-danger">*</i></label>
-                                        <input type="text" class="form-control" name="weight_selection"
-                                            placeholder="Contoh: 25 Kg, 15 Kg, Lainnya: 10 Pcs">
+                                        <label class="form-label">Sample Weight<i class="text-danger">*</i></label>
+                                        <input type="text" class="form-control sm-field" name="weight_selection"
+                                            placeholder="e.g.: 25 Kg, 15 Kg, Others: 10 Pcs">
                                     </div>
                                     <div class="col-md-4">
-                                        <label class="form-label">Kemasan Sample<i class="text-danger">*</i></label>
-                                        <input type="text" class="form-control" name="packaging_selection"
-                                            placeholder="Contoh: Karton, Lainnya: Plastik Wrap">
+                                        <label class="form-label">Sample Packaging<i class="text-danger">*</i></label>
+                                        <input type="text" class="form-control sm-field" name="packaging_selection"
+                                            placeholder="e.g.: Carton, Others: Plastic Wrap">
                                     </div>
                                     <div class="col-md-4">
-                                        <label for="sample_count" class="form-label">Jumlah Sample<i
+                                        <label for="sample_count" class="form-label">Number of Samples<i
                                                 class="text-danger">*</i></label>
-                                        <input type="text" class="form-control" name="sample_count"
-                                            placeholder="Contoh: 2x1kg (setiap produk)">
+                                        <input type="text" class="form-control sm-field" name="sample_count"
+                                            placeholder="e.g.: 2x1kg (each product)">
                                     </div>
                                     <div class="col-md-4">
                                         <label class="form-label">Certificate of Analysis<i
                                                 class="text-danger">*</i></label>
                                         <div>
                                             <div class="form-check form-check-inline">
-                                                <input class="form-check-input" type="radio" name="coa_required"
+                                                <input class="form-check-input sm-field" type="radio" name="coa_required"
                                                     id="coa_yes" value="1">
-                                                <label class="form-check-label" for="coa_yes">Ya</label>
+                                                <label class="form-check-label" for="coa_yes">Yes</label>
                                             </div>
                                             <div class="form-check form-check-inline">
                                                 <input class="form-check-input" type="radio" name="coa_required"
                                                     id="coa_no" value="0">
-                                                <label class="form-check-label" for="coa_no">Tidak</label>
+                                                <label class="form-check-label" for="coa_no">No</label>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="col-md-12">
-                                        <label class="form-label">Dikirim Melalui<i class="text-danger">*</i></label>
-                                        <input type="text" class="form-control" name="shipment_method"
-                                            placeholder="Contoh: Delivery (DHL), Lainnya: Gojek">
+                                        <label class="form-label">Shipment Method<i class="text-danger">*</i></label>
+                                        <input type="text" class="form-control sm-field" name="shipment_method"
+                                            placeholder="e.g.: Delivery (DHL), Others: Gojek">
                                     </div>
                                 </div>
 
-                                @if (isset($userDepartmentName) && $userDepartmentName == 'QA/QM')
+                                @if ((isset($userAccount) && $userAccount == '5302') ||
+                                auth()->user()->roles()->where('name', 'super-admin')->exists())
                                 <div class="qa-fields-section mt-4">
                                     <hr>
                                     <h6 class="text-danger fw-bold">
-                                        <center><i>Diisi oleh QA/QM</i></center>
+                                        <center><i>To be filled by QA/QM</i></center>
                                     </h6>
                                     <div class="row g-3 mt-1">
                                         <div class="col-12">
-                                            <label class="form-label">Asal Sample<i class="text-danger">*</i></label>
-                                            <input type="text" class="form-control" name="sample_origin">
+                                            <label class="form-label">Sample Origin<i class="text-danger">*</i></label>
+                                            <input type="text" class="form-control qa-field" name="sample_origin">
                                         </div>
                                         <div class="col-md-4">
-                                            <label class="form-label">Keterangan Sample: Batch/Pallet No<i
+                                            <label class="form-label">Sample Info: Batch/Pallet No<i
                                                     class="text-danger">*</i></label>
-                                            <input type="text" class="form-control" name="sample_description_batch">
+                                            <input type="text" class="form-control qa-field" name="sample_description_batch">
                                         </div>
                                         <div class="col-md-4">
                                             <label class="form-label">WB/DEO No<i class="text-danger">*</i></label>
-                                            <input type="text" class="form-control" name="sample_description_wb">
+                                            <input type="text" class="form-control qa-field" name="sample_description_wb">
                                         </div>
                                         <div class="col-md-4">
                                             <label class="form-label">Tank No<i class="text-danger">*</i></label>
-                                            <input type="text" class="form-control" name="sample_description_tank">
+                                            <input type="text" class="form-control qa-field" name="sample_description_tank">
                                         </div>
                                         <div class="col-md-4">
-                                            <label class="form-label">Tgl Produksi<i class="text-danger">*</i></label>
-                                            <input type="date" class="form-control" name="production_date">
+                                            <label class="form-label">Production Date<i
+                                                    class="text-danger">*</i></label>
+                                            <input type="date" class="form-control qa-field" name="production_date">
                                         </div>
                                         <div class="col-md-8">
-                                            <label class="form-label">Persiapan Sample<i
+                                            <label class="form-label">Sample Preparation<i
                                                     class="text-danger">*</i></label>
-                                            <input type="text" class="form-control" name="sample_preparation">
+                                            <input type="text" class="form-control qa-field" name="sample_preparation">
                                         </div>
                                         <div class="col-12">
-                                            <label class="form-label">Keterangan</label>
-                                            <input type="text" class="form-control" name="qa_notes">
+                                            <label class="form-label">Notes</label>
+                                            <input type="text" class="form-control qa-field" name="qa_notes">
                                         </div>
                                     </div>
                                 </div>
@@ -327,160 +373,140 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button class="btn btn-primary" type="submit" id="saveSampleBtn">Simpan</button>
-                        <button class="btn btn-light-secondary" data-bs-dismiss="modal" type="button">Tutup</button>
+                        <button class="btn btn-primary" type="submit" id="saveSampleBtn">Save</button>
+                        <button class="btn btn-light-secondary" data-bs-dismiss="modal" type="button">Close</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 
-    <!-- Modal Show Detail -->
+    {{-- View Modal (MODIFIED with new layout) --}}
     <div class="modal fade" id="viewModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
         <div class="modal-dialog modal-dialog-centered modal-xl">
-            <div class="modal-content">
-                <div class="modal-header bg-primary">
-                    <div class="d-flex align-items-center">
-                        <img src="{{ asset('assets/images/logo/logohitam.png') }}" alt="Logo" style="height: 24px;"
-                            class="me-3">
-                        <h5 class="modal-title text-white mb-0" id="viewModalLabel">Detail Sample Requisition</h5>
-                    </div>
+            <div class="modal-content" style="border-radius: .75rem;">
+                <div class="modal-header bg-primary text-white" style="border-top-left-radius: .75rem; border-top-right-radius: .75rem;">
+                     <h5 class="modal-title text-white" id="viewModalLabel"><i class="ph-bold ph-file-text me-2"></i>Sample Requisition Details</h5>
                     <button type="button" class="btn-close btn-close-white m-0 fs-5" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body p-4">
-                    <div class="row">
-                        {{-- KOLOM KIRI: DETAIL FORM --}}
-                        <div class="col-lg-8 border-end pe-4">
+                <div class="modal-body p-4" style="background-color: #f8f9fa;">
 
-                            {{-- Bagian Informasi Utama --}}
-                            <div class="mb-4">
-                                <h5 class="fw-bold text-primary d-flex align-items-center mb-3">
-                                    <i class="ph-bold ph-identification-card me-2"></i>
-                                    Informasi Utama
-                                </h5>
-                                <div class="row g-3">
-                                    <div class="col-md-6">
-                                        <small class="text-muted">No. SRS</small>
-                                        <p class="fw-bold fs-6 mb-0" id="view_no_srs">-</p>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <small class="text-muted">Sub Kategori</small>
-                                        <p class="fs-6 mb-0" id="view_sub_category">-</p>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <small class="text-muted">Tanggal Permintaan</small>
-                                        <p class="fs-6 mb-0" id="view_request_date">-</p>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <small class="text-muted">Status Saat Ini</small>
-                                        <div id="view_status_badge"></div>
-                                    </div>
+                    {{-- CARD 1: MAIN REQUISITION DETAILS --}}
+                    <div class="card view-modal-card">
+                        <div class="card-header view-modal-card-header">
+                            <h5 class="fw-bold text-primary mb-3"><i class="ph-bold ph-identification-card me-2"></i> Requisition Details</h5>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="row g-4">
+                                <div class="col-md-6">
+                                    <small class="view-label">Category</small>
+                                    <p class="view-data">SAMPLE</p>
                                 </div>
-                            </div>
-
-                            {{-- Bagian Informasi Customer --}}
-                            <div class="mb-4">
-                                <h5 class="fw-bold text-primary d-flex align-items-center mb-3">
-                                    <i class="ph-bold ph-user-circle me-2"></i>
-                                    Informasi Customer
-                                </h5>
-                                <div class="row g-3">
-                                    <div class="col-md-6">
-                                        <small class="text-muted">Nama Customer</small>
-                                        <p class="fs-6 mb-0" id="view_customer_name">-</p>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <small class="text-muted">Akun</small>
-                                        <p class="fs-6 mb-0" id="view_account">-</p>
-                                    </div>
+                                <div class="col-md-6">
+                                    <small class="view-label">Sub Category</small>
+                                    <p class="view-data" id="view_sub_category">-</p>
                                 </div>
-                            </div>
-
-                            {{-- Bagian Tujuan & Potensi --}}
-                            <div class="mb-4">
-                                <h5 class="fw-bold text-primary d-flex align-items-center mb-3">
-                                    <i class="ph-bold ph-shooting-star me-2"></i>
-                                    Tujuan & Estimasi Potensi
-                                </h5>
-                                <div class="p-3 bg-light rounded">
-                                    <p class="fw-bold mb-1">Tujuan:</p>
-                                    <p class="text-dark fst-italic" id="view_objectives">-</p>
-                                    <hr class="my-2">
-                                    <p class="fw-bold mb-1">Estimasi Potensi:</p>
-                                    <p class="text-dark fst-italic" id="view_estimated_potential">-</p>
+                                <div class="col-md-3">
+                                    <small class="view-label">SRS No.</small>
+                                    <p class="view-data" id="view_no_srs">-</p>
                                 </div>
-                            </div>
+                                <div class="col-md-3">
+                                    <small class="view-label">Request Date</small>
+                                    <p class="view-data" id="view_request_date">-</p>
+                                </div>
+                                <div class="col-md-3">
+                                    <small class="view-label">Customer Name</small>
+                                    <p class="view-data" id="view_customer_name">-</p>
+                                </div>
+                                <div class="col-md-3">
+                                    <small class="view-label">Address</small>
+                                    <p class="view-data" id="view_customer_address">-</p>
+                                </div>
+                                <div class="col-md-3">
+                                    <small class="view-label">Account</small>
+                                    <p class="view-data" id="view_account">-</p>
+                                </div>
+                                <div class="col-md-3">
+                                    <small class="view-label">Cost Center</small>
+                                    <p class="view-data" id="view_cost_center">-</p>
+                                </div>
 
-                            <hr>
-
-                            <h5 class="fw-bold text-primary mb-3 mt-4 d-flex align-items-center">
-                                <i class="ph-bold ph-list-bullets me-2"></i>
-                                Daftar Item yang Diminta
-                            </h5>
-                            <div class="table-responsive">
-                                <table class="table table-bordered w-100">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th>Kode Item</th>
-                                            <th>Nama Item</th>
-                                            <th>Unit</th>
-                                            <th>Qty Diminta</th>
-                                            <th>Qty Diberikan</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="view-items-tbody">
-                                        {{-- Data item akan diisi oleh JavaScript --}}
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            <hr>
-
-                            <div id="view-special-order-section" class="mb-4" style="display: none;">
-                                <h5 class="fw-bold text-primary d-flex align-items-center mb-3">
-                                    <i class="ph-bold ph-star-four me-2"></i>
-                                    Detail Special Order (Marketing)
-                                </h5>
-                                <div class="row g-3">
-                                    <div class="col-md-4">
-                                        <small class="text-muted">Tgl. Selesai Sample</small>
-                                        <p class="fs-6 mb-0" id="view_requested_date">-</p>
-                                    </div>
-                                    <div class="col-md-8">
-                                        <small class="text-muted">Berat Sample</small>
-                                        <p class="fs-6 mb-0" id="view_weight_selection">-</p>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <small class="text-muted">Kemasan Sample</small>
-                                        <p class="fs-6 mb-0" id="view_packaging_selection">-</p>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <small class="text-muted">Jumlah Sample</small>
-                                        <p class="fs-6 mb-0" id="view_sample_count">-</p>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <small class="text-muted">COA Diperlukan?</small>
-                                        <p class="fs-6 mb-0" id="view_coa_required">-</p>
-                                    </div>
-                                    <div class="col-md-12">
-                                        <small class="text-muted">Dikirim Melalui</small>
-                                        <p class="fs-6 mb-0" id="view_shipment_method">-</p>
-                                    </div>
+                                <div class="col-md-3">
+                                    <small class="view-label">Objectives</small>
+                                    <p class="view-data fst-italic fw-normal" id="view_objectives">-</p>
+                                </div>
+                                <div class="col-md-3">
+                                    <small class="view-label">Estimated Potential</small>
+                                    <p class="view-data fst-italic fw-normal" id="view_estimated_potential">-</p>
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-                        {{-- KOLOM KANAN: TRACKING HISTORY --}}
-                        <div class="col-lg-4 ps-4">
-                            <h5 class="fw-bold text-primary mb-3">Jejak Status (Tracking)</h5>
-                            <div id="tracking-history-container">
-                                {{-- Data tracking akan diisi oleh JavaScript --}}
+                    {{-- CARD 2: REQUESTED ITEM LIST --}}
+                    <div class="card view-modal-card">
+                         <div class="card-header">
+                            <h5 class="fw-bold text-primary mb-3"><i class="ph-bold  ph-list me-2"></i>Requested Item List</h5>
+                        </div>
+                        <div class="card-body p-1">
+                            <div class="table-responsive">
+                                <table class="table table-bordered w-100 mb-1">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th>Item Code</th>
+                                            <th>Item Name</th>
+                                            <th>Unit</th>
+                                            <th class="text-center">Qty Required</th>
+                                            <th class="text-center">Qty Issued</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="view-items-tbody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- CARD 3: SPECIAL ORDER DETAILS (Conditional) --}}
+                    <div class="card view-modal-card" id="view-special-order-section" style="display: none;">
+                        <div class="card-header">
+                           <h5 class="fw-bold text-primary mb-0">Special Order Details (Marketing)</h5>
+                        </div>
+                        <div class="card-body">
+                             <div class="row g-4">
+                                <div class="col-md-4"><label class="text-muted">Sample Completion Date</label><p class="fs-6 fw-semibold" id="view_requested_date">-</p></div>
+                                <div class="col-md-8"><label class="text-muted">Sample Weight</label><p class="fs-6 fw-semibold" id="view_weight_selection">-</p></div>
+                                <div class="col-md-4"><label class="text-muted">Sample Packaging</label><p class="fs-6 fw-semibold" id="view_packaging_selection">-</p></div>
+                                <div class="col-md-4"><label class="text-muted">Number of Samples</label><p class="fs-6 fw-semibold" id="view_sample_count">-</p></div>
+                                <div class="col-md-4"><label class="text-muted">COA Required?</label><p class="fs-6 fw-semibold" id="view_coa_required">-</p></div>
+                                <div class="col-md-12"><label class="text-muted">Shipment Method</label><p class="fs-6 fw-semibold" id="view_shipment_method">-</p></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- CARD 4: APPROVAL TRACKING (MOVED TO BOTTOM) --}}
+                    <div class="card view-modal-card">
+                        <div class="card-header view-modal-card-header">
+                            <h5 class="fw-bold text-primary mb-3"><i class="ph-bold ph-path me-2"></i> Approval & Process Tracking</h5>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center mb-4">
+                                <span class="fw-bold me-3">Current Status:</span>
+                                <div id="view_status_badge"></div>
+                            </div>
+                            <div class="tracker-container" id="approval-tracker-container">
+                                <div class="tracker-line"><div class="tracker-line-progress" id="tracker-progress"></div></div>
+                                <div class="tracker-step" data-step-name="Submitted"><div class="tracker-icon"><i class="ph-bold ph-file-arrow-up fs-6"></i></div><div class="tracker-label">Submitted</div><div class="tracker-details"></div></div>
+                                <div class="tracker-step" data-step-name="Manager Approval"><div class="tracker-icon"><i class="ph-bold ph-user-plus fs-6"></i></div><div class="tracker-label">Manager</div><div class="tracker-details"></div></div>
+                                <div class="tracker-step" data-step-name="Business Controller Approval"><div class="tracker-icon"><i class="ph-bold ph-briefcase fs-6"></i></div><div class="tracker-label">Business Controller</div><div class="tracker-details"></div></div>
+                                <div class="tracker-step" data-step-name="Warehouse Processing"><div class="tracker-icon"><i class="ph-bold ph-package fs-6"></i></div><div class="tracker-label">Warehouse</div><div class="tracker-details"></div></div>
+                                <div class="tracker-step" data-step-name="Ready for Dispatch"><div class="tracker-icon"><i class="ph-bold ph-truck fs-6"></i></div><div class="tracker-label">Dispatch</div><div class="tracker-details"></div></div>
+                                <div class="tracker-step" data-step-name="Completed"><div class="tracker-icon"><i class="ph-bold ph-check-circle fs-6"></i></div><div class="tracker-label">Completed</div><div class="tracker-details"></div></div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button class="btn btn-light-secondary" data-bs-dismiss="modal" type="button">Tutup</button>
+                <div class="modal-footer" style="background-color: #f8f9fa; border-top: 1px solid #dee2e6;">
+                    <button class="btn btn-light-secondary" data-bs-dismiss="modal" type="button">Close</button>
                 </div>
             </div>
         </div>
@@ -490,12 +516,13 @@
     <script src="{{ asset('assets/vendor/select/select2.min.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        // --- Unchanged JS from original file ---
         let nextSrsNumber = "{{ $generatedSrs }}";
 
         function successMessage(message) {
             Swal.fire({
                 icon: 'success',
-                title: 'Berhasil',
+                title: 'Success',
                 text: message,
                 timer: 1500,
                 showConfirmButton: true
@@ -505,7 +532,7 @@
         function errorMessage(message) {
             Swal.fire({
                 icon: 'error',
-                title: 'Terjadi Kesalahan',
+                title: 'An Error Occurred',
                 text: message
             });
         }
@@ -513,28 +540,31 @@
         function warningMessage(message) {
             Swal.fire({
                 icon: 'warning',
-                title: 'Perhatian',
+                title: 'Attention',
                 text: message
             });
         }
 
         $(document).ready(function () {
-            const userDepartment = "{{ $userDepartmentName ?? '' }}";
+            const userDepartmentCode = "{{ $userAccount ?? '' }}";
 
             function initSelect2() {
                 function formatSubCategory(option) {
-                    if (!option.id) return '<span class="text-muted">Pilih Sub Category</span>';
+                    if (!option.id) return '<span class="text-muted">Select Sub Category</span>';
                     let icon = '';
-                    if (option.text.includes('Packaging')) icon = '<i class="ph ph-package me-2 text-primary"></i>';
-                    if (option.text.includes('Finished')) icon = '<i class="ph ph-cube me-2 text-success"></i>';
-                    if (option.text.includes('Special')) icon = '<i class="ph ph-star-four me-2 text-warning"></i>';
+                    if (option.text.includes('Packaging')) icon =
+                        '<i class="ph ph-package me-2 text-primary"></i>';
+                    if (option.text.includes('Finished Goods')) icon =
+                        '<i class="ph ph-cube me-2 text-success"></i>';
+                    if (option.text.includes('Special')) icon =
+                        '<i class="ph ph-star-four me-2 text-warning"></i>';
                     return `<span style='font-weight:500;'>${icon}${option.text}</span>`;
                 }
 
                 $('#sub_category').select2({
                     dropdownParent: $('#sampleModal'),
                     width: '100%',
-                    placeholder: 'Pilih Sub Category',
+                    placeholder: 'Select Sub Category',
                     allowClear: true,
                     templateResult: formatSubCategory,
                     templateSelection: formatSubCategory,
@@ -544,13 +574,12 @@
                 });
 
                 function formatCustomer(option) {
-                    if (!option.id) return '<span class="text-muted">Pilih Customer</span>';
+                    if (!option.id) return '<span class="text-muted">Select Customer</span>';
                     return `<i class='ph ph-user-circle me-2 text-info'></i> <span style='font-weight:500;'>${option.text}</span>`;
                 }
                 $('#customer_id').select2({
                     dropdownParent: $('#sampleModal'),
-                    width: '100%',
-                    placeholder: 'Pilih Customer',
+                    placeholder: 'Select Customer',
                     allowClear: true,
                     templateResult: formatCustomer,
                     templateSelection: formatCustomer,
@@ -561,15 +590,13 @@
 
                 $('#product_select').select2({
                     dropdownParent: $('#sampleModal'),
-                    width: '100%',
-                    placeholder: 'Pilih produk',
+                    placeholder: 'Select products',
                     allowClear: true
                 });
 
                 $('#product_select_fg').select2({
                     dropdownParent: $('#sampleModal'),
-                    width: '100%',
-                    placeholder: 'Pilih produk Finished Good',
+                    placeholder: 'Select Finished Goods/Spesial Order products',
                     allowClear: true
                 });
             }
@@ -579,8 +606,7 @@
                 processing: true,
                 serverSide: true,
                 ajax: "{{ route('sample.data') }}",
-                columns: [
-                    {
+                columns: [{
                         data: 'DT_RowIndex',
                         name: 'DT_RowIndex',
                         orderable: false,
@@ -588,13 +614,36 @@
                         width: '20px',
                         className: 'text-center'
                     },
-                    { data: 'requester_info', name: 'users.name' },
-                    { data: 'customer_name', name: 'customers.name' },
-                    { data: 'request_date', name: 'requisitions.request_date' },
-                    { data: 'sub_category', name: 'requisitions.sub_category' },
-                    { data: 'route_to', name: 'requisitions.route_to' },
-                    { data: 'status', name: 'requisitions.status' },
-                    { data: 'action', name: 'action', orderable: false, searchable: false }
+                    {
+                        data: 'requester_info',
+                        name: 'users.name'
+                    },
+                    {
+                        data: 'customer_name',
+                        name: 'customers.name'
+                    },
+                    {
+                        data: 'request_date',
+                        name: 'requisitions.request_date'
+                    },
+                    {
+                        data: 'sub_category',
+                        name: 'requisitions.sub_category'
+                    },
+                    {
+                        data: 'route_to',
+                        name: 'requisitions.route_to'
+                    },
+                    {
+                        data: 'status',
+                        name: 'requisitions.status'
+                    },
+                    {
+                        data: 'action',
+                        name: 'action',
+                        orderable: false,
+                        searchable: false
+                    }
                 ]
             });
 
@@ -608,14 +657,28 @@
                 $('#sampleForm')[0].reset();
                 $('#sub_category, #customer_id, #product_select, #product_select_fg').val(null).trigger('change');
                 $('.material-type-checkbox').prop('checked', false);
-                $('#requisition-items-tbody').html('<tr id="no-items-row"><td colspan="5" class="text-center">Belum ada item yang ditambahkan.</td></tr>');
+                $('#requisition-items-tbody').html(
+                    '<tr id="no-items-row"><td colspan="5" class="text-center">No items have been added yet.</td></tr>'
+                );
                 $('#requisition-form-details').hide();
                 clearValidationErrors();
+
+                // --- UPDATED LOGIC ---
+                $('#initial-category-selection').show();
+                $('#main-requisition-data').show();
+                
+                // Kembalikan 'name' ke select yang terlihat
+                $('#sub_category').attr('name', 'sub_category');
+                $('#customer_id').prop('disabled', false); // Pastikan customer select aktif kembali
+
+                // Hapus 'name' dari hidden input
+                $('#sub_category_hidden').removeAttr('name');
+                $('#customer_id_hidden').removeAttr('name'); // <-- BARIS BARU
             }
 
             $('#btn-create-sample').on('click', function () {
                 resetForm();
-                $('#sampleModalLabel').text('Buat Sample Requisition');
+                $('#sampleModalLabel').text('Create Sample Requisition');
                 $('#sampleForm').attr('data-mode', 'create').removeAttr('data-id');
                 $('#no_srs').val(nextSrsNumber);
             });
@@ -626,7 +689,8 @@
 
                 const selectedSubCategory = $(this).val();
 
-                $('#special-order-fields, #material-type-selection-container, #product-selection-container, #product-selection-container-fg').hide();
+                $('#special-order-fields, #material-type-selection-container, #product-selection-container, #product-selection-container-fg')
+                    .hide();
                 $('.material-type-checkbox').prop('checked', false);
                 $('#product_select, #product_select_fg').val(null).trigger('change');
                 $('#product_select').prop('disabled', true);
@@ -644,14 +708,17 @@
                 if (selectedSubCategory === 'Packaging') {
                     $('#material-type-selection-container').slideDown();
                     $('#product-selection-container').slideDown();
-                } else if (selectedSubCategory === 'Finished Good' || selectedSubCategory === 'Special Order') {
+                } else if (selectedSubCategory === 'Finished Goods' || selectedSubCategory ===
+                    'Special Order') {
                     $.ajax({
                         url: "{{ route('sample.getAllItemMasters') }}",
                         method: 'GET',
                         success: function (masters) {
                             const productSelectFg = $('#product_select_fg');
                             productSelectFg.empty();
-                            masters.forEach(m => productSelectFg.append(new Option(`[${m.item_master_code}] ${m.item_master_name}`, m.id)));
+                            masters.forEach(m => productSelectFg.append(new Option(
+                                `[${m.item_master_code}] ${m.item_master_name}`,
+                                m.id)));
                             productSelectFg.trigger('change');
                             $('#product-selection-container-fg').slideDown();
                         }
@@ -667,7 +734,9 @@
 
             $('.material-type-checkbox').on('change', function () {
                 $('#product_select').val(null).trigger('change');
-                $('#requisition-items-tbody').html('<tr id="no-items-row"><td colspan="5" class="text-center">Belum ada item yang ditambahkan.</td></tr>');
+                $('#requisition-items-tbody').html(
+                    '<tr id="no-items-row"><td colspan="5" class="text-center">No items have been added yet.</td></tr>'
+                    );
 
                 const selectedTypes = [];
                 $('.material-type-checkbox:checked').each(function () {
@@ -681,30 +750,39 @@
                     $.ajax({
                         url: "{{ route('sample.getProductsByMaterialTypes') }}",
                         method: 'POST',
-                        data: { _token: "{{ csrf_token() }}", material_types: selectedTypes },
+                        data: {
+                            _token: "{{ csrf_token() }}",
+                            material_types: selectedTypes
+                        },
                         success: function (products) {
                             productSelect.empty();
-                            products.forEach(p => productSelect.append(new Option(p.item_master_name, p.id)));
+                            products.forEach(p => productSelect.append(new Option(p
+                                .item_master_name, p.id)));
                             productSelect.trigger('change');
                         },
-                        error: function () { errorMessage('Gagal memuat produk.'); }
+                        error: function () {
+                            errorMessage('Failed to load products.');
+                        }
                     });
                 } else {
                     productSelect.prop('disabled', true).empty().trigger('change');
-                     productSelectNote.show();
+                    productSelectNote.show();
                 }
             });
 
             $('#btn-add-items-detail').on('click', function () {
                 const selectedProductIds = $('#product_select').val();
                 if (!selectedProductIds || selectedProductIds.length === 0) {
-                    warningMessage('Silakan pilih produk terlebih dahulu.');
+                    warningMessage('Please select a product first.');
                     return;
                 }
                 $.ajax({
                     url: "{{ route('sample.getItemDetailsByProducts') }}",
                     method: 'POST',
-                    data: { _token: "{{ csrf_token() }}", product_ids: selectedProductIds },
+                    data: {
+                        _token: "{{ csrf_token() }}",
+                        product_ids: selectedProductIds
+                    },
                     success: function (itemDetails) {
                         $('#no-items-row').remove();
                         itemDetails.forEach(detail => {
@@ -727,14 +805,15 @@
             $('#btn-add-items-master').on('click', function () {
                 const selectedMasterIds = $('#product_select_fg').val();
                 if (!selectedMasterIds || selectedMasterIds.length === 0) {
-                    warningMessage('Silakan pilih produk terlebih dahulu.');
+                    warningMessage('Please select a product first.');
                     return;
                 }
                 $.ajax({
                     url: "{{ route('sample.getAllItemMasters') }}",
                     method: 'GET',
                     success: function (allMasters) {
-                        const selectedMasters = allMasters.filter(m => selectedMasterIds.includes(String(m.id)));
+                        const selectedMasters = allMasters.filter(m => selectedMasterIds
+                            .includes(String(m.id)));
                         $('#no-items-row').remove();
                         selectedMasters.forEach(master => {
                             if ($(`#item-row-master-${master.id}`).length === 0) {
@@ -758,13 +837,19 @@
                 $(`tr[data-master-id="${unselectedMasterId}"]`).remove();
 
                 if ($('#requisition-items-tbody tr').length === 0) {
-                    $('#requisition-items-tbody').html('<tr id="no-items-row"><td colspan="5" class="text-center">Belum ada item yang ditambahkan.</td></tr>');
+                    $('#requisition-items-tbody').html(
+                        '<tr id="no-items-row"><td colspan="5" class="text-center">No items have been added yet.</td></tr>'
+                        );
                 }
             });
 
             $('#sampleForm').on('submit', function (e) {
                 e.preventDefault();
                 clearValidationErrors();
+                const submitBtn = $('#saveSampleBtn');
+                const overlay = $('#sampleModal .loading-overlay');
+                overlay.show();
+                submitBtn.prop('disabled', true);
                 const mode = $(this).attr('data-mode');
                 const id = $(this).attr('data-id');
                 let url = (mode === 'edit') ? `/sample-form/${id}` : "{{ route('sample-form.store') }}";
@@ -793,24 +878,54 @@
                             for (const key in errors) {
                                 const errorMsg = errors[key][0];
                                 if (key.startsWith('items.')) {
-                                    $('#items_error').show().text('Pastikan jumlah item diisi.');
+                                    $('#items_error').show().text(
+                                        'Please ensure item quantities are filled.');
                                 } else {
                                     $(`#${key}`).addClass('is-invalid');
                                     $(`#${key}_error`).text(errorMsg);
                                 }
                             }
-                            errorMessage('Pastikan data yang anda masukkan sudah benar.');
+                            errorMessage('Please ensure the data you entered is correct.');
                         } else {
-                            errorMessage(xhr.responseJSON?.message || 'Terjadi kesalahan sistem.');
+                            errorMessage(xhr.responseJSON?.message ||
+                                'A system error occurred.');
                         }
                     }
                 });
             });
 
-            function populateForm(data) {
-                $('#sampleForm').attr('data-mode', 'edit'); // Kunci untuk mencegah reset
+            function populateForm(data, mode = null) {
+                $('#sampleForm').attr('data-mode', 'edit');
 
-                // 1. Isi semua field umum
+                if (mode === 'qa_mode') {
+                    // --- QA MODE LOGIC ---
+                    $('#initial-category-selection').hide();
+                    $('#main-requisition-data').hide();
+                    $('#special-order-fields').show();
+
+                    // Pindahkan 'name' ke hidden input untuk sub_category
+                    $('#sub_category_hidden').val(data.sub_category).attr('name', 'sub_category');
+                    $('#sub_category').removeAttr('name');
+
+                    // Lakukan hal yang sama untuk customer_id
+                    $('#customer_id_hidden').val(data.customer_id).attr('name', 'customer_id'); // <-- BARIS BARU
+                    $('#customer_id').prop('disabled', true).trigger('change'); // Tetap disable tampilan
+
+                } else {
+                    // --- NORMAL EDIT MODE LOGIC ---
+                    $('#initial-category-selection').show();
+                    $('#main-requisition-data').show();
+                    $('#special-order-fields').toggle(data.sub_category === 'Special Order');
+                    
+                    // Kembalikan 'name' ke select yang terlihat
+                    $('#sub_category').attr('name', 'sub_category');
+                    $('#customer_id').prop('disabled', false).trigger('change'); // Aktifkan select customer
+                    
+                    // Hapus 'name' dari hidden input
+                    $('#sub_category_hidden').val('').removeAttr('name');
+                    $('#customer_id_hidden').val('').removeAttr('name'); // <-- BARIS BARU
+                }
+
                 $('#sub_category').val(data.sub_category).trigger('change');
                 $('#customer_id').val(data.customer_id).trigger('change');
                 $('#no_srs').val(data.no_srs);
@@ -819,34 +934,31 @@
                 $('#request_date').val(data.request_date);
                 $('#objectives').val(data.objectives);
                 $('#estimated_potential').val(data.estimated_potential);
+
                 $('#requisition-form-details').show();
 
-                // 2. Tampilkan/Sembunyikan section yang relevan
-                $('#special-order-fields').toggle(data.sub_category === 'Special Order');
                 $('#material-type-selection-container, #product-selection-container').toggle(data.sub_category === 'Packaging');
-                $('#product-selection-container-fg').toggle(data.sub_category === 'Finished Good' || data.sub_category === 'Special Order');
+                $('#product-selection-container-fg').toggle(data.sub_category === 'Finished Goods' || data.sub_category === 'Special Order');
 
-                // 3. Proses Product Details (TIDAK ADA AJAX LAGI DI SINI)
-                if (data.sub_category === 'Packaging') {
-                    $('input.material-type-checkbox').prop('checked', false);
-                    if (data.attached_material_types.length > 0) {
-                        data.attached_material_types.forEach(type => {
-                            $(`input.material-type-checkbox[value="${type}"]`).prop('checked', true);
-                        });
-                    }
-
-                    const productSelect = $('#product_select');
-                    productSelect.empty();
-                    data.product_options.forEach(opt => productSelect.append(new Option(opt.text, opt.id)));
-                    productSelect.val(data.selected_master_ids).trigger('change.select2');
-                    productSelect.prop('disabled', false);
-                    $('#product_select_note').hide();
-
-                } else if (data.sub_category === 'Finished Good' || data.sub_category === 'Special Order') {
-                    const productSelectFg = $('#product_select_fg');
-                    productSelectFg.empty();
-                    data.product_options.forEach(opt => productSelectFg.append(new Option(opt.text, opt.id)));
-                    productSelectFg.val(data.selected_master_ids).trigger('change.select2');
+                const itemTbody = $('#requisition-items-tbody');
+                itemTbody.empty();
+                if (data.requisition_items && data.requisition_items.length > 0) {
+                    data.requisition_items.forEach(item => {
+                        let itemCode = 'N/A', itemName = 'N/A', unit = 'N/A', id, type, masterId;
+                        if (data.sub_category === 'Packaging' && item.item_detail) {
+                            itemCode = item.item_detail.item_detail_code; itemName = item.item_detail.item_detail_name; unit = item.item_detail.unit;
+                            id = item.item_detail.id; masterId = item.item_master_id; type = 'detail';
+                        } else if (item.item_master) {
+                            itemCode = item.item_master.item_master_code; itemName = item.item_master.item_master_name; unit = item.item_master.unit;
+                            id = item.item_master.id; masterId = item.item_master.id; type = 'master';
+                        }
+                        if (itemCode !== 'N/A') {
+                            const newRow = `<tr id="item-row-${type}-${id}" data-master-id="${masterId}"><td>${itemCode}</td><td>${itemName}</td><td>${unit}</td><td><input type="number" class="form-control" name="items[${id}][quantity_required]" value="${item.quantity_required}"></td><td><input type="number" class="form-control" name="items[${id}][quantity_issued]" value="${item.quantity_issued || ''}"></td></tr>`;
+                            itemTbody.append(newRow);
+                        }
+                    });
+                } else {
+                    itemTbody.html('<tr id="no-items-row"><td colspan="5" class="text-center">No items found.</td></tr>');
                 }
 
                 if (data.sub_category === 'Special Order' && data.requisition_special) {
@@ -858,204 +970,256 @@
                     $('input[name=coa_required][value="' + data.requisition_special.coa_required + '"]').prop('checked', true);
                 }
 
-                const itemTbody = $('#requisition-items-tbody');
-                itemTbody.empty();
-                if (data.requisition_items && data.requisition_items.length > 0) {
-                    data.requisition_items.forEach(item => {
-                        let itemCode = 'N/A', itemName = 'N/A', unit = 'N/A', id, type, masterId;
-                        if (data.sub_category === 'Packaging' && item.item_detail) {
-                            itemCode = item.item_detail.item_detail_code;
-                            itemName = item.item_detail.item_detail_name;
-                            unit = item.item_detail.unit;
-                            id = item.item_detail.id;
-                            masterId = item.item_master_id;
-                            type = 'detail';
-                        } else if (item.item_master) {
-                            itemCode = item.item_master.item_master_code;
-                            itemName = item.item_master.item_master_name;
-                            unit = item.item_master.unit;
-                            id = item.item_master.id;
-                            masterId = item.item_master.id;
-                            type = 'master';
-                        }
-                        if (itemCode !== 'N/A') {
-                            const newRow = `
-                                <tr id="item-row-${type}-${id}" data-master-id="${masterId}">
-                                    <td>${itemCode}</td><td>${itemName}</td><td>${unit}</td>
-                                    <td><input type="number" class="form-control" name="items[${id}][quantity_required]" value="${item.quantity_required}"></td>
-                                    <td><input type="number" class="form-control" name="items[${id}][quantity_issued]" value="${item.quantity_issued || ''}"></td>
-                                </tr>`;
-                            itemTbody.append(newRow);
-                        }
-                    });
-                }
-                if (itemTbody.is(':empty')) {
-                    itemTbody.html('<tr id="no-items-row"><td colspan="5" class="text-center">Belum ada item.</td></tr>');
-                }
+                if (mode === 'qa_mode') {
+                    $('.qa-fields-section').show();
+                    $('.sm-field').prop('disabled', true);
+                    $('#customer_id').prop('disabled', true).trigger('change');
+                    $('.qa-field').prop('disabled', false);
+                    $('#saveSampleBtn').text('Save QM Data & Complete').prop('disabled', false);
 
-                if (data.status === 'Pending' || data.status === 'Draft') {
-                    $('#sampleForm').find('input, select, textarea').not('[readonly]').prop('disabled', false);
-                    if ($('#product_select').is(':visible') && (!data.attached_material_types || data.attached_material_types.length === 0)) {
-                        $('#product_select').prop('disabled', true);
+                } else {
+                    const isSuperAdmin = "{{ auth()->user()->hasRole('super-admin') }}";
+                    const userDept = "{{ Auth::user()->department?->name }}";
+
+                    if (userDept !== 'QM & HSE' && !isSuperAdmin) {
+                        $('.qa-fields-section').hide();
+                    } else {
+                        $('.qa-fields-section').show();
                     }
-                    if (userDepartment !== 'QA/QM') {
-                        $('.qa-fields-section').find('input, select, textarea').prop('disabled', true);
-                    }
-                    $('#saveSampleBtn').text('Simpan Perubahan').show();
+
+                    $('.sm-field').prop('disabled', false);
+                    $('#customer_id').prop('disabled', false).trigger('change');
+                    $('.qa-field').prop('disabled', true);
+                    $('#saveSampleBtn').text('Save Changes').prop('disabled', false);
                 }
             }
 
             function populateViewForm(data) {
-                // Mengisi data utama
-                $('#view_no_srs').text(data.no_srs || '-');
                 $('#view_sub_category').text(data.sub_category || '-');
-                $('#view_request_date').text(new Date(data.request_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric'}));
-                $('#view_customer_name').text(data.customer ? data.customer.name : 'N/A');
+                $('#view_customer_name').text(data.customer ? data.customer.name : '-');
+                $('#view_customer_address').text(data.customer ? data.customer.address : '-');
+                $('#view_no_srs').text(data.no_srs || '-');
                 $('#view_account').text(data.account || '-');
+                $('#view_request_date').text(new Date(data.request_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) || '-');
+                $('#view_cost_center').text(data.cost_center || '-');
                 $('#view_objectives').text(data.objectives || '-');
                 $('#view_estimated_potential').text(data.estimated_potential || '-');
 
-                const specialOrderSection = $('#view-special-order-section');
-                    if (data.sub_category === 'Special Order' && data.requisition_special) {
-                        const specialData = data.requisition_special;
-                        const requestedDate = specialData.requested_date
-                            ? new Date(specialData.requested_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric'})
-                            : '-';
-
-                        $('#view_requested_date').text(requestedDate);
-                        $('#view_weight_selection').text(specialData.weight_selection || '-');
-                        $('#view_packaging_selection').text(specialData.packaging_selection || '-');
-                        $('#view_sample_count').text(specialData.sample_count || '-');
-                        $('#view_shipment_method').text(specialData.shipment_method || '-');
-                        $('#view_coa_required').text(specialData.coa_required == 1 ? 'Ya' : 'Tidak');
-
-                        specialOrderSection.slideDown(); // Tampilkan section dengan animasi
-                    } else {
-                        specialOrderSection.slideUp(); // Sembunyikan jika bukan Special Order
-                    }
-
-                // --- Logika untuk membuat badge status ---
-                const status = data.status;
-                let badgeClass = 'bg-secondary';
-                if (['Submitted', 'Pending'].includes(status)) badgeClass = 'bg-primary';
-                else if (['Approved', 'Completed'].includes(status)) badgeClass = 'bg-success';
-                else if (['Rejected', 'Cancelled'].includes(status)) badgeClass = 'bg-danger';
-                else if (status === 'In Progress') badgeClass = 'bg-info text-dark';
-                $('#view_status_badge').html(`<span class="badge fs-6 ${badgeClass}">${status}</span>`);
-                // --- Akhir logika badge ---
-
-                // Mengisi tabel item (Tidak ada perubahan di sini)
                 const viewItemTbody = $('#view-items-tbody');
                 viewItemTbody.empty();
                 if (data.requisition_items && data.requisition_items.length > 0) {
                     data.requisition_items.forEach(item => {
                         let itemCode = 'N/A', itemName = 'N/A', unit = 'N/A';
-                        if (data.sub_category === 'Packaging' && item.item_detail) {
-                            itemCode = item.item_detail.item_detail_code;
-                            itemName = item.item_detail.item_detail_name;
-                            unit = item.item_detail.unit;
+                        if (item.item_detail) {
+                            itemCode = item.item_detail.item_detail_code; itemName = item.item_detail.item_detail_name; unit = item.item_detail.unit;
                         } else if (item.item_master) {
-                            itemCode = item.item_master.item_master_code;
-                            itemName = item.item_master.item_master_name;
-                            unit = item.item_master.unit;
+                            itemCode = item.item_master.item_master_code; itemName = item.item_master.item_master_name; unit = item.item_master.unit;
                         }
-                        const newRow = `
-                            <tr>
-                                <td>${itemCode}</td>
-                                <td>${itemName}</td>
-                                <td>${unit}</td>
-                                <td>${item.quantity_required}</td>
-                                <td>${item.quantity_issued || '-'}</td>
-                            </tr>`;
+                        const newRow = `<tr><td>${itemCode}</td><td>${itemName}</td><td>${unit}</td><td class="text-center">${item.quantity_required}</td><td class="text-center">${item.quantity_issued || '-'}</td></tr>`;
                         viewItemTbody.append(newRow);
                     });
                 } else {
-                    viewItemTbody.html('<tr><td colspan="5" class="text-center">Belum ada item yang ditambahkan.</td></tr>');
+                    viewItemTbody.html('<tr><td colspan="5" class="text-center">No items have been added.</td></tr>');
                 }
 
-                // Mengisi histori tracking (Tidak ada perubahan di sini)
-                const trackingContainer = $('#tracking-history-container');
-                trackingContainer.empty();
-                if (data.tracking_history && data.tracking_history.length > 0) {
-                    let timelineHtml = '<ul class="list-unstyled d-flex flex-column gap-3">';
-                    data.tracking_history.forEach(item => {
-                        timelineHtml += `
-                            <li class="d-flex align-items-start">
-                                <div class="me-3">
-                                    <span class="d-flex align-items-center justify-content-center text-white rounded-circle ${item.color}" style="width: 40px; height: 40px;">
-                                        <i class="${item.icon}"></i>
-                                    </span>
-                                </div>
-                                <div>
-                                    <h6 class="mb-0 fw-bold">${item.status}</h6>
-                                    <small class="text-muted fst-italic">${item.user} - ${item.date}</small>
-                                    <p class="mb-0 small">${item.notes}</p>
-                                </div>
-                            </li>`;
-                    });
-                    timelineHtml += '</ul>';
-                    trackingContainer.html(timelineHtml);
+                const specialOrderSection = $('#view-special-order-section');
+                if (data.sub_category === 'Special Order' && data.requisition_special) {
+                    const special = data.requisition_special;
+                    $('#view_requested_date').text(special.requested_date ? new Date(special.requested_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : '-');
+                    $('#view_weight_selection').text(special.weight_selection || '-');
+                    $('#view_packaging_selection').text(special.packaging_selection || '-');
+                    $('#view_sample_count').text(special.sample_count || '-');
+                    $('#view_shipment_method').text(special.shipment_method || '-');
+                    $('#view_coa_required').text(special.coa_required == 1 ? 'Yes' : 'No');
+                    specialOrderSection.show();
                 } else {
-                    trackingContainer.html('<p class="text-muted">Tidak ada histori tracking.</p>');
+                    specialOrderSection.hide();
+                }
+
+                const status = data.status;
+                let badgeClass = 'bg-secondary';
+                if (['Submitted', 'Pending'].includes(status)) badgeClass = 'bg-primary';
+                else if (status.includes('Approved') || status === 'Completed') badgeClass = 'bg-success';
+                else if (['Rejected', 'Cancelled'].includes(status)) badgeClass = 'bg-danger';
+                else if (status === 'In Progress') badgeClass = 'bg-warning text-dark';
+
+                let badgeHtml = `<span class="badge fs-6 rounded-pill ${badgeClass}">${status}</span>`;
+
+                if (status === 'Rejected' && data.requester && data.requester.email) {
+                    const rejectedLog = data.tracking_history.find(h => h.status.toLowerCase() === 'rejected');
+                    const rejectionNotes = rejectedLog ? rejectedLog.notes : 'No reason provided.';
+
+                    const subject = `Follow-up on Rejected Requisition: ${data.no_srs}`;
+                    const body = `Hi ${data.requester.name},\n\nThis is a follow-up regarding the rejection of sample requisition ${data.no_srs}.\n\nReason for rejection: ${rejectionNotes}\n\nPlease review and advise on the next steps.\n\nThanks,`;
+
+                    const mailtoLink = `mailto:${data.requester.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+                    badgeHtml = `<a href="${mailtoLink}" target="_blank" class="badge fs-6 rounded-pill ${badgeClass}" title="Click to send follow-up email">${status} <i class="ph-bold ph-envelope-simple ms-1"></i></a>`;
+                }
+                $('#view_status_badge').html(badgeHtml);
+
+                $('.tracker-step').removeClass('completed active rejected');
+                $('.tracker-details').html('');
+                $('#tracker-progress').css('width', '0%');
+
+                const history = data.tracking_history || [];
+                if (history.length === 0) return;
+
+                let lastCompletedStep = -1;
+                let isRejected = false;
+
+                history.forEach(item => {
+                    if (isRejected) return;
+                    let stepIndex = -1;
+                    const statusLower = item.status.toLowerCase();
+
+                    if (statusLower.includes('created')) { stepIndex = 0; }
+                    else if (statusLower.includes('approved')) { stepIndex = lastCompletedStep + 1; }
+
+                    if (stepIndex > -1) {
+                        const stepEl = $('.tracker-step').eq(stepIndex);
+                        stepEl.addClass('completed');
+                        stepEl.find('.tracker-details').html(`<div class="tracker-user text-primary">${item.user}</div><div class="tracker-date text-dark">${item.date}</div>`);
+                        lastCompletedStep = Math.max(lastCompletedStep, stepIndex);
+                    }
+                    else if (statusLower.includes('sent for approval')) {
+                        const nextStepIndex = lastCompletedStep + 1;
+                        if (nextStepIndex < 6) {
+                             $('.tracker-step').eq(nextStepIndex).addClass('active')
+                                .find('.tracker-details').html(`<div class="tracker-user text-warning fst-italic">Waiting for...</div><div class="tracker-date">${item.user}</div>`);
+                        }
+                    }
+                    else if (statusLower.includes('rejected')) {
+                        const rejectedStepIndex = lastCompletedStep + 1;
+                         if (rejectedStepIndex < 6) {
+                            const stepEl = $('.tracker-step').eq(rejectedStepIndex);
+                            stepEl.removeClass('active').addClass('rejected');
+                            stepEl.find('.tracker-details').html(`<div class="tracker-user text-danger">${item.user}</div><div class="tracker-date">${item.date}</div>`);
+                         }
+                         isRejected = true;
+                    }
+                });
+
+                if (lastCompletedStep >= 0 && !isRejected) {
+                    let progressPercentage = (lastCompletedStep / 5) * 100;
+                    $('#tracker-progress').css('width', progressPercentage + '%');
+                }
+
+                if (data.status === 'Completed') {
+                    $('.tracker-step').removeClass('active').addClass('completed');
+                    $('#tracker-progress').css('width', '100%');
                 }
             }
 
-            $(document).on('click', '.btn-view-requisition', function () {
+            $(document).on('click', '.btn-view-requisition', function() {
                 const id = $(this).data('id');
+                const button = $(this);
+                const originalIcon = button.html();
+
+                button.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>').prop('disabled', true);
+
                 $.ajax({
-                    url: `/sample-form/${id}`, // Ini akan memanggil method show()
+                    url: `/sample-form/${id}`,
                     type: 'GET',
-                    success: function (response) {
+                    success: function(response) {
                         populateViewForm(response);
                         $('#viewModal').modal('show');
                     },
-                    error: function () {
-                        errorMessage('Gagal mengambil data detail permintaan.');
+                    error: function() {
+                        errorMessage('Failed to fetch requisition details.');
+                    },
+                    complete: function() {
+                        button.html(originalIcon).prop('disabled', false);
                     }
                 });
             });
 
             $(document).on('click', '.btn-edit-requisition', function () {
                 const id = $(this).data('id');
+                const button = $(this);
+                const originalIcon = button.html();
+
+                button.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>').prop('disabled', true);
+
                 $.ajax({
                     url: `/sample-form/${id}/edit`,
                     type: 'GET',
                     success: function (response) {
-                        resetForm();
-                        $('#sampleModalLabel').text('Ubah Sample Requisition');
+                        // resetForm(); // <<< INI BARIS YANG SALAH DAN SUDAH DIHAPUS
+                        $('#sampleModalLabel').text('Edit Sample Requisition');
                         $('#sampleForm').attr('data-id', id);
-                        populateForm(response);
+                        populateForm(response); // Langsung isi form dengan data
                         $('#sampleModal').modal('show');
                     },
-                    error: function () { errorMessage('Gagal mengambil data untuk diubah.'); }
+                    error: function () {
+                        errorMessage('Failed to fetch data for editing.');
+                    },
+                    complete: function() {
+                        button.html(originalIcon).prop('disabled', false);
+                    }
                 });
             });
 
             $(document).on('click', '.btn-delete-requisition', function () {
                 const requisitionId = $(this).data('id');
                 Swal.fire({
-                    title: 'Apakah Anda yakin?',
-                    text: "Data yang dihapus tidak dapat dikembalikan!",
+                    title: 'Are you sure?',
+                    text: "This action cannot be undone!",
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonColor: '#d33',
                     cancelButtonColor: '#3085d6',
-                    confirmButtonText: 'Ya, hapus!',
-                    cancelButtonText: 'Batal'
+                    confirmButtonText: 'Yes, delete it!',
+                    cancelButtonText: 'Cancel'
                 }).then((result) => {
                     if (result.isConfirmed) {
                         $.ajax({
                             url: `/sample-form/${requisitionId}`,
                             type: 'POST',
-                            data: { _method: 'DELETE', _token: "{{ csrf_token() }}" },
+                            data: {
+                                _method: 'DELETE',
+                                _token: "{{ csrf_token() }}"
+                            },
                             success: function (response) {
                                 if (response.success) {
-                                    Swal.fire('Terhapus!', response.message, 'success');
+                                    Swal.fire('Deleted!', response.message,
+                                        'success');
                                     table.ajax.reload();
                                 }
                             },
-                            error: function (xhr) { Swal.fire('Gagal!', 'Terjadi kesalahan sistem.', 'error'); }
+                            error: function (xhr) {
+                                Swal.fire('Failed!', 'A system error occurred.',
+                                    'error');
+                            }
                         });
+                    }
+                });
+            });
+
+            $(document).on('click', '.btn-qa-form', function() {
+                const id = $(this).data('id');
+                const button = $(this);
+                const originalIcon = button.html();
+
+                button.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>').prop('disabled', true);
+
+                $.ajax({
+                    url: `/sample-form/${id}/edit`,
+                    type: 'GET',
+                    success: function(response) {
+                        // resetForm(); // <<< INI JUGA BARIS YANG SALAH DAN SUDAH DIHAPUS
+                        $('#sampleModalLabel').text('Complete QM & HSE Form');
+                        $('#sampleForm').attr('data-id', id).attr('data-mode', 'edit');
+
+                        populateForm(response, 'qa_mode'); // Langsung isi form dengan data
+
+                        $('#sampleModal').modal('show');
+                    },
+                    error: function() {
+                        errorMessage('Failed to fetch data for QM form.');
+                    },
+                    complete: function() {
+                        button.html(originalIcon).prop('disabled', false);
                     }
                 });
             });
@@ -1065,6 +1229,7 @@
                 $('#sampleForm').removeAttr('data-mode data-id');
             });
         });
+
     </script>
     @endpush
 </x-app-layout>

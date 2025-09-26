@@ -78,7 +78,7 @@ class AllSeeder extends Seeder
             [
                 'id' => 1,
                 'name' => 'Engineering & Maintenance',
-                'code' => '5300',
+                'code' => '-',
                 'slug' => 'engineering-maintainance',
                 'created_at' => $now,
                 'updated_at' => $now,
@@ -86,7 +86,7 @@ class AllSeeder extends Seeder
             [
                 'id' => 2,
                 'name' => 'Finance Admin',
-                'code' => '5300',
+                'code' => '-',
                 'slug' => 'finance-admin',
                 'created_at' => $now,
                 'updated_at' => $now,
@@ -94,7 +94,7 @@ class AllSeeder extends Seeder
             [
                 'id' => 3,
                 'name' => 'HCD',
-                'code' => '5300',
+                'code' => '-',
                 'slug' => 'hcd',
                 'created_at' => $now,
                 'updated_at' => $now,
@@ -102,7 +102,7 @@ class AllSeeder extends Seeder
             [
                 'id' => 4,
                 'name' => 'Manufacturing',
-                'code' => '5300',
+                'code' => '-',
                 'slug' => 'manufacturing',
                 'created_at' => $now,
                 'updated_at' => $now,
@@ -110,7 +110,7 @@ class AllSeeder extends Seeder
             [
                 'id' => 5,
                 'name' => 'QM & HSE',
-                'code' => '5300',
+                'code' => '5302',
                 'slug' => 'qm-hse',
                 'created_at' => $now,
                 'updated_at' => $now,
@@ -118,7 +118,7 @@ class AllSeeder extends Seeder
             [
                 'id' => 6,
                 'name' => 'R&D',
-                'code' => '5303',
+                'code' => '5302',
                 'slug' => 'rd',
                 'created_at' => $now,
                 'updated_at' => $now,
@@ -126,7 +126,7 @@ class AllSeeder extends Seeder
             [
                 'id' => 7,
                 'name' => 'Sales & Marketing',
-                'code' => '5302',
+                'code' => '5300',
                 'slug' => 'sales-marketing',
                 'created_at' => $now,
                 'updated_at' => $now,
@@ -134,7 +134,7 @@ class AllSeeder extends Seeder
             [
                 'id' => 8,
                 'name' => 'Supply Chain',
-                'code' => '5300',
+                'code' => '-',
                 'slug' => 'supply-chain',
                 'created_at' => $now,
                 'updated_at' => $now,
@@ -142,7 +142,7 @@ class AllSeeder extends Seeder
             [
                 'id' => 9,
                 'name' => 'Supply & Maintenance',
-                'code' => '5300',
+                'code' => '-',
                 'slug' => 'supply-and-maintenance',
                 'created_at' => $now,
                 'updated_at' => $now,
@@ -176,18 +176,17 @@ class AllSeeder extends Seeder
             'approve requisition',
         ]);
 
-
         $superAdminRole->givePermissionTo($allPermissionNames);
         $userRequisitionRole->givePermissionTo($userRequisitionRole);
         $approvalRole->givePermissionTo($approvalRole);
 
-        $superAdminUser = \App\Models\User::updateOrCreate(
-            ['email' => '092023090191@student.jgu.ac.id'],
+        $superAdminUser = User::updateOrCreate(
+            ['email' => 'zidanazzahra916@gmail.com'],
             [
             'name' => 'Super Admin',
             'nik' => 'AG1111',
             'username' => 'superadmin',
-            'email' => '092023090191@student.jgu.ac.id',
+            'email' => 'zidanazzahra916@gmail.com',
             'password' => Hash::make('password'),
             'email_verified_at' => now(),
             'department_id' => 1,
@@ -199,13 +198,13 @@ class AllSeeder extends Seeder
 
         $superAdminUser->assignRole($superAdminRole);
 
-        $userRequsition = \App\Models\User::updateOrCreate(
-            ['email' => 'zidanazzahra916@gmail.com'],
+        $userRequsition = User::updateOrCreate(
+            ['email' => 'fendlstr03@gmail.com'],
             [
             'name' => 'User Requisition',
             'nik' => 'AG2222',
             'username' => 'user-requisition',
-            'email' => 'zidanazzahra916@gmail.com',
+            'email' => 'fendlstr03@gmail.com',
             'password' => Hash::make('password'),
             'email_verified_at' => now(),
             'department_id' => 2,
@@ -217,7 +216,7 @@ class AllSeeder extends Seeder
 
         $userRequsition->assignRole($userRequisitionRole);
 
-        $userApproval = \App\Models\User::updateOrCreate(
+        $userApproval = User::updateOrCreate(
             ['email' => 'ziddanazzahra10@gmail.com'],
             [
             'name' => 'User Approval',
@@ -251,6 +250,50 @@ class AllSeeder extends Seeder
             ]
         );
         $headQAUser->assignRole($headQA);
+
+        $departmentHeads = [
+            ['name' => 'Head Engineering', 'nik' => 'HD0001', 'username' => 'head.eng', 'email' => 'head.eng@example.com', 'department_id' => 1],
+            ['name' => 'Head Finance', 'nik' => 'HD0002', 'username' => 'head.fin', 'email' => 'head.fin@example.com', 'department_id' => 2],
+            ['name' => 'Head HCD', 'nik' => 'HD0003', 'username' => 'head.hcd', 'email' => 'head.hcd@example.com', 'department_id' => 3],
+            ['name' => 'Head Manufacturing', 'nik' => 'HD0004', 'username' => 'head.mfg', 'email' => 'head.mfg@example.com', 'department_id' => 4],
+            ['name' => 'Head QM & HSE', 'nik' => 'HD0005', 'username' => 'head.qm', 'email' => 'head.qm@example.com', 'department_id' => 5],
+            ['name' => 'Head R&D', 'nik' => 'HD0006', 'username' => 'head.rd', 'email' => 'head.rd@example.com', 'department_id' => 6],
+            ['name' => 'Head Sales & Marketing', 'nik' => 'HD0007', 'username' => 'head.sales', 'email' => 'head.sales@example.com', 'department_id' => 7],
+            ['name' => 'Head Supply Chain', 'nik' => 'HD0008', 'username' => 'head.sc', 'email' => 'head.sc@example.com', 'department_id' => 8],
+            ['name' => 'Head Supply & Maintenance', 'nik' => 'HD0009', 'username' => 'head.sm', 'email' => 'head.sm@example.com', 'department_id' => 9],
+        ];
+
+        foreach ($departmentHeads as $head) {
+            $user = User::updateOrCreate(
+                ['email' => $head['email']],
+                [
+                    'name' => $head['name'],
+                    'nik' => $head['nik'],
+                    'username' => $head['username'],
+                    'password' => Hash::make('password'),
+                    'email_verified_at' => now(),
+                    'department_id' => $head['department_id'],
+                    'status' => 'active',
+                    'atasan_nik' => 'AG1111',
+                ]
+            );
+            $user->assignRole($approvalRole);
+        }
+
+        $anotherUserRequisition = User::updateOrCreate(
+            ['email' => 'staff.eng@example.com'],
+            [
+                'name' => 'Staff Engineering',
+                'nik' => 'ST0001',
+                'username' => 'staff.eng',
+                'password' => Hash::make('password'),
+                'email_verified_at' => now(),
+                'department_id' => 7,
+                'status' => 'active',
+                'atasan_nik' => 'HD0001',
+            ]
+        );
+        $anotherUserRequisition->assignRole($userRequisitionRole);
     }
 
 }
