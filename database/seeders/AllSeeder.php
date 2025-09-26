@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Master\Department;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -45,8 +46,6 @@ class AllSeeder extends Seeder
         Permission::create(['name' => 'delete requisition']);
 
         Permission::create(['name' => 'view approval']);
-        Permission::create(['name' => 'approve requisition']);
-
 
         Permission::create(['name' => 'view item']);
         Permission::create(['name' => 'create item']);
@@ -64,6 +63,14 @@ class AllSeeder extends Seeder
         Permission::create(['name' => 'update report']);
         Permission::create(['name' => 'delete report']);
 
+        Permission::create(['name' => 'view approval-sequence']);
+        Permission::create(['name' => 'update approval-sequence']);
+        Permission::create(['name' => 'delete approval-sequence']);
+        
+        Permission::create(['name' => 'view requisition-approval']);
+        Permission::create(['name' => 'approve requisition']);
+        Permission::create(['name' => 'reject requisition']);
+        
         Permission::create(['name' => 'view dashboard']);
 
         $now = Carbon::now();
@@ -151,6 +158,11 @@ class AllSeeder extends Seeder
         $userRequisitionRole = Role::create(['name' => 'user-requisition']); // as user-requisition
         $approvalRole = Role::create(['name' => 'user-approval']); // as head-department
 
+        $headQA = Role::create(['name' => 'head-qa']); // as head-qa
+        $headQA->givePermissionTo(['view requisition-approval', 'approve requisition', 'reject requisition']);
+        $headHSE = Role::create(['name' => 'head-hse']);
+        $headHSE->givePermissionTo(['view requisition-approval', 'approve requisition', 'reject requisition']);
+
         // Lets give all permission to super-admin role.
         $allPermissionNames = Permission::pluck('name')->toArray();
         $userRequisitionRole->givePermissionTo([
@@ -180,7 +192,7 @@ class AllSeeder extends Seeder
             'email_verified_at' => now(),
             'department_id' => 1,
             'status' => 'active',
-            'atasan_nik' => null,
+            'atasan_nik' => 'AG2222',
             'avatar' => null,
             ]
         );
@@ -222,5 +234,23 @@ class AllSeeder extends Seeder
         );
 
         $userApproval->assignRole($approvalRole);
+
+        $headQAUser = User::updateOrCreate(
+            ['email' => 'head-qa@example.com'],
+            [
+                'name' => 'Head QA',
+                'nik' => 'AG4444',
+                'username' => 'head-qa',
+                'email' => 'head-qa@example.com',
+                'password' => Hash::make('password'),
+                'email_verified_at' => now(),
+                'department_id' => 5,
+                'status' => 'active',
+                'atasan_nik' => 'AG1111',
+                'avatar' => null,
+            ]
+        );
+        $headQAUser->assignRole($headQA);
     }
+
 }

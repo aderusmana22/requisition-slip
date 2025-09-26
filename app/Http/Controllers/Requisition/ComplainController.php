@@ -3,12 +3,16 @@
 namespace App\Http\Controllers\Requisition;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\paymentProofRequest;
 use App\Http\Requests\StoreComplainRequest;
+use App\Jobs\sendComplain;
 use App\Jobs\sendMailComplain;
+use App\Jobs\sendPaymentProofer;
 use App\Models\Master\Customer;
 use App\Models\Master\ItemMaster;
 use App\Models\Requisition\ApprovalLog;
 use App\Models\Requisition\ApprovalPath;
+use App\Models\Requisition\Payment;
 use App\Models\Requisition\Requisition;
 use App\Models\Requisition\RequisitionItem;
 use App\Models\User;
@@ -56,18 +60,22 @@ class ComplainController extends Controller
     {
         $validated = $request->validated();
         $user = Auth::user();
-    
+        $headsQA = User::role('head-qa')->first();
+
         if (!$user) {
             return response()->json(['message' => 'User belum login.'], 401);
         }
         if (!$user->atasan) {
             return response()->json(['message' => 'Atasan tidak ditemukan. Coba hubungi admin.'], 400);
         }
+        if (!$headsQA) {
+            return response()->json(['message' => 'head QA tidak ditemukan. Coba hubungi admin.'], 400);
+        }
 
         try{
             $approvalLogs = [];
             
-            DB::transaction(function () use ($validated, $user, &$approvalLogs) {
+            DB::transaction(function () use ($validated, $user, &$approvalLogs, $headsQA) {
         
             $requisition = Requisition::create([
                 'requester_nik' => $user->nik,
@@ -79,15 +87,32 @@ class ComplainController extends Controller
                 'category' => 'Complain',
                 'status' => 'Pending',
                 'objectives' => $validated['objectives'] ?? null,
-                'route_to' => $user->atasan->name,
+                'route_to' => $headsQA->name,
             ]);
 
-            // Insert approval log untuk atasan (level 1)
+            // Insert approval log untuk head QA (level 1)
+            $headsQAApprovalLog = ApprovalLog::create([
+                'requisition_id' => $requisition->id,
+                'approver_nik' => $headsQA->nik,
+                'status' => 'Pending',
+                'level' => 1,
+                'token' => bin2hex(random_bytes(16)),
+                'notes' => null,
+            ]);
+            
+            // Simpan approval log untuk job dispatch nanti
+            $approvalLogs[] = [
+                'approval_log' => $headsQAApprovalLog,
+                'approver' => $headsQA,
+                'requisition' => $requisition
+            ];
+
+            // Insert approval log untuk atasan (level 2)
             $atasanApprovalLog = ApprovalLog::create([
                 'requisition_id' => $requisition->id,
                 'approver_nik' => $user->atasan->nik,
                 'status' => 'Pending',
-                'level' => 1,
+                'level' => 2,
                 'token' => bin2hex(random_bytes(16)),
                 'notes' => null,
             ]);
@@ -107,9 +132,8 @@ class ComplainController extends Controller
                 
                 for ($i = 0; $i < count($approvers); $i++) {
                     $approverNik = $approvers[$i];
-                    $level = $i + 2;
+                    $level = $i + 3;
                     
-                    // Cek apakah user dengan NIK tersebut ada
                     $approver = User::where('nik', $approverNik)->first();
                     if ($approver) {
                         $approverApprovalLog = ApprovalLog::create([
@@ -169,7 +193,7 @@ class ComplainController extends Controller
 
             });
 
-            $firstApprover = $approvalLogs[0];
+            $firstApprover = $approvalLogs[0]; // Ini sekarang headsQA (level 1)
             sendMailComplain::dispatch(
                 $firstApprover['approver'],
                 $firstApprover['requisition'],
@@ -233,7 +257,7 @@ class ComplainController extends Controller
             $query->orderBy($orderColumnName, $orderDirection);
         }
 
-        $data = $query->with(['customer', 'revision', 'requester'])
+        $data = $query->with(['customer', 'revision', 'requester', 'approvalLogs'])
             ->where('category', 'Complain')
             ->offset($start)
             ->limit($length)
@@ -296,7 +320,14 @@ class ComplainController extends Controller
 
     public function getFormDetail($id){
         try {
-            $complain = Requisition::with(['customer', 'requisitionItems.itemMaster.ItemDetails'])->findOrFail($id);
+            $complain = Requisition::with([
+                'customer', 
+                'requester',
+                'requisitionItems.itemMaster.ItemDetails', 
+                'approvalLogs', 
+                'approvalLogs.approver',
+                'payments'
+            ])->findOrFail($id);
 
             return response()->json($complain);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
@@ -446,6 +477,12 @@ class ComplainController extends Controller
                 
                     $requisition->status = 'Rejected';
                     $requisition->save();
+
+                    if ($approvalLog->level === 1) {
+                        $requisition->status = 'payment proof';
+                        $requisition->save();
+                        sendPaymentProofer::dispatch($requisition, null, 'rejection_warning');
+                    }
                 }
 
                 activity()
@@ -456,13 +493,32 @@ class ComplainController extends Controller
                     ->log('User ' . ($approvalLog->approver_nik ?? 'Unknown') . ' has ' . $approvalLog->status . ' requisition ID: ' . $approvalLog->requisition_id);
             });
 
-            // Untuk approval with validation, tampilkan halaman hasil
+            // Check if it's an AJAX request
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Your decision has been recorded successfully.',
+                    'status' => $status,
+                    'requisition_id' => $requisition->id ?? null
+                ]);
+            }
+
+            // Untuk non-AJAX approval with validation, tampilkan halaman hasil
             return view('page.complain.approval-result', compact('requisition', 'status'));
 
         } catch (\Exception $e) {
             $errorMessage = $e->getMessage();
             
-            // Untuk semua error, redirect ke halaman error dengan pesan
+            // Check if it's an AJAX request for error handling
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $errorMessage,
+                    'error' => 'approval_failed'
+                ], 400);
+            }
+            
+            // Untuk non-AJAX error, redirect ke halaman error dengan pesan
             if (str_contains($errorMessage, 'Invalid approval link') || str_contains($errorMessage, 'expired')) {
                 return view('page.complain.approval-invalid', [
                     'message' => $errorMessage,
@@ -538,6 +594,12 @@ class ComplainController extends Controller
                     // Jika direject, langsung set status requisition ke Rejected
                     $requisition->status = 'Rejected';
                     $requisition->save();
+
+                    if ($approvalLog->level === 1) {
+                        $requisition->status = 'payment proof';
+                        $requisition->save();
+                        sendPaymentProofer::dispatch($requisition, null, 'rejection_warning');
+                    }
                 }
 
                 activity()
@@ -674,6 +736,75 @@ class ComplainController extends Controller
         } catch (\Exception $e) {
             Log::error('Error sending next level notification: ' . $e->getMessage());
             return false;
+        }
+    }
+
+    public function testData()
+    {
+        $headsQA = User::role('head-qa')->get();
+        return response()->json($headsQA);
+    }
+
+    public function uploadPaymentProof(paymentProofRequest $request)
+    {
+        $validated = $request->validated();
+
+        try {
+            DB::transaction(function() use ($validated) {
+                // Check if requisition exists and has correct status
+                $requisition = Requisition::findOrFail($validated['complain_id']);
+
+                if ($requisition->status !== 'payment proof') {
+                    throw new \Exception('This requisition does not require payment proof upload.');
+                }
+
+                // Handle file upload
+                $file = $validated['payment_document'];
+                $fileName = time() . '_' . $file->getClientOriginalName();
+                $filePath = $file->storeAs('payment_proofs', $fileName, 'public');
+
+                // Create payment record
+                $payment = Payment::create([
+                    'requisition_id' => $validated['complain_id'],
+                    'payment_date' => $validated['payment_date'],
+                    'document_url' => $filePath,
+                ]);
+
+                // Update requisition status
+                $requisition->status = 'In Progress';
+                $requisition->save();
+
+                // Log activity
+                $user = Auth::user();
+                if ($user) {
+                    activity()
+                        ->causedBy(User::find($user->id))
+                        ->performedOn($requisition)
+                        ->event('uploaded payment proof')
+                        ->withProperties(['ip' => request()->ip(), 'user_agent' => request()->userAgent()])
+                        ->log('User ' . $user->name . ' uploaded payment proof for requisition ID: ' . $requisition->id);
+                }
+
+                // Send payment confirmation email with attachment
+                $this->mailOtherLevel($validated['complain_id'], 1);
+            });
+
+            return response()->json([
+                'message' => 'Payment proof uploaded successfully. Requisition status updated to Completed.'
+            ], 200);
+
+        } catch (\Exception $e) {
+            Log::error('Failed to upload payment proof: ' . $e->getMessage());
+            
+            $errorMessage = $e->getMessage();
+            $statusCode = 500;
+            
+            if (str_contains($errorMessage, 'does not require payment proof') || 
+                str_contains($errorMessage, 'Invalid complain ID')) {
+                $statusCode = 400;
+            }
+            
+            return response()->json(['message' => $errorMessage], $statusCode);
         }
     }
 }
