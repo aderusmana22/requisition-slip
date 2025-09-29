@@ -1,6 +1,6 @@
 <x-app-layout>
     @section('title')
-    Users List
+    Complain List
     @endsection
 
     {{-- Include Complaint Table Styles Template --}}
@@ -9,7 +9,7 @@
     <!-- Breadcrumb -->
     <div class="row m-1">
         <div class="col-12 ">
-            <h4 class="main-title">Users List</h4>
+            <h4 class="main-title">Complain List</h4>
             <ul class="app-line-breadcrumbs mb-3">
                 <li>
                     <a class="f-s-14 f-w-500" href="#">
@@ -391,6 +391,38 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Status & Approval History Section -->
+                    <div class="detail-section">
+                        <div class="section-header">
+                            <i class="ph-duotone ph-clock-clockwise"></i>
+                            Status & Approval History
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="status-display-container">
+                                    <h6 class="mb-3 fw-bold text-muted">
+                                        <i class="ph-duotone ph-flag me-2"></i>
+                                        Current Status
+                                    </h6>
+                                    <div class="current-status-badge" id="current_status_display">
+                                        <!-- Current status will be populated here -->
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-8">
+                                <div class="approval-history-container">
+                                    <h6 class="mb-3 fw-bold text-muted">
+                                        <i class="ph-duotone ph-chat-teardrop-text me-2"></i>
+                                        Approval History & Notes
+                                    </h6>
+                                    <div class="approval-timeline" id="approval_history_list">
+                                        <!-- Approval history will be populated here -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="modal-footer">
@@ -398,6 +430,73 @@
                         <i class="ph-duotone ph-x me-2"></i>Close
                     </button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Proof Upload Modal -->
+    <div class="modal fade" id="paymentProofModal" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title text-white">
+                        <i class="ph-duotone ph-file-upload me-2"></i>
+                        Upload Payment Proof
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white m-0 fs-5" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="paymentProofForm" enctype="multipart/form-data">
+                    @csrf
+                    <div class="modal-body">
+                        <input type="hidden" id="payment_complain_id" name="complain_id">
+
+                        <div class="mb-3">
+                            <label for="payment_date" class="form-label">
+                                <i class="ph-duotone ph-calendar me-1"></i>
+                                Payment Date <span class="text-danger">*</span>
+                            </label>
+                            <input type="date" class="form-control" id="payment_date" name="payment_date" required>
+                            <div class="invalid-feedback" id="payment_date_error"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="payment_document" class="form-label">
+                                <i class="ph-duotone ph-file-image me-1"></i>
+                                Payment Document <span class="text-danger">*</span>
+                            </label>
+                            <input type="file" class="form-control" id="payment_document" name="payment_document"
+                                   accept="image/*,.pdf" required>
+                            <div class="form-text">
+                                <small class="text-muted">
+                                    <i class="ph-duotone ph-info me-1"></i>
+                                    Supported formats: JPG, PNG, PDF. Maximum size: 1MB
+                                </small>
+                            </div>
+                            <div class="invalid-feedback" id="payment_document_error"></div>
+                        </div>
+
+                        <!-- File preview -->
+                        <div id="filePreview" class="d-none">
+                            <div class="alert alert-info">
+                                <i class="ph-duotone ph-file-check me-2"></i>
+                                <span id="fileName"></span>
+                                <br>
+                                <small id="fileSize" class="text-muted"></small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-success" id="uploadPaymentBtn">
+                            <i class="ph-duotone ph-upload me-2"></i>
+                            Upload Payment Proof
+                        </button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="ph-duotone ph-x me-2"></i>
+                            Cancel
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -543,6 +642,8 @@
                                 return '<span class="badge status-badge-lg bg-success">Completed</span>';
                             } else if (data == 'Rejected' || data == 'Failed') {
                                 return '<span class="badge status-badge-lg bg-danger">Rejected</span>';
+                            } else if (data == 'payment proof') {
+                                return '<span class="badge status-badge-lg bg-danger text-white">Need Payment Proof</span>';
                             } else {
                                 return '<span class="badge status-badge-lg bg-secondary">' + data + '</span>';
                             }
@@ -571,6 +672,12 @@
                                    </button>`
                                 : '';
 
+                            let paymentProofButton = (status === 'payment proof')
+                                ? `<button type="button" class="btn btn-danger payment-button btn-sm action-btn-hover" data-id="${data}"
+                                data-tooltip="Upload Payment Proof">
+                                    <i class="ph-duotone ph-file"></i>
+                                   </button>`
+                                : '';
                             return `
                                 <div class="action-btn-group">
                                     <button type="button" class="btn btn-info btn-sm detail-button action-btn-hover" data-id="${data}"
@@ -579,6 +686,7 @@
                                     </button>
                                     ${editButton}
                                     ${deleteButton}
+                                    ${paymentProofButton}
                                 </div>
                             `;
                         }
@@ -762,6 +870,9 @@
 
                 $('#detailModal').modal('show');
 
+                // Clear previous payment proof section before loading new data
+                $('.payment-proof-section').remove();
+
                 $.ajax({
                     url: finalUrl,
                     method: 'GET',
@@ -828,6 +939,21 @@
                             `);
                         }
 
+                        // Populate Status & Approval History
+                        populateStatusAndHistory(data);
+
+                        // Check if payment proof exists and add to detail - filter by complain ID
+                        if (data.payments && data.payments.length > 0) {
+                            // Find payment proof that matches the current complain ID
+                            const relevantPayment = data.payments.find(payment =>
+                                payment.requisition_id == complainId
+                            );
+
+                            if (relevantPayment) {
+                                addPaymentProofSection(relevantPayment, complainId);
+                            }
+                        }
+
                         renderDetailProductTable(data.requisition_items);
                     },
                     error: function (xhr) {
@@ -836,6 +962,154 @@
                     }
                 });
             });
+
+            // Handle payment proof upload button click
+            $('#complainTable tbody').on('click', '.payment-button', function () {
+                let complainId = $(this).data('id');
+                $('#payment_complain_id').val(complainId);
+                $('#paymentProofModal').modal('show');
+
+                // Reset form
+                $('#paymentProofForm')[0].reset();
+                $('#filePreview').addClass('d-none');
+                $('.invalid-feedback').text('');
+                $('.form-control').removeClass('is-invalid');
+
+                // Set today as default payment date
+                $('#payment_date').val(new Date().toISOString().split('T')[0]);
+            });
+
+            // File validation and preview
+            $('#payment_document').on('change', function() {
+                const file = this.files[0];
+                const maxSize = 1 * 1024 * 1024; // 1MB in bytes
+                const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+
+                // Clear previous errors
+                $('#payment_document_error').text('');
+                $(this).removeClass('is-invalid');
+                $('#filePreview').addClass('d-none');
+
+                if (file) {
+                    // Validate file size
+                    if (file.size > maxSize) {
+                        $('#payment_document_error').text('File size must not exceed 1MB');
+                        $(this).addClass('is-invalid');
+                        this.value = '';
+                        return;
+                    }
+
+                    // Validate file type
+                    if (!allowedTypes.includes(file.type)) {
+                        $('#payment_document_error').text('Only JPG, PNG, and PDF files are allowed');
+                        $(this).addClass('is-invalid');
+                        this.value = '';
+                        return;
+                    }
+
+                    // Show file preview
+                    $('#fileName').text(file.name);
+                    $('#fileSize').text(`Size: ${(file.size / 1024 / 1024).toFixed(2)} MB`);
+                    $('#filePreview').removeClass('d-none');
+                }
+            });
+
+            // Handle payment proof form submission
+            $('#paymentProofForm').on('submit', function(e) {
+                e.preventDefault();
+
+                // Clear previous errors
+                $('.invalid-feedback').text('');
+                $('.form-control').removeClass('is-invalid');
+
+                let formData = new FormData(this);
+
+                // Show loading state
+                $('#uploadPaymentBtn').prop('disabled', true);
+                $('#uploadPaymentBtn').html('<i class="ph-duotone ph-spinner ph-spin me-2"></i>Uploading...');
+
+                $.ajax({
+                    url: "{{ route('upload.payment.proof') }}",
+                    method: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        $('#paymentProofModal').modal('hide');
+                        $('#complainTable').DataTable().ajax.reload(null, false);
+                        successMessage(response.message || 'Payment proof uploaded successfully!');
+                    },
+                    error: function(xhr) {
+                        if (xhr.status === 422) {
+                            // Validation errors
+                            let errors = xhr.responseJSON.errors;
+                            for (let field in errors) {
+                                $(`#${field}_error`).text(errors[field][0]);
+                                $(`#${field}`).addClass('is-invalid');
+                            }
+                            errorMessage('Please check the form for errors');
+                        } else {
+                            errorMessage(xhr.responseJSON?.message || 'Failed to upload payment proof');
+                        }
+                    },
+                    complete: function() {
+                        // Reset button state
+                        $('#uploadPaymentBtn').prop('disabled', false);
+                        $('#uploadPaymentBtn').html('<i class="ph-duotone ph-upload me-2"></i>Upload Payment Proof');
+                    }
+                });
+            });
+
+            // Function to add payment proof section to detail modal
+            function addPaymentProofSection(payment, complainId) {
+                const paymentDate = new Date(payment.payment_date).toLocaleDateString('en-GB', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric'
+                });
+
+                const paymentSection = `
+                    <div class="detail-section payment-proof-section" data-complain-id="${complainId}">
+                        <div class="section-header">
+                            <i class="ph-duotone ph-file-check"></i>
+                            Payment Proof Information
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="info-card">
+                                    <div class="info-row">
+                                        <div class="info-label">
+                                            <i class="ph-duotone ph-calendar text-primary"></i>
+                                            Payment Date:
+                                        </div>
+                                        <div class="info-value readonly">${paymentDate}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-card">
+                                    <div class="info-row">
+                                        <div class="info-label">
+                                            <i class="ph-duotone ph-file-pdf text-danger"></i>
+                                            Payment Document:
+                                        </div>
+                                        <div class="info-value">
+                                            <a href="${window.location.origin}/storage/${payment.document_url}"
+                                               target="_blank" class="btn btn-sm btn-outline-primary">
+                                                <i class="ph-duotone ph-download me-1"></i>
+                                                View Document
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // Insert payment section before the last section (Status & Approval History)
+                $('.modal-body .detail-section').last().before(paymentSection);
+            }
 
             // Enhanced modal detail table
             function renderDetailProductTable(items) {
@@ -956,6 +1230,106 @@
                     `);
                 }
             }
+
+            // Populate Status & Approval History Section
+            function populateStatusAndHistory(data) {
+                // Populate current status
+                const statusContainer = $('#current_status_display');
+                const status = data.status || 'Unknown';
+
+                // Map status to CSS classes and display text
+                let statusClass = 'status-badge-progress';
+                let statusText = status;
+
+                switch(status.toLowerCase()) {
+                    case 'pending':
+                        statusClass = 'status-badge-pending';
+                        statusText = 'Pending Review';
+                        break;
+                    case 'approved':
+                        statusClass = 'status-badge-approved';
+                        statusText = 'Approved';
+                        break;
+                    case 'rejected':
+                        statusClass = 'status-badge-rejected';
+                        statusText = 'Rejected';
+                        break;
+                    case 'in progress':
+                        statusClass = 'status-badge-progress';
+                        statusText = 'In Progress';
+                        break;
+                }
+
+                statusContainer.html(`<div class="current-status-badge ${statusClass}">${statusText}</div>`);
+
+                // Populate approval history
+                const historyContainer = $('#approval_history_list');
+                const approvalLogs = data.approval_logs || [];
+
+                // Filter out pending status entries
+                const filteredLogs = approvalLogs.filter(log =>
+                    log.status && log.status.toLowerCase() !== 'pending'
+                );
+
+                if (filteredLogs.length === 0) {
+                    historyContainer.html(`
+                        <div class="empty-history">
+                            <i class="ph-duotone ph-clock-clockwise"></i>
+                            <div class="fw-medium">No approval history yet</div>
+                            <small class="text-muted">Approval history will appear here when available</small>
+                        </div>
+                    `);
+                } else {
+                    let historyHtml = '';
+
+                    filteredLogs.forEach((log, index) => {
+                        const approverName = log.approver.name || log.approver_nik || 'Unknown Approver';
+                        const notes = log.notes || 'No notes provided';
+                        const logStatus = log.status || 'N/A';
+                        const createdDate = log.updated_at ? new Date(log.updated_at).toLocaleDateString('en-GB', {
+                            day: '2-digit',
+                            month: 'short',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        }) : 'Unknown date';
+
+                        // Determine status class and accent color for ::before
+                        let statusBadgeClass = 'approval-level-default';
+                        let approvalItemClass = 'approval-item';
+
+                        switch(logStatus.toLowerCase()) {
+                            case 'approved':
+                                statusBadgeClass = 'approval-level-approved';
+                                approvalItemClass = 'approval-item approval-item-approved';
+                                break;
+                            case 'rejected':
+                                statusBadgeClass = 'approval-level-rejected';
+                                approvalItemClass = 'approval-item approval-item-rejected';
+                                break;
+                            default:
+                                statusBadgeClass = 'approval-level-default';
+                                approvalItemClass = 'approval-item';
+                        }
+
+                        historyHtml += `
+                            <div class="${approvalItemClass}">
+                                <div class="approval-meta">
+                                    <span class="approver-name">${approverName}</span>
+                                    <span class="approval-level ${statusBadgeClass}">${logStatus}</span>
+                                    <span class="text-muted ms-2">${createdDate}</span>
+                                </div>
+                                <div class="approval-notes ${notes === 'No notes provided' ? 'no-notes' : ''}">
+                                    ${notes}
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    historyContainer.html(historyHtml);
+                }
+            }
+
             // === Modal Create ===
             $('#btn-create-compline').on('click', function() {
                 $('#complineForm')[0].reset();
@@ -1263,6 +1637,18 @@
                         warningMessage('Complain deletion canceled');
                     }
                 });
+            });
+
+            // Add modal cleanup when detail modal is hidden
+            $('#detailModal').on('hidden.bs.modal', function () {
+                // Clear payment proof sections to prevent data mixing
+                $('.payment-proof-section').remove();
+
+                // Clear other dynamic content
+                $('#detail_productDetailsContainer').empty();
+                $('#requisition_product_list').empty();
+                $('#approval_history_list').empty();
+                $('#current_status_display').empty();
             });
 
             // Initialize Bootstrap tooltips for action buttons

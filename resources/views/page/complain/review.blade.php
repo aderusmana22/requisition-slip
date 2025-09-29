@@ -302,26 +302,89 @@
                             method: 'POST',
                             body: formData,
                             headers: {
-                                'X-Requested-With': 'XMLHttpRequest'
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Accept': 'application/json'
                             }
                         })
-                        .then(response => response.json())
+                        .then(response => {
+                            // Check if response is ok
+                            if (!response.ok) {
+                                throw new Error(`HTTP error! status: ${response.status}`);
+                            }
+                            
+                            // Check if response is JSON
+                            const contentType = response.headers.get('content-type');
+                            if (contentType && contentType.includes('application/json')) {
+                                return response.json();
+                            } else {
+                                throw new Error('Server returned non-JSON response');
+                            }
+                        })
                         .then(data => {
-                            if (data.message) {
-                                Swal.fire({
-                                    icon: 'success',
-                                    title: 'Success!',
-                                    text: data.message,
-                                    confirmButtonColor: '#28a745'
-                                }).then(() => {
-                                    // Disable form after successful submission
-                                    form.style.display = 'none';
-                                    document.querySelector('.card-body').innerHTML += 
-                                        '<div class="alert alert-success mt-3"><strong>Review Completed!</strong> Your decision has been recorded successfully. <span id="countdown">This page will close in 5 seconds...</span></div>';
+                            if (data.success && data.message) {
+                                // Immediately show the closing message without SweetAlert
+                                if (window.opener) {
+                                    // If opened in popup, close it
+                                    window.close();
+                                } else {
+                                    // If in main window, show closing message immediately
+                                    document.body.innerHTML = `
+                                        <div style="
+                                            display: flex;
+                                            justify-content: center;
+                                            align-items: center;
+                                            height: 100vh;
+                                            background: linear-gradient(135deg, #cc982f 0%, #b8871a 100%);
+                                            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                                            margin: 0;
+                                            color: white;
+                                        ">
+                                            <div style="
+                                                text-align: center;
+                                                background: rgba(255,255,255,0.1);
+                                                padding: 50px 40px;
+                                                border-radius: 20px;
+                                                box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+                                                backdrop-filter: blur(10px);
+                                                border: 1px solid rgba(255,255,255,0.2);
+                                                max-width: 500px;
+                                                animation: fadeIn 0.5s ease-out;
+                                            ">
+                                                <div style="font-size: 4em; margin-bottom: 20px; animation: bounce 1s ease-out;">✅</div>
+                                                <h1 style="margin: 0 0 20px 0; font-size: 2.5em; font-weight: 300;">Approval Completed</h1>
+                                                <p style="margin: 0 0 30px 0; font-size: 1.2em; opacity: 0.9; line-height: 1.6;">
+                                                    ${data.message}<br>
+                                                    <span id="auto-close-countdown">This page will close in 5 seconds...</span>
+                                                </p>
+                                                <div style="
+                                                    background: rgba(255,255,255,0.2);
+                                                    padding: 15px;
+                                                    border-radius: 10px;
+                                                    margin-top: 20px;
+                                                    font-size: 0.9em;
+                                                    opacity: 0.8;
+                                                ">
+                                                    You can safely close this browser tab
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <style>
+                                            @keyframes fadeIn {
+                                                from { opacity: 0; transform: scale(0.8); }
+                                                to { opacity: 1; transform: scale(1); }
+                                            }
+                                            @keyframes bounce {
+                                                0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+                                                40% { transform: translateY(-10px); }
+                                                60% { transform: translateY(-5px); }
+                                            }
+                                        </style>
+                                    `;
+                                    document.title = '✅ Approval Completed - Page Closed';
                                     
-                                    // Auto close window after 5 seconds with countdown
+                                    // Auto close countdown
                                     let countdown = 5;
-                                    const countdownElement = document.getElementById('countdown');
+                                    const countdownElement = document.getElementById('auto-close-countdown');
                                     
                                     const countdownTimer = setInterval(() => {
                                         countdown--;
@@ -331,27 +394,30 @@
                                             countdownElement.textContent = 'Closing now...';
                                             clearInterval(countdownTimer);
                                             
-                                            // Try to close the window/tab
-                                            if (window.opener) {
-                                                // If opened in popup, close it
+                                            // Try to close after showing the message
+                                            setTimeout(() => {
                                                 window.close();
-                                            } else {
-                                                // If in main window, redirect to a safe page or show message
-                                                window.location.href = 'about:blank';
-                                            }
+                                            }, 5000);
                                         }
-                                    }, 1000);
-                                });
+                                    }, 500);
+                                }
                             } else {
-                                throw new Error('Invalid response');
+                                throw new Error(data.message || 'Invalid response from server');
                             }
                         })
                         .catch(error => {
                             console.error('Error:', error);
+                            let errorMessage = 'An error occurred while processing your request. Please try again.';
+                            
+                            // If error contains specific message, use it
+                            if (error.message && error.message !== 'Failed to fetch') {
+                                errorMessage = error.message;
+                            }
+                            
                             Swal.fire({
                                 icon: 'error',
                                 title: 'Error!',
-                                text: 'An error occurred while processing your request. Please try again.',
+                                text: errorMessage,
                                 confirmButtonColor: '#d33'
                             });
                         });
@@ -400,7 +466,48 @@
                         if (window.opener) {
                             window.close();
                         } else {
-                            window.location.href = 'about:blank';
+                            // Show inactivity timeout message
+                            document.body.innerHTML = `
+                                <div style="
+                                    display: flex;
+                                    justify-content: center;
+                                    align-items: center;
+                                    height: 100vh;
+                                    background: linear-gradient(135deg, #cc982f 0%, #b8871a 100%);
+                                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                                    margin: 0;
+                                    color: white;
+                                ">
+                                    <div style="
+                                        text-align: center;
+                                        background: rgba(255,255,255,0.1);
+                                        padding: 50px 40px;
+                                        border-radius: 20px;
+                                        box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+                                        backdrop-filter: blur(10px);
+                                        border: 1px solid rgba(255,255,255,0.2);
+                                        max-width: 500px;
+                                    ">
+                                        <div style="font-size: 4em; margin-bottom: 20px;">⏰</div>
+                                        <h1 style="margin: 0 0 20px 0; font-size: 2.5em; font-weight: 300;">Session Expired</h1>
+                                        <p style="margin: 0 0 30px 0; font-size: 1.2em; opacity: 0.9; line-height: 1.6;">
+                                            This approval page has been closed<br>
+                                            due to inactivity timeout.
+                                        </p>
+                                        <div style="
+                                            background: rgba(255,255,255,0.2);
+                                            padding: 15px;
+                                            border-radius: 10px;
+                                            margin-top: 20px;
+                                            font-size: 0.9em;
+                                            opacity: 0.8;
+                                        ">
+                                            Please close this browser tab
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                            document.title = '⏰ Session Expired - Page Closed';
                         }
                     }
                 }, 1000);

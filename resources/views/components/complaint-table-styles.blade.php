@@ -127,19 +127,98 @@ USAGE EXAMPLES:
 <span class="badge bg-warning status-badge-lg">Pending</span>
 
 5. DETAIL SECTION:
-<div class="detail-section">
-    <div class="section-header">
-        <i class="ph-duotone ph-info"></i>
-        Section Title
-    </div>
-    <div class="info-row">
-        <div class="info-label">
-            <i class="ph-duotone ph-user"></i>
-            Label:
-        </div>
-        <div class="info-value">Value here</div>
-    </div>
-</div>
+/* Enhanced Modal Detail Styling */
+.detail-section {
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    border: 1px solid rgba(192, 127, 0, 0.1);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
+}
+
+/* Payment Proof Modal Styling */
+#paymentProofModal .modal-content {
+    border-radius: 15px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    border: none;
+}
+
+#paymentProofModal .modal-header {
+    background: linear-gradient(135deg, #c07f00 0%, #e8950c 100%);
+    border-radius: 15px 15px 0 0;
+    border: none;
+    padding: 1.2rem 1.5rem;
+}
+
+#paymentProofModal .modal-body {
+    padding: 2rem 1.5rem;
+    background: #fafafa;
+}
+
+#paymentProofModal .form-label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.5rem;
+}
+
+#paymentProofModal .form-control {
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    padding: 0.75rem;
+    transition: all 0.3s ease;
+}
+
+#paymentProofModal .form-control:focus {
+    border-color: #c07f00;
+    box-shadow: 0 0 0 0.2rem rgba(192, 127, 0, 0.25);
+    outline: 0;
+}
+
+#paymentProofModal .btn-success {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    border: none;
+    border-radius: 8px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+#paymentProofModal .btn-success:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+}
+
+#paymentProofModal .btn-secondary {
+    background: #6c757d;
+    border: none;
+    border-radius: 8px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+#paymentProofModal .btn-secondary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(108, 117, 125, 0.3);
+}
+
+#paymentProofModal .alert-info {
+    background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);
+    border: 1px solid #b8daff;
+    color: #0c5460;
+    border-radius: 8px;
+}
+
+.ph-spin {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
 
 ==========================================================
 JAVASCRIPT REQUIREMENTS:

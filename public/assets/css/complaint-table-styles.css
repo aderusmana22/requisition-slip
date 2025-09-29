@@ -21,18 +21,6 @@
 }
 
 /* Gold Theme Accent Colors */
-.btn-light-danger {
-    background: linear-gradient(135deg, rgb(192, 127, 0) 0%, rgb(160, 100, 0) 100%) !important;
-    border: none !important;
-    color: white !important;
-    box-shadow: 0 2px 8px rgba(192, 127, 0, 0.3);
-}
-
-.btn-light-danger:hover {
-    background: linear-gradient(135deg, rgb(160, 100, 0) 0%, rgb(128, 80, 0) 100%) !important;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(192, 127, 0, 0.4);
-}
 
 .btn-secondary {
     background: linear-gradient(135deg, rgb(192, 127, 0) 0%, rgb(160, 100, 0) 100%) !important;
@@ -74,17 +62,6 @@
 }
 
 /* Table Headers with Gold Accent */
-.thead-dark th {
-    background: linear-gradient(135deg, rgb(192, 127, 0) 0%, rgb(160, 100, 0) 100%) !important;
-    color: white !important;
-    border-color: rgba(192, 127, 0, 0.3) !important;
-}
-
-/* Card Headers */
-.card-header {
-    background: linear-gradient(135deg, rgba(192, 127, 0, 0.1) 0%, rgba(160, 100, 0, 0.1) 100%);
-    border-bottom: 2px solid rgba(192, 127, 0, 0.2);
-}
 
 /* Links and Text Accents */
 .main-title {
@@ -111,13 +88,6 @@
 .badge.bg-warning {
     background: linear-gradient(135deg, rgb(192, 127, 0) 0%, rgb(160, 100, 0) 100%) !important;
     color: white !important;
-}
-
-/* Input Group Addons */
-.input-group-text {
-    background-color: rgba(192, 127, 0, 0.1);
-    border-color: rgb(192, 127, 0);
-    color: rgb(76, 61, 61);
 }
 
 /* Pagination */
@@ -903,7 +873,6 @@ body {
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
     border: 1px solid rgba(192, 127, 0, 0.4);
     letter-spacing: 0.3px;
-    /* Improve rendering performance */
     will-change: left, top, opacity;
     transform: translateZ(0);
     backface-visibility: hidden;
@@ -919,7 +888,6 @@ body {
     border-top-color: rgb(45, 45, 45);
 }
 
-/* When tooltip is shown below button */
 .action-tooltip.below::after {
     top: -12px;
     border-top-color: transparent;
@@ -930,36 +898,176 @@ body {
     opacity: 1;
 }
 
-.action-btn-group .btn {
+/* Status Display Styling */
+.status-display-container {
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    border-radius: 8px;
+    padding: 20px;
+    border: 1px solid rgba(192, 127, 0, 0.2);
+}
+
+.current-status-badge {
+    text-align: center;
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.status-badge-pending {
+    background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+    color: #856404;
+    border: 1px solid #ffeaa7;
+}
+
+.status-badge-progress {
+    background: linear-gradient(135deg, #d1edff 0%, #74b9ff 100%);
+    color: #004085;
+    border: 1px solid #74b9ff;
+}
+
+.status-badge-rejected {
+    background: linear-gradient(135deg, #f8d7da 0%, #e74c3c 100%);
+    color: #721c24;
+    border: 1px solid #e74c3c;
+}
+
+.status-badge-approved {
+    background: linear-gradient(135deg, rgba(192, 127, 0, 0.2) 0%, rgba(192, 127, 0, 0.4) 100%);
+    color: rgb(160, 100, 0);
+    border: 1px solid rgba(192, 127, 0, 0.5);
+}
+
+/* Approval History Timeline */
+.approval-history-container {
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    border-radius: 8px;
+    padding: 20px;
+    border: 1px solid rgba(192, 127, 0, 0.2);
+}
+
+.approval-timeline {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.approval-item {
+    border-left: 3px solid rgba(192, 127, 0, 0.8);
+    padding-left: 15px;
+    margin-bottom: 15px;
     position: relative;
 }
 
-/* Prevent default browser tooltips */
-.action-btn-hover {
-    position: relative;
+.approval-item:before {
+    content: '';
+    position: absolute;
+    left: -8px;
+    top: 0;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: rgb(192, 127, 0);
+    border: 2px solid white;
+    box-shadow: 0 0 0 3px rgba(192, 127, 0, 0.2);
 }
 
-.action-btn-hover[title] {
-    position: relative;
+/* Approved styling - Green accent */
+.approval-item-approved {
+    border-left-color: #28a745 !important;
 }
 
-.action-btn-hover[title]:hover::after,
-.action-btn-hover[title]:focus::after {
-    display: none !important;
+.approval-item-approved:before {
+    background: #28a745 !important;
+    box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.2) !important;
 }
 
-/* Hide tooltips during fast scroll */
-@media (prefers-reduced-motion: reduce) {
-    .action-tooltip {
-        transition: none;
-    }
+/* Rejected styling - Red accent */
+.approval-item-rejected {
+    border-left-color: #dc3545 !important;
 }
 
-/* Ensure tooltip doesn't interfere with table scrolling */
-.dataTables_wrapper {
-    position: relative;
+.approval-item-rejected:before {
+    background: #dc3545 !important;
+    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.2) !important;
 }
 
-.dataTables_scrollBody {
-    position: relative;
+.approval-item:last-child {
+    border-left-color: #e9ecef;
+}
+
+.approval-item:last-child:before {
+    background: #e9ecef;
+    box-shadow: 0 0 0 3px #f8f9fa;
+}
+
+.approval-meta {
+    font-size: 12px;
+    color: #6c757d;
+    margin-bottom: 5px;
+}
+
+.approver-name {
+    font-weight: 600;
+    color: rgb(160, 100, 0);
+}
+
+.approval-level {
+    background: rgba(192, 127, 0, 0.2);
+    color: rgb(160, 100, 0);
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 600;
+    margin-left: 8px;
+}
+
+/* Approved badge - Green */
+.approval-level-approved {
+    background: rgba(40, 167, 69, 0.2) !important;
+    color: #28a745 !important;
+    border: 1px solid rgba(40, 167, 69, 0.3);
+}
+
+/* Rejected badge - Red */
+.approval-level-rejected {
+    background: rgba(220, 53, 69, 0.2) !important;
+    color: #dc3545 !important;
+    border: 1px solid rgba(220, 53, 69, 0.3);
+}
+
+/* Default badge - Gold */
+.approval-level-default {
+    background: rgba(192, 127, 0, 0.2);
+    color: rgb(160, 100, 0);
+    border: 1px solid rgba(192, 127, 0, 0.3);
+}
+
+.approval-notes {
+    background: #f8f9fa;
+    padding: 10px;
+    border-radius: 6px;
+    border-left: 3px solid rgb(192, 127, 0);
+    font-size: 14px;
+    color: #495057;
+    margin-top: 8px;
+}
+
+.no-notes {
+    color: #6c757d;
+    font-style: italic;
+}
+
+/* Empty state styling */
+.empty-history {
+    text-align: center;
+    padding: 30px;
+    color: #6c757d;
+}
+
+.empty-history i {
+    font-size: 48px;
+    color: rgba(192, 127, 0, 0.3);
+    margin-bottom: 15px;
 }

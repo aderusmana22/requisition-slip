@@ -22,6 +22,7 @@ Route::get('/dashboard', function () {
 Route::get('/approval', [ComplainController::class, 'processApproval'])->name('approval.process');
 Route::get('/complain/approval/review', [ComplainController::class, 'showReviewPage'])->name('complain.approval.review');
 Route::post('/complain/approval/process', [ComplainController::class, 'processApproval'])->name('complain.approval.process');
+route::get('/complain/test-data', [ComplainController::class, 'testData'])->name('complain.test.data');
 
 Route::prefix('requisition')->group(function () {
     Route::get('/getComplainData', [ComplainController::class, 'getData'])->name('get.complain.data');
@@ -29,6 +30,8 @@ Route::prefix('requisition')->group(function () {
     Route::get('/getSerial', [ComplainController::class, 'getSerial'])->name('get.serial');
     Route::get('/getProductList', [ComplainController::class, 'getProductList'])->name('get.product.list');
     Route::get('/getformdetail/{id}', [ComplainController::class, 'getFormDetail'])->name('get.form.detail');
+
+    Route::post('/upload-payment-proof', [ComplainController::class, 'uploadPaymentProof'])->name('upload.payment.proof');
 });
 
 
