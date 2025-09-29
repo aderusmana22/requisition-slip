@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Master\ItemDetail;
+use App\Models\Master\ItemMaster;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -22,35 +24,78 @@ class UpdateSampleRequisitionRequest extends FormRequest
      */
     public function rules(): array
     {
-        // Mendapatkan ID requisition dari route parameter
-        $requisitionId = $this->route('sample_form');
+        // Pengecekan apakah ini submit dari form QM, ditandai dengan adanya field 'source'.
+        $isQmSubmission = $this->has('source');
 
+        // Aturan validasi dasar yang berlaku untuk semua
         $rules = [
-            'sub_category'        => 'required|string',
-            'customer_id'         => 'required|exists:customers,id',
-            'no_srs' => 'required|string|max:255|unique:requisitions,no_srs,' . $requisitionId,
-            'account'             => 'required|string|max:255',
-            'cost_center'         => 'nullable|string|max:255',
-            'request_date'        => 'required|date',
-            'objectives'          => 'required|string',
-            'estimated_potential' => 'required|string',
-            'items'               => 'required|array|min:1',
-            'items.*.quantity_required' => 'required|integer|min:1',
-            'items.*.quantity_issued'   => 'required|integer|min:0',
+            'sub_category'          => 'required|string',
+            'customer_id'           => 'required|exists:customers,id',
+            'account'               => 'required|string|max:255',
+            'cost_center'           => 'nullable|string|max:255',
+            'request_date'          => 'required|date',
+            'objectives'            => 'required|string',
+            'estimated_potential'   => 'required|string',
+
+
+            // Aturan untuk field QA/QM (selalu ada, tapi nullable)
+            'source'                => 'required|string|max:255',
+            'description'           => 'required|string|max:255',
+            'production_date'       => 'required|date',
+            'preparation_method'    => 'required|string|max:255',
+            'sample_notes'          => 'required|string',
         ];
 
-        // BARU tambahkan aturan kondisional ke array $rules
-        if ($this->input('sub_category') === 'Special Order') {
-            $rules['requested_date']      = 'nullable|date';
-            $rules['weight_selection']    = 'nullable|string';
-            $rules['packaging_selection'] = 'nullable|string';
-            $rules['sample_count']        = 'nullable|string';
-            $rules['coa_required']        = 'nullable|boolean';
-            $rules['shipment_method']     = 'nullable|string';
+        if ($isQmSubmission) {
+            $rules['items'] = 'nullable|array';
+
+        } else {
+            $rules['items'] = 'required|array|min:1';
+            $rules['items.*.quantity_required'] = 'required|integer|min:1';
+            $rules['items.*.quantity_issued'] = 'required|integer|min:0';
+            $rules['print_batch']           = 'required_if:sub_category,Packaging|boolean';
+
+            $rules['end_date']              = 'required_if:sub_category,Special Order|date';
+            $rules['weight_selection']      = 'required_if:sub_category,Special Order|string|max:255';
+            $rules['packaging_selection']   = 'required_if:sub_category,Special Order|string|max:255';
+            $rules['sample_count']          = 'required_if:sub_category,Special Order|string|max:255';
+            $rules['purpose']               = 'required_if:sub_category,Special Order|string';
+            $rules['shipment_method']       = 'required_if:sub_category,Special Order|string|max:255';
+            $rules['coa_required']          = 'required_if:sub_category,Special Order|boolean';
         }
 
-        // Terakhir, kembalikan array $rules yang sudah lengkap
         return $rules;
+    }
+
+    public function attributes(): array
+    {
+        $attributes = [];
+        $items = $this->input('items', []);
+        $subCategory = $this->input('sub_category');
+
+        foreach ($items as $id => $itemData) {
+            $itemName = "Item with ID {$id}"; // Nama default jika item tidak ditemukan
+
+            if ($subCategory === 'Packaging') {
+                // Cari di ItemDetail jika sub-kategori adalah Packaging
+                $itemDetail = ItemDetail::find($id);
+                if ($itemDetail) {
+                    $itemName = "[{$itemDetail->item_detail_code}] {$itemDetail->item_detail_name}";
+                }
+            } else {
+                // Cari di ItemMaster untuk Finished Goods & Special Order
+                $itemMaster = ItemMaster::find($id);
+                if ($itemMaster) {
+                    $itemName = "[{$itemMaster->item_master_code}] {$itemMaster->item_master_name}";
+                }
+            }
+
+            // Definisikan "nama panggilan" untuk setiap atribut item
+            $attributes["items.{$id}.quantity_required"] = "Qty Required untuk item {$itemName}";
+            $attributes["items.{$id}.quantity_issued"] = "Qty Issued untuk item {$itemName}";
+        }
+
+        return $attributes;
     }
 
      /**

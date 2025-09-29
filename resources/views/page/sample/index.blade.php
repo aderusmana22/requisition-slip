@@ -3,58 +3,11 @@
     Sample Requisition
     @endsection
 
+    @include('components.sample-table-styles')
+
     @push('css')
-    <link href="{{ asset('assets/vendor/select/select2.min.css') }}" rel="stylesheet" type="text/css">
-    <style>
-        .modal-xl { max-width: 80vw !important; }
-        .modal-body { max-height: calc(100vh - 210px); overflow-y: auto; }
-        .view-modal-card { border: none; border-radius: .75rem; box-shadow: 0 4px 12px rgba(0,0,0, .08); margin-bottom: 1.5rem !important; }
-        .view-modal-card-header { background-color: transparent; border-bottom: 1px solid #e9ecef; padding: 1rem 1.25rem; }
-        .view-modal-card-header h5 { color: var(--bs-primary); font-weight: 600; margin-bottom: 0; }
-        .view-label { color: #6c757d; font-size: 0.85rem; margin-bottom: .25rem; display: block; }
-        .view-data { font-weight: 600; color: #212529; margin-bottom: 0; }
-
-        /* NEW: Style for clickable badge */
-        #view_status_badge a.badge:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 2px 8px rgba(0,0,0, .2);
-            transition: all .2s ease;
-        }
-
-        /* Tracker Styles */
-        .tracker-container { display: flex; justify-content: space-between; position: relative; padding: 10px 0; }
-        .tracker-line { position: absolute; top: 29px; left: 5%; right: 5%; height: 3px; background-color: #e9ecef; z-index: 1; }
-        .tracker-line-progress { position: absolute; top: 0; left: 0; height: 100%; background-color: #0d6efd; z-index: 2; width: 0%; transition: width 0.5s ease-in-out; }
-        .tracker-step { position: relative; z-index: 3; text-align: center; width: 16%; }
-        .tracker-icon { width: 30px; height: 30px; border-radius: 50%; background-color: #ced4da; color: #fff; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; border: 2px solid #ced4da; transition: all 0.3s ease; }
-        .tracker-step.completed .tracker-icon { background-color: #0d6efd; border-color: #0d6efd; }
-        .tracker-step.active .tracker-icon { background-color: #ffc107; border-color: #ffc107; }
-        .tracker-step.rejected .tracker-icon { background-color: #dc3545; border-color: #dc3545; }
-        .tracker-label { font-size: 0.8rem; font-weight: 600; color: #6c757d; }
-        .tracker-step.completed .tracker-label, .tracker-step.active .tracker-label { color: #212529; }
-        .tracker-details { font-size: 0.75rem; margin-top: 5px; min-height: 30px; }
-        .tracker-user { font-weight: 500; color: #495057; }
-        .tracker-date { color: #6c757d; }
-
-        .modal-content {
-            position: relative; /* Penting agar overlay bisa diposisikan di dalamnya */
-        }
-        .loading-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.65);
-            z-index: 10; /* Pastikan berada di atas semua elemen lain */
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            border-radius: .75rem; /* Samakan dengan radius modal */
-            color: white;
-        }
-    </style>
+        <link rel="stylesheet" href="{{ asset('assets/vendor/select/select2.min.css') }}">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
     @endpush
 
     <div class="row m-1">
@@ -75,30 +28,47 @@
 
     <div class="row">
         <div class="col-12">
-            <div class="d-flex justify-content-end mb-3">
-                <button class="btn btn-primary btn-md" type="button" data-bs-toggle="modal"
-                    data-bs-target="#sampleModal" id="btn-create-sample">
-                    <i class="ph-bold ph-plus pe-2"></i> Add Sample Request
-                </button>
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                {{-- Div kosong ini membantu mendorong tombol ke kanan --}}
+                <div></div>
+
+                {{-- Tombol dengan style dan struktur yang sudah benar --}}
+                <div>
+                    <button class="btn new-complain-btn" type="button" data-bs-toggle="modal"
+                        data-bs-target="#sampleModal" id="btn-create-sample">
+                        <i class="ph-bold ph-plus"></i>
+                        <span>New Sample</span> {{-- Teks diubah agar sesuai --}}
+                    </button>
+                </div>
             </div>
-            <div class="card">
-                <div class="card-body p-0">
-                    <div class="app-scroll table-responsive app-datatable-default">
-                        <table class="w-100 display" id="sample-table">
-                            <thead>
-                                <tr>
-                                    <th>No.</th>
-                                    <th>Requester</th>
-                                    <th>Customer</th>
-                                    <th>Request Date</th>
-                                    <th>Sub Category</th>
-                                    <th>Route To</th>
-                                    <th>Status</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                        </table>
-                    </div>
+
+            <!-- Enhanced Table Container -->
+            <div class="main-table-container">
+                <!-- Table Header -->
+                <div class="table-header-enhanced">
+                    <h4 class="table-title">
+                        <i class="ph-duotone ph-list"></i>
+                        Sample Requisition List
+                    </h4>
+                    <p class="table-subtitle">View, manage and track all sample requisition submissions</p>
+                </div>
+
+                <!-- Table Content -->
+                <div class="table-responsive">
+                    <table class="w-100 display" id="sampleTable">
+                        <thead>
+                            <tr>
+                                <th>No.</th>
+                                <th>Requester</th>
+                                <th>Customer</th>
+                                <th>Request Date</th>
+                                <th>Sub Category</th>
+                                <th>Route To</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                    </table>
                 </div>
             </div>
         </div>
@@ -110,17 +80,13 @@
         <div class="modal-dialog modal-dialog-centered modal-xl">
             <div class="modal-content">
                 <div class="loading-overlay" style="display: none;">
-                    <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+                    <div class="spinner-border" style="width: 3rem; height: 3rem;" role="status">
                         <span class="visually-hidden">Loading...</span>
                     </div>
-                    <h5 class="text-white mt-3 fw-bold">Processing...</h5>
+                    <h5 class="mt-3 fw-bold">Processing...</h5>
                 </div>
-                <div class="modal-header bg-primary">
-                    <div class="d-flex align-items-center">
-                        <img src="{{ asset('assets/images/logo/logohitam.png') }}" alt="Logo" style="height: 24px;"
-                            class="me-3">
-                        <h5 class="modal-title text-white mb-0" id="sampleModalLabel">Create New Sample Requisition</h5>
-                    </div>
+                <div class="modal-header">
+                    <h5 class="modal-title text-white" id="sampleModalLabel">Create New Sample Requisition</h5>
                     <button type="button" class="btn-close btn-close-white m-0 fs-5" data-bs-dismiss="modal"
                         aria-label="Close"></button>
                 </div>
@@ -191,7 +157,7 @@
                                         <input type="text" class="form-control" id="cost_center" name="cost_center"
                                         placeholder="e.g: CC1001, CC2002e">
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="col-md-4">
                                         <label for="objectives" class="form-label">Objectives<i
                                                 class="text-danger">*</i></label>
                                         <textarea class="form-control" id="objectives" name="objectives"
@@ -199,7 +165,7 @@
                                             rows="2"></textarea>
                                         <div class="invalid-feedback" id="objectives_error"></div>
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="col-md-4">
                                         <label for="estimated_potential" class="form-label">Estimated Potential<i
                                                 class="text-danger">*</i></label>
                                         <textarea class="form-control" id="estimated_potential" name="estimated_potential"
@@ -207,14 +173,63 @@
                                             rows="2"></textarea>
                                         <div class="invalid-feedback" id="estimated_potential_error"></div>
                                     </div>
+                                    <div class="col-md-4" id="print-batch-container" style="display: none;">
+                                        <label class="form-label">Print Batch Number<i class="text-danger">*</i></label>
+                                        <div>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="radio" name="print_batch" id="print_batch_yes" value="1">
+                                                <label class="form-check-label" for="print_batch_yes">Yes</label>
+                                            </div>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="radio" name="print_batch" id="print_batch_no" value="0" checked>
+                                                <label class="form-check-label" for="print_batch_no">No</label>
+                                            </div>
+                                        </div>
+                                        <div class="invalid-feedback" id="print_batch_error"></div>
+                                    </div>
                                 </div>
 
                                 <hr class="mt-4">
 
                                 <h5 class="fw-bold text-primary mb-2">Product Details</h5>
-                                <div class="mb-3" id="material-type-selection-container" style="display:none;">
-                                    <label class="form-label fw-bold">2. Select Material Type<i
+                                <div class="mb-3" id="product-selection-container" style="display:none;">
+                                    <label for="product_select" class="form-label fw-bold">2. Select Product Name<i
                                             class="text-danger">*</i></label>
+                                    <select class="form-select select2-styled" id="product_select" multiple="multiple"
+                                        style="width: 100%;"></select>
+                                    <div class="form-text">Selecting a product will automatically add all its related items to the list below.</div>
+                                </div>
+
+                                <div class="mb-3" id="sample-weight-selection-container" style="display:none;">
+                                    <label class="form-label fw-bold">3. Berat Sample<i class="text-danger">*</i></label>
+                                    <div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input sample-weight-radio" type="radio" name="weight_selection_option" value="15kg">
+                                            <label class="form-check-label">15kg</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input sample-weight-radio" type="radio" name="weight_selection_option" value="30kg">
+                                            <label class="form-check-label">30kg</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input sample-weight-radio" type="radio" name="weight_selection_option" value="500g">
+                                            <label class="form-check-label">500g</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input sample-weight-radio" type="radio" name="weight_selection_option" value="250g">
+                                            <label class="form-check-label">250g</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input sample-weight-radio" type="radio" id="weight_other_radio" name="weight_selection_option" value="Lainnya">
+                                            <label class="form-check-label">Lainnya</label>
+                                        </div>
+                                        <input type="text" class="form-control form-control-sm mt-2" id="weight_other_input" style="display: none; max-width: 200px;" placeholder="Sebutkan berat lain">
+                                        <input type="hidden" name="weight_selection" id="weight_selection">
+                                    </div>
+                                </div>
+
+                                <div class="mb-3" id="material-type-selection-container" style="display:none;">
+                                    <label class="form-label fw-bold">3. Filter by Material Type</label>
                                     <div>
                                         @foreach ($materialTypes as $type)
                                         <div class="form-check">
@@ -225,21 +240,6 @@
                                         </div>
                                         @endforeach
                                     </div>
-                                </div>
-
-                                <div class="mb-3" id="product-selection-container" style="display:none;">
-                                    <label for="product_select" class="form-label fw-bold">3. Select Product Name<i
-                                            class="text-danger">*</i></label>
-                                    <select class="form-select select2-styled" id="product_select" multiple="multiple"
-                                        style="width: 100%;" disabled></select>
-                                    <div id="product_select_note"
-                                        class="form-text text-warning fw-semibold fst-italic mt-1">
-                                        <i class="ph ph-arrow-fat-up me-1"></i>
-                                        Please select a Material Type above to enable this.
-                                    </div>
-                                    <button type="button" class="btn btn-success btn-sm mt-2" id="btn-add-items-detail">
-                                        <i class="ph-bold ph-plus"></i> Add Item to List
-                                    </button>
                                 </div>
 
                                 <div class="mb-3" id="product-selection-container-fg" style="display:none;">
@@ -257,8 +257,9 @@
                                 <div class="table-responsive mt-4">
                                     <h6 class="fw-bold">3. Requested Item List</h6>
                                     <table class="table table-bordered w-100">
-                                        <thead class="table-light">
+                                        <thead class="thead-dark">
                                             <tr>
+                                                <th class="material-type-column">Material Type</th>
                                                 <th>Item Code</th>
                                                 <th>Item Name</th>
                                                 <th>Unit</th>
@@ -276,37 +277,28 @@
                             </div>
 
                             <div id="special-order-fields" style="display: none;">
-                                <hr class="mt-4">
                                 <h5 class="text-primary fw-bold">Special Order Details</h5>
+                                <h6 class="text-danger fw-bold"><center><i>To be filled by Marketing</i></center></h6>
 
-                                <h6 class="text-danger fw-bold">
-                                    <center><i>To be filled by Marketing</i></center>
-                                </h6>
                                 <div class="row g-3 mt-1">
-                                    <div class="col-md-4">
-                                        <label for="requested_date" class="form-label">Sample Completion Date<i
-                                                class="text-danger">*</i></label>
-                                        <input type="date" class="form-control sm-field" name="requested_date">
+                                    <div class="col-md-6">
+                                        <label for="end_date" class="form-label">Tanggal Selesai Sample<i class="text-danger">*</i></label>
+                                        <input type="date" class="form-control sm-field" name="end_date">
                                     </div>
-                                    <div class="col-md-8">
-                                        <label class="form-label">Sample Weight<i class="text-danger">*</i></label>
-                                        <input type="text" class="form-control sm-field" name="weight_selection"
-                                            placeholder="e.g.: 25 Kg, 15 Kg, Others: 10 Pcs">
+                                     <div class="col-md-6">
+                                        <label class="form-label">Kemasan Sample<i class="text-danger">*</i></label>
+                                        <input type="text" class="form-control sm-field" name="packaging_selection" placeholder="e.g.: Karton, Tub, Botol">
                                     </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label">Sample Packaging<i class="text-danger">*</i></label>
-                                        <input type="text" class="form-control sm-field" name="packaging_selection"
-                                            placeholder="e.g.: Carton, Others: Plastic Wrap">
+                                    <div class="col-md-6">
+                                        <label for="sample_count" class="form-label">Jumlah Sample<i class="text-danger">*</i></label>
+                                        <input type="text" class="form-control sm-field" name="sample_count" placeholder="e.g.: 2x1kg (setiap product)">
                                     </div>
-                                    <div class="col-md-4">
-                                        <label for="sample_count" class="form-label">Number of Samples<i
-                                                class="text-danger">*</i></label>
-                                        <input type="text" class="form-control sm-field" name="sample_count"
-                                            placeholder="e.g.: 2x1kg (each product)">
+                                    <div class="col-md-6">
+                                        <label for="purpose" class="form-label">Tujuan Sample<i class="text-danger">*</i></label>
+                                        <textarea class="form-control sm-field" name="purpose" rows="2" placeholder="e.g.: Mengenalkan product SMII ke customer baru"></textarea>
                                     </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label">Certificate of Analysis<i
-                                                class="text-danger">*</i></label>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Certificate of Analysis<i class="text-danger">*</i></label>
                                         <div>
                                             <div class="form-check form-check-inline">
                                                 <input class="form-check-input sm-field" type="radio" name="coa_required"
@@ -320,51 +312,142 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-12">
+                                    <div class="col-md-6">
                                         <label class="form-label">Shipment Method<i class="text-danger">*</i></label>
                                         <input type="text" class="form-control sm-field" name="shipment_method"
                                             placeholder="e.g.: Delivery (DHL), Others: Gojek">
                                     </div>
                                 </div>
 
+                                <hr class="mt-4">
+
                                 @if ((isset($userAccount) && $userAccount == '5302') ||
                                 auth()->user()->roles()->where('name', 'super-admin')->exists())
+                                {{-- GANTI SELURUH ISI DIV "qa-fields-section" DENGAN BLOK KODE DI BAWAH INI --}}
                                 <div class="qa-fields-section mt-4">
-                                    <hr>
-                                    <h6 class="text-danger fw-bold">
-                                        <center><i>To be filled by QA/QM</i></center>
-                                    </h6>
-                                    <div class="row g-3 mt-1">
-                                        <div class="col-12">
-                                            <label class="form-label">Sample Origin<i class="text-danger">*</i></label>
-                                            <input type="text" class="form-control qa-field" name="sample_origin">
+                                    <h6 class="text-danger fw-bold"><center><i>Diisi oleh QA</i></center></h6>
+                                    <div class="mt-3">
+
+                                        {{-- Baris Asal sample --}}
+                                        <div class="row mb-3 align-items-center">
+                                            <label class="col-sm-3 col-form-label fw-semibold">Asal sample</label>
+                                            <div class="col-sm-9">
+                                                <div>
+                                                    <div class="form-check form-check-inline">
+                                                        {{-- Nama diubah menjadi source_option --}}
+                                                        <input class="form-check-input qa-field" type="radio" name="source_option" value="WH">
+                                                        <label class="form-check-label">a. WH</label>
+                                                    </div>
+                                                    <div class="form-check form-check-inline">
+                                                        <input class="form-check-input qa-field" type="radio" name="source_option" value="Reference Sample">
+                                                        <label class="form-check-label">b. Reference Sample</label>
+                                                    </div>
+                                                    <div class="form-check form-check-inline">
+                                                        <input class="form-check-input qa-field" type="radio" name="source_option" value="Batch Refinery">
+                                                        <label class="form-check-label">c. Batch Refinery</label>
+                                                    </div>
+                                                    <div class="form-check form-check-inline">
+                                                        <input class="form-check-input qa-field" type="radio" name="source_option" value="Packing Room">
+                                                        <label class="form-check-label">d. Packing Room</label>
+                                                    </div>
+                                                    <div class="form-check form-check-inline">
+                                                        <input class="form-check-input qa-field" type="radio" id="source_other_radio" name="source_option" value="Lainnya">
+                                                        <label class="form-check-label">e. Lainnya...</label>
+                                                    </div>
+                                                </div>
+                                                <input type="text" class="form-control form-control-sm mt-2 qa-field" id="source_other_input" style="display: none; max-width: 300px;">
+                                                {{-- Input tersembunyi inilah yang akan dikirim dengan nama 'source' --}}
+                                                <input type="hidden" name="source" id="source">
+                                            </div>
                                         </div>
-                                        <div class="col-md-4">
-                                            <label class="form-label">Sample Info: Batch/Pallet No<i
-                                                    class="text-danger">*</i></label>
-                                            <input type="text" class="form-control qa-field" name="sample_description_batch">
+
+                                        {{-- Baris Keterangan sample --}}
+                                        <div class="row mb-3">
+                                            <label class="col-sm-3 col-form-label fw-semibold">Keterangan sample</label>
+                                            <div class="col-sm-9">
+                                                <div class="mb-2">
+                                                    <div class="form-check form-check-inline">
+                                                        {{-- Nama diubah menjadi description_option --}}
+                                                        <input class="form-check-input qa-field" type="radio" name="description_option" id="keterangan_batch_radio" value="batch">
+                                                        <label class="form-check-label" for="keterangan_batch_radio">a. Batch / Pallet No</label>
+                                                    </div>
+                                                    <div class="form-check form-check-inline">
+                                                        <input class="form-check-input qa-field" type="radio" name="description_option" id="keterangan_wb_radio" value="wb">
+                                                        <label class="form-check-label" for="keterangan_wb_radio">b. WB/DEO No</label>
+                                                    </div>
+                                                    <div class="form-check form-check-inline">
+                                                        <input class="form-check-input qa-field" type="radio" name="description_option" id="keterangan_tank_radio" value="tank">
+                                                        <label class="form-check-label" for="keterangan_tank_radio">c. Tank No</label>
+                                                    </div>
+                                                </div>
+                                                <div class="input-group" id="keterangan_sample_input_wrapper" style="display: none; max-width: 400px;">
+                                                    <input type="text" class="form-control qa-field" id="keterangan_sample_input_1" placeholder="Masukkan nomor...">
+                                                    <span class="input-group-text" id="batch_suffix_p" style="display: none;">P</span>
+                                                    <input type="text" class="form-control qa-field" id="keterangan_sample_input_2" style="display: none;" placeholder="No Pallet...">
+                                                </div>
+                                                {{-- Input tersembunyi inilah yang akan dikirim dengan nama 'description' --}}
+                                                <input type="hidden" name="description" id="description">
+                                            </div>
                                         </div>
-                                        <div class="col-md-4">
-                                            <label class="form-label">WB/DEO No<i class="text-danger">*</i></label>
-                                            <input type="text" class="form-control qa-field" name="sample_description_wb">
+
+                                        {{-- Baris Tgl Produksi --}}
+                                        <div class="row mb-3 align-items-center">
+                                            <label class="col-sm-3 col-form-label fw-semibold">Tgl Produksi</label>
+                                            <div class="col-sm-9">
+                                                <input type="date" class="form-control qa-field" name="production_date" style="max-width: 200px;">
+                                            </div>
                                         </div>
-                                        <div class="col-md-4">
-                                            <label class="form-label">Tank No<i class="text-danger">*</i></label>
-                                            <input type="text" class="form-control qa-field" name="sample_description_tank">
+
+                                        {{-- Baris Persiapan sample --}}
+                                        <div class="row mb-3 align-items-center">
+                                            <label class="col-sm-3 col-form-label fw-semibold">Persiapan sample</label>
+                                            <div class="col-sm-9">
+                                                <div>
+                                                    <div class="form-check form-check-inline">
+                                                        {{-- Nama diubah menjadi preparation_method_option --}}
+                                                        <input class="form-check-input qa-field" type="radio" name="preparation_method_option" value="Tidak berubah">
+                                                        <label class="form-check-label">a. Tidak berubah</label>
+                                                    </div>
+                                                    <div class="form-check form-check-inline">
+                                                        <input class="form-check-input qa-field" type="radio" name="preparation_method_option" value="Rework Karton">
+                                                        <label class="form-check-label">b. Rework Karton</label>
+                                                    </div>
+                                                    <div class="form-check form-check-inline">
+                                                        <input class="form-check-input qa-field" type="radio" name="preparation_method_option" value="Rework Stencill">
+                                                        <label class="form-check-label">c. Rework Stencill</label>
+                                                    </div>
+                                                    <div class="form-check form-check-inline">
+                                                        <input class="form-check-input qa-field" type="radio" name="preparation_method_option" value="Rework Label">
+                                                        <label class="form-check-label">d. Rework Label</label>
+                                                    </div>
+                                                    <div class="form-check form-check-inline">
+                                                        <input class="form-check-input qa-field" type="radio" id="preparation_method_other_radio" name="preparation_method_option" value="Lainnya">
+                                                        <label class="form-check-label">e. Lainnya...</label>
+                                                    </div>
+                                                </div>
+                                                <input type="text" class="form-control form-control-sm mt-2 qa-field" id="preparation_method_other_input" style="display: none; max-width: 300px;">
+                                                <input type="hidden" name="preparation_method" id="preparation_method">
+                                            </div>
                                         </div>
-                                        <div class="col-md-4">
-                                            <label class="form-label">Production Date<i
-                                                    class="text-danger">*</i></label>
-                                            <input type="date" class="form-control qa-field" name="production_date">
-                                        </div>
-                                        <div class="col-md-8">
-                                            <label class="form-label">Sample Preparation<i
-                                                    class="text-danger">*</i></label>
-                                            <input type="text" class="form-control qa-field" name="sample_preparation">
-                                        </div>
-                                        <div class="col-12">
-                                            <label class="form-label">Notes</label>
-                                            <input type="text" class="form-control qa-field" name="qa_notes">
+
+                                        {{-- Baris Keterangan --}}
+                                        <div class="row mb-3 align-items-center">
+                                            <label class="col-sm-3 col-form-label fw-semibold">Keterangan</label>
+                                            <div class="col-sm-9">
+                                                <div>
+                                                    <div class="form-check form-check-inline">
+                                                        {{-- Nama diubah menjadi sample_notes_option --}}
+                                                        <input class="form-check-input qa-field" type="radio" name="sample_notes_option" value="Tempel sticker">
+                                                        <label class="form-check-label">a. Tempel sticker</label>
+                                                    </div>
+                                                    <div class="form-check form-check-inline">
+                                                        <input class="form-check-input qa-field" type="radio" id="sample_notes_other_radio" name="sample_notes_option" value="Lainnya">
+                                                        <label class="form-check-label">b. Lainnya...</label>
+                                                    </div>
+                                                </div>
+                                                <input type="text" class="form-control form-control-sm mt-2 qa-field" id="sample_notes_other_input" style="display: none; max-width: 300px;">
+                                                <input type="hidden" name="sample_notes" id="sample_notes">
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -373,8 +456,8 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button class="btn btn-primary" type="submit" id="saveSampleBtn">Save</button>
-                        <button class="btn btn-light-secondary" data-bs-dismiss="modal" type="button">Close</button>
+                        <button class="btn btn-secondary" type="submit" id="saveSampleBtn">Save</button>
+                        <button class="btn btn-danger" data-bs-dismiss="modal" type="button">Close</button>
                     </div>
                 </form>
             </div>
@@ -384,8 +467,8 @@
     {{-- View Modal (MODIFIED with new layout) --}}
     <div class="modal fade" id="viewModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
         <div class="modal-dialog modal-dialog-centered modal-xl">
-            <div class="modal-content" style="border-radius: .75rem;">
-                <div class="modal-header bg-primary text-white" style="border-top-left-radius: .75rem; border-top-right-radius: .75rem;">
+            <div class="modal-content">
+                <div class="modal-header">
                      <h5 class="modal-title text-white" id="viewModalLabel"><i class="ph-bold ph-file-text me-2"></i>Sample Requisition Details</h5>
                     <button type="button" class="btn-close btn-close-white m-0 fs-5" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
@@ -451,8 +534,9 @@
                         <div class="card-body p-1">
                             <div class="table-responsive">
                                 <table class="table table-bordered w-100 mb-1">
-                                    <thead class="table-dark">
+                                    <thead class="thead-dark">
                                         <tr>
+                                            <th class="material-type-column">Material Type</th>
                                             <th>Item Code</th>
                                             <th>Item Name</th>
                                             <th>Unit</th>
@@ -505,7 +589,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer" style="background-color: #f8f9fa; border-top: 1px solid #dee2e6;">
+                <div class="modal-footer">
                     <button class="btn btn-light-secondary" data-bs-dismiss="modal" type="button">Close</button>
                 </div>
             </div>
@@ -602,7 +686,7 @@
             }
             initSelect2();
 
-            const table = $('#sample-table').DataTable({
+            const table = $('#sampleTable').DataTable({
                 processing: true,
                 serverSide: true,
                 ajax: "{{ route('sample.data') }}",
@@ -647,10 +731,27 @@
                 ]
             });
 
+            let searchInput = $('#sampleTable_filter input');
+            searchInput.unbind();
+            let debounceTimer;
+            searchInput.bind('keyup', function (e) {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(function () {
+                    let searchTerm = searchInput.val();
+                    table.search(searchTerm).draw();
+                }, 500);
+            });
+
+            $('#sampleTable_filter input').attr({
+                'placeholder': '🔍 Search sample...',
+                'class': 'form-control'
+            });
+
             function clearValidationErrors() {
                 $('.form-control, .form-select').removeClass('is-invalid');
                 $('.invalid-feedback').text('');
                 $('#items_error').hide().text('');
+                $('.select2-selection').css('border-color', '');
             }
 
             function resetForm() {
@@ -663,17 +764,13 @@
                 $('#requisition-form-details').hide();
                 clearValidationErrors();
 
-                // --- UPDATED LOGIC ---
                 $('#initial-category-selection').show();
                 $('#main-requisition-data').show();
-                
-                // Kembalikan 'name' ke select yang terlihat
-                $('#sub_category').attr('name', 'sub_category');
-                $('#customer_id').prop('disabled', false); // Pastikan customer select aktif kembali
 
-                // Hapus 'name' dari hidden input
+                $('#sub_category').attr('name', 'sub_category');
+                $('#customer_id').prop('disabled', false);
                 $('#sub_category_hidden').removeAttr('name');
-                $('#customer_id_hidden').removeAttr('name'); // <-- BARIS BARU
+                $('#customer_id_hidden').removeAttr('name');
             }
 
             $('#btn-create-sample').on('click', function () {
@@ -684,46 +781,88 @@
             });
 
             $('#sub_category').on('change', function () {
-                const isEditMode = $('#sampleForm').attr('data-mode') === 'edit';
-                if (isEditMode) return;
-
                 const selectedSubCategory = $(this).val();
+                $('#items_error').hide().text('');
+                
+                // Reset Tampilan
+                $('#product-selection-container, #material-type-selection-container, #product-selection-container-fg, #sample-weight-selection-container, #requested-item-list-container, #special-order-fields, #btn-add-items-master, #print-batch-container').hide();
 
-                $('#special-order-fields, #material-type-selection-container, #product-selection-container, #product-selection-container-fg')
-                    .hide();
-                $('.material-type-checkbox').prop('checked', false);
-                $('#product_select, #product_select_fg').val(null).trigger('change');
-                $('#product_select').prop('disabled', true);
-                $('#product_select_note').show();
+                // [FIX] Atur visibilitas kolom Material Type berdasarkan pilihan
+                const isPackaging = selectedSubCategory === 'Packaging';
+                $('.material-type-column').toggle(isPackaging);
 
-                if (selectedSubCategory) {
-                    $('#requisition-form-details').slideDown();
-                } else {
+                // Sesuaikan colspan untuk baris kosong
+                const colspan = isPackaging ? 6 : 5;
+                if ($('#sampleForm').attr('data-mode') === 'create') {
+                    $('#requisition-items-tbody').html(`<tr id="no-items-row"><td colspan="${colspan}" class="text-center">No items have been added yet.</td></tr>`);
+                }
+
+                if (!selectedSubCategory) {
                     $('#requisition-form-details').slideUp();
                     return;
                 }
+                $('#requisition-form-details').slideDown();
 
-                $('#special-order-fields').toggle(selectedSubCategory === 'Special Order');
-
+                // 3. Logika untuk menampilkan UI dan memanggil AJAX
                 if (selectedSubCategory === 'Packaging') {
-                    $('#material-type-selection-container').slideDown();
-                    $('#product-selection-container').slideDown();
-                } else if (selectedSubCategory === 'Finished Goods' || selectedSubCategory ===
-                    'Special Order') {
+                    $('#product-selection-container, #material-type-selection-container, #requested-item-list-container, #print-batch-container').slideDown();
+
+                    // AJAX untuk mengisi dropdown produk Packaging
+                    $.ajax({
+                        url: "{{ route('sample.getAllItemMasters') }}",
+                        method: 'GET',
+                        success: function (masters) {
+                            const productSelect = $('#product_select');
+                            productSelect.empty();
+                            masters.forEach(m => productSelect.append(new Option(`[${m.item_master_code}] ${m.item_master_name}`, m.id)));
+                            productSelect.trigger('change');
+                        }
+                    });
+
+                } else if (selectedSubCategory === 'Finished Goods' || selectedSubCategory === 'Special Order') {
+                    $('#product-selection-container-fg, #requested-item-list-container, #btn-add-items-master').slideDown();
+                    $('#print-batch-container').hide();
+
+                    if (selectedSubCategory === 'Special Order') {
+                        $('#sample-weight-selection-container, #special-order-fields').slideDown();
+                    }
+
+                    // AJAX untuk mengisi dropdown produk (berlaku untuk FG & SO)
                     $.ajax({
                         url: "{{ route('sample.getAllItemMasters') }}",
                         method: 'GET',
                         success: function (masters) {
                             const productSelectFg = $('#product_select_fg');
                             productSelectFg.empty();
-                            masters.forEach(m => productSelectFg.append(new Option(
-                                `[${m.item_master_code}] ${m.item_master_name}`,
-                                m.id)));
+                            masters.forEach(m => productSelectFg.append(new Option(`[${m.item_master_code}] ${m.item_master_name}`, m.id)));
                             productSelectFg.trigger('change');
-                            $('#product-selection-container-fg').slideDown();
                         }
                     });
                 }
+            });
+
+            $('#request_date').on('change', function() {
+                $('#special_request_date').val($(this).val());
+            }).trigger('change'); // Trigger saat halaman dimuat
+
+            $('input[name="weight_selection_option"]').on('change', function() {
+                const otherInput = $('#weight_other_input');
+                const finalInput = $('#weight_selection');
+
+                if ($(this).val() === 'Lainnya') {
+                    otherInput.show().focus();
+                    // Saat 'Lainnya' dipilih, nilai final adalah dari teks input
+                    finalInput.val(otherInput.val());
+                } else {
+                    otherInput.hide().val(''); // Sembunyikan dan kosongkan input teks
+                    // Saat opsi standar dipilih, nilai final adalah value dari radio button itu
+                    finalInput.val($(this).val());
+                }
+            });
+
+            $('#weight_other_input').on('input', function() {
+                $('#weight_other_radio').prop('checked', true);
+                $('#weight_selection').val($(this).val());
             });
 
             $('#customer_id').on('change', function () {
@@ -732,50 +871,29 @@
                 $('#customer_address').val(address);
             });
 
-            $('.material-type-checkbox').on('change', function () {
-                $('#product_select').val(null).trigger('change');
-                $('#requisition-items-tbody').html(
-                    '<tr id="no-items-row"><td colspan="5" class="text-center">No items have been added yet.</td></tr>'
-                    );
+            $('#product_select').on('change', function() {
+                const selectedProductIds = $(this).val();
+                const isEditMode = $('#sampleForm').attr('data-mode') === 'edit';
+                const tbody = $('#requisition-items-tbody');
 
-                const selectedTypes = [];
-                $('.material-type-checkbox:checked').each(function () {
-                    selectedTypes.push($(this).val());
-                });
-                const productSelect = $('#product_select');
-                const productSelectNote = $('#product_select_note');
-                if (selectedTypes.length > 0) {
-                    productSelect.prop('disabled', false);
-                    productSelectNote.hide();
-                    $.ajax({
-                        url: "{{ route('sample.getProductsByMaterialTypes') }}",
-                        method: 'POST',
-                        data: {
-                            _token: "{{ csrf_token() }}",
-                            material_types: selectedTypes
-                        },
-                        success: function (products) {
-                            productSelect.empty();
-                            products.forEach(p => productSelect.append(new Option(p
-                                .item_master_name, p.id)));
-                            productSelect.trigger('change');
-                        },
-                        error: function () {
-                            errorMessage('Failed to load products.');
-                        }
-                    });
-                } else {
-                    productSelect.prop('disabled', true).empty().trigger('change');
-                    productSelectNote.show();
-                }
-            });
-
-            $('#btn-add-items-detail').on('click', function () {
-                const selectedProductIds = $('#product_select').val();
                 if (!selectedProductIds || selectedProductIds.length === 0) {
-                    warningMessage('Please select a product first.');
+                    if (!isEditMode) {
+                        tbody.html('<tr id="no-items-row"><td colspan="6" class="text-center">No items have been added yet.</td></tr>');
+                    } else {
+                        tbody.find('tr[id^="item-row-detail-"]').each(function() {
+                            const masterId = $(this).data('master-id');
+                            if (!selectedProductIds.includes(String(masterId))) {
+                                $(this).remove();
+                            }
+                        });
+                        if (tbody.find('tr').length === 0) {
+                            tbody.html('<tr id="no-items-row"><td colspan="6" class="text-center">No items have been added yet.</td></tr>');
+                        }
+                    }
+                    applyMaterialTypeFilter(); // Terapkan filter setelah perubahan
                     return;
                 }
+
                 $.ajax({
                     url: "{{ route('sample.getItemDetailsByProducts') }}",
                     method: 'POST',
@@ -784,77 +902,150 @@
                         product_ids: selectedProductIds
                     },
                     success: function (itemDetails) {
-                        $('#no-items-row').remove();
+                        $('#no-items-row').remove(); // Hapus baris "No items" jika ada
+
+                        const existingItemDetailIds = new Set();
+                        tbody.find('tr[id^="item-row-detail-"]').each(function() {
+                            const id = $(this).attr('id').split('-')[3];
+                            existingItemDetailIds.add(id);
+                        });
+
                         itemDetails.forEach(detail => {
-                            if ($(`#item-row-detail-${detail.id}`).length === 0) {
+                            if (!existingItemDetailIds.has(String(detail.id))) {
+                                // Hanya tambahkan item yang belum ada di tabel
                                 const newRow = `
-                                    <tr id="item-row-detail-${detail.id}" data-master-id="${detail.item_master_id}">
+                                    <tr id="item-row-detail-${detail.id}" data-master-id="${detail.item_master_id}" data-material-type="${detail.material_type}">
+                                        <td><span class="badge bg-info">${detail.material_type}</span></td>
                                         <td>${detail.item_detail_code}</td>
                                         <td>${detail.item_detail_name}</td>
                                         <td>${detail.unit}</td>
                                         <td><input type="number" class="form-control" name="items[${detail.id}][quantity_required]" min="1"></td>
                                         <td><input type="number" class="form-control" name="items[${detail.id}][quantity_issued]" min="0"></td>
                                     </tr>`;
-                                $('#requisition-items-tbody').append(newRow);
+                                tbody.append(newRow);
                             }
                         });
+
+                        // Jika ini bukan mode edit, pastikan semua item ditampilkan
+                        if (!isEditMode) {
+                            $('.material-type-checkbox').prop('checked', false); // Bersihkan filter jika mode create
+                        }
+                        applyMaterialTypeFilter(); // Terapkan filter setelah menambahkan item
+                    },
+                    error: function() {
+                        errorMessage('Failed to load item details.');
                     }
                 });
             });
 
-            $('#btn-add-items-master').on('click', function () {
-                const selectedMasterIds = $('#product_select_fg').val();
-                if (!selectedMasterIds || selectedMasterIds.length === 0) {
-                    warningMessage('Please select a product first.');
-                    return;
-                }
-                $.ajax({
-                    url: "{{ route('sample.getAllItemMasters') }}",
-                    method: 'GET',
-                    success: function (allMasters) {
-                        const selectedMasters = allMasters.filter(m => selectedMasterIds
-                            .includes(String(m.id)));
-                        $('#no-items-row').remove();
-                        selectedMasters.forEach(master => {
-                            if ($(`#item-row-master-${master.id}`).length === 0) {
-                                const newRow = `
-                                    <tr id="item-row-master-${master.id}" data-master-id="${master.id}">
-                                        <td>${master.item_master_code}</td>
-                                        <td>${master.item_master_name}</td>
-                                        <td>${master.unit}</td>
-                                        <td><input type="number" class="form-control" name="items[${master.id}][quantity_required]" min="1"></td>
-                                        <td><input type="number" class="form-control" name="items[${master.id}][quantity_issued]" min="0"></td>
-                                    </tr>`;
-                                $('#requisition-items-tbody').append(newRow);
-                            }
-                        });
-                    }
-                });
-            });
-
-            $('#product_select, #product_select_fg').on('select2:unselect', function (e) {
+            // --- [NEW] Handler untuk menghapus produk dari $('#product_select') (Packaging) ---
+            $('#product_select').on('select2:unselect', function(e) {
                 const unselectedMasterId = e.params.data.id;
-                $(`tr[data-master-id="${unselectedMasterId}"]`).remove();
+                // Hapus semua baris item detail yang berelasi dengan item master yang di-unselect
+                $(`tr[data-master-id="${unselectedMasterId}"][id^="item-row-detail-"]`).remove();
 
                 if ($('#requisition-items-tbody tr').length === 0) {
                     $('#requisition-items-tbody').html(
-                        '<tr id="no-items-row"><td colspan="5" class="text-center">No items have been added yet.</td></tr>'
+                        '<tr id="no-items-row"><td colspan="6" class="text-center">No items have been added yet.</td></tr>'
+                    );
+                }
+                applyMaterialTypeFilter(); // Terapkan filter setelah menghapus item
+            });
+
+            function applyMaterialTypeFilter() {
+                const selectedTypes = [];
+                $('.material-type-checkbox:checked').each(function () {
+                    selectedTypes.push($(this).val());
+                });
+
+                const tableRows = $('#requisition-items-tbody tr');
+
+                if (selectedTypes.length === 0) {
+                    tableRows.show();
+                    tableRows.find('input').prop('disabled', false);
+                    return;
+                }
+
+                tableRows.each(function() {
+                    const row = $(this);
+                    const rowMaterialType = row.data('material-type');
+
+                    if (selectedTypes.includes(rowMaterialType)) {
+                        row.show();
+                        row.find('input').prop('disabled', false);
+                    } else {
+                        row.hide();
+                        row.find('input').prop('disabled', true);
+                    }
+                });
+            }
+
+            $('.material-type-checkbox').on('change', function () {
+                applyMaterialTypeFilter();
+            });
+
+            $('#btn-add-items-master').on('click', function () {
+                    const selectedMasterIds = $('#product_select_fg').val();
+                    if (!selectedMasterIds || selectedMasterIds.length === 0) {
+                        warningMessage('Please select a product first.');
+                        return;
+                    }
+                    $.ajax({
+                        url: "{{ route('sample.getAllItemMasters') }}",
+                        method: 'GET',
+                        success: function (allMasters) {
+                            const tbody = $('#requisition-items-tbody');
+                            $('#no-items-row').remove();
+                            const selectedMasters = allMasters.filter(m => selectedMasterIds.includes(String(m.id)));
+
+                            selectedMasters.forEach(master => {
+                                if ($(`#item-row-master-${master.id}`).length === 0) {
+                                    // [FIX] Baris ini tidak lagi membuat sel <td> untuk Material Type
+                                    const newRow = `
+                                        <tr id="item-row-master-${master.id}" data-master-id="${master.id}">
+                                            <td>${master.item_master_code}</td>
+                                            <td>${master.item_master_name}</td>
+                                            <td>${master.unit}</td>
+                                            <td><input type="number" class="form-control" name="items[${master.id}][quantity_required]" min="1"></td>
+                                            <td><input type="number" class="form-control" name="items[${master.id}][quantity_issued]" min="0"></td>
+                                        </tr>`;
+                                    tbody.append(newRow);
+                                }
+                            });
+                        }
+                    });
+                });
+
+            $('#product_select_fg').on('select2:unselect', function (e) {
+                const unselectedMasterId = e.params.data.id;
+                $(`tr[data-master-id="${unselectedMasterId}"][id^="item-row-master-"]`).remove();
+
+                if ($('#requisition-items-tbody tr').length === 0) {
+                    $('#requisition-items-tbody').html(
+                        '<tr id="no-items-row"><td colspan="6" class="text-center">No items have been added yet.</td></tr>'
                         );
                 }
+                applyMaterialTypeFilter();
             });
 
             $('#sampleForm').on('submit', function (e) {
                 e.preventDefault();
-                clearValidationErrors();
+                clearValidationErrors(); // Menghapus error lama sebelum validasi baru
+
                 const submitBtn = $('#saveSampleBtn');
                 const overlay = $('#sampleModal .loading-overlay');
+
                 overlay.show();
                 submitBtn.prop('disabled', true);
+
                 const mode = $(this).attr('data-mode');
                 const id = $(this).attr('data-id');
                 let url = (mode === 'edit') ? `/sample-form/${id}` : "{{ route('sample-form.store') }}";
                 let formData = new FormData(this);
-                if (mode === 'edit') formData.append('_method', 'PUT');
+
+                if (mode === 'edit') {
+                    formData.append('_method', 'PUT');
+                }
 
                 $.ajax({
                     url: url,
@@ -872,111 +1063,331 @@
                             nextSrsNumber = res.next_srs_number;
                         }
                     },
+
+                    // [MODIFIED] Blok 'error' disempurnakan untuk notifikasi yang lebih baik
                     error: function (xhr) {
-                        if (xhr.status === 422) {
+                        if (xhr.status === 422) { // Error validasi
                             const errors = xhr.responseJSON.errors;
+                            let itemErrorMessages = new Set();
+
                             for (const key in errors) {
                                 const errorMsg = errors[key][0];
+
                                 if (key.startsWith('items.')) {
-                                    $('#items_error').show().text(
-                                        'Please ensure item quantities are filled.');
+                                    const nameSelector = key.replace(/\./g, '][').replace('][', '[');
+                                    const fieldInTable = $(`[name="${nameSelector}"]`);
+
+                                    if (fieldInTable.length) {
+                                        fieldInTable.addClass('is-invalid');
+                                    }
+                                    itemErrorMessages.add(errorMsg);
                                 } else {
-                                    $(`#${key}`).addClass('is-invalid');
-                                    $(`#${key}_error`).text(errorMsg);
+                                    const field = $(`#${key}`);
+                                    const errorDiv = $(`#${key}_error`);
+
+                                    // Tandai field input/textarea dengan border merah
+                                    field.addClass('is-invalid');
+                                    // Tampilkan pesan error spesifik di bawahnya
+                                    errorDiv.text(errorMsg).show();
+
+                                    // Penanganan khusus untuk menyorot dropdown Select2
+                                    if (field.hasClass('select2-styled')) {
+                                        field.next('.select2-container').find('.select2-selection').css('border-color', '#dc3545');
+                                    }
                                 }
                             }
-                            errorMessage('Please ensure the data you entered is correct.');
+
+                            if (itemErrorMessages.size > 0) {
+                                $('#items_error').show().html(Array.from(itemErrorMessages).join('<br>'));
+                            }
+
                         } else {
-                            errorMessage(xhr.responseJSON?.message ||
-                                'A system error occurred.');
+                            errorMessage(xhr.responseJSON?.message || 'Terjadi kesalahan pada sistem.');
                         }
+                    },
+                    complete: function() {
+                        overlay.hide();
+                        submitBtn.prop('disabled', false);
                     }
                 });
+            })
+
+            function setupQaRadioLainnya(baseName) {
+                const radioSelector = `input[name="${baseName}_option"]`;
+                const otherRadio = $(`#${baseName}_other_radio`);
+                const otherInput = $(`#${baseName}_other_input`);
+                const finalInput = $(`#${baseName}`);
+
+                $(document).on('change', radioSelector, function() {
+                    if ($(this).val() === 'Lainnya') {
+                        otherInput.show().focus();
+                        finalInput.val(otherInput.val());
+                    } else {
+                        otherInput.hide().val('');
+                        finalInput.val($(this).val());
+                    }
+                });
+
+                otherInput.on('input', function() {
+                    otherRadio.prop('checked', true);
+                    finalInput.val($(this).val());
+                });
+            }
+
+            setupQaRadioLainnya('source');
+            setupQaRadioLainnya('preparation_method');
+            setupQaRadioLainnya('sample_notes');
+
+
+            // --- Logika untuk Keterangan Sample (Radio Button) ---
+            const keteranganWrapper = $('#keterangan_sample_input_wrapper');
+            const keteranganInput1 = $('#keterangan_sample_input_1');
+            const keteranganInput2 = $('#keterangan_sample_input_2');
+            const batchSuffix = $('#batch_suffix_p');
+            const finalDescriptionInput = $('#description');
+
+            $('input[name="description_option"]').on('change', function() {
+                const selectedType = $(this).val();
+
+                keteranganInput1.val('');
+                keteranganInput2.val('');
+                finalDescriptionInput.val('');
+                keteranganWrapper.show();
+
+                if (selectedType === 'batch') {
+                    keteranganInput1.attr('placeholder', 'Batch No...');
+                    keteranganInput2.show().attr('placeholder', 'Pallet No...');
+                    batchSuffix.show();
+                } else {
+                    keteranganInput1.attr('placeholder', selectedType === 'wb' ? 'WB/DEO No...' : 'Tank No...');
+                    keteranganInput2.hide();
+                    batchSuffix.hide();
+                }
+            });
+
+            $('#keterangan_sample_input_1, #keterangan_sample_input_2').on('input', function() {
+                const selectedType = $('input[name="description_option"]:checked').val();
+                const val1 = keteranganInput1.val();
+                const val2 = keteranganInput2.val();
+                let finalValue = '';
+
+                if (selectedType === 'batch') finalValue = `${val1}P${val2}`;
+                else if (selectedType === 'wb') finalValue = val1;
+                else if (selectedType === 'tank') finalValue = val1;
+
+                finalDescriptionInput.val(finalValue);
             });
 
             function populateForm(data, mode = null) {
-                $('#sampleForm').attr('data-mode', 'edit');
+                $('#sampleForm').attr('data-mode', 'edit').attr('data-id', data.id);
 
                 if (mode === 'qa_mode') {
-                    // --- QA MODE LOGIC ---
-                    $('#initial-category-selection').hide();
+                    // Sembunyikan form utama & pilihan sub-kategori yang interaktif
+                    $('.row.g-3.mb-3').hide(); // Menyembunyikan baris "Select Sub Category"
                     $('#main-requisition-data').hide();
-                    $('#special-order-fields').show();
+                    $('#special-order-fields, .qa-fields-section').show();
 
-                    // Pindahkan 'name' ke hidden input untuk sub_category
+                    // Gunakan input tersembunyi untuk mengirim data yang tidak bisa diubah
                     $('#sub_category_hidden').val(data.sub_category).attr('name', 'sub_category');
-                    $('#sub_category').removeAttr('name');
+                    $('#sub_category').removeAttr('name').prop('disabled', true);
+                    $('#customer_id_hidden').val(data.customer_id).attr('name', 'customer_id');
+                    $('#customer_id').prop('disabled', true);
 
-                    // Lakukan hal yang sama untuk customer_id
-                    $('#customer_id_hidden').val(data.customer_id).attr('name', 'customer_id'); // <-- BARIS BARU
-                    $('#customer_id').prop('disabled', true).trigger('change'); // Tetap disable tampilan
+                    // Isi form marketing agar read-only
+                    $('.sm-field').prop('disabled', true);
+                    $('.qa-field').prop('disabled', false);
+                    $('#saveSampleBtn').text('Save QM Data & Complete').prop('disabled', false);
 
-                } else {
-                    // --- NORMAL EDIT MODE LOGIC ---
-                    $('#initial-category-selection').show();
-                    $('#main-requisition-data').show();
-                    $('#special-order-fields').toggle(data.sub_category === 'Special Order');
-                    
-                    // Kembalikan 'name' ke select yang terlihat
-                    $('#sub_category').attr('name', 'sub_category');
-                    $('#customer_id').prop('disabled', false).trigger('change'); // Aktifkan select customer
-                    
-                    // Hapus 'name' dari hidden input
-                    $('#sub_category_hidden').val('').removeAttr('name');
-                    $('#customer_id_hidden').val('').removeAttr('name'); // <-- BARIS BARU
+                } else { // Mode Edit Normal
+                    $('.row.g-3.mb-3').show();
+                    $('#sub_category').attr('name', 'sub_category').prop('disabled', false);
+                    $('#customer_id').prop('disabled', false);
+                    $('#sub_category_hidden').removeAttr('name');
+                    $('#customer_id_hidden').removeAttr('name');
+                    $('.sm-field').prop('disabled', false);
+                    $('.qa-field').prop('disabled', true);
+                    $('#saveSampleBtn').text('Save Changes').prop('disabled', false);
                 }
 
-                $('#sub_category').val(data.sub_category).trigger('change');
-                $('#customer_id').val(data.customer_id).trigger('change');
+                $('#sub_category').val(data.sub_category).trigger('change.select2');
+                $('#customer_id').val(data.customer_id).trigger('change.select2');
                 $('#no_srs').val(data.no_srs);
                 $('#account').val(data.account);
                 $('#cost_center').val(data.cost_center);
                 $('#request_date').val(data.request_date);
                 $('#objectives').val(data.objectives);
                 $('#estimated_potential').val(data.estimated_potential);
+                if (data.print_batch !== undefined) {
+                    $(`input[name="print_batch"][value="${data.print_batch}"]`).prop('checked', true);
+                }
 
                 $('#requisition-form-details').show();
 
-                $('#material-type-selection-container, #product-selection-container').toggle(data.sub_category === 'Packaging');
-                $('#product-selection-container-fg').toggle(data.sub_category === 'Finished Goods' || data.sub_category === 'Special Order');
+                const isPackaging = data.sub_category === 'Packaging';
+                const isFg = data.sub_category === 'Finished Goods';
+                const isSpecialOrder = data.sub_category === 'Special Order';
 
-                const itemTbody = $('#requisition-items-tbody');
-                itemTbody.empty();
-                if (data.requisition_items && data.requisition_items.length > 0) {
-                    data.requisition_items.forEach(item => {
-                        let itemCode = 'N/A', itemName = 'N/A', unit = 'N/A', id, type, masterId;
-                        if (data.sub_category === 'Packaging' && item.item_detail) {
-                            itemCode = item.item_detail.item_detail_code; itemName = item.item_detail.item_detail_name; unit = item.item_detail.unit;
-                            id = item.item_detail.id; masterId = item.item_master_id; type = 'detail';
-                        } else if (item.item_master) {
-                            itemCode = item.item_master.item_master_code; itemName = item.item_master.item_master_name; unit = item.item_master.unit;
-                            id = item.item_master.id; masterId = item.item_master.id; type = 'master';
-                        }
-                        if (itemCode !== 'N/A') {
-                            const newRow = `<tr id="item-row-${type}-${id}" data-master-id="${masterId}"><td>${itemCode}</td><td>${itemName}</td><td>${unit}</td><td><input type="number" class="form-control" name="items[${id}][quantity_required]" value="${item.quantity_required}"></td><td><input type="number" class="form-control" name="items[${id}][quantity_issued]" value="${item.quantity_issued || ''}"></td></tr>`;
-                            itemTbody.append(newRow);
-                        }
+                $('#product-selection-container').toggle(isPackaging);
+                $('#material-type-selection-container').toggle(isPackaging);
+                $('#print-batch-container').toggle(isPackaging);
+                $('#product-selection-container-fg').toggle(isFg || isSpecialOrder);
+                $('#requested-item-list-container').toggle(true);
+                $('#special-order-fields').toggle(isSpecialOrder);
+                $('#sample-weight-selection-container').toggle(isSpecialOrder);
+                $('#btn-add-items-master').toggle(isFg || isSpecialOrder);
+                $('#sampleModal .material-type-column').toggle(isPackaging);
+
+                // === Mengisi Dropdown Produk ===
+                const productSelect = isPackaging ? $('#product_select') : $('#product_select_fg');
+                productSelect.empty();
+                if (data.product_options && data.product_options.length > 0) {
+                    data.product_options.forEach(option => {
+                        productSelect.append(new Option(option.text, option.id, false, false));
                     });
-                } else {
-                    itemTbody.html('<tr id="no-items-row"><td colspan="5" class="text-center">No items found.</td></tr>');
+                }
+                // Set nilai yang sudah tersimpan dari database
+                if (data.selected_master_ids && data.selected_master_ids.length > 0) {
+                    productSelect.val(data.selected_master_ids);
+                }
+                productSelect.trigger('change.select2');
+
+                // === Mengisi Checkbox Material Type (hanya untuk Packaging) ===
+                if (isPackaging) {
+                    $('.material-type-checkbox').prop('checked', false);
+                    if (data.attached_material_types && Array.isArray(data.attached_material_types)) {
+                        data.attached_material_types.forEach(type => {
+                            $(`.material-type-checkbox[value="${type}"]`).prop('checked', true);
+                        });
+                    }
                 }
 
-                if (data.sub_category === 'Special Order' && data.requisition_special) {
-                    $('input[name="requested_date"]').val(data.requisition_special.requested_date);
-                    $('input[name="weight_selection"]').val(data.requisition_special.weight_selection);
-                    $('input[name="packaging_selection"]').val(data.requisition_special.packaging_selection);
-                    $('input[name="sample_count"]').val(data.requisition_special.sample_count);
-                    $('input[name="shipment_method"]').val(data.requisition_special.shipment_method);
-                    $('input[name=coa_required][value="' + data.requisition_special.coa_required + '"]').prop('checked', true);
+                if (isPackaging || isFg || isSpecialOrder) {
+                    const itemTbody = $('#requisition-items-tbody');
+                    itemTbody.empty();
+
+                    if (data.requisition_items && data.requisition_items.length > 0) {
+                        data.requisition_items.forEach(item => {
+                            let itemCode = 'N/A', itemName = 'N/A', unit = 'N/A', id, type, masterId;
+                            let materialType = item.material_type || data.sub_category;
+
+                            if (isPackaging && item.item_detail) {
+                                type = 'detail';
+                                id = item.item_detail.id;
+                                masterId = item.item_master_id;
+                                itemCode = item.item_detail.item_detail_code;
+                                itemName = item.item_detail.item_detail_name;
+                                unit = item.item_detail.unit;
+                            } else if ((isFg || isSpecialOrder) && item.item_master) {
+                                type = 'master';
+                                id = item.item_master.id;
+                                masterId = item.item_master.id;
+                                itemCode = item.item_master.item_master_code;
+                                itemName = item.item_master.item_master_name;
+                                unit = item.item_master.unit;
+                            }
+
+                             if (itemCode !== 'N/A') {
+                                    const materialTypeCell = isPackaging
+                                    ? `<td class="material-type-column"><span class="badge bg-info">${item.material_type}</span></td>`
+                                    : '';
+
+                                const newRow = `
+                                    <tr id="item-row-${type}-${id}" data-master-id="${masterId}">
+                                        ${materialTypeCell}
+                                        <td>${itemCode}</td>
+                                        <td>${itemName}</td>
+                                        <td>${unit}</td>
+                                        <td><input type="number" class="form-control" name="items[${id}][quantity_required]" value="${item.quantity_required || ''}" min="1"></td>
+                                        <td><input type="number" class="form-control" name="items[${id}][quantity_issued]" value="${item.quantity_issued || ''}" min="0"></td>
+                                    </tr>`;
+                                itemTbody.append(newRow);
+                            }
+                        });
+                    } else {
+                        const colspan = isPackaging ? 6 : 5;
+                        itemTbody.html(`<tr id="no-items-row"><td colspan="${colspan}" class="text-center">No items found.</td></tr>`);
+                    }
+                    applyMaterialTypeFilter();
                 }
 
+                // === Mengisi Form Special Order ===
+                if (isSpecialOrder && data.requisition_special) {
+                    const specialData = data.requisition_special;
+                    $('#special_request_date').val(specialData.requested_date);
+                    $('input[name="end_date"]').val(specialData.end_date);
+                    $('textarea[name="purpose"]').val(specialData.purpose);
+                    $('input[name="packaging_selection"]').val(specialData.packaging_selection);
+                    $('input[name="sample_count"]').val(specialData.sample_count);
+                    $('input[name="shipment_method"]').val(specialData.shipment_method);
+                    $('input[name=coa_required][value="' + specialData.coa_required + '"]').prop('checked', true);
+
+                    const weight = data.requisition_special.weight_selection || '';
+                    $('#weight_selection').val(weight);
+
+                    const standardRadio = $(`input[name="weight_selection_option"][value="${weight}"]`);
+
+                    if (standardRadio.length > 0) {
+                        // Jika ditemukan (bukan 'Lainnya'), centang dan sembunyikan input teks
+                        standardRadio.prop('checked', true);
+                        $('#weight_other_input').hide().val('');
+                    } else if (weight) {
+                        // Jika tidak ditemukan, berarti ini nilai custom 'Lainnya'
+                        $('#weight_other_radio').prop('checked', true);
+                        $('#weight_other_input').show().val(weight);
+                    } else {
+                        // Jika tidak ada nilai, reset
+                        $('input[name="weight_selection_option"]').prop('checked', false);
+                        $('#weight_other_input').hide().val('');
+                    }
+                }
+
+                if (data.requisition_special) {
+                    const populateQaRadio = (baseName, value) => {
+                        if (!value) return;
+                        const finalInput = $(`#${baseName}`);
+                        const standardRadio = $(`input[name="${baseName}_option"][value="${value}"]`);
+
+                        finalInput.val(value);
+
+                        if (standardRadio.length > 0) {
+                            standardRadio.prop('checked', true);
+                            $(`#${baseName}_other_input`).hide().val('');
+                        } else {
+                            $(`#${baseName}_other_radio`).prop('checked', true);
+                            $(`#${baseName}_other_input`).val(value).show();
+                        }
+                    };
+
+                    const special = data.requisition_special;
+                    populateQaRadio('source', special.source);
+                    populateQaRadio('preparation_method', special.preparation_method);
+                    populateQaRadio('sample_notes', special.sample_notes);
+
+                    // Mengisi Keterangan Sample
+                    const description = special.description || '';
+                    finalDescriptionInput.val(description);
+
+                    // Coba parsing nilai description
+                    if (description.includes('P')) {
+                        $('#keterangan_batch_radio').prop('checked', true).trigger('change');
+                        const parts = description.split('P');
+                        keteranganInput1.val(parts[0] || '');
+                        keteranganInput2.val(parts[1] || '');
+                    } else if (description) {
+                        $('#keterangan_wb_radio').prop('checked', true).trigger('change');
+                        keteranganInput1.val(description);
+                    }
+
+                    $('input[name="production_date"]').val(special.production_date);
+                }
+
+                // === Menangani Tampilan Field QA/QM ===
                 if (mode === 'qa_mode') {
                     $('.qa-fields-section').show();
                     $('.sm-field').prop('disabled', true);
                     $('#customer_id').prop('disabled', true).trigger('change');
                     $('.qa-field').prop('disabled', false);
                     $('#saveSampleBtn').text('Save QM Data & Complete').prop('disabled', false);
-
                 } else {
                     const isSuperAdmin = "{{ auth()->user()->hasRole('super-admin') }}";
                     const userDept = "{{ Auth::user()->department?->name }}";
@@ -986,7 +1397,6 @@
                     } else {
                         $('.qa-fields-section').show();
                     }
-
                     $('.sm-field').prop('disabled', false);
                     $('#customer_id').prop('disabled', false).trigger('change');
                     $('.qa-field').prop('disabled', true);
@@ -1006,20 +1416,45 @@
                 $('#view_estimated_potential').text(data.estimated_potential || '-');
 
                 const viewItemTbody = $('#view-items-tbody');
+                const viewTable = viewItemTbody.closest('table');
                 viewItemTbody.empty();
+
+                const isPackaging = data.sub_category === 'Packaging';
+                viewTable.find('th.material-type-column').toggle(isPackaging);
+
                 if (data.requisition_items && data.requisition_items.length > 0) {
                     data.requisition_items.forEach(item => {
                         let itemCode = 'N/A', itemName = 'N/A', unit = 'N/A';
+                        let materialType = item.material_type || data.sub_category;
+
                         if (item.item_detail) {
-                            itemCode = item.item_detail.item_detail_code; itemName = item.item_detail.item_detail_name; unit = item.item_detail.unit;
+                            itemCode = item.item_detail.item_detail_code;
+                            itemName = item.item_detail.item_detail_name;
+                            unit = item.item_detail.unit;
                         } else if (item.item_master) {
-                            itemCode = item.item_master.item_master_code; itemName = item.item_master.item_master_name; unit = item.item_master.unit;
+                            itemCode = item.item_master.item_master_code;
+                            itemName = item.item_master.item_master_name;
+                            unit = item.item_master.unit;
                         }
-                        const newRow = `<tr><td>${itemCode}</td><td>${itemName}</td><td>${unit}</td><td class="text-center">${item.quantity_required}</td><td class="text-center">${item.quantity_issued || '-'}</td></tr>`;
+
+                        const materialTypeCell = isPackaging
+                            ? `<td class="material-type-column">${item.material_type}</td>`
+                            : '';
+
+                        const newRow = `
+                        <tr>
+                            ${materialTypeCell}
+                            <td>${itemCode}</td>
+                            <td>${itemName}</td>
+                            <td>${unit}</td>
+                            <td class="text-center">${item.quantity_required}</td>
+                            <td class="text-center">${item.quantity_issued || '-'}</td>
+                        </tr>`;
                         viewItemTbody.append(newRow);
                     });
                 } else {
-                    viewItemTbody.html('<tr><td colspan="5" class="text-center">No items have been added.</td></tr>');
+                    const colspan = isPackaging ? 6 : 5;
+                    viewItemTbody.html(`<tr><td colspan="${colspan}" class="text-center">No items have been added.</td></tr>`);
                 }
 
                 const specialOrderSection = $('#view-special-order-section');
@@ -1031,6 +1466,7 @@
                     $('#view_sample_count').text(special.sample_count || '-');
                     $('#view_shipment_method').text(special.shipment_method || '-');
                     $('#view_coa_required').text(special.coa_required == 1 ? 'Yes' : 'No');
+                    $('#view_products_summary').text(data.requisition_special.products || '-');
                     specialOrderSection.show();
                 } else {
                     specialOrderSection.hide();
@@ -1139,23 +1575,28 @@
                 const button = $(this);
                 const originalIcon = button.html();
 
+                const modal = $('#sampleModal');
+                const overlay = modal.find('.loading-overlay');
+
                 button.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>').prop('disabled', true);
+                overlay.show();
 
                 $.ajax({
                     url: `/sample-form/${id}/edit`,
                     type: 'GET',
                     success: function (response) {
-                        // resetForm(); // <<< INI BARIS YANG SALAH DAN SUDAH DIHAPUS
                         $('#sampleModalLabel').text('Edit Sample Requisition');
-                        $('#sampleForm').attr('data-id', id);
-                        populateForm(response); // Langsung isi form dengan data
-                        $('#sampleModal').modal('show');
+
+                        populateForm(response); // Panggil fungsi yang sudah diperbaiki
+
+                        modal.modal('show');
                     },
                     error: function () {
                         errorMessage('Failed to fetch data for editing.');
                     },
                     complete: function() {
                         button.html(originalIcon).prop('disabled', false);
+                        overlay.hide();
                     }
                 });
             });
