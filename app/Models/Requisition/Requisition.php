@@ -28,6 +28,13 @@ class Requisition extends Model
         'objectives',
         'estimated_potential',
         'reason_for_replacement',
+        'print_batch',
+    ];
+
+    protected $casts = [
+        'request_date' => 'date',
+        'end_date' => 'date',
+        'print_batch' => 'boolean',
     ];
 
     // Relasi ke Customer
@@ -74,5 +81,11 @@ class Requisition extends Model
     public function payment()
     {
         return $this->hasOne(Payment::class);
+    }
+
+    // Relasi ke ComplainImage
+    public function complainImages()
+    {
+        return $this->hasMany(ComplainImage::class);
     }
 }

@@ -90,7 +90,7 @@
                     <button type="button" class="btn-close m-0 fs-5" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <form action="{{ route('complain-form.store') }}" method="POST" data-mode="create" data-id="" id="complineForm">
+                    <form action="{{ route('complain-form.store') }}" method="POST" data-mode="create" data-id="" id="complineForm" enctype="multipart/form-data">
                     @csrf
                         <header class="row slip-header mb-2 align-items-center">
                             <div class="col-10">
@@ -159,6 +159,13 @@
                                     </div>
                                     <div data-error-for="date" class="text-danger mt-1 error-message"></div>
                                 </div>
+                                <div class="mb-3 row align-items-center">
+                                    <label for="print_batch" class="col-sm-3 col-form-label"><strong>Print Batch</strong></label>
+                                    <div class="col-sm-8">
+                                        <input type="checkbox" class="form-check-input" id="print_batch" name="print_batch" value="1">
+                                    </div>
+                                    <div data-error-for="print_batch" class="text-danger mt-1 error-message"></div>
+                                </div>
                             </div>
                         </div>
 
@@ -194,9 +201,35 @@
                             </div>
                         </div>
 
+                        <!-- Product Details Section -->
                         <div class="row">
                             <div class="col-12">
                                 <div id="productDetailsContainer"></div>
+                            </div>
+                        </div>
+
+                        <!-- Image Upload Section -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <label for="complain_images"><strong>Upload Images (Optional)</strong></label>
+                                <div class="mb-2">
+                                    <input type="file" class="form-control" id="complain_images" name="complain_images[]" multiple accept="image/*">
+                                    <div class="form-text">
+                                        <small class="text-muted">
+                                            <i class="ph-duotone ph-info me-1"></i>
+                                            Supported formats: JPG, PNG, GIF. Maximum size per image: 1MB. You can select up to 10 images.
+                                        </small>
+                                    </div>
+                                    <div data-error-for="complain_images" class="text-danger mt-1 error-message"></div>
+                                </div>
+                                
+                                <!-- Image Preview Container -->
+                                <div id="imagePreviewContainer" class="d-none">
+                                    <h6 class="mb-2"><strong>Selected Images:</strong></h6>
+                                    <div class="row" id="imagePreviewList">
+                                        <!-- Image previews will be inserted here -->
+                                    </div>
+                                </div>
                             </div>
                         </div>
         
@@ -392,6 +425,17 @@
                         </div>
                     </div>
 
+                    <!-- Complain Images Section -->
+                    <div class="detail-section" id="complainImagesSection" style="display: none;">
+                        <div class="section-header">
+                            <i class="ph-duotone ph-images"></i>
+                            Complain Images
+                        </div>
+                        <div class="row" id="detail_complain_images">
+                            <!-- Images will be populated here -->
+                        </div>
+                    </div>
+
                     <!-- Status & Approval History Section -->
                     <div class="detail-section">
                         <div class="section-header">
@@ -497,6 +541,36 @@
                         </button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image View Modal -->
+    <div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true" 
+         data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-scrollable modal-xl">
+            <div class="modal-content">
+                <div class="modal-header modal-header-enhanced">
+                    <h5 class="modal-title modal-title-enhanced" id="imageModalLabel">
+                        <i class="ph-duotone ph-image"></i>
+                        Image View
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white m-0 fs-5" onclick="closeImageModal()" aria-label="Close"></button>
+                </div>
+                <div class="modal-body modal-body-enhanced text-center">
+                    <div class="image-container d-flex justify-content-center align-items-center" style="min-height: 500px;">
+                        <img id="modalImage" src="" class="img-fluid shadow-lg rounded" alt="Full size image" 
+                             style="max-width: 100%; height: auto; object-fit: contain;">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeImageModal()">
+                        <i class="ph-duotone ph-x me-2"></i>Close
+                    </button>
+                    <a id="downloadImage" href="" download class="btn btn-primary">
+                        <i class="ph-duotone ph-download me-2"></i>Download
+                    </a>
+                </div>
             </div>
         </div>
     </div>
@@ -955,6 +1029,7 @@
                         }
 
                         renderDetailProductTable(data.requisition_items);
+                        renderComplainImages(data.complain_images);
                     },
                     error: function (xhr) {
                         errorMessage(xhr.responseJSON?.message || 'Failed to load complain details.');
@@ -1330,6 +1405,41 @@
                 }
             }
 
+            // Render Complain Images Function
+            function renderComplainImages(images) {
+                const section = $('#complainImagesSection');
+                const container = $('#detail_complain_images');
+                
+                container.empty();
+                
+                if (!images || images.length === 0) {
+                    section.hide();
+                    return;
+                }
+                
+                section.show();
+                
+                images.forEach((image, index) => {
+                    const imageUrl = `{{ asset('storage/') }}/${image.image_path}`;
+                    const imageHtml = `
+                        <div class="col-md-3 mb-3">
+                            <div class="card">
+                                <img src="${imageUrl}" 
+                                    class="card-img-top image-clickable" 
+                                    style="height: 200px; object-fit: cover; cursor: pointer;"
+                                    alt="Complain Image ${index + 1}"
+                                    data-image-src="${imageUrl}"
+                                    data-image-title="Complain Image ${index + 1}">
+                                <div class="card-body p-2 text-center">
+                                    <small class="text-muted">Image ${index + 1}</small>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    container.append(imageHtml);
+                });
+            }
+
             // === Modal Create ===
             $('#btn-create-compline').on('click', function() {
                 $('#complineForm')[0].reset();
@@ -1338,7 +1448,9 @@
                 $('[data-error-for]').text('');
                 $('#complineForm .is-invalid').removeClass('is-invalid');
 
-
+                // Reset image preview
+                $('#imagePreviewContainer').addClass('d-none');
+                $('#imagePreviewList').empty();
 
                 var today = new Date().toISOString().split('T')[0];
                 $('#date').val(today);
@@ -1518,6 +1630,92 @@
                         errorMessage('Failed to fetch product list');
                     }
                 })
+                
+                // Handle image preview and validation
+                $('#complain_images').on('change', function(e) {
+                    const files = e.target.files;
+                    const previewContainer = $('#imagePreviewContainer');
+                    const previewList = $('#imagePreviewList');
+                    const maxSize = 1 * 1024 * 1024; // 1MB in bytes
+                    const maxFiles = 10; // Maximum 10 files
+                    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+                    
+                    // Clear previous errors
+                    $('[data-error-for="complain_images"]').text('');
+                    $(this).removeClass('is-invalid');
+                    previewList.empty();
+                    
+                    if (files.length === 0) {
+                        previewContainer.addClass('d-none');
+                        return;
+                    }
+                    
+                    // Validate number of files
+                    if (files.length > maxFiles) {
+                        $('[data-error-for="complain_images"]').text(`Maksimal ${maxFiles} gambar yang dapat diupload.`);
+                        $(this).addClass('is-invalid');
+                        previewContainer.addClass('d-none');
+                        // Clear the input
+                        this.value = '';
+                        return;
+                    }
+                    
+                    let validFiles = [];
+                    let hasError = false;
+                    
+                    for (let i = 0; i < files.length; i++) {
+                        const file = files[i];
+                        
+                        // Validate file size
+                        if (file.size > maxSize) {
+                            $('[data-error-for="complain_images"]').text(`File "${file.name}" terlalu besar. Ukuran maksimal adalah 1MB.`);
+                            $(this).addClass('is-invalid');
+                            hasError = true;
+                            break;
+                        }
+                        
+                        // Validate file type
+                        if (!allowedTypes.includes(file.type)) {
+                            $('[data-error-for="complain_images"]').text(`File "${file.name}" tidak didukung. Hanya file JPG, PNG, dan GIF yang diperbolehkan.`);
+                            $(this).addClass('is-invalid');
+                            hasError = true;
+                            break;
+                        }
+                        
+                        validFiles.push(file);
+                    }
+                    
+                    if (hasError) {
+                        previewContainer.addClass('d-none');
+                        // Clear the input
+                        this.value = '';
+                        return;
+                    }
+                    
+                    // Show previews for valid files
+                    if (validFiles.length > 0) {
+                        previewContainer.removeClass('d-none');
+                        
+                        validFiles.forEach((file, index) => {
+                            const reader = new FileReader();
+                            reader.onload = function(e) {
+                                const previewHtml = `
+                                    <div class="col-md-3 mb-3">
+                                        <div class="card">
+                                            <img src="${e.target.result}" class="card-img-top" style="height: 150px; object-fit: cover;">
+                                            <div class="card-body p-2">
+                                                <small class="text-muted">${file.name}</small><br>
+                                                <small class="text-muted">${(file.size / 1024 / 1024).toFixed(2)} MB</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                                previewList.append(previewHtml);
+                            };
+                            reader.readAsDataURL(file);
+                        });
+                    }
+                });
             });
 
             // === Submit Form ===
@@ -1541,6 +1739,22 @@
                 }
 
                 let formData = new FormData(this);
+                
+                // Handle print_batch checkbox - kirim 1 atau 0
+                const printBatchCheckbox = document.getElementById('print_batch');
+                if (printBatchCheckbox) {
+                    // Hapus nilai default dari FormData
+                    formData.delete('print_batch');
+                    
+                    // Kirim 1 jika checked, 0 jika tidak checked
+                    const value = printBatchCheckbox.checked ? 1 : 0;
+                    formData.append('print_batch', value);
+                    
+                    // Debug log
+                    console.log('Print Batch Checkbox Checked:', printBatchCheckbox.checked);
+                    console.log('Print Batch Value Sent:', value);
+                }
+                
                 if (mode === 'edit') {
                     formData.append('_method', 'PUT'); // override
                 }
@@ -1600,6 +1814,39 @@
                 });
             });
 
+            // Handle image modal
+            $(document).on('click', '.image-clickable', function() {
+                const imageSrc = $(this).data('image-src');
+                const imageTitle = $(this).data('image-title');
+                
+                $('#modalImage').attr('src', imageSrc);
+                $('#imageModalLabel').text(imageTitle);
+                $('#downloadImage').attr('href', imageSrc);
+                
+                // Reset scroll position and show image modal without hiding detail modal
+                $('#imageModal .modal-body').scrollTop(0);
+                $('#imageModal').modal('show');
+                
+                // Optional: Add loading state while image loads
+                $('#modalImage').on('load', function() {
+                    $(this).addClass('loaded');
+                }).on('error', function() {
+                    $(this).attr('alt', 'Failed to load image');
+                });
+            });
+
+            // Function to close image modal properly
+            window.closeImageModal = function() {
+                $('#imageModal').modal('hide');
+                // Ensure detail modal remains open and focused
+                setTimeout(() => {
+                    if ($('#detailModal').hasClass('show')) {
+                        $('body').addClass('modal-open');
+                        $('#detailModal').focus();
+                    }
+                }, 300);
+            };
+
             // === SweetAlert Delete ===
             $(document).on('click', '.delete-button', function(e) {
                 e.preventDefault();
@@ -1649,6 +1896,10 @@
                 $('#requisition_product_list').empty();
                 $('#approval_history_list').empty();
                 $('#current_status_display').empty();
+                
+                // Clear image section
+                $('#complainImagesSection').hide();
+                $('#detail_complain_images').empty();
             });
 
             // Initialize Bootstrap tooltips for action buttons
