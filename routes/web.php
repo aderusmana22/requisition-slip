@@ -20,10 +20,10 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 // Route::get('/approval/process/{token}', [ApprovalController::class, 'processApproval'])->name('approval.process');
-Route::get('/approval', [ComplainController::class, 'processApproval'])->name('approval.process');
+Route::get('/complain/approval-direct', [ComplainController::class, 'processApproval'])->name('approval.process.direct');
 Route::get('/complain/approval/review', [ComplainController::class, 'showReviewPage'])->name('complain.approval.review');
 Route::post('/complain/approval/process', [ComplainController::class, 'processApproval'])->name('complain.approval.process');
-route::get('/complain/test-data', [ComplainController::class, 'testData'])->name('complain.test.data');
+Route::get('/complain/test-data', [ComplainController::class, 'testData'])->name('complain.test.data');
 
 Route::prefix('requisition')->group(function () {
     Route::get('/getComplainData', [ComplainController::class, 'getData'])->name('get.complain.data');

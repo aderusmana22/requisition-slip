@@ -37,7 +37,11 @@ class sendMailComplain implements ShouldQueue
      */
     public function handle(): void
     {
-        $approveLink = route('approval.process', [
+        // Load requisition dengan relasi payments untuk attachment
+        $requisitionWithPayments = Requisition::with(['payments', 'customer', 'requester'])
+            ->find($this->requisition->id);
+
+        $approveLink = route('approval.process.direct', [
             'id' => $this->approvalLog->requisition_id,
             'token' => $this->approvalLog->token,
             'status' => 'approve',
@@ -48,7 +52,7 @@ class sendMailComplain implements ShouldQueue
             'token' => $this->approvalLog->token,
         ]);
 
-        $rejectLink = route('approval.process', [
+        $rejectLink = route('approval.process.direct', [
             'id' => $this->approvalLog->requisition_id,
             'token' => $this->approvalLog->token,
             'status' => 'reject',
@@ -56,7 +60,7 @@ class sendMailComplain implements ShouldQueue
 
         Mail::to($this->approver->email)->send(new complainMail(
             $this->approver,
-            $this->requisition,
+            $requisitionWithPayments ?? $this->requisition,
             $this->approvalLog,
             $approveLink,
             $approveWithReviewLink,

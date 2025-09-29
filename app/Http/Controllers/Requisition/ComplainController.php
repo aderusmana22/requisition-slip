@@ -61,7 +61,7 @@ class ComplainController extends Controller
     {
         $validated = $request->validated();
         $user = Auth::user();
-        $headsQA = User::role('head-qa')->first();
+        $headsQA = User::role('head-QA')->first();
 
         if (!$user) {
             return response()->json(['message' => 'User belum login.'], 401);
@@ -219,7 +219,8 @@ class ComplainController extends Controller
 
             });
 
-            $firstApprover = $approvalLogs[0]; // Ini sekarang headsQA (level 1)
+            // Dispatch email to the first approver (head QA)
+            $firstApprover = $approvalLogs[0];
             sendMailComplain::dispatch(
                 $firstApprover['approver'],
                 $firstApprover['requisition'],
