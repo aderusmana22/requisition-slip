@@ -46,7 +46,7 @@
                     </button>
                 </div>
             </div>
-            
+
             <!-- Enhanced Table Container -->
             <div class="main-table-container">
                 <!-- Table Header -->
@@ -59,7 +59,7 @@
                         View, manage and track all complaint submissions
                     </p>
                 </div>
-                
+
                 <!-- Table Content -->
                 <div class="table-responsive">
                     <table class="w-100 display" id="complainTable">
@@ -110,7 +110,7 @@
                             <h4><strong>REQUISITION SLIP</strong></h4>
                             <p class="">SALES & MARKETING<br>SAMPLE PRODUCT</p>
                         </div>
-                
+
                         <!-- data modal -->
                         <div class="row mb-4 g-2">
                             <div class="col">
@@ -199,7 +199,7 @@
                                 <div id="productDetailsContainer"></div>
                             </div>
                         </div>
-        
+
                         <!-- tabel produk -->
                         <!-- <div class="row">
                             <div class="col-12">
@@ -467,7 +467,7 @@
             let addressField = $('#customer_address');
             let productselect = $('#requisition_items');
             let materialtype = $('#material_type_wrapper');
-            
+
             // define url detail
             let detailUrlTemplate = "{{ route('get.form.detail', ['id' => ':id']) }}";
 
@@ -556,24 +556,24 @@
                         render: function (data, type, row) {
                             let editUrl = `/complain/${data}/edit`;
                             let status = (row.status || '').toLowerCase();
-                            
+
                             // Enhanced button styling with custom tooltips
                             let editButton = (status === 'pending')
                                 ? `<a href="${editUrl}" class="btn btn-secondary btn-sm action-btn-hover" data-tooltip="Edit Complaint">
                                     <i class="ph-duotone ph-pencil-simple"></i>
                                    </a>`
                                 : '';
-                            
+
                             let deleteButton = (status === 'pending')
-                                ? `<button type="button" class="btn btn-danger btn-sm delete-button action-btn-hover" data-id="${data}" 
+                                ? `<button type="button" class="btn btn-danger btn-sm delete-button action-btn-hover" data-id="${data}"
                                     data-tooltip="Delete Complaint">
                                     <i class="ph-duotone ph-trash"></i>
                                    </button>`
                                 : '';
-                                
+
                             return `
                                 <div class="action-btn-group">
-                                    <button type="button" class="btn btn-info btn-sm detail-button action-btn-hover" data-id="${data}" 
+                                    <button type="button" class="btn btn-info btn-sm detail-button action-btn-hover" data-id="${data}"
                                         data-tooltip="View Details">
                                         <i class="ph-duotone ph-eye"></i>
                                     </button>
@@ -601,26 +601,26 @@
             function initActionTooltips() {
                 // Remove any existing event handlers to prevent duplicates
                 $(document).off('mouseenter.customTooltip mouseleave.customTooltip', '.action-btn-hover');
-                
+
                 $(document).on('mouseenter.customTooltip', '.action-btn-hover', function(e) {
                     const tooltipText = $(this).attr('data-tooltip');
                     if (tooltipText && !$(this).data('tooltip-element')) {
                         const tooltip = $('<div class="action-tooltip">' + tooltipText + '</div>');
                         $('body').append(tooltip);
-                        
+
                         const button = $(this);
                         let isDestroyed = false;
-                        
+
                         // Function to update tooltip position
                         function updateTooltipPosition() {
                             if (isDestroyed || !button.is(':visible') || !tooltip.parent().length) {
                                 return;
                             }
-                            
+
                             // Get button position
                             const buttonOffset = button.offset();
                             if (!buttonOffset) return;
-                            
+
                             const buttonWidth = button.outerWidth();
                             const buttonHeight = button.outerHeight();
                             const tooltipWidth = tooltip.outerWidth();
@@ -628,18 +628,18 @@
                             const windowWidth = $(window).width();
                             const windowHeight = $(window).height();
                             const scrollTop = $(window).scrollTop();
-                            
+
                             // Calculate position
                             let left = buttonOffset.left + (buttonWidth / 2) - (tooltipWidth / 2);
                             let top = buttonOffset.top - tooltipHeight - 12;
-                            
+
                             // Horizontal bounds checking
                             if (left < 10) {
                                 left = 10;
                             } else if (left + tooltipWidth > windowWidth - 10) {
                                 left = windowWidth - tooltipWidth - 10;
                             }
-                            
+
                             // Vertical bounds checking
                             if (top < scrollTop + 10) {
                                 top = buttonOffset.top + buttonHeight + 12;
@@ -647,7 +647,7 @@
                             } else {
                                 tooltip.removeClass('below');
                             }
-                            
+
                             tooltip.css({
                                 position: 'absolute',
                                 left: left + 'px',
@@ -655,28 +655,28 @@
                                 zIndex: 9999
                             });
                         }
-                        
+
                         // Initial positioning
                         setTimeout(() => {
                             updateTooltipPosition();
                         }, 10);
-                        
+
                         // Show tooltip with delay
                         setTimeout(() => {
                             if (!isDestroyed) {
                                 tooltip.addClass('show');
                             }
                         }, 100);
-                        
+
                         // Store tooltip element and update function
                         button.data('tooltip-element', tooltip);
                         button.data('update-tooltip-position', updateTooltipPosition);
                         button.data('tooltip-destroyed', false);
-                        
+
                         // Create unique namespace for this tooltip
                         const tooltipId = 'tooltip_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
                         button.data('tooltip-id', tooltipId);
-                        
+
                         // Listen for scroll events with throttling
                         let scrollTimeout;
                         function throttledUpdate() {
@@ -689,12 +689,12 @@
                                 }
                             }, 10);
                         }
-                        
+
                         $(window).on('scroll.' + tooltipId + ' resize.' + tooltipId, throttledUpdate);
                         $('.dataTables_scrollBody').on('scroll.' + tooltipId, throttledUpdate);
                         $('.table-responsive').on('scroll.' + tooltipId, throttledUpdate);
                         $('#complainTable_wrapper').on('scroll.' + tooltipId, throttledUpdate);
-                        
+
                         // Store cleanup function
                         button.data('tooltip-cleanup', function() {
                             isDestroyed = true;
@@ -708,25 +708,25 @@
                         });
                     }
                 });
-                
+
                 $(document).on('mouseleave.customTooltip', '.action-btn-hover', function(e) {
                     const button = $(this);
                     const tooltip = button.data('tooltip-element');
                     const cleanup = button.data('tooltip-cleanup');
-                    
+
                     if (tooltip) {
                         button.data('tooltip-destroyed', true);
-                        
+
                         tooltip.removeClass('show');
                         setTimeout(() => {
                             tooltip.remove();
                         }, 200);
-                        
+
                         // Execute cleanup
                         if (cleanup) {
                             cleanup();
                         }
-                        
+
                         // Clear all data
                         button.removeData('tooltip-element');
                         button.removeData('update-tooltip-position');
@@ -736,20 +736,20 @@
                     }
                 });
             }
-            
+
             // Initialize tooltips after DataTable is ready
             table.on('draw', function() {
                 initActionTooltips();
             });
-            
+
             // Initialize tooltips for the first load
             initActionTooltips();
-            
+
             // Disable Bootstrap tooltips on action buttons to prevent conflicts
             $(document).ready(function() {
                 // Remove any existing Bootstrap tooltip instances
                 $('.action-btn-hover').tooltip('dispose');
-                
+
                 // Prevent Bootstrap tooltip initialization
                 $(document).off('mouseenter.bs.tooltip', '.action-btn-hover');
             });
@@ -772,27 +772,27 @@
                         $('#detail_account').text(data.account || '-');
                         $('#detail_cost_center').text(data.cost_center || '-');
                         $('#detail_rs_number').text(data.no_srs || '-');
-                        
+
                         // Format date nicely
                         if (data.request_date) {
                             const date = new Date(data.request_date);
                             const formattedDate = date.toLocaleDateString('en-GB', {
                                 day: '2-digit',
-                                month: 'short', 
+                                month: 'short',
                                 year: 'numeric'
                             });
                             $('#detail_date').text(formattedDate);
                         } else {
                             $('#detail_date').text('-');
                         }
-                        
+
                         $('#detail_objectives').text(data.objectives || 'No objectives specified');
 
                         // Enhanced product list with better styling
                         const selectedProductsDiv = $('#requisition_product_list');
                         const items = data.requisition_items;
 
-                        selectedProductsDiv.empty(); 
+                        selectedProductsDiv.empty();
 
                         if (items && items.length > 0) {
                             const uniqueMastersMap = new Map();
@@ -890,12 +890,12 @@
                                 <span class="badge bg-light text-dark">${specificDetail.unit || '-'}</span>
                             </td>
                             <td class="text-center">
-                                <input type="number" class="form-control text-center fw-bold" 
-                                       value="${item.quantity_required}" readonly 
+                                <input type="number" class="form-control text-center fw-bold"
+                                       value="${item.quantity_required}" readonly
                                        style="background: rgba(192, 127, 0, 0.1); border-color: rgba(192, 127, 0, 0.3);">
                             </td>
                             <td class="text-center">
-                                <input type="number" class="form-control text-center fw-bold" 
+                                <input type="number" class="form-control text-center fw-bold"
                                        value="${item.quantity_issued}" readonly
                                        style="background: rgba(25, 135, 84, 0.1); border-color: rgba(25, 135, 84, 0.3);">
                             </td>
@@ -969,7 +969,7 @@
                 var today = new Date().toISOString().split('T')[0];
                 $('#date').val(today);
 
-                
+
                 // menarik data costumer dari server
                 $.ajax({
                     url: "{{ route('customers.list') }}",
@@ -997,7 +997,7 @@
                             }
                             let selectedAddress = data.find(c => c.id == selectedCustomer)?.address || '';
                             addressField.val(selectedAddress);
-                            
+
                         });
                     },
                     error: function() {
@@ -1082,19 +1082,19 @@
                                                 <td>${detail.item_detail_name}</td>
                                                 <td>${detail.unit}</td>
                                                 <td>
-                                                    <input 
-                                                        type="number" 
-                                                        class="form-control" 
-                                                        name="${rqName}" 
+                                                    <input
+                                                        type="number"
+                                                        class="form-control"
+                                                        name="${rqName}"
                                                         placeholder="0"
                                                         value="${qtyCache[rqName] ?? ''}">
                                                     <div data-error-for="${rqName}" class="text-danger mt-1 error-message"></div>
                                                 </td>
                                                 <td>
-                                                    <input 
-                                                        type="number" 
-                                                        class="form-control" 
-                                                        name="${isName}" 
+                                                    <input
+                                                        type="number"
+                                                        class="form-control"
+                                                        name="${isName}"
                                                         placeholder="0"
                                                         value="${qtyCache[isName] ?? ''}">
                                                     <div data-error-for="${isName}" class="text-danger mt-1 error-message"></div>
@@ -1243,7 +1243,7 @@
                     if (result.isConfirmed) {
                         const complainId = btn.data('id');
                         let deleteUrl = "{{ route('complain-form.destroy', ':id') }}".replace(':id', complainId);
-            
+
                         $.ajax({
                             url: deleteUrl,
                             method: 'DELETE',
@@ -1264,15 +1264,15 @@
                     }
                 });
             });
-            
+
             // Initialize Bootstrap tooltips for action buttons
             $(document).on('draw.dt', function() {
                 $('[data-bs-toggle="tooltip"]').tooltip();
             });
-            
+
             // Initialize tooltips on page load
             $('[data-bs-toggle="tooltip"]').tooltip();
-            
+
             // Enhanced DataTable draw callback for animations
             table.on('draw', function() {
                 // Add staggered animation to table rows
@@ -1283,29 +1283,29 @@
                         'opacity': '0'
                     });
                 });
-                
+
                 // Initialize tooltips for new content
                 setTimeout(function() {
                     $('[data-bs-toggle="tooltip"]').tooltip();
                 }, 100);
             });
-            
+
             // Add enhanced search placeholder
             $('#complainTable_filter input').attr({
                 'placeholder': '🔍 Search complaints...',
                 'class': 'form-control'
             });
-            
+
             // Add icons to DataTable controls
             //$('.dataTables_filter label').prepend('<i class="ph-duotone ph-magnifying-glass me-2"></i>');
             //$('.dataTables_length label').prepend('<i class="ph-duotone ph-list-numbers me-2"></i>');
-            
+
             // Add fade-in animation to DataTable wrapper
             $('.dataTables_wrapper').css({
                 'animation': 'fadeInUp 0.8s ease-out forwards',
                 'opacity': '0'
             });
-            
+
             setTimeout(function() {
                 $('.dataTables_wrapper').css('opacity', '1');
             }, 200);

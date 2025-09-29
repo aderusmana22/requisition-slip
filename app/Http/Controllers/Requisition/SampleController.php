@@ -68,8 +68,6 @@ class SampleController extends Controller
     public function getItemDetailsByProducts(Request $request)
     {
         $request->validate(['product_ids' => 'required|array']);
-
-        // Ambil semua item detail yang terkait dengan item master yang dipilih
         $details = ItemDetail::whereIn('item_master_id', $request->product_ids)->get();
 
         return response()->json($details);
@@ -188,7 +186,7 @@ class SampleController extends Controller
         $requisition = Requisition::with([
             'customer:id,name,address',
             'requester:nik,name,email',
-            'requisitionItems:requisition_id,item_master_id,item_detail_id,quantity_required,quantity_issued',
+            'requisitionItems:requisition_id,item_master_id,item_detail_id,material_type,quantity_required,quantity_issued',
             'requisitionItems.itemMaster:id,item_master_code,item_master_name,unit',
             'requisitionItems.itemDetail:id,item_detail_code,item_detail_name,unit',
             'requisitionSpecial',
@@ -260,6 +258,7 @@ class SampleController extends Controller
         try {
             $validated = $request->validated();
             $user = Auth::user();
+            $isSpecialOrder = $validated['sub_category'] === 'Special Order';
 
             $requisition = Requisition::create([
                 'requester_nik' => $user->nik,
@@ -272,50 +271,54 @@ class SampleController extends Controller
                 'sub_category' => $validated['sub_category'],
                 'objectives' => $validated['objectives'],
                 'estimated_potential' => $validated['estimated_potential'],
-                'status' => 'Draft',
+                'print_batch' => $validated['print_batch'],
+                'status' => 'Pending',
                 'route_to' => 'N/A',
             ]);
 
-            Log::info("Requisition #{$requisition->id} berhasil dibuat sebagai Draft.");
-
-            if ($validated['sub_category'] === 'Special Order') {
-                RequisitionSpecial::create([
-                    'requisition_id' => $requisition->id,
-                    'requested_date' => $validated['requested_date'] ?? null,
-                    'weight_selection' => $validated['weight_selection'] ?? null,
-                    'packaging_selection' => $validated['packaging_selection'] ?? null,
-                    'sample_count' => $validated['sample_count'] ?? null,
-                    'coa_required' => $validated['coa_required'] ?? false,
-                    'shipment_method' => $validated['shipment_method'] ?? null,
-                ]);
-            }
-
             if ($validated['sub_category'] === 'Packaging') {
-                $itemDetails = ItemDetail::whereIn('id', array_keys($validated['items']))->get()->keyBy('id');
-                foreach ($validated['items'] as $itemDetailId => $itemData) {
-                    if (isset($itemDetails[$itemDetailId])) {
-                        $itemDetail = $itemDetails[$itemDetailId];
-                        RequisitionItem::create([
-                            'requisition_id' => $requisition->id,
-                            'item_master_id' => $itemDetail->item_master_id,
-                            'item_detail_id' => $itemDetail->id,
-                            'material_type' => $itemDetail->material_type,
-                            'quantity_required' => $itemData['quantity_required'],
-                            'quantity_issued' => $itemData['quantity_issued'] ?? null,
-                        ]);
+                    $itemDetails = ItemDetail::whereIn('id', array_keys($validated['items']))->get()->keyBy('id');
+                    foreach ($validated['items'] as $itemDetailId => $itemData) {
+                        if (isset($itemDetails[$itemDetailId])) {
+                            $itemDetail = $itemDetails[$itemDetailId];
+                            RequisitionItem::create([
+                                'requisition_id' => $requisition->id,
+                                'item_master_id' => $itemDetail->item_master_id,
+                                'item_detail_id' => $itemDetail->id,
+                                'material_type' => $itemDetail->material_type,
+                                'quantity_required' => $itemData['quantity_required'],
+                                'quantity_issued' => $itemData['quantity_issued'] ?? null,
+                            ]);
+                        }
                     }
-                }
-            } else {
+                } else { // Finished Goods & Special Order
                 foreach ($validated['items'] as $itemMasterId => $itemData) {
                     RequisitionItem::create([
                         'requisition_id' => $requisition->id,
                         'item_master_id' => $itemMasterId,
-                        'item_detail_id' => null,
                         'material_type' => $validated['sub_category'],
                         'quantity_required' => $itemData['quantity_required'],
                         'quantity_issued' => $itemData['quantity_issued'] ?? null,
                     ]);
                 }
+            }
+
+            if ($validated['sub_category'] === 'Special Order') {
+                $itemMasterIds = array_keys($validated['items']);
+                $productNames = ItemMaster::whereIn('id', $itemMasterIds)->pluck('item_master_name')->implode(', ');
+
+                RequisitionSpecial::create([
+                    'requisition_id' => $requisition->id,
+                    'products' => $productNames, // Simpan ringkasan nama produk
+                    'requested_date' => $validated['request_date'],
+                    'end_date' => $validated['end_date'],
+                    'weight_selection' => $validated['weight_selection'],
+                    'packaging_selection' => $validated['packaging_selection'],
+                    'sample_count' => $validated['sample_count'],
+                    'purpose' => $validated['purpose'],
+                    'coa_required' => $validated['coa_required'] ?? false,
+                    'shipment_method' => $validated['shipment_method'],
+                ]);
             }
 
             Log::info("Mencari approval path untuk: SAMPLE / {$validated['sub_category']}");
@@ -414,68 +417,94 @@ class SampleController extends Controller
         $requisition = Requisition::findOrFail($id);
         $user = Auth::user();
         $userDepartmentName = $user->department?->name;
-        $validated = $request->validated();
 
+        // Validasi otorisasi di awal untuk field khusus QA/QM
         if (
-            $validated['sub_category'] === 'Special Order' &&
             !$user->hasRole('super-admin') &&
             $userDepartmentName !== 'QM & HSE' &&
-            ($request->has('sample_origin') || $request->has('production_date'))
+            ($request->has('source') || $request->has('production_date')) // Cek field QM
         ) {
             return response()->json([
                 'success' => false,
                 'message' => 'Hanya departemen QM & HSE yang dapat mengubah detail ini.'
             ], 403);
         }
+
         DB::beginTransaction();
         try {
             $validated = $request->validated();
-            $requisition->update($validated);
+            $isQmSubmission = $request->has('source');
 
-            $requisition->requisitionItems()->delete();
+            if ($isQmSubmission) {
+                RequisitionSpecial::updateOrCreate(
+                    ['requisition_id' => $requisition->id],
+                    [
+                        'source'             => $validated['source'] ?? null,
+                        'description'        => $validated['description'] ?? null,
+                        'production_date'    => $validated['production_date'] ?? null,
+                        'preparation_method' => $validated['preparation_method'] ?? null,
+                        'sample_notes'       => $validated['sample_notes'] ?? null,
+                    ]
+                );
 
-            if ($validated['sub_category'] === 'Packaging') {
-                $itemDetails = ItemDetail::whereIn('id', array_keys($validated['items']))->get()->keyBy('id');
-                foreach ($validated['items'] as $itemDetailId => $itemData) {
-                    if (isset($itemDetails[$itemDetailId])) {
-                        $itemDetail = $itemDetails[$itemDetailId];
+                // 2. Jika requisition sudah disetujui, selesaikan
+                if ($requisition->status === 'Approved') {
+                    $requisition->update(['status' => 'Completed']);
+                    Log::info("Requisition #{$requisition->id} diselesaikan oleh QM & HSE.");
+                }
+
+            } else {
+                $requisition->update($validated);
+                $requisition->requisitionItems()->delete();
+
+                if ($validated['sub_category'] === 'Packaging') {
+                    $itemDetails = ItemDetail::whereIn('id', array_keys($validated['items']))->get()->keyBy('id');
+                    foreach ($validated['items'] as $itemDetailId => $itemData) {
+                        if (isset($itemDetails[$itemDetailId])) {
+                            $itemDetail = $itemDetails[$itemDetailId];
+                            RequisitionItem::create([
+                                'requisition_id'    => $requisition->id,
+                                'item_master_id'    => $itemDetail->item_master_id,
+                                'item_detail_id'    => $itemDetail->id,
+                                'material_type'     => $itemDetail->material_type,
+                                'quantity_required' => $itemData['quantity_required'],
+                                'quantity_issued'   => $itemData['quantity_issued'] ?? null,
+                            ]);
+                        }
+                    }
+                } else { // Finished Goods & Special Order
+                    foreach ($validated['items'] as $itemMasterId => $itemData) {
                         RequisitionItem::create([
-                            'requisition_id' => $requisition->id,
-                            'item_master_id' => $itemDetail->item_master_id,
-                            'item_detail_id' => $itemDetail->id,
-                            'material_type' => $itemDetail->material_type,
+                            'requisition_id'    => $requisition->id,
+                            'item_master_id'    => $itemMasterId,
+                            'material_type'     => $validated['sub_category'],
                             'quantity_required' => $itemData['quantity_required'],
-                            'quantity_issued' => $itemData['quantity_issued'] ?? null,
+                            'quantity_issued'   => $itemData['quantity_issued'] ?? null,
                         ]);
                     }
                 }
-            } else {
-                foreach ($validated['items'] as $itemMasterId => $itemData) {
-                    RequisitionItem::create([
-                        'requisition_id' => $requisition->id,
-                        'item_master_id' => $itemMasterId,
-                        'item_detail_id' => null,
-                        'material_type' => $validated['sub_category'],
-                        'quantity_required' => $itemData['quantity_required'],
-                        'quantity_issued' => $itemData['quantity_issued'] ?? null,
-                    ]);
+
+                if ($validated['sub_category'] === 'Special Order') {
+                    $itemMasterIds = array_keys($validated['items']);
+                    $productNames = ItemMaster::whereIn('id', $itemMasterIds)->pluck('item_master_name')->implode(', ');
+
+                    RequisitionSpecial::updateOrCreate(
+                        ['requisition_id' => $requisition->id],
+                        [
+                            'products'            => $productNames,
+                            'requested_date'      => $validated['request_date'],
+                            'end_date'            => $validated['end_date'],
+                            'weight_selection'    => $validated['weight_selection'],
+                            'packaging_selection' => $validated['packaging_selection'],
+                            'sample_count'        => $validated['sample_count'],
+                            'purpose'             => $validated['purpose'],
+                            'coa_required'        => $validated['coa_required'] ?? false,
+                            'shipment_method'     => $validated['shipment_method'],
+                        ]
+                    );
+                } else {
+                    $requisition->requisitionSpecial()->delete();
                 }
-            }
-
-            if ($validated['sub_category'] === 'Special Order' && $requisition->requisitionSpecial) {
-                $requisition->requisitionSpecial->update([
-                    'requested_date'      => $validated['requested_date'] ?? null,
-                    'weight_selection'    => $validated['weight_selection'] ?? null,
-                    'packaging_selection' => $validated['packaging_selection'] ?? null,
-                    'sample_count'        => $validated['sample_count'] ?? null,
-                    'coa_required'        => $validated['coa_required'] ?? false,
-                    'shipment_method'     => $validated['shipment_method'] ?? null,
-                ]);
-            }
-
-            if ($userDepartmentName === 'QM & HSE' && $requisition->status === 'Approved') {
-                $requisition->update(['status' => 'Completed']);
-                Log::info("Requisition #{$requisition->id} diselesaikan oleh QM & HSE.");
             }
 
             DB::commit();
@@ -484,7 +513,7 @@ class SampleController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Gagal mengubah sample requisition: ' . $e->getMessage());
-            return response()->json(['success' => false, 'message' => 'Terjadi kesalahan: ' . $e->getMessage()], 500);
+            return response()->json(['success' => false, 'message' => 'Terjadi kesalahan sistem. Silakan cek log.'], 500);
         }
     }
 
@@ -494,7 +523,7 @@ class SampleController extends Controller
             $requisition = Requisition::findOrFail($id);
             $requisition->delete();
 
-            return response()->json(['success' => true, 'message' => 'Requisition telah berhasil dihapus.']);
+            return response()->json(['success' => true, 'message' => 'Sample Requisition was successfully deleted.']);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => 'Gagal menghapus requisition.'], 500);
         }

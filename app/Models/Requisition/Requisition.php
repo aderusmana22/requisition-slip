@@ -28,6 +28,7 @@ class Requisition extends Model
         'objectives',
         'estimated_potential',
         'reason_for_replacement',
+        'print_batch',
     ];
 
     // Relasi ke Customer
@@ -47,7 +48,6 @@ class Requisition extends Model
     {
         return $this->hasMany(RequisitionItem::class, 'requisition_id');
     }
-
 
     // Relasi ke User (requester)
     public function requester()
