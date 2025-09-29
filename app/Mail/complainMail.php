@@ -7,10 +7,14 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
+use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Queue\SerializesModels;
 use App\Models\Requisition\Requisition;
 use App\Models\Requisition\ApprovalLog;
+use App\Models\Requisition\Payment;
 use App\Models\User;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class complainMail extends Mailable
 {
@@ -52,7 +56,7 @@ class complainMail extends Mailable
     public function content(): Content
     {
         return new Content(
-            markdown: 'mail.complain-mail',
+            view: 'mail.complain-mail',
         );
     }
 
@@ -63,6 +67,39 @@ class complainMail extends Mailable
      */
     public function attachments(): array
     {
-        return [];
+        $attachments = [];
+        
+        try {
+            // Query payments berdasarkan requisition_id
+            $payment = Payment::where('requisition_id', $this->requisition->id)->first();
+            
+            Log::info('Payment query for requisition', [
+                'requisition_id' => $this->requisition->id,
+                'payment_count' => $payment ? 1 : 0
+            ]);
+            
+            // Jika ada payments, tambahkan sebagai attachment
+            if ($payment) {
+                if ($payment->document_url) {
+                    $filePath = storage_path('app/public/' . $payment->document_url);
+
+                    // Pastikan file exists sebelum menambahkan attachment
+                    if (file_exists($filePath)) {
+                        $fileName = 'payment_proof_' . $this->requisition->id . '_' . basename($payment->document_url);
+
+                        $attachments[] = Attachment::fromPath($filePath)
+                            ->as($fileName)
+                            ->withMime('application/octet-stream');
+                    }
+                }
+            }
+        } catch (\Exception $e) {
+            Log::error('Error processing payment attachments', [
+                'requisition_id' => $this->requisition->id,
+                'error' => $e->getMessage()
+            ]);
+        }
+        
+        return $attachments;
     }
 }

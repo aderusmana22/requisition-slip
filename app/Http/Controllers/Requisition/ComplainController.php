@@ -12,6 +12,7 @@ use App\Models\Master\Customer;
 use App\Models\Master\ItemMaster;
 use App\Models\Requisition\ApprovalLog;
 use App\Models\Requisition\ApprovalPath;
+use App\Models\Requisition\ComplainImage;
 use App\Models\Requisition\Payment;
 use App\Models\Requisition\Requisition;
 use App\Models\Requisition\RequisitionItem;
@@ -60,7 +61,7 @@ class ComplainController extends Controller
     {
         $validated = $request->validated();
         $user = Auth::user();
-        $headsQA = User::role('head-qa')->first();
+        $headsQA = User::role('head-QA')->first();
 
         if (!$user) {
             return response()->json(['message' => 'User belum login.'], 401);
@@ -71,6 +72,13 @@ class ComplainController extends Controller
         if (!$headsQA) {
             return response()->json(['message' => 'head QA tidak ditemukan. Coba hubungi admin.'], 400);
         }
+
+        // Debug log untuk print_batch dengan null safety
+        Log::info('validasi dari print_batch', [
+            'value' => $validated['print_batch'] ?? 'null', 
+            'type' => gettype($validated['print_batch'] ?? null),
+            'boolean_conversion' => isset($validated['print_batch']) ? (bool) $validated['print_batch'] : false
+        ]);
 
         try{
             $approvalLogs = [];
@@ -88,6 +96,7 @@ class ComplainController extends Controller
                 'status' => 'Pending',
                 'objectives' => $validated['objectives'] ?? null,
                 'route_to' => $headsQA->name,
+                'print_batch' => isset($validated['print_batch']) ? (bool) $validated['print_batch'] : false,
             ]);
 
             // Insert approval log untuk head QA (level 1)
@@ -182,6 +191,23 @@ class ComplainController extends Controller
                 throw new \Exception('Tidak ada item yang valid untuk disimpan.');
             }
 
+            // Handle image upload if any
+            if (isset($validated['complain_images']) && is_array($validated['complain_images'])) {
+                foreach ($validated['complain_images'] as $image) {
+                    // Generate unique filename
+                    $fileName = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
+                    
+                    // Store image in storage/app/public/complain_images
+                    $imagePath = $image->storeAs('complain_images', $fileName, 'public');
+                    
+                    // Save to database
+                    ComplainImage::create([
+                        'requisition_id' => $requisition->id,
+                        'image_path' => $imagePath,
+                    ]);
+                }
+            }
+
             $casuer = User::where('nik', $user->nik)->first();
 
             activity()
@@ -193,7 +219,8 @@ class ComplainController extends Controller
 
             });
 
-            $firstApprover = $approvalLogs[0]; // Ini sekarang headsQA (level 1)
+            // Dispatch email to the first approver (head QA)
+            $firstApprover = $approvalLogs[0];
             sendMailComplain::dispatch(
                 $firstApprover['approver'],
                 $firstApprover['requisition'],
@@ -326,7 +353,8 @@ class ComplainController extends Controller
                 'requisitionItems.itemMaster.ItemDetails', 
                 'approvalLogs', 
                 'approvalLogs.approver',
-                'payments'
+                'payments',
+                'complainImages'
             ])->findOrFail($id);
 
             return response()->json($complain);

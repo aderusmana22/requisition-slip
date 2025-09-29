@@ -31,6 +31,13 @@ class Requisition extends Model
         'print_batch',
     ];
 
+    protected $casts = [
+        'request_date' => 'date',
+        'end_date' => 'date',
+        'print_batch' => 'boolean',
+
+    ];
+
     // Relasi ke Customer
     public function customer()
     {
@@ -74,5 +81,11 @@ class Requisition extends Model
     public function payment()
     {
         return $this->hasOne(Payment::class);
+    }
+
+    // Relasi ke ComplainImage
+    public function complainImages()
+    {
+        return $this->hasMany(ComplainImage::class);
     }
 }

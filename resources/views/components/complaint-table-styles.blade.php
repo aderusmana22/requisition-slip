@@ -68,6 +68,13 @@ CSS CLASSES REFERENCE & USAGE GUIDE
 • .action-tooltip.show           → Tooltip dalam state visible
 • .action-btn-hover              → Element yang akan menampilkan tooltip
 
+🖼️ IMAGE PREVIEW & MODAL:
+• #imagePreviewList              → Container untuk image preview list
+• #imagePreviewList .card        → Card untuk preview dengan hover effect
+• #imageModal                    → Enhanced image modal dengan full height
+• #imageModal .image-container   → Container gambar dengan shadow dan border
+• #imageModal .modal-body        → Body modal dengan custom scrollbar
+
 🎨 COLOR THEME:
 • Primary Gold: rgb(192, 127, 0)
 • Secondary Gold: rgb(160, 100, 0)
@@ -127,16 +134,35 @@ USAGE EXAMPLES:
 <span class="badge bg-warning status-badge-lg">Pending</span>
 
 5. DETAIL SECTION:
-/* Enhanced Modal Detail Styling */
-.detail-section {
-    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
-    border: 1px solid rgba(192, 127, 0, 0.1);
-    border-radius: 12px;
-    padding: 1.5rem;
-    margin-bottom: 1.5rem;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    transition: all 0.3s ease;
-}
+<div class="detail-section">
+    <div class="section-header">
+        <i class="ph-duotone ph-user-circle"></i>
+        Section Title
+    </div>
+    <div class="info-row">
+        <div class="info-label">Label:</div>
+        <div class="info-value">Value</div>
+    </div>
+</div>
+
+6. IMAGE MODAL:
+<div class="modal fade" id="imageModal">
+    <div class="modal-dialog modal-dialog-scrollable modal-xl">
+        <div class="modal-content">
+            <div class="modal-header modal-header-enhanced">
+                <h5 class="modal-title modal-title-enhanced">
+                    <i class="ph-duotone ph-image"></i>
+                    Image View
+                </h5>
+            </div>
+            <div class="modal-body">
+                <div class="image-container">
+                    <img id="modalImage" src="" class="img-fluid shadow-lg rounded">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 /* Payment Proof Modal Styling */
 #paymentProofModal .modal-content {
