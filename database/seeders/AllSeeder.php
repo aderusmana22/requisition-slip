@@ -406,12 +406,12 @@ class AllSeeder extends Seeder
         $approvalRole->givePermissionTo($approvalRole);
 
         $superAdminUser = User::updateOrCreate(
-            ['email' => 'zidanazzahra916@gmail.com'],
+            ['email' => 'superadmin@example.com'],
             [
             'name' => 'Super Admin',
             'nik' => 'AG1111',
             'username' => 'superadmin',
-            'email' => 'zidanazzahra916@gmail.com',
+            'email' => 'superadmin@example.com',
             'password' => Hash::make('password'),
             'email_verified_at' => now(),
             'department_id' => 1,
@@ -424,12 +424,12 @@ class AllSeeder extends Seeder
         $superAdminUser->assignRole($superAdminRole);
 
         $userRequsition = User::updateOrCreate(
-            ['email' => 'fendlstr03@gmail.com'],
+            ['email' => 'user-requisition@example.com'],
             [
             'name' => 'User Requisition',
             'nik' => 'AG2222',
             'username' => 'user-requisition',
-            'email' => 'fendlstr03@gmail.com',
+            'email' => 'user-requisition@example.com',
             'password' => Hash::make('password'),
             'email_verified_at' => now(),
             'department_id' => 2,
@@ -442,12 +442,12 @@ class AllSeeder extends Seeder
         $userRequsition->assignRole($userRequisitionRole);
 
         $userApproval = User::updateOrCreate(
-            ['email' => 'ziddanazzahra10@gmail.com'],
+            ['email' => 'no-reply@example.com'],
             [
             'name' => 'User Approval',
             'nik' => 'AG3333',
             'username' => 'user-approval',
-            'email' => 'ziddanazzahra10@gmail.com',
+            'email' => 'no-reply@example.com',
             'password' => Hash::make('password'),
             'email_verified_at' => now(),
             'department_id' => 3,
