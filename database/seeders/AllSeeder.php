@@ -405,6 +405,74 @@ class AllSeeder extends Seeder
         $userRequisitionRole->givePermissionTo($userRequisitionRole);
         $approvalRole->givePermissionTo($approvalRole);
 
+        $superAdminUser = User::updateOrCreate(
+            ['email' => 'zidanazzahra916@gmail.com'],
+            [
+            'name' => 'Super Admin',
+            'nik' => 'AG1111',
+            'username' => 'superadmin',
+            'email' => 'zidanazzahra916@gmail.com',
+            'password' => Hash::make('password'),
+            'email_verified_at' => now(),
+            'department_id' => 1,
+            'status' => 'active',
+            'atasan_nik' => 'AG2222',
+            'avatar' => null,
+            ]
+        );
+
+        $superAdminUser->assignRole($superAdminRole);
+
+        $userRequsition = User::updateOrCreate(
+            ['email' => 'fendlstr03@gmail.com'],
+            [
+            'name' => 'User Requisition',
+            'nik' => 'AG2222',
+            'username' => 'user-requisition',
+            'email' => 'fendlstr03@gmail.com',
+            'password' => Hash::make('password'),
+            'email_verified_at' => now(),
+            'department_id' => 2,
+            'status' => 'active',
+            'atasan_nik' => 'AG1111',
+            'avatar' => null,
+            ]
+        );
+
+        $userRequsition->assignRole($userRequisitionRole);
+
+        $userApproval = User::updateOrCreate(
+            ['email' => 'ziddanazzahra10@gmail.com'],
+            [
+            'name' => 'User Approval',
+            'nik' => 'AG3333',
+            'username' => 'user-approval',
+            'email' => 'ziddanazzahra10@gmail.com',
+            'password' => Hash::make('password'),
+            'email_verified_at' => now(),
+            'department_id' => 3,
+            'status' => 'active',
+            'atasan_nik' => 'AG1111',
+            'avatar' => null,
+            ]
+        );
+        $userApproval->assignRole($approvalRole);
+
+        $anotherUserRequisition = User::updateOrCreate(
+            ['email' => 'staff.eng@example.com'],
+            [
+                'name' => 'Staff Engineering',
+                'nik' => 'ST0001',
+                'username' => 'staff.eng',
+                'password' => Hash::make('password'),
+                'email_verified_at' => now(),
+                'department_id' => 7,
+                'status' => 'active',
+                'atasan_nik' => 'HD0001',
+            ]
+        );
+        $anotherUserRequisition->assignRole('user-requisition');
+
         // Users for Warehouse roles
         $warehouseUsers = [
             [
