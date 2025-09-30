@@ -74,7 +74,8 @@ class RequisitionPath extends Controller
 
     public function approverName()
     {
-        $name = User::all()->pluck('name', 'nik');
+        $roles = ['head-SNM', 'head-R&D', 'head-QA', 'head-HCD'];
+        $name = User::role($roles)->pluck('name', 'nik');
         return response()->json(['approverName' => $name]);
     }
 

@@ -30,6 +30,9 @@ class StoreComplainRequest extends FormRequest
             'rs_number'        => 'required|string|max:100',
             'date'             => 'required|date',
             'objectives'       => 'nullable|string',
+            'print_batch'      => 'nullable|in:0,1',
+            'complain_images'  => 'nullable|array|max:10',
+            'complain_images.*' => 'image|mimes:jpeg,jpg,png,gif|max:1024',
 
             'material_type' => 'required|array',
             'material_type.*' => 'required|string|in:Raw,Semi-Finished,Finished',
@@ -57,6 +60,11 @@ class StoreComplainRequest extends FormRequest
             'rs_number.required'        => 'Nomor RS/S wajib diisi.',
             'date.required'             => 'Tanggal wajib diisi.',
             'date.date'                 => 'Format tanggal tidak valid.',
+            'print_batch.in'            => 'Nilai print batch tidak valid.',
+            'complain_images.max'       => 'Maksimal 10 gambar yang dapat diupload.',
+            'complain_images.*.image'   => 'File harus berupa gambar.',
+            'complain_images.*.mimes'   => 'Gambar harus berformat JPEG, JPG, PNG, atau GIF.',
+            'complain_images.*.max'     => 'Ukuran gambar tidak boleh lebih dari 1MB.',
 
 
             'material_type.required' => 'Pilih minimal satu tipe material.',
