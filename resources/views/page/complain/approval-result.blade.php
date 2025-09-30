@@ -17,7 +17,7 @@
             justify-content: center;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        
+
         .result-card {
             background: white;
             border-radius: 20px;
@@ -29,7 +29,7 @@
             position: relative;
             overflow: hidden;
         }
-        
+
         .result-card::before {
             content: '';
             position: absolute;
@@ -39,11 +39,11 @@
             height: 4px;
             background: linear-gradient(90deg, #00b894, #00cec9);
         }
-        
+
         .result-card.rejected::before {
             background: linear-gradient(90deg, #ff6b6b, #ee5a24);
         }
-        
+
         .result-icon {
             width: 80px;
             height: 80px;
@@ -55,11 +55,11 @@
             margin: 0 auto 20px;
             position: relative;
         }
-        
+
         .result-icon.rejected {
             background: #ff6b6b;
         }
-        
+
         .result-icon::after {
             content: '';
             position: absolute;
@@ -70,16 +70,16 @@
             opacity: 0.3;
             animation: pulse 2s infinite;
         }
-        
+
         .result-icon.rejected::after {
             border-color: #ff6b6b;
         }
-        
+
         .result-icon i {
             color: white;
             font-size: 35px;
         }
-        
+
         @keyframes pulse {
             0% {
                 transform: scale(1);
@@ -94,21 +94,21 @@
                 opacity: 0;
             }
         }
-        
+
         .result-title {
             color: #2c3e50;
             font-size: 28px;
             font-weight: 700;
             margin-bottom: 15px;
         }
-        
+
         .result-message {
             color: #7f8c8d;
             font-size: 16px;
             line-height: 1.6;
             margin-bottom: 25px;
         }
-        
+
         .result-details {
             background: #f8f9fa;
             border-left: 4px solid #00b894;
@@ -117,15 +117,15 @@
             text-align: left;
             border-radius: 0 8px 8px 0;
         }
-        
+
         .result-details.rejected {
             border-left-color: #ff6b6b;
         }
-        
+
         .result-details strong {
             color: #2c3e50;
         }
-        
+
         .status-info {
             background: #e8f4f8;
             border: 1px solid #bee5eb;
@@ -133,7 +133,7 @@
             padding: 15px;
             margin: 20px 0;
         }
-        
+
         .countdown-section {
             background: #fff3cd;
             border: 1px solid #ffeaa7;
@@ -141,20 +141,20 @@
             padding: 10px;
             margin: 15px 0 0 0;
         }
-        
+
         .countdown-text {
             color: #856404;
             font-weight: 400;
             font-size: 13px;
         }
-        
+
         .countdown-number {
             font-size: 16px;
             font-weight: bold;
             color: #ff6b6b;
             margin: 0 3px;
         }
-        
+
         .btn-cancel {
             background: #6c757d;
             border: none;
@@ -166,7 +166,7 @@
             transition: all 0.3s ease;
             margin-top: 8px;
         }
-        
+
         .btn-cancel:hover {
             background: #5a6268;
             transform: translateY(-1px);
@@ -183,7 +183,7 @@
                 <i class="fas fa-times"></i>
             @endif
         </div>
-        
+
         <!-- Result Title -->
         <h1 class="result-title">
             @if($status === 'approve')
@@ -192,7 +192,7 @@
                 Rejection Successful!
             @endif
         </h1>
-        
+
         <!-- Result Message -->
         <p class="result-message">
             @if($status === 'approve')
@@ -201,16 +201,16 @@
                 The requisition has been rejected successfully with your provided reason.
             @endif
         </p>
-        
+
         <!-- Result Details -->
         <div class="result-details {{ $status === 'reject' ? 'rejected' : '' }}">
             <strong>Action Completed:</strong><br>
-            <i class="fas fa-file-alt text-primary"></i> 
+            <i class="fas fa-file-alt text-primary"></i>
             <strong>Requisition Number:</strong> {{ $requisition->no_srs ?? 'N/A' }}<br>
-            <i class="fas fa-building text-info"></i> 
+            <i class="fas fa-building text-info"></i>
             <strong>Customer:</strong> {{ $requisition->customer->name ?? 'N/A' }}<br>
-            <i class="fas fa-flag text-warning"></i> 
-            <strong>Status:</strong> 
+            <i class="fas fa-flag text-warning"></i>
+            <strong>Status:</strong>
             @if($requisition->status == 'Approved')
                 <span class="badge bg-success">Approved</span>
             @elseif($requisition->status == 'Rejected')
@@ -221,7 +221,7 @@
                 <span class="badge bg-secondary">{{ $requisition->status }}</span>
             @endif
         </div>
-        
+
         <!-- Status Information -->
         <div class="status-info">
             <i class="fas fa-info-circle text-info"></i>
@@ -234,13 +234,13 @@
                 @endif
             </span>
         </div>
-        
+
         <!-- Countdown Section -->
         <div class="countdown-section" id="countdown-section">
             <div class="countdown-text">
-                <i class="fas fa-stopwatch"></i> 
-                Auto-close in 
-                <span class="countdown-number" id="countdown">10</span> 
+                <i class="fas fa-stopwatch"></i>
+                Auto-close in
+                <span class="countdown-number" id="countdown">10</span>
                 sec
             </div>
             <button class="btn btn-cancel" onclick="cancelAutoClose()">
@@ -251,19 +251,19 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    
+
     <script>
         let countdown = 10;
         let countdownInterval;
         let autoCloseActive = true;
-        
+
         function startCountdown() {
             const countdownElement = document.getElementById('countdown');
             const countdownSection = document.getElementById('countdown-section');
-            
+
             countdownInterval = setInterval(() => {
                 countdown--;
-                
+
                 if (countdown > 0) {
                     countdownElement.textContent = countdown;
                 } else {
@@ -273,7 +273,7 @@
                             <i class="fas fa-spinner fa-spin"></i> Closing page now...
                         </div>
                     `;
-                    
+
                     // Close the page after a short delay
                     setTimeout(() => {
                         if (window.opener) {
@@ -282,7 +282,7 @@
                         } else {
                             // Try to close the current tab/window
                             window.close();
-                            
+
                             // If window.close() doesn't work (some browsers block it),
                             // try alternative methods
                             setTimeout(() => {
@@ -305,12 +305,12 @@
                 }
             }, 1000);
         }
-        
+
         function cancelAutoClose() {
             if (autoCloseActive) {
                 clearInterval(countdownInterval);
                 autoCloseActive = false;
-                
+
                 const countdownSection = document.getElementById('countdown-section');
                 countdownSection.style.background = '#d1ecf1';
                 countdownSection.style.borderColor = '#bee5eb';
@@ -321,11 +321,11 @@
                 `;
             }
         }
-        
+
         // Start countdown when page loads
         document.addEventListener('DOMContentLoaded', function() {
             startCountdown();
-            
+
             // Also cancel auto-close on any user interaction
             document.addEventListener('click', function(e) {
                 if (e.target.closest('.btn-cancel')) return;
@@ -333,7 +333,7 @@
                     cancelAutoClose();
                 }
             });
-            
+
             document.addEventListener('keydown', function() {
                 if (autoCloseActive) {
                     cancelAutoClose();

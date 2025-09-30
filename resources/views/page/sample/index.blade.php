@@ -157,7 +157,7 @@
                                         <input type="text" class="form-control" id="cost_center" name="cost_center"
                                         placeholder="e.g: CC1001, CC2002e">
                                     </div>
-                                    <div class="col-md-4">
+                                    <div class="col-md-6">
                                         <label for="objectives" class="form-label">Objectives<i
                                                 class="text-danger">*</i></label>
                                         <textarea class="form-control" id="objectives" name="objectives"
@@ -165,27 +165,13 @@
                                             rows="2"></textarea>
                                         <div class="invalid-feedback" id="objectives_error"></div>
                                     </div>
-                                    <div class="col-md-4">
+                                    <div class="col-md-6">
                                         <label for="estimated_potential" class="form-label">Estimated Potential<i
                                                 class="text-danger">*</i></label>
                                         <textarea class="form-control" id="estimated_potential" name="estimated_potential"
                                             placeholder="e.g.: High, Medium, Low, Others: Specify Here"
                                             rows="2"></textarea>
                                         <div class="invalid-feedback" id="estimated_potential_error"></div>
-                                    </div>
-                                    <div class="col-md-4" id="print-batch-container" style="display: none;">
-                                        <label class="form-label">Print Batch Number<i class="text-danger">*</i></label>
-                                        <div>
-                                            <div class="form-check form-check-inline">
-                                                <input class="form-check-input" type="radio" name="print_batch" id="print_batch_yes" value="1">
-                                                <label class="form-check-label" for="print_batch_yes">Yes</label>
-                                            </div>
-                                            <div class="form-check form-check-inline">
-                                                <input class="form-check-input" type="radio" name="print_batch" id="print_batch_no" value="0" checked>
-                                                <label class="form-check-label" for="print_batch_no">No</label>
-                                            </div>
-                                        </div>
-                                        <div class="invalid-feedback" id="print_batch_error"></div>
                                     </div>
                                 </div>
 
@@ -783,11 +769,10 @@
             $('#sub_category').on('change', function () {
                 const selectedSubCategory = $(this).val();
                 $('#items_error').hide().text('');
-                
+
                 // Reset Tampilan
                 $('#product-selection-container, #material-type-selection-container, #product-selection-container-fg, #sample-weight-selection-container, #requested-item-list-container, #special-order-fields, #btn-add-items-master, #print-batch-container').hide();
 
-                // [FIX] Atur visibilitas kolom Material Type berdasarkan pilihan
                 const isPackaging = selectedSubCategory === 'Packaging';
                 $('.material-type-column').toggle(isPackaging);
 
@@ -1030,87 +1015,111 @@
 
             $('#sampleForm').on('submit', function (e) {
                 e.preventDefault();
-                clearValidationErrors(); // Menghapus error lama sebelum validasi baru
 
-                const submitBtn = $('#saveSampleBtn');
-                const overlay = $('#sampleModal .loading-overlay');
+                const form = this;
+                const subCategory = $('#sub_category').val();
 
-                overlay.show();
-                submitBtn.prop('disabled', true);
+                // Fungsi untuk mengirim data via AJAX
+                function submitForm(formData) {
+                    const submitBtn = $('#saveSampleBtn');
+                    const overlay = $('#sampleModal .loading-overlay');
+                    overlay.show();
+                    submitBtn.prop('disabled', true);
 
-                const mode = $(this).attr('data-mode');
-                const id = $(this).attr('data-id');
-                let url = (mode === 'edit') ? `/sample-form/${id}` : "{{ route('sample-form.store') }}";
-                let formData = new FormData(this);
+                    const mode = $(form).attr('data-mode');
+                    const id = $(form).attr('data-id');
+                    let url = (mode === 'edit') ? `/sample-form/${id}` : "{{ route('sample-form.store') }}";
 
-                if (mode === 'edit') {
-                    formData.append('_method', 'PUT');
-                }
+                    if (mode === 'edit') {
+                        formData.append('_method', 'PUT');
+                    }
 
-                $.ajax({
-                    url: url,
-                    method: 'POST',
-                    data: formData,
-                    processData: false,
-                    contentType: false,
-                    success: function (res) {
-                        if (res.success) {
-                            $('#sampleModal').modal('hide');
-                            table.ajax.reload();
-                            successMessage(res.message);
-                        }
-                        if (res.next_srs_number) {
-                            nextSrsNumber = res.next_srs_number;
-                        }
-                    },
+                    $.ajax({
+                        url: url,
+                        method: 'POST',
+                        data: formData,
+                        processData: false,
+                        contentType: false,
+                        success: function (res) {
+                            if (res.success) {
+                                $('#sampleModal').modal('hide');
+                                table.ajax.reload();
+                                successMessage(res.message);
+                            }
+                            if (res.next_srs_number) {
+                                nextSrsNumber = res.next_srs_number;
+                            }
+                        },
 
-                    // [MODIFIED] Blok 'error' disempurnakan untuk notifikasi yang lebih baik
-                    error: function (xhr) {
-                        if (xhr.status === 422) { // Error validasi
-                            const errors = xhr.responseJSON.errors;
-                            let itemErrorMessages = new Set();
+                        error: function (xhr) {
+                            if (xhr.status === 422) { // Error validasi
+                                const errors = xhr.responseJSON.errors;
+                                let itemErrorMessages = new Set();
 
-                            for (const key in errors) {
-                                const errorMsg = errors[key][0];
+                                for (const key in errors) {
+                                    const errorMsg = errors[key][0];
 
-                                if (key.startsWith('items.')) {
-                                    const nameSelector = key.replace(/\./g, '][').replace('][', '[');
-                                    const fieldInTable = $(`[name="${nameSelector}"]`);
+                                    if (key.startsWith('items.')) {
+                                        const nameSelector = key.replace(/\./g, '][').replace('][', '[');
+                                        const fieldInTable = $(`[name="${nameSelector}"]`);
 
-                                    if (fieldInTable.length) {
-                                        fieldInTable.addClass('is-invalid');
-                                    }
-                                    itemErrorMessages.add(errorMsg);
-                                } else {
-                                    const field = $(`#${key}`);
-                                    const errorDiv = $(`#${key}_error`);
+                                        if (fieldInTable.length) {
+                                            fieldInTable.addClass('is-invalid');
+                                        }
+                                        itemErrorMessages.add(errorMsg);
+                                    } else {
+                                        const field = $(`#${key}`);
+                                        const errorDiv = $(`#${key}_error`);
 
-                                    // Tandai field input/textarea dengan border merah
-                                    field.addClass('is-invalid');
-                                    // Tampilkan pesan error spesifik di bawahnya
-                                    errorDiv.text(errorMsg).show();
+                                        field.addClass('is-invalid');
+                                        errorDiv.text(errorMsg).show();
 
-                                    // Penanganan khusus untuk menyorot dropdown Select2
-                                    if (field.hasClass('select2-styled')) {
-                                        field.next('.select2-container').find('.select2-selection').css('border-color', '#dc3545');
+                                        if (field.hasClass('select2-styled')) {
+                                            field.next('.select2-container').find('.select2-selection').css('border-color', '#dc3545');
+                                        }
                                     }
                                 }
-                            }
 
-                            if (itemErrorMessages.size > 0) {
-                                $('#items_error').show().html(Array.from(itemErrorMessages).join('<br>'));
-                            }
+                                if (itemErrorMessages.size > 0) {
+                                    $('#items_error').show().html(Array.from(itemErrorMessages).join('<br>'));
+                                }
 
-                        } else {
-                            errorMessage(xhr.responseJSON?.message || 'Terjadi kesalahan pada sistem.');
+                            } else {
+                                errorMessage(xhr.responseJSON?.message || 'Terjadi kesalahan pada sistem.');
+                            }
+                        },
+                        complete: function() {
+                            overlay.hide();
+                            submitBtn.prop('disabled', false);
                         }
-                    },
-                    complete: function() {
-                        overlay.hide();
-                        submitBtn.prop('disabled', false);
-                    }
-                });
-            })
+                    });
+                }
+
+                if (subCategory === 'Packaging' && $(form).attr('data-mode') === 'create') {
+                    Swal.fire({
+                        title: 'Print Batch Number',
+                        text: "Apakah Anda ingin mencetak Batch Number untuk requisition ini?",
+                        icon: 'question',
+                        showDenyButton: true,
+                        confirmButtonText: 'Yes, Print',
+                        denyButtonText: `No, Don't Print`,
+                        confirmButtonColor: '#3085d6',
+                        denyButtonColor: '#6c757d',
+                    }).then((result) => {
+                        let formData = new FormData(form);
+                        if (result.isConfirmed) {
+                            formData.append('print_batch', '1');
+                            submitForm(formData);
+                        } else if (result.isDenied) {
+                            formData.append('print_batch', '0');
+                            submitForm(formData);
+                        }
+                    });
+                } else {
+                    let formData = new FormData(form);
+                    submitForm(formData);
+                }
+            });
 
             function setupQaRadioLainnya(baseName) {
                 const radioSelector = `input[name="${baseName}_option"]`;

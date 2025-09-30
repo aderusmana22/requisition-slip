@@ -44,7 +44,7 @@
                     </button>
                 </div>
             </div>
-            
+
             <!-- Enhanced Table Container -->
             <div class="main-table-container">
                 <!-- Table Header -->
@@ -57,7 +57,7 @@
                         Manage approval workflow configurations and sequences
                     </p>
                 </div>
-                
+
                 <!-- Table Content -->
                 <div class="table-responsive">
                     <table class="w-100 display" id="approvertable">
@@ -80,12 +80,12 @@
     <div class="modal fade" id="ApproverModal" aria-hidden="true" tabindex="-1">
         <div class="modal-dialog modal-dialog-scrollable modal-lg">
             <div class="modal-content">
-                <div class="modal-header-enhanced">
-                    <h5 class="modal-title-enhanced" id="ApproverModalLabel">
+                <div class="modal-header-enhanced d-flex align-items-center justify-content-between">
+                    <h5 class="modal-title-enhanced mb-0" id="ApproverModalLabel">
                         <i class="ph-duotone ph-user-plus"></i>
                         Create Approver
                     </h5>
-                    <button type="button" class="btn-close btn-close-white m-0 fs-5" data-bs-dismiss="modal"
+                    <button type="button" class="btn-close btn-close-white fs-5" data-bs-dismiss="modal"
                         aria-label="Close"></button>
                 </div>
                 <div class="modal-body modal-body-enhanced">
@@ -387,7 +387,7 @@
             // === Modal: Show for Edit ===
             $('#approvertable').on('click', '.action-btn-hover', function (e) {
                 e.preventDefault();
-                
+
                 // Check if this is edit button (btn-secondary) or delete button (btn-danger)
                 if ($(this).hasClass('btn-secondary')) {
                     // Edit functionality
@@ -534,26 +534,26 @@
             function initActionTooltips() {
                 // Remove any existing event handlers to prevent duplicates
                 $(document).off('mouseenter.customTooltip mouseleave.customTooltip', '.action-btn-hover');
-                
+
                 $(document).on('mouseenter.customTooltip', '.action-btn-hover', function(e) {
                     const tooltipText = $(this).attr('data-tooltip');
                     if (tooltipText && !$(this).data('tooltip-element')) {
                         const tooltip = $('<div class="action-tooltip">' + tooltipText + '</div>');
                         $('body').append(tooltip);
-                        
+
                         const button = $(this);
                         let isDestroyed = false;
-                        
+
                         // Function to update tooltip position
                         function updateTooltipPosition() {
                             if (isDestroyed || !button.is(':visible') || !tooltip.parent().length) {
                                 return;
                             }
-                            
+
                             // Get button position
                             const buttonOffset = button.offset();
                             if (!buttonOffset) return;
-                            
+
                             const buttonWidth = button.outerWidth();
                             const buttonHeight = button.outerHeight();
                             const tooltipWidth = tooltip.outerWidth();
@@ -561,18 +561,18 @@
                             const windowWidth = $(window).width();
                             const windowHeight = $(window).height();
                             const scrollTop = $(window).scrollTop();
-                            
+
                             // Calculate position
                             let left = buttonOffset.left + (buttonWidth / 2) - (tooltipWidth / 2);
                             let top = buttonOffset.top - tooltipHeight - 12;
-                            
+
                             // Horizontal bounds checking
                             if (left < 10) {
                                 left = 10;
                             } else if (left + tooltipWidth > windowWidth - 10) {
                                 left = windowWidth - tooltipWidth - 10;
                             }
-                            
+
                             // Vertical bounds checking
                             if (top < scrollTop + 10) {
                                 top = buttonOffset.top + buttonHeight + 12;
@@ -580,7 +580,7 @@
                             } else {
                                 tooltip.removeClass('below');
                             }
-                            
+
                             tooltip.css({
                                 position: 'absolute',
                                 left: left + 'px',
@@ -588,28 +588,28 @@
                                 zIndex: 9999
                             });
                         }
-                        
+
                         // Initial positioning
                         setTimeout(() => {
                             updateTooltipPosition();
                         }, 10);
-                        
+
                         // Show tooltip with delay
                         setTimeout(() => {
                             if (!isDestroyed) {
                                 tooltip.addClass('show');
                             }
                         }, 100);
-                        
+
                         // Store tooltip element and update function
                         button.data('tooltip-element', tooltip);
                         button.data('update-tooltip-position', updateTooltipPosition);
                         button.data('tooltip-destroyed', false);
-                        
+
                         // Create unique namespace for this tooltip
                         const tooltipId = 'tooltip_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
                         button.data('tooltip-id', tooltipId);
-                        
+
                         // Listen for scroll events with throttling
                         let scrollTimeout;
                         function throttledUpdate() {
@@ -622,12 +622,12 @@
                                 }
                             }, 10);
                         }
-                        
+
                         $(window).on('scroll.' + tooltipId + ' resize.' + tooltipId, throttledUpdate);
                         $('.dataTables_scrollBody').on('scroll.' + tooltipId, throttledUpdate);
                         $('.table-responsive').on('scroll.' + tooltipId, throttledUpdate);
                         $('#approvertable_wrapper').on('scroll.' + tooltipId, throttledUpdate);
-                        
+
                         // Store cleanup function
                         button.data('tooltip-cleanup', function() {
                             isDestroyed = true;
@@ -641,25 +641,25 @@
                         });
                     }
                 });
-                
+
                 $(document).on('mouseleave.customTooltip', '.action-btn-hover', function(e) {
                     const button = $(this);
                     const tooltip = button.data('tooltip-element');
                     const cleanup = button.data('tooltip-cleanup');
-                    
+
                     if (tooltip) {
                         button.data('tooltip-destroyed', true);
-                        
+
                         tooltip.removeClass('show');
                         setTimeout(() => {
                             tooltip.remove();
                         }, 200);
-                        
+
                         // Execute cleanup
                         if (cleanup) {
                             cleanup();
                         }
-                        
+
                         // Clear all data
                         button.removeData('tooltip-element');
                         button.removeData('update-tooltip-position');
@@ -669,12 +669,12 @@
                     }
                 });
             }
-            
+
             // Initialize tooltips after DataTable is ready
             table.on('draw', function() {
                 initActionTooltips();
             });
-            
+
             // Initialize tooltips for the first load
             initActionTooltips();
         });

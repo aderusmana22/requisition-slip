@@ -86,13 +86,19 @@ class SampleController extends Controller
         if ($user->hasRole('super-admin')) {
             $allowedSubCategories = ['Packaging', 'Finished Goods', 'Special Order'];
         } else {
-            if (in_array($userAccount, ['5300', '5302'])) {
+            if (in_array($userAccount, ['5300'])) {
                 $allowedSubCategories[] = 'Packaging';
+                $allowedSubCategories[] = 'Finished Goods';
+                $allowedSubCategories[] = 'Special Order';
+            }
+
+            if ($userDepartmentName === 'QM & HSE') {
                 $allowedSubCategories[] = 'Finished Goods';
             }
 
-            if ($userDepartmentName === 'Sales & Marketing') {
-                $allowedSubCategories[] = 'Special Order';
+            if ($userDepartmentName === 'R&D') {
+                $allowedSubCategories[] = 'Packaging';
+                $allowedSubCategories[] = 'Finished Goods';
             }
         }
 
@@ -258,7 +264,6 @@ class SampleController extends Controller
         try {
             $validated = $request->validated();
             $user = Auth::user();
-            $isSpecialOrder = $validated['sub_category'] === 'Special Order';
 
             $requisition = Requisition::create([
                 'requester_nik' => $user->nik,
@@ -271,7 +276,7 @@ class SampleController extends Controller
                 'sub_category' => $validated['sub_category'],
                 'objectives' => $validated['objectives'],
                 'estimated_potential' => $validated['estimated_potential'],
-                'print_batch' => $validated['print_batch'],
+                'print_batch' => $validated['print_batch'] ?? false,
                 'status' => 'Pending',
                 'route_to' => 'N/A',
             ]);
@@ -321,20 +326,38 @@ class SampleController extends Controller
                 ]);
             }
 
-            Log::info("Mencari approval path untuk: SAMPLE / {$validated['sub_category']}");
+             Log::info("Mencari approval path untuk: SAMPLE / {$validated['sub_category']}");
             $approvalPath = ApprovalPath::where('category', 'SAMPLE')
                 ->where('sub_category', $validated['sub_category'])
                 ->first();
 
             if ($approvalPath && !empty($approvalPath->sequence_approvers)) {
-                Log::info("Approval path ditemukan untuk Requisition #{$requisition->id}. Approver NIKs: " . implode(', ', $approvalPath->sequence_approvers));
+                Log::info("Approval path ditemukan untuk Requisition #{$requisition->id}.");
 
-                $firstApproverNik = $approvalPath->sequence_approvers[0];
+                $firstApproverNik = null;
+                $requesterDepartmentId = $user->department_id;
+
+                if ($validated['sub_category'] === 'Finished Goods' && $requesterDepartmentId) {
+                    $potentialApprovers = User::whereIn('nik', $approvalPath->sequence_approvers)
+                                            ->where('is_head', true)
+                                            ->where('department_id', $requesterDepartmentId)
+                                            ->first();
+
+                    if ($potentialApprovers) {
+                        $firstApproverNik = $potentialApprovers->nik;
+                        Log::info("Finished Goods: Approver pertama ditentukan berdasarkan departemen requester (NIK: {$firstApproverNik}).");
+                    } else {
+                        Log::warning("Finished Goods: Tidak ditemukan kepala departemen yang cocok di dalam approval path untuk departemen ID: {$requesterDepartmentId}. Menggunakan approver pertama dari sequence.");
+                        $firstApproverNik = $approvalPath->sequence_approvers[0];
+                    }
+                } else {
+                    $firstApproverNik = $approvalPath->sequence_approvers[0];
+                    Log::info("Approver pertama ditentukan dari sequence (NIK: {$firstApproverNik}).");
+                }
+
                 $firstApprover = User::where('nik', $firstApproverNik)->first();
 
                 if ($firstApprover) {
-                    Log::info("Approver pertama (NIK: {$firstApproverNik}) ditemukan: {$firstApprover->name}.");
-
                     $requisition->update([
                         'status' => 'Pending',
                         'route_to' => $firstApprover->name
@@ -347,22 +370,20 @@ class SampleController extends Controller
                         'level'          => 1,
                         'token'          => Str::uuid()->toString(),
                     ]);
-                    Log::info("ApprovalLog berhasil dibuat untuk Requisition #{$requisition->id}.");
 
                     sendSample::dispatch($requisition, $firstApprover, $approvalLog->token);
-                    Log::info("Job pengiriman email untuk Requisition #{$requisition->id} telah di-dispatch ke queue.");
+                    Log::info("Job pengiriman email untuk Requisition #{$requisition->id} telah di-dispatch.");
 
                 } else {
                     $requisition->update(['status' => 'Completed', 'route_to' => 'Error: Approver Not Found']);
-                    Log::warning("Approver dengan NIK {$firstApproverNik} tidak ditemukan untuk Requisition ID {$requisition->id}.");
+                    Log::warning("Approver dengan NIK {$firstApproverNik} tidak ditemukan.");
                 }
             } else {
                 $requisition->update(['status' => 'Completed', 'route_to' => 'Finished (No Path)']);
-                Log::warning("Tidak ada approval path yang cocok untuk Sample/{$validated['sub_category']}. Auto-complete Requisition ID {$requisition->id}.");
+                Log::warning("Tidak ada approval path yang cocok. Auto-complete Requisition ID {$requisition->id}.");
             }
 
             DB::commit();
-            Log::info("Transaksi untuk Requisition #{$requisition->id} berhasil di-commit.");
             $nextSrsNumber = $this->generateSrsNumber();
 
             return response()->json([
@@ -589,7 +610,7 @@ class SampleController extends Controller
             $requisition = $approvalLog->requisition->load('customer');
             $action = $validated['action'];
             $notes = ($action === 'approve') ? 'Approved without notes' : $validated['notes'];
-            $approverName = $approvalLog->approver->name;
+            $approverName = $approvalLog->approver->name ?? 'Unknown Approver';
 
             $newStatus = '';
 
@@ -612,57 +633,101 @@ class SampleController extends Controller
                 }
             } else {
                 $approvalPath = ApprovalPath::where('category', $requisition->category)
-                    ->where('sub_category', $requisition->sub_category)
-                    ->first();
+                ->where('sub_category', $requisition->sub_category)
+                ->first();
 
-                $approvers = $approvalPath->sequence_approvers ?? [];
-                $nextLevel = $approvalLog->level + 1;
+                $approversSequence = $approvalPath->sequence_approvers ?? [];
+                $currentLevel = $approvalLog->level;
+                $nextApproverNik = null;
+                $nextApproverLevel = null;
 
-                if (isset($approvers[$nextLevel - 1])) {
-                    $nextApproverNik = $approvers[$nextLevel - 1];
+                if ($requisition->sub_category === 'Finished Goods' && $approvalLog->approver && $approvalLog->approver->is_head) {
+                    Log::info("Head of Dept (NIK: {$approvalLog->approver->nik}) telah approve. Mencari approver NON-KEPALA selanjutnya.");
+
+                for ($i = $currentLevel; $i < count($approversSequence); $i++) {
+                        $potentialNik = $approversSequence[$i];
+                        $potentialApprover = User::where('nik', $potentialNik)->first();
+
+                        if ($potentialApprover && !$potentialApprover->is_head) {
+                            $nextApproverNik = $potentialApprover->nik;
+                            $nextApproverLevel = $i + 1;
+                            Log::info("Approver non-kepala selanjutnya ditemukan di level {$nextApproverLevel}: NIK {$nextApproverNik}");
+                            break;
+                        }
+                    }
+                } else {
+                    if (isset($approversSequence[$currentLevel])) {
+                        $nextApproverNik = $approversSequence[$currentLevel];
+                        $nextApproverLevel = $currentLevel + 1;
+                    }
+                }
+
+                if ($nextApproverNik) {
                     $nextApprover = User::where('nik', $nextApproverNik)->first();
-
                     if ($nextApprover) {
-                        $requisition->update(['status' => 'In Progress', 'route_to' => $nextApprover->name]);
                         $newStatus = 'In Progress';
+                        $requisition->update(['status' => $newStatus, 'route_to' => $nextApprover->name]);
+
                         $newLog = ApprovalLog::create([
-                            'requisition_id' => $requisition->id, 'approver_nik' => $nextApprover->nik,
-                            'status' => 'Pending', 'level' => $nextLevel, 'token' => Str::uuid()->toString(),
+                            'requisition_id' => $requisition->id,
+                            'approver_nik'   => $nextApprover->nik,
+                            'status'         => 'Pending',
+                            'level'          => $nextApproverLevel,
+                            'token'          => Str::uuid()->toString(),
                         ]);
                         sendSample::dispatch($requisition, $nextApprover, $newLog->token);
                     } else {
-                        throw new \Exception("Next approver user (NIK: {$nextApproverNik}) not found.");
+                        throw new \Exception("User approver selanjutnya dengan NIK: {$nextApproverNik} tidak ditemukan.");
                     }
                 } else {
-                    $requisition->update(['status' => 'Approved', 'route_to' => 'Finished (Approved)']);
                     $newStatus = 'Approved';
-                }
-                if ($requisition->sub_category === 'Special Order') {
-                    $qaUsers = User::whereHas('department', function ($query) {
-                        $query->where('name', 'QM & HSE');
-                    })->get();
+                    $requisition->update(['status' => $newStatus, 'route_to' => 'Finished (Approved)']);
 
-                    if ($qaUsers->isNotEmpty()) {
-                        Log::info("Notifikasi untuk melengkapi form dikirim ke {$qaUsers->count()} user QM & HSE untuk Requisition #{$requisition->id}.");
+                    if ($requisition->sub_category === 'Special Order' && $newStatus === 'Approved') {
+                        $qaUsers = User::whereHas('department', function ($query) {
+                            $query->where('name', 'QM & HSE');
+                        })->get();
+
+                        if ($qaUsers->isNotEmpty()) {
+                            Log::info("Notifikasi untuk melengkapi form dikirim ke {$qaUsers->count()} user QM & HSE untuk Requisition #{$requisition->id}.");
+                        }
                     }
                 }
             }
 
             DB::commit();
 
-            return response()->json([
-                'success'       => true,
-                'message'       => 'Your response has been successfully recorded.',
-                'no_srs'        => $requisition->no_srs,
-                'customer_name' => $requisition->customer->name ?? 'N/A',
-                'approver_name' => $approverName,
-                'new_status'    => $newStatus,
-            ]);
+            $actionText = ucfirst($action);
+            if ($action === 'review') $actionText = 'Approved with Review';
+
+            $cardClass = 'success';
+            if ($action === 'review') $cardClass = 'review';
+            if ($action === 'reject') $cardClass = 'reject';
+
+            return redirect()->route('approval.success')
+                ->with('card_class', $cardClass)
+                ->with('title', $actionText . ' Submitted')
+                ->with('message', 'Your response has been successfully recorded.')
+                ->with('no_srs', $requisition->no_srs)
+                ->with('customer_name', $requisition->customer->name ?? 'N/A')
+                ->with('action_text', $actionText)
+                ->with('approver_name', $approverName)
+                ->with('new_status', $newStatus)
+                ->with('action', $action);
 
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error("Failed to process approval: " . $e->getMessage() . " in " . $e->getFile() . " line " . $e->getLine());
             return response()->json(['success' => false, 'message' => 'A system error occurred. Please contact the administrator.'], 500);
         }
+    }
+
+    public function showSuccessPage()
+    {
+        if (!session('title')) {
+            return redirect('/');
+        }
+
+        return view('page.sample.response-success');
     }
 }

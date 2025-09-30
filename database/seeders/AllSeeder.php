@@ -66,11 +66,11 @@ class AllSeeder extends Seeder
         Permission::create(['name' => 'view approval-sequence']);
         Permission::create(['name' => 'update approval-sequence']);
         Permission::create(['name' => 'delete approval-sequence']);
-        
+
         Permission::create(['name' => 'view requisition-approval']);
         Permission::create(['name' => 'approve requisition']);
         Permission::create(['name' => 'reject requisition']);
-        
+
         Permission::create(['name' => 'view dashboard']);
 
         $now = Carbon::now();
@@ -234,33 +234,70 @@ class AllSeeder extends Seeder
 
         $userApproval->assignRole($approvalRole);
 
-        $headQAUser = User::updateOrCreate(
-            ['email' => 'head-qa@example.com'],
-            [
-                'name' => 'Head QA',
-                'nik' => 'AG4444',
-                'username' => 'head-qa',
-                'email' => 'head-qa@example.com',
-                'password' => Hash::make('password'),
-                'email_verified_at' => now(),
-                'department_id' => 5,
-                'status' => 'active',
-                'atasan_nik' => 'AG1111',
-                'avatar' => null,
-            ]
-        );
-        $headQAUser->assignRole($headQA);
-
         $departmentHeads = [
-            ['name' => 'Head Engineering', 'nik' => 'HD0001', 'username' => 'head.eng', 'email' => 'head.eng@example.com', 'department_id' => 1],
-            ['name' => 'Head Finance', 'nik' => 'HD0002', 'username' => 'head.fin', 'email' => 'head.fin@example.com', 'department_id' => 2],
-            ['name' => 'Head HCD', 'nik' => 'HD0003', 'username' => 'head.hcd', 'email' => 'head.hcd@example.com', 'department_id' => 3],
-            ['name' => 'Head Manufacturing', 'nik' => 'HD0004', 'username' => 'head.mfg', 'email' => 'head.mfg@example.com', 'department_id' => 4],
-            ['name' => 'Head QM & HSE', 'nik' => 'HD0005', 'username' => 'head.qm', 'email' => 'head.qm@example.com', 'department_id' => 5],
-            ['name' => 'Head R&D', 'nik' => 'HD0006', 'username' => 'head.rd', 'email' => 'head.rd@example.com', 'department_id' => 6],
-            ['name' => 'Head Sales & Marketing', 'nik' => 'HD0007', 'username' => 'head.sales', 'email' => 'head.sales@example.com', 'department_id' => 7],
-            ['name' => 'Head Supply Chain', 'nik' => 'HD0008', 'username' => 'head.sc', 'email' => 'head.sc@example.com', 'department_id' => 8],
-            ['name' => 'Head Supply & Maintenance', 'nik' => 'HD0009', 'username' => 'head.sm', 'email' => 'head.sm@example.com', 'department_id' => 9],
+            [
+                'name' => 'Head Engineering',
+                'nik' => 'HD0001',
+                'username' => 'head.eng',
+                'email' => 'head.eng@example.com',
+                'department_id' => 1,
+            ],
+            [
+                'name' => 'Head Finance',
+                'nik' => 'HD0002',
+                'username' => 'head.fin',
+                'email' => 'head.fin@example.com',
+                'department_id' => 2,
+            ],
+            [
+                'name' => 'Head HCD',
+                'nik' => 'HD0003',
+                'username' => 'head.hcd',
+                'email' => 'head.hcd@example.com',
+                'department_id' => 3,
+            ],
+            [
+                'name' => 'Head Manufacturing',
+                'nik' => 'HD0004',
+                'username' => 'head.mfg',
+                'email' => 'head.mfg@example.com',
+                'department_id' => 4,
+            ],
+            [
+                'name' => 'Head QM & HSE',
+                'nik' => 'HD0005',
+                'username' => 'head.qm',
+                'email' => 'head.qm@example.com',
+                'department_id' => 5,
+            ],
+            [
+                'name' => 'Head R&D',
+                'nik' => 'HD0006',
+                'username' => 'head.rd',
+                'email' => 'head.rd@example.com',
+                'department_id' => 6,
+            ],
+            [
+                'name' => 'Head Sales & Marketing',
+                'nik' => 'HD0007',
+                'username' => 'head.sales',
+                'email' => 'head.sales@example.com',
+                'department_id' => 7,
+            ],
+            [
+                'name' => 'Head Supply Chain',
+                'nik' => 'HD0008',
+                'username' => 'head.sc',
+                'email' => 'head.sc@example.com',
+                'department_id' => 8,
+            ],
+            [
+                'name' => 'Head Supply & Maintenance',
+                'nik' => 'HD0009',
+                'username' => 'head.sm',
+                'email' => 'head.sm@example.com',
+                'department_id' => 9,
+            ],
         ];
 
         foreach ($departmentHeads as $head) {
@@ -275,6 +312,7 @@ class AllSeeder extends Seeder
                     'department_id' => $head['department_id'],
                     'status' => 'active',
                     'atasan_nik' => 'AG1111',
+                    'avatar' => null,
                 ]
             );
             $user->assignRole($approvalRole);
@@ -293,7 +331,51 @@ class AllSeeder extends Seeder
                 'atasan_nik' => 'HD0001',
             ]
         );
+
         $anotherUserRequisition->assignRole($userRequisitionRole);
+
+        // Users for Warehouse roles
+        $warehouseUsers = [
+            [
+                'name' => 'Inward WH Supervisor',
+                'nik' => 'WH0001',
+                'username' => 'inward.wh',
+                'email' => 'inward.wh@example.com',
+                'department_id' => 8, // Asumsi Dept. Supply Chain
+            ],
+            [
+                'name' => 'Material Support Supervisor',
+                'nik' => 'MS0001',
+                'username' => 'material.support',
+                'email' => 'material.support@example.com',
+                'department_id' => 8, // Asumsi Dept. Supply Chain
+            ],
+            [
+                'name' => 'Outward WH Supervisor',
+                'nik' => 'WH0002',
+                'username' => 'outward.wh',
+                'email' => 'outward.wh@example.com',
+                'department_id' => 8, // Asumsi Dept. Supply Chain
+            ],
+        ];
+
+        foreach ($warehouseUsers as $whUser) {
+            $user = User::updateOrCreate(
+                ['email' => $whUser['email']],
+                [
+                    'name' => $whUser['name'],
+                    'nik' => $whUser['nik'],
+                    'username' => $whUser['username'],
+                    'password' => Hash::make('password'),
+                    'email_verified_at' => now(),
+                    'department_id' => $whUser['department_id'],
+                    'status' => 'active',
+                    'atasan_nik' => 'AG1111', // Ganti dengan NIK atasan yang sesuai
+                ]
+            );
+            // Beri role yang sesuai, misalnya user-requisition agar bisa login
+            $user->assignRole('user-requisition');
+        }
     }
 
 }

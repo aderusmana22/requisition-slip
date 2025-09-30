@@ -35,7 +35,7 @@ class mailSample extends Mailable
     {
         return new Envelope(
             from: new Address(config('mail.from.address'), config('mail.from.name')),
-            subject: 'Permintaan Persetujuan Requisition Sample: ' . $this->requisition->no_srs,
+            subject: 'Request Requisition Sample: ' . $this->requisition->no_srs,
         );
     }
 

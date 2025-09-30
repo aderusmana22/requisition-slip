@@ -19,6 +19,7 @@ Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
+// Route::get('/approval/process/{token}', [ApprovalController::class, 'processApproval'])->name('approval.process');
 Route::get('/approval', [ComplainController::class, 'processApproval'])->name('approval.process');
 Route::get('/complain/approval/review', [ComplainController::class, 'showReviewPage'])->name('complain.approval.review');
 Route::post('/complain/approval/process', [ComplainController::class, 'processApproval'])->name('complain.approval.process');
@@ -43,6 +44,7 @@ Route::get('/approver-name', [RequisitionPath::class, 'approverName'])->name('ge
 
 Route::get('/approval/response/{token}', [SampleController::class, 'showResponseForm'])->name('approval.response');
 Route::post('/approval/process', [SampleController::class, 'processApproval'])->name('approval.process');
+Route::get('/approval/success', [SampleController::class, 'showSuccessPage'])->name('approval.success');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
