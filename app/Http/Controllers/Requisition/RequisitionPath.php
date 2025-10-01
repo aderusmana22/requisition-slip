@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Spatie\Permission\Models\Role;
 
 class RequisitionPath extends Controller
 {
@@ -74,8 +75,7 @@ class RequisitionPath extends Controller
 
     public function approverName()
     {
-        $roles = ['head-SNM', 'head-R&D', 'head-QA', 'head-HCD'];
-        $name = User::role($roles)->pluck('name', 'nik');
+        $name = Role::pluck('name' ,'name');
         return response()->json(['approverName' => $name]);
     }
 
