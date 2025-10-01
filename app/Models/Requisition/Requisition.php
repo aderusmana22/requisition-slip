@@ -35,6 +35,7 @@ class Requisition extends Model
         'request_date' => 'date',
         'end_date' => 'date',
         'print_batch' => 'boolean',
+
     ];
 
     // Relasi ke Customer
@@ -54,7 +55,6 @@ class Requisition extends Model
     {
         return $this->hasMany(RequisitionItem::class, 'requisition_id');
     }
-
 
     // Relasi ke User (requester)
     public function requester()
