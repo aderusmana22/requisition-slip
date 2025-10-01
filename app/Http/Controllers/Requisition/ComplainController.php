@@ -17,6 +17,7 @@ use App\Models\Requisition\Payment;
 use App\Models\Requisition\Requisition;
 use App\Models\Requisition\RequisitionItem;
 use App\Models\User;
+use App\Traits\HasApprovalPath;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;    
@@ -27,6 +28,8 @@ use function Pest\Laravel\json;
 
 class ComplainController extends Controller
 {
+    use HasApprovalPath;
+
     /**
      * Helper method to format datetime to Indonesian timezone
      */
@@ -61,16 +64,9 @@ class ComplainController extends Controller
     {
         $validated = $request->validated();
         $user = Auth::user();
-        $headsQA = User::role('head-QA')->first();
 
         if (!$user) {
             return response()->json(['message' => 'User belum login.'], 401);
-        }
-        if (!$user->atasan) {
-            return response()->json(['message' => 'Atasan tidak ditemukan. Coba hubungi admin.'], 400);
-        }
-        if (!$headsQA) {
-            return response()->json(['message' => 'head QA tidak ditemukan. Coba hubungi admin.'], 400);
         }
 
         // Debug log untuk print_batch dengan null safety
@@ -83,7 +79,7 @@ class ComplainController extends Controller
         try{
             $approvalLogs = [];
             
-            DB::transaction(function () use ($validated, $user, &$approvalLogs, $headsQA) {
+            DB::transaction(function () use ($validated, $user, &$approvalLogs) {
         
             $requisition = Requisition::create([
                 'requester_nik' => $user->nik,
@@ -95,77 +91,41 @@ class ComplainController extends Controller
                 'category' => 'Complain',
                 'status' => 'Pending',
                 'objectives' => $validated['objectives'] ?? null,
-                'route_to' => $headsQA->name,
+                'route_to' => null, // Akan di-set setelah generate approval logs
                 'print_batch' => isset($validated['print_batch']) ? (bool) $validated['print_batch'] : false,
             ]);
 
-            // Insert approval log untuk head QA (level 1)
-            $headsQAApprovalLog = ApprovalLog::create([
-                'requisition_id' => $requisition->id,
-                'approver_nik' => $headsQA->nik,
-                'status' => 'Pending',
-                'level' => 1,
-                'token' => bin2hex(random_bytes(16)),
-                'notes' => null,
-            ]);
+            // Generate approval logs menggunakan trait HasApprovalPath
+            $generatedLogs = $this->generateApprovalLogs($user, $requisition->id, 'Complain');
             
-            // Simpan approval log untuk job dispatch nanti
-            $approvalLogs[] = [
-                'approval_log' => $headsQAApprovalLog,
-                'approver' => $headsQA,
-                'requisition' => $requisition
-            ];
+            if ($generatedLogs->isEmpty()) {
+                throw new \Exception('Tidak ada approval path yang ditemukan untuk kategori Complain.');
+            }
 
-            // Insert approval log untuk atasan (level 2)
-            $atasanApprovalLog = ApprovalLog::create([
-                'requisition_id' => $requisition->id,
-                'approver_nik' => $user->atasan->nik,
-                'status' => 'Pending',
-                'level' => 2,
-                'token' => bin2hex(random_bytes(16)),
-                'notes' => null,
-            ]);
-            
-            // Simpan approval log untuk job dispatch nanti
-            $approvalLogs[] = [
-                'approval_log' => $atasanApprovalLog,
-                'approver' => $user->atasan,
-                'requisition' => $requisition
-            ];
-
-            // Ambil approval path untuk kategori Complain
-            $approvalPath = ApprovalPath::where('category', 'Complain')->first();
-            
-            if ($approvalPath && !empty($approvalPath->sequence_approvers)) {
-                $approvers = $approvalPath->sequence_approvers;
-                
-                for ($i = 0; $i < count($approvers); $i++) {
-                    $approverNik = $approvers[$i];
-                    $level = $i + 3;
+            // Convert generated logs ke format yang dibutuhkan untuk job dispatch
+            foreach ($generatedLogs as $logData) {
+                $approver = User::where('nik', $logData['approver_nik'])->first();
+                if ($approver) {
+                    $approvalLog = ApprovalLog::where('requisition_id', $requisition->id)
+                        ->where('approver_nik', $logData['approver_nik'])
+                        ->where('level', $logData['level'])
+                        ->first();
                     
-                    $approver = User::where('nik', $approverNik)->first();
-                    if ($approver) {
-                        $approverApprovalLog = ApprovalLog::create([
-                            'requisition_id' => $requisition->id,
-                            'approver_nik' => $approverNik,
-                            'status' => 'Pending',
-                            'level' => $level,
-                            'token' => bin2hex(random_bytes(16)),
-                            'notes' => null,
-                        ]);
-                        
-                        // Simpan approval log untuk job dispatch nanti
+                    if ($approvalLog) {
                         $approvalLogs[] = [
-                            'approval_log' => $approverApprovalLog,
+                            'approval_log' => $approvalLog,
                             'approver' => $approver,
                             'requisition' => $requisition
                         ];
-                    }else{
-                        throw new \Exception("Approver dengan NIK $approverNik tidak ditemukan.");
                     }
                 }
-            }else{
-                throw new \Exception('Approval path untuk kategori Complain tidak ditemukan.');
+            }
+
+            // Set route_to ke approver pertama (level 1)
+            $firstApprover = $approvalLogs[0]['approver'] ?? null;
+            if ($firstApprover) {
+                $requisition->route_to = $firstApprover->name;
+                $requisition->save();
             }
 
             $requisitionitems = [];

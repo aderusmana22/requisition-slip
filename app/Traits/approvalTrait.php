@@ -39,7 +39,7 @@ trait HasApprovalPath
                     $logs->push([
                         'requisition_id' => $requisitionId,
                         'approver_nik'   => $requester->atasan_nik,
-                        'status'         => 'pending',
+                        'status'         => 'Pending',
                         'level'          => $level,
                         'token'          => bin2hex(random_bytes(16)),
                         'notes'          => null,
@@ -57,7 +57,7 @@ trait HasApprovalPath
                     $logs->push([
                         'requisition_id' => $requisitionId,
                         'approver_nik'   => $user->nik,
-                        'status'         => 'pending',
+                        'status'         => 'Pending',
                         'level'          => $level,
                         'token'          => bin2hex(random_bytes(16)),
                         'notes'          => null,
