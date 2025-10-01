@@ -25,7 +25,7 @@ class approvalpathRequest extends FormRequest
             'category_id' => 'required|string|max:15',
             'sub_category_id' => 'nullable|string|max:15',
             'approvers' => 'required|array|min:1',
-            'approvers.*' => 'required|string|exists:users,nik',
+            'approvers.*' => 'required|string|exists:roles,name',
         ];
     }
 

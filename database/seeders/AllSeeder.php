@@ -214,6 +214,12 @@ class AllSeeder extends Seeder
             'update requisition', 
             'delete requisition']);
 
+        $atasanRole = Role::create(['name' => 'atasan']);
+        $atasanRole->givePermissionTo([
+            'view requisition-approval', 
+            'approve requisition', 
+            'reject requisition']);
+
         //! Create Users and Assign Roles
 
         //* Sales & Marketing Users
@@ -387,6 +393,19 @@ class AllSeeder extends Seeder
             'atasan_nik' => 'HDHCD01',
         ]);
         $staffHcd2->assignRole($staffHcdRole);
+
+        $atasan1 = User::updateOrCreate([
+            'email' => 'atasan1@example.com'],[
+            'name' => 'Atasan 1',
+            'nik' => 'ATASAN01',
+            'username' => 'atasan1',
+            'password' => Hash::make('password'),
+            'email_verified_at' => now(),
+            'department_id' => 1,
+            'status' => 'active',
+            'atasan_nik' => 'AG1111',
+        ]);
+        $atasan1->assignRole($atasanRole);
 
         // Lets give all permission to super-admin role.
         $allPermissionNames = Permission::pluck('name')->toArray();
