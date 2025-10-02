@@ -13,7 +13,7 @@ use App\Models\Master\ItemDetail;
 use App\Models\Requisition\Requisition;
 use App\Models\Requisition\RequisitionItem;
 use App\Models\Requisition\RequisitionSpecial;
-use App\Models\Requisition\ApprovalPath;
+use App\Models\Requisition\Tracking;
 use App\Models\User;
 use App\Models\Requisition\ApprovalLog;
 use Illuminate\Support\Str;
@@ -24,9 +24,12 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Yajra\DataTables\Facades\DataTables;
+use App\Traits\ApprovalTrait;
 
 class SampleController extends Controller
 {
+    use ApprovalTrait;
+
     private function generateSrsNumber()
     {
         $prefix = 'S';
@@ -189,6 +192,7 @@ class SampleController extends Controller
 
     public function show($id)
     {
+        // [DIPERBAIKI] Eager load relasi trackings
         $requisition = Requisition::with([
             'customer:id,name,address',
             'requester:nik,name,email',
@@ -196,60 +200,46 @@ class SampleController extends Controller
             'requisitionItems.itemMaster:id,item_master_code,item_master_name,unit',
             'requisitionItems.itemDetail:id,item_detail_code,item_detail_name,unit',
             'requisitionSpecial',
-            'approvalLogs:id,requisition_id,approver_nik,status,notes,updated_at',
-            'approvalLogs.approver:nik,name'
+            'approvalLogs:id,requisition_id,approver_nik,status,notes,updated_at,level',
+            'approvalLogs.approver:nik,name',
+            'trackings' // Load data tracking
         ])->findOrFail($id);
 
         $trackingHistory = [];
 
+        // 1. Tambahkan log pembuatan
         $trackingHistory[] = [
             'status' => 'Request Created',
             'user' => $requisition->requester->name ?? 'N/A',
             'date' => $requisition->created_at->format('d M Y, H:i'),
             'notes' => 'Sample Requisition form was created.',
-            'icon' => 'fa-solid fa-file-circle-plus',
-            'color' => 'bg-secondary'
         ];
 
-        foreach ($requisition->approvalLogs as $log) {
-            $statusText = '';
+        // 2. Proses semua approval logs dari approval path
+        foreach ($requisition->approvalLogs->where('level', '<=', 100) as $log) {
+            $statusText = 'Approval ' . $log->status;
             $userText = $log->approver->name ?? 'Unknown Approver';
-            $dateText = $log->updated_at ? $log->updated_at->format('d M Y, H:i') : $requisition->updated_at->format('d M Y, H:i');
+            $dateText = $log->updated_at ? $log->updated_at->format('d M Y, H:i') : '-';
             $notesText = $log->notes ?? '';
-            $icon = 'fa-solid fa-clock';
-            $color = 'bg-info';
 
-            switch ($log->status) {
-                case 'Pending':
-                    $statusText = 'Sent for Approval';
-                    $notesText = 'Waiting for approval from ' . $userText;
-                    $icon = 'fa-solid fa-paper-plane';
-                    $color = 'bg-primary';
-                    break;
-                case 'Approved':
-                    $statusText = 'Approved';
-                    $notesText = $log->notes ?: 'Approved by ' . $userText;
-                    $icon = 'fa-solid fa-circle-check';
-                    $color = 'bg-success';
-                    break;
-                case 'Rejected':
-                    $statusText = 'Rejected';
-                    $notesText = $log->notes ?: 'Rejected by ' . $userText;
-                    $icon = 'fa-solid fa-circle-xmark';
-                    $color = 'bg-danger';
-                    break;
+            if ($log->status === 'Pending') {
+                 $notesText = 'Waiting for approval from ' . $userText;
             }
 
-            if ($statusText) {
-                 $trackingHistory[] = [
-                    'status' => $statusText,
-                    'user'   => $userText,
-                    'date'   => $dateText,
-                    'notes'  => $notesText,
-                    'icon'   => $icon,
-                    'color'  => $color,
-                ];
-            }
+            $trackingHistory[] = [
+                'status' => $statusText, 'user' => $userText,
+                'date' => $dateText, 'notes' => $notesText,
+            ];
+        }
+
+        // 3. Proses semua tracking logs untuk alur setelah approval
+        foreach ($requisition->trackings as $track) {
+            $trackingHistory[] = [
+                'status' => 'Processing',
+                'user' => $track->current_position,
+                'date' => $track->last_updated ? Carbon::parse($track->last_updated)->format('d M Y, H:i') : '-',
+                'notes' => $track->notes,
+            ];
         }
 
         $responseData = $requisition->toArray();
@@ -263,7 +253,7 @@ class SampleController extends Controller
         DB::beginTransaction();
         try {
             $validated = $request->validated();
-            $user = Auth::user();
+            $user = User::with('atasan')->find(Auth::id());
 
             $requisition = Requisition::create([
                 'requester_nik' => $user->nik,
@@ -282,21 +272,21 @@ class SampleController extends Controller
             ]);
 
             if ($validated['sub_category'] === 'Packaging') {
-                    $itemDetails = ItemDetail::whereIn('id', array_keys($validated['items']))->get()->keyBy('id');
-                    foreach ($validated['items'] as $itemDetailId => $itemData) {
-                        if (isset($itemDetails[$itemDetailId])) {
-                            $itemDetail = $itemDetails[$itemDetailId];
-                            RequisitionItem::create([
-                                'requisition_id' => $requisition->id,
-                                'item_master_id' => $itemDetail->item_master_id,
-                                'item_detail_id' => $itemDetail->id,
-                                'material_type' => $itemDetail->material_type,
-                                'quantity_required' => $itemData['quantity_required'],
-                                'quantity_issued' => $itemData['quantity_issued'] ?? null,
-                            ]);
-                        }
+                $itemDetails = ItemDetail::whereIn('id', array_keys($validated['items']))->get()->keyBy('id');
+                foreach ($validated['items'] as $itemDetailId => $itemData) {
+                    if (isset($itemDetails[$itemDetailId])) {
+                        $itemDetail = $itemDetails[$itemDetailId];
+                        RequisitionItem::create([
+                            'requisition_id' => $requisition->id,
+                            'item_master_id' => $itemDetail->item_master_id,
+                            'item_detail_id' => $itemDetail->id,
+                            'material_type' => $itemDetail->material_type,
+                            'quantity_required' => $itemData['quantity_required'],
+                            'quantity_issued' => $itemData['quantity_issued'] ?? null,
+                        ]);
                     }
-                } else { // Finished Goods & Special Order
+                }
+            } else { // Finished Goods & Special Order
                 foreach ($validated['items'] as $itemMasterId => $itemData) {
                     RequisitionItem::create([
                         'requisition_id' => $requisition->id,
@@ -314,7 +304,7 @@ class SampleController extends Controller
 
                 RequisitionSpecial::create([
                     'requisition_id' => $requisition->id,
-                    'products' => $productNames, // Simpan ringkasan nama produk
+                    'products' => $productNames,
                     'requested_date' => $validated['request_date'],
                     'end_date' => $validated['end_date'],
                     'weight_selection' => $validated['weight_selection'],
@@ -326,61 +316,31 @@ class SampleController extends Controller
                 ]);
             }
 
-             Log::info("Mencari approval path untuk: SAMPLE / {$validated['sub_category']}");
-            $approvalPath = ApprovalPath::where('category', 'SAMPLE')
-                ->where('sub_category', $validated['sub_category'])
-                ->first();
+            Log::info("Memulai proses approval untuk Requisition #{$requisition->id} menggunakan ApprovalTrait.");
 
-            if ($approvalPath && !empty($approvalPath->sequence_approvers)) {
-                Log::info("Approval path ditemukan untuk Requisition #{$requisition->id}.");
+            // Panggil fungsi dari trait untuk membuat semua log approval
+            $this->generateApprovalLogs($user, $requisition->id, 'SAMPLE', $validated['sub_category']);
 
-                $firstApproverNik = null;
-                $requesterDepartmentId = $user->department_id;
+            // Cari log pertama untuk dikirim email
+            $firstLog = ApprovalLog::where('requisition_id', $requisition->id)->orderBy('level', 'asc')->first();
 
-                if ($validated['sub_category'] === 'Finished Goods' && $requesterDepartmentId) {
-                    $potentialApprovers = User::whereIn('nik', $approvalPath->sequence_approvers)
-                                            ->where('is_head', true)
-                                            ->where('department_id', $requesterDepartmentId)
-                                            ->first();
-
-                    if ($potentialApprovers) {
-                        $firstApproverNik = $potentialApprovers->nik;
-                        Log::info("Finished Goods: Approver pertama ditentukan berdasarkan departemen requester (NIK: {$firstApproverNik}).");
-                    } else {
-                        Log::warning("Finished Goods: Tidak ditemukan kepala departemen yang cocok di dalam approval path untuk departemen ID: {$requesterDepartmentId}. Menggunakan approver pertama dari sequence.");
-                        $firstApproverNik = $approvalPath->sequence_approvers[0];
-                    }
-                } else {
-                    $firstApproverNik = $approvalPath->sequence_approvers[0];
-                    Log::info("Approver pertama ditentukan dari sequence (NIK: {$firstApproverNik}).");
-                }
-
-                $firstApprover = User::where('nik', $firstApproverNik)->first();
-
+            if ($firstLog) {
+                $firstApprover = User::where('nik', $firstLog->approver_nik)->first();
                 if ($firstApprover) {
-                    $requisition->update([
-                        'status' => 'Pending',
-                        'route_to' => $firstApprover->name
-                    ]);
+                    // Update 'route_to' ke approver pertama
+                    $requisition->update(['route_to' => $firstApprover->name]);
 
-                    $approvalLog = ApprovalLog::create([
-                        'requisition_id' => $requisition->id,
-                        'approver_nik'   => $firstApprover->nik,
-                        'status'         => 'Pending',
-                        'level'          => 1,
-                        'token'          => Str::uuid()->toString(),
-                    ]);
-
-                    sendSample::dispatch($requisition, $firstApprover, $approvalLog->token);
-                    Log::info("Job pengiriman email untuk Requisition #{$requisition->id} telah di-dispatch.");
-
+                    // Kirim email hanya ke approver pertama
+                    sendSample::dispatch($requisition, $firstApprover, $firstLog->token);
+                    Log::info("Job email dikirim ke approver pertama: {$firstApprover->name} (NIK: {$firstApprover->nik}).");
                 } else {
-                    $requisition->update(['status' => 'Completed', 'route_to' => 'Error: Approver Not Found']);
-                    Log::warning("Approver dengan NIK {$firstApproverNik} tidak ditemukan.");
+                    $requisition->update(['status' => 'Error', 'route_to' => 'Error: First Approver Not Found']);
+                    Log::error("Approver pertama dengan NIK {$firstLog->approver_nik} tidak ditemukan.");
                 }
             } else {
+                // Jika tidak ada alur approval yang dihasilkan oleh trait
                 $requisition->update(['status' => 'Completed', 'route_to' => 'Finished (No Path)']);
-                Log::warning("Tidak ada approval path yang cocok. Auto-complete Requisition ID {$requisition->id}.");
+                Log::warning("Tidak ada alur approval yang cocok. Auto-complete Requisition ID {$requisition->id}.");
             }
 
             DB::commit();
@@ -394,7 +354,7 @@ class SampleController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Gagal membuat sample requisition: ' . $e->getMessage() . ' di baris ' . $e->getLine());
+            Log::error('Gagal membuat sample requisition: ' . $e->getMessage() . ' di baris ' . $e->getLine() . ' di file ' . $e->getFile());
             return response()->json(['success' => false, 'message' => 'Terjadi kesalahan sistem. Silakan cek log.'], 500);
         }
     }
@@ -435,15 +395,14 @@ class SampleController extends Controller
 
     public function update(UpdateSampleRequisitionRequest $request, $id)
     {
-        $requisition = Requisition::findOrFail($id);
+        $requisition = Requisition::with('requester')->findOrFail($id); // Eager load requester
         $user = Auth::user();
         $userDepartmentName = $user->department?->name;
 
-        // Validasi otorisasi di awal untuk field khusus QA/QM
         if (
             !$user->hasRole('super-admin') &&
             $userDepartmentName !== 'QM & HSE' &&
-            ($request->has('source') || $request->has('production_date')) // Cek field QM
+            ($request->has('source') || $request->has('production_date'))
         ) {
             return response()->json([
                 'success' => false,
@@ -468,13 +427,14 @@ class SampleController extends Controller
                     ]
                 );
 
-                // 2. Jika requisition sudah disetujui, selesaikan
                 if ($requisition->status === 'Approved') {
-                    $requisition->update(['status' => 'Completed']);
+                    // Panggil helper untuk menyelesaikan proses dan mengirim notifikasi
+                    $this->notifyRequesterAsCompleted($requisition);
                     Log::info("Requisition #{$requisition->id} diselesaikan oleh QM & HSE.");
                 }
 
             } else {
+                // Logika update biasa (tidak diubah)
                 $requisition->update($validated);
                 $requisition->requisitionItems()->delete();
 
@@ -554,7 +514,8 @@ class SampleController extends Controller
     public function showResponseForm(Request $request, $token)
     {
         $action = $request->query('action');
-        $validActions = ['approve', 'review', 'reject'];
+        // Tambahkan 'submit' ke dalam aksi yang valid
+        $validActions = ['approve', 'review', 'reject', 'submit'];
 
         if (!in_array($action, $validActions)) {
             return view('page.sample.invalid', ['message' => 'Invalid action or incorrect link.']);
@@ -566,53 +527,52 @@ class SampleController extends Controller
             return view('page.sample.invalid', ['message' => 'This approval request is invalid or has already been processed.']);
         }
 
-        $requisition = $approvalLog->requisition->load([
-            'requester',
-            'customer',
-            'requisitionItems.itemMaster',
-            'requisitionItems.itemDetail',
-            'approvalLogs.approver'
-        ]);
+        $requisition = $approvalLog->requisition->load('requester', 'customer', 'requisitionItems.itemMaster', 'requisitionItems.itemDetail', 'approvalLogs.approver');
 
-        if ($action === 'approve') {
-            return view('page.sample.response-form', [
-                'token' => $token,
-                'action' => $action,
-                'requisition' => $requisition,
-            ]);
-        }
+        // [DIPERBAIKI] Cek apakah ini proses warehouse atau bukan (berdasarkan level)
+        $isWarehouseProcess = $approvalLog->level > 100;
+        $pageTitle = $isWarehouseProcess ? str_replace('Waiting for: ', '', $approvalLog->notes ?? 'Warehouse Process') : 'Approval Action';
 
-        return view('page.sample.response-form', [
+        $viewData = [
             'token' => $token,
             'action' => $action,
             'requisition' => $requisition,
-        ]);
+            'pageTitle' => $pageTitle,
+            'reviewRadioText' => $isWarehouseProcess ? 'Submit with Review' : 'Approve with Review',
+            'submitButtonText' => $isWarehouseProcess ? 'Submit Process' : 'Submit Approval with Review',
+        ];
+
+        // Jika aksinya adalah 'submit' dari WH, perlakukan seperti 'approve' agar form auto-submit
+        if ($action === 'submit') {
+            $viewData['action'] = 'approve';
+        }
+
+        return view('page.sample.response-form', $viewData);
     }
 
     public function processApproval(Request $request)
     {
         $validated = $request->validate([
             'token' => 'required|string|exists:approval_logs,token',
-            'action' => 'required|string|in:approve,review,reject',
+            'action' => 'required|string|in:approve,review,reject,submit',
             'notes' => 'nullable|string|max:500|required_if:action,review,reject',
-        ], [
-            'token.exists' => 'Approval token not found or already used.',
-            'notes.required_if' => 'Notes are required for review or reject actions.',
         ]);
 
         $approvalLog = ApprovalLog::where('token', $validated['token'])->where('status', 'Pending')->first();
         if (!$approvalLog) {
-            return response()->json(['success' => false, 'message' => 'This request has already been processed.'], 422);
+            return redirect()->route('approval.success')->with('card_class', 'reject')->with('title', 'Invalid Request')->withMessage('Permintaan ini sudah diproses atau tidak valid.');
         }
+
+        $requisitionForInfo = $approvalLog->requisition->load('customer');
 
         DB::beginTransaction();
         try {
-            $requisition = $approvalLog->requisition->load('customer');
+            $requisition = $approvalLog->requisition->load('customer', 'requester');
             $action = $validated['action'];
-            $notes = ($action === 'approve') ? 'Approved without notes' : $validated['notes'];
+            $notes = in_array($action, ['review', 'reject']) ? $validated['notes'] : ('Processed by ' . ($approvalLog->approver->name ?? 'N/A'));
             $approverName = $approvalLog->approver->name ?? 'Unknown Approver';
-
-            $newStatus = '';
+            $newStatus = 'In Progress';
+            $isWarehouseProcess = $approvalLog->level > 100;
 
             $approvalLog->update([
                 'status' => ($action === 'reject') ? 'Rejected' : 'Approved',
@@ -621,105 +581,220 @@ class SampleController extends Controller
             ]);
 
             if ($action === 'reject') {
-                $requisition->update([
-                    'status' => 'Rejected',
-                    'route_to' => 'Finished (Rejected)'
-                ]);
                 $newStatus = 'Rejected';
-
-                $requester = $requisition->requester;
-                if ($requester && $requester->email) {
-                    Mail::to($requester->email)->send(new MailRejectSample($requisition, $approverName, $notes));
+                $requisition->update(['status' => 'Rejected', 'route_to' => 'Finished (Rejected)']);
+                if ($requisition->requester?->email) {
+                    Mail::to($requisition->requester->email)->send(new MailRejectSample($requisition, $approverName, $notes));
                 }
+            }
+            else if ($isWarehouseProcess) {
+                // Jika ini adalah proses gudang, panggil fungsi khusus
+                $newStatus = $this->handleWarehouseNextStep($requisition, $approvalLog);
             } else {
-                $approvalPath = ApprovalPath::where('category', $requisition->category)
-                ->where('sub_category', $requisition->sub_category)
-                ->first();
+                // Jika ini adalah approval formal, cari approver selanjutnya
+                $nextApprovalLog = ApprovalLog::where('requisition_id', $requisition->id)
+                                            ->where('level', '>', $approvalLog->level) // Cari level yang lebih tinggi
+                                            ->where('level', '<=', 100) // Pastikan masih dalam alur approval formal
+                                            ->orderBy('level', 'asc')
+                                            ->first();
 
-                $approversSequence = $approvalPath->sequence_approvers ?? [];
-                $currentLevel = $approvalLog->level;
-                $nextApproverNik = null;
-                $nextApproverLevel = null;
-
-                if ($requisition->sub_category === 'Finished Goods' && $approvalLog->approver && $approvalLog->approver->is_head) {
-                    Log::info("Head of Dept (NIK: {$approvalLog->approver->nik}) telah approve. Mencari approver NON-KEPALA selanjutnya.");
-
-                for ($i = $currentLevel; $i < count($approversSequence); $i++) {
-                        $potentialNik = $approversSequence[$i];
-                        $potentialApprover = User::where('nik', $potentialNik)->first();
-
-                        if ($potentialApprover && !$potentialApprover->is_head) {
-                            $nextApproverNik = $potentialApprover->nik;
-                            $nextApproverLevel = $i + 1;
-                            Log::info("Approver non-kepala selanjutnya ditemukan di level {$nextApproverLevel}: NIK {$nextApproverNik}");
-                            break;
-                        }
-                    }
+                if ($nextApprovalLog) {
+                    $requisition->update(['status' => 'In Progress', 'route_to' => $nextApprovalLog->approver->name]);
+                    dispatch(new sendSample($requisition, $nextApprovalLog->approver, $nextApprovalLog->token, ['mail_type' => 'approval']));
                 } else {
-                    if (isset($approversSequence[$currentLevel])) {
-                        $nextApproverNik = $approversSequence[$currentLevel];
-                        $nextApproverLevel = $currentLevel + 1;
-                    }
-                }
-
-                if ($nextApproverNik) {
-                    $nextApprover = User::where('nik', $nextApproverNik)->first();
-                    if ($nextApprover) {
-                        $newStatus = 'In Progress';
-                        $requisition->update(['status' => $newStatus, 'route_to' => $nextApprover->name]);
-
-                        $newLog = ApprovalLog::create([
-                            'requisition_id' => $requisition->id,
-                            'approver_nik'   => $nextApprover->nik,
-                            'status'         => 'Pending',
-                            'level'          => $nextApproverLevel,
-                            'token'          => Str::uuid()->toString(),
-                        ]);
-                        sendSample::dispatch($requisition, $nextApprover, $newLog->token);
-                    } else {
-                        throw new \Exception("User approver selanjutnya dengan NIK: {$nextApproverNik} tidak ditemukan.");
-                    }
-                } else {
-                    $newStatus = 'Approved';
-                    $requisition->update(['status' => $newStatus, 'route_to' => 'Finished (Approved)']);
-
-                    if ($requisition->sub_category === 'Special Order' && $newStatus === 'Approved') {
-                        $qaUsers = User::whereHas('department', function ($query) {
-                            $query->where('name', 'QM & HSE');
-                        })->get();
-
-                        if ($qaUsers->isNotEmpty()) {
-                            Log::info("Notifikasi untuk melengkapi form dikirim ke {$qaUsers->count()} user QM & HSE untuk Requisition #{$requisition->id}.");
-                        }
-                    }
+                    // Jika tidak ada approver lagi, approval selesai, mulai proses selanjutnya
+                    $requisition->update(['status' => 'Approved']);
+                    $newStatus = $this->startPostApprovalProcess($requisition);
                 }
             }
 
             DB::commit();
 
-            $actionText = ucfirst($action);
-            if ($action === 'review') $actionText = 'Approved with Review';
-
-            $cardClass = 'success';
-            if ($action === 'review') $cardClass = 'review';
-            if ($action === 'reject') $cardClass = 'reject';
-
             return redirect()->route('approval.success')
-                ->with('card_class', $cardClass)
-                ->with('title', $actionText . ' Submitted')
+                ->with('card_class', $action === 'reject' ? 'reject' : 'success')
+                ->with('title', 'Action Submitted')
                 ->with('message', 'Your response has been successfully recorded.')
                 ->with('no_srs', $requisition->no_srs)
                 ->with('customer_name', $requisition->customer->name ?? 'N/A')
-                ->with('action_text', $actionText)
+                ->with('action_text', ucfirst($action))
                 ->with('approver_name', $approverName)
-                ->with('new_status', $newStatus)
-                ->with('action', $action);
+                ->with('new_status', $newStatus);
 
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error("Failed to process approval: " . $e->getMessage() . " in " . $e->getFile() . " line " . $e->getLine());
-            return response()->json(['success' => false, 'message' => 'A system error occurred. Please contact the administrator.'], 500);
+
+            return redirect()->route('approval.success')
+                ->with('card_class', 'reject')
+                ->with('title', 'System Error')
+                ->with('message', 'An internal system error occurred. Please contact the administrator.')
+                ->with('no_srs', $requisitionForInfo->no_srs ?? 'N/A')
+                ->with('customer_name', $requisitionForInfo->customer->name ?? 'N/A');
         }
+    }
+
+    private function startSpecialOrderProcess(Requisition $requisition)
+    {
+        Log::info("Memulai alur proses Special Order untuk Requisition #{$requisition->id}.");
+
+        $headQaUser = User::whereHas('department', fn ($q) => $q->where('name', 'QM & HSE'))
+                        ->whereHas('roles', fn ($q) => $q->where('name', 'head-QA'))
+                        ->first();
+
+        if ($headQaUser) {
+            $statusText = 'Waiting for QA/QM Form';
+            // [DIPERBAIKI] Catat ke tabel tracking
+            Tracking::create([
+                'requisition_id' => $requisition->id,
+                'current_position' => $headQaUser->name,
+                'notes' => $statusText,
+                'last_updated' => now()
+            ]);
+            $requisition->update(['route_to' => 'QM & HSE']);
+
+            $formUrl = route('sample-form.index') . "?open_form={$requisition->id}";
+            dispatch(new sendSample($requisition, $headQaUser, null, ['mail_type' => 'qa_form_notification', 'form_url' => $formUrl]));
+            Log::info("Notifikasi untuk mengisi form Special Order dikirim ke Head QA: {$headQaUser->name}.");
+            return $statusText;
+        } else {
+            Log::warning("Head of Department QA/QM tidak ditemukan. Proses langsung diselesaikan.");
+            return $this->notifyRequesterAsCompleted($requisition);
+        }
+    }
+
+    private function startPostApprovalProcess(Requisition $requisition)
+    {
+        $newStatus = 'Processing';
+        switch ($requisition->sub_category) {
+            case 'Packaging':
+                $this->startPackagingProcess($requisition);
+                break;
+            case 'Finished Goods':
+                $this->startFinishedGoodsProcess($requisition);
+                break;
+            case 'Special Order':
+                $newStatus = $this->startSpecialOrderProcess($requisition);
+                break;
+            default:
+                Log::warning("Tidak ada alur proses setelah approval untuk sub-category: {$requisition->sub_category}");
+                $newStatus = $this->notifyRequesterAsCompleted($requisition);
+                break;
+        }
+        return $newStatus;
+    }
+
+    private function startPackagingProcess(Requisition $requisition)
+    {
+        Log::info("Memulai alur proses Packaging untuk Requisition #{$requisition->id}.");
+        $inwardUser = $this->findWarehouseUser('Inward WH Supervisor', 'WH0001');
+        if ($inwardUser) {
+            $stepName = 'Packaging - Inward Initial Check';
+            // [DIPERBAIKI] Catat ke tabel tracking
+            Tracking::create([
+                'requisition_id' => $requisition->id, 'current_position' => $inwardUser->name,
+                'notes' => $stepName, 'last_updated' => now()
+            ]);
+            $this->createAndSendWarehouseLog($requisition, $inwardUser, 101, $stepName);
+        }
+    }
+
+    private function startFinishedGoodsProcess(Requisition $requisition)
+    {
+        Log::info("Memulai alur proses Finished Goods untuk Requisition #{$requisition->id}.");
+        $outwardUser = $this->findWarehouseUser('Outward WH Supervisor', 'WH0002');
+        if ($outwardUser) {
+            $stepName = 'Finished Goods - Outward Process';
+            // [DIPERBAIKI] Catat ke tabel tracking
+            Tracking::create([
+                'requisition_id' => $requisition->id, 'current_position' => $outwardUser->name,
+                'notes' => $stepName, 'last_updated' => now()
+            ]);
+            $this->createAndSendWarehouseLog($requisition, $outwardUser, 101, $stepName);
+        }
+    }
+
+    private function handleWarehouseNextStep(Requisition $requisition, ApprovalLog $currentLog)
+    {
+        $subCategory = $requisition->sub_category;
+        $nextStepFound = false;
+
+        if ($subCategory === 'Packaging') {
+            switch ($currentLog->level) {
+                case 101: // Setelah Inward Initial Check
+                    if ($requisition->print_batch) {
+                        $materialUser = $this->findWarehouseUser('Material Support Supervisor', 'MS0001');
+                        if ($materialUser) {
+                            $stepName = 'Packaging - Material Batch Print';
+                            Tracking::create(['requisition_id' => $requisition->id, 'current_position' => $materialUser->name, 'notes' => $stepName, 'last_updated' => now()]);
+                            $this->createAndSendWarehouseLog($requisition, $materialUser, 102, $stepName);
+                            $nextStepFound = true;
+                        }
+                    }
+                    break;
+                case 102: // Setelah Material Batch Print
+                    $inwardUser = $this->findWarehouseUser('Inward WH Supervisor', 'WH0001');
+                    if ($inwardUser) {
+                        $stepName = 'Packaging - Inward Final Check';
+                        Tracking::create(['requisition_id' => $requisition->id, 'current_position' => $inwardUser->name, 'notes' => $stepName, 'last_updated' => now()]);
+                        $this->createAndSendWarehouseLog($requisition, $inwardUser, 103, $stepName);
+                        $nextStepFound = true;
+                    }
+                    break;
+            }
+        }
+
+        if (!$nextStepFound) {
+            return $this->notifyRequesterAsCompleted($requisition);
+        }
+
+        return 'Processing';
+    }
+
+    private function createAndSendWarehouseLog(Requisition $requisition, User $recipient, int $level, string $stepName)
+    {
+        if (!$recipient) {
+            Log::error("User untuk proses '{$stepName}' tidak ditemukan.");
+            return;
+        }
+
+        $log = ApprovalLog::create([
+            'requisition_id' => $requisition->id, 'approver_nik' => $recipient->nik,
+            'status' => 'Pending', 'level' => $level, // Level > 100 menandakan ini proses WH
+            'token' => Str::uuid()->toString(), 'notes' => "Waiting for: {$stepName}",
+        ]);
+
+        $requisition->update(['status' => 'Processing', 'route_to' => $recipient->name]);
+
+        dispatch(new sendSample($requisition, $recipient, $log->token, [
+            'mail_type' => 'warehouse_process', 'process_step' => $stepName
+        ]));
+    }
+
+    private function notifyRequesterAsCompleted(Requisition $requisition)
+    {
+        $statusText = 'Completed';
+        // [DIPERBAIKI] Catat status selesai ke tabel tracking
+        Tracking::create([
+            'requisition_id' => $requisition->id,
+            'current_position' => 'System',
+            'notes' => 'Process has been completed.',
+            'last_updated' => now()
+        ]);
+
+        $requisition->update(['status' => $statusText, 'route_to' => 'Finished']);
+        if ($requisition->requester?->email) {
+            dispatch(new sendSample($requisition, $requisition->requester, null, [
+                'mail_type' => 'completed_notification'
+            ]));
+        }
+        Log::info("Requisition #{$requisition->id} selesai. Email notifikasi dikirim ke requester.");
+        return $statusText;
+    }
+
+    private function findWarehouseUser(string $name, string $fallbackNik)
+    {
+        $user = User::where('name', 'like', '%' . $name . '%')->first();
+        return $user ?: User::where('nik', $fallbackNik)->first();
     }
 
     public function showSuccessPage()
@@ -727,7 +802,6 @@ class SampleController extends Controller
         if (!session('title')) {
             return redirect('/');
         }
-
         return view('page.sample.response-success');
     }
 }

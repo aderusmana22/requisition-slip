@@ -12,7 +12,7 @@
 
         body {
             font-family: 'Poppins', sans-serif;
-            background-color: #f4f7fc;
+            background-color: #f4f7fc
         }
 
         .main-container {
@@ -21,14 +21,14 @@
             gap: 30px;
             max-width: 1400px;
             margin: 40px auto;
-            padding: 0 20px;
+            padding: 0 20px
         }
 
         .card {
-            background-color: #ffffff;
+            background-color: #fff;
             border-radius: 16px;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
-            border: none;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, .05);
+            border: none
         }
 
         .card-header.main-header {
@@ -36,23 +36,40 @@
             color: white;
             padding: 20px 30px;
             border-radius: 16px 16px 0 0 !important;
-            border-bottom: none;
+            border-bottom: none
         }
 
         .section-title {
             font-size: 1.2rem;
-            font-weight: 700; /* Ditebalkan */
+            font-weight: 700;
             color: #003b7a;
             margin-bottom: 20px;
             padding-bottom: 10px;
             border-bottom: 2px solid #eef2f9;
             display: flex;
-            align-items: center;
+            align-items: center
         }
-        .section-title i { margin-right: 12px; font-size: 1.2rem; }
-        .info-label { color: #8a96a3; font-size: 0.85em; margin-bottom: 2px; }
-        .info-value { color: #212529; font-weight: 500; }
-        .action-card { position: sticky; top: 40px; }
+
+        .section-title i {
+            margin-right: 12px;
+            font-size: 1.2rem
+        }
+
+        .info-label {
+            color: #8a96a3;
+            font-size: .85em;
+            margin-bottom: 2px
+        }
+
+        .info-value {
+            color: #212529;
+            font-weight: 500
+        }
+
+        .action-card {
+            position: sticky;
+            top: 40px
+        }
 
         .processing-overlay {
             position: fixed;
@@ -60,27 +77,35 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(255, 255, 255, 0.9);
+            background-color: rgba(255, 255, 255, .9);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             z-index: 9999;
-            display: none;
+            display: none
         }
 
         .spinner-border {
             width: 3rem;
-            height: 3rem;
+            height: 3rem
         }
 
-        .tracking-list { list-style: none; padding-left: 0; }
+        .tracking-list {
+            list-style: none;
+            padding-left: 0
+        }
+
         .tracking-item {
             position: relative;
             padding: 10px 0 25px 30px;
-            border-left: 2px solid #e9ecef;
+            border-left: 2px solid #e9ecef
         }
-        .tracking-item:last-child { border-left: 2px solid transparent; }
+
+        .tracking-item:last-child {
+            border-left: 2px solid transparent
+        }
+
         .tracking-item::before {
             content: '';
             position: absolute;
@@ -90,18 +115,39 @@
             height: 16px;
             border-radius: 50%;
             background-color: #e9ecef;
-            border: 3px solid #f4f7fc;
+            border: 3px solid #f4f7fc
         }
-        .tracking-item.approved::before { background-color: #28a745; }
-        .tracking-item.pending::before { background-color: #ffc107; }
-        .tracking-item.rejected::before { background-color: #dc3545; }
-        .tracking-name { font-weight: 600; }
-        .tracking-notes { font-size: 0.9em; color: #6c757d; font-style: italic; }
-        .tracking-date { font-size: 0.8em; color: #adb5bd; }
 
-        @media (max-width: 1024px) {
+        .tracking-item.approved::before {
+            background-color: #28a745
+        }
+
+        .tracking-item.pending::before {
+            background-color: #ffc107
+        }
+
+        .tracking-item.rejected::before {
+            background-color: #dc3545
+        }
+
+        .tracking-name {
+            font-weight: 600
+        }
+
+        .tracking-notes {
+            font-size: .9em;
+            color: #6c757d;
+            font-style: italic
+        }
+
+        .tracking-date {
+            font-size: .8em;
+            color: #adb5bd
+        }
+
+        @media (max-width:1024px) {
             .main-container {
-                grid-template-columns: 1fr;
+                grid-template-columns: 1fr
             }
         }
 
@@ -111,6 +157,7 @@
 <body>
     <div class="main-container">
         <div class="left-column">
+            {{-- (Konten kolom kiri: detail requisition, dll. tidak perlu diubah) --}}
             <div class="card">
                 <div class="card-header main-header">
                     <h4 class="mb-0">Sample Requisition Approval</h4>
@@ -163,7 +210,7 @@
                             <thead class="table-light">
                                 <tr>
                                     @if($requisition->sub_category == 'Packaging')
-                                        <th class="material-type-column">Material Type</th>
+                                    <th class="material-type-column">Material Type</th>
                                     @endif
                                     <th>Item Code</th>
                                     <th>Item Name</th>
@@ -176,14 +223,14 @@
                                 @foreach($requisition->requisitionItems as $item)
                                 <tr>
                                     @if($requisition->sub_category == 'Packaging')
-                                        <td>{{ $item->material_type ?? '-' }}</td>
-                                        <td>{{ $item->itemDetail->item_detail_code ?? '-' }}</td>
-                                        <td>{{ $item->itemDetail->item_detail_name ?? '-' }}</td>
-                                        <td>{{ $item->itemDetail->unit ?? '-' }}</td>
+                                    <td>{{ $item->material_type ?? '-' }}</td>
+                                    <td>{{ $item->itemDetail->item_detail_code ?? '-' }}</td>
+                                    <td>{{ $item->itemDetail->item_detail_name ?? '-' }}</td>
+                                    <td>{{ $item->itemDetail->unit ?? '-' }}</td>
                                     @else
-                                        <td>{{ $item->itemMaster->item_master_code ?? '-' }}</td>
-                                        <td>{{ $item->itemMaster->item_master_name ?? '-' }}</td>
-                                        <td>{{ $item->itemMaster->unit ?? '-' }}</td>
+                                    <td>{{ $item->itemMaster->item_master_code ?? '-' }}</td>
+                                    <td>{{ $item->itemMaster->item_master_name ?? '-' }}</td>
+                                    <td>{{ $item->itemMaster->unit ?? '-' }}</td>
                                     @endif
                                     <td class="text-center">{{ $item->quantity_required }}</td>
                                     <td class="text-center">{{ $item->quantity_issued ?? '-' }}</td>
@@ -194,15 +241,16 @@
                     </div>
                     @endif
 
-                    {{-- [FIX] Approval Tracking dengan Tampilan Timeline --}}
                     <h5 class="section-title mt-5"><i class="fas fa-shoe-prints"></i> Approval & Process Tracking</h5>
                     <div class="p-3">
                         <ul class="tracking-list">
                             @foreach($requisition->approvalLogs->sortBy('level') as $log)
                             <li class="tracking-item {{ strtolower($log->status) }}">
                                 <div class="d-flex justify-content-between align-items-center">
-                                    <span class="tracking-name">{{ $log->approver->name ?? 'N/A' }} (Level {{ $log->level }})</span>
-                                    <span class="tracking-date">{{ \Carbon\Carbon::parse($log->updated_at)->format('d M Y, H:i') }}</span>
+                                    <span class="tracking-name">{{ $log->approver->name ?? 'N/A' }} (Level
+                                        {{ $log->level }})</span>
+                                    <span
+                                        class="tracking-date">{{ \Carbon\Carbon::parse($log->updated_at)->format('d M Y, H:i') }}</span>
                                 </div>
                                 @if($log->notes)
                                 <p class="tracking-notes mb-0">"{{ $log->notes }}"</p>
@@ -218,15 +266,16 @@
         <div class="right-column">
             <div class="card action-card">
                 <div class="card-body p-4">
-                    <h5 class="section-title"><i class="fas fa-check-to-slot"></i> Approval Action</h5>
+                    {{-- [DIPERBAIKI] Judul form dinamis --}}
+                    <h5 class="section-title"><i class="fas fa-check-to-slot"></i> {{ $pageTitle }}</h5>
                     <form id="approvalForm" action="{{ route('approval.process') }}" method="POST">
                         @csrf
                         <input type="hidden" name="token" value="{{ $token }}">
 
                         @if($action === 'approve')
                         <div class="alert alert-success text-center">
-                            <h5 class="alert-heading">Confirm Approval</h5>
-                            <p class="mb-0">This request will be approved immediately. Please wait...</p>
+                            <h5 class="alert-heading">Confirm Action</h5>
+                            <p class="mb-0">This request will be processed immediately. Please wait...</p>
                         </div>
                         <input type="hidden" name="action" value="approve">
                         @else
@@ -236,8 +285,9 @@
                                 <div class="form-check">
                                     <input class="form-check-input" type="radio" name="action" id="action_review"
                                         value="review" @if($action==='review' ) checked @endif>
-                                    <label class="form-check-label text-primary" for="action_review"><strong>Approve
-                                            with Review</strong></label>
+                                    {{-- [DIPERBAIKI] Teks radio button dinamis --}}
+                                    <label class="form-check-label text-primary"
+                                        for="action_review"><strong>{{ $reviewRadioText }}</strong></label>
                                 </div>
                                 <div class="form-check">
                                     <input class="form-check-input" type="radio" name="action" id="action_reject"
@@ -254,7 +304,9 @@
                             <div class="form-text" id="notes-help-text">Notes are required for rejection.</div>
                         </div>
                         <div class="d-grid">
-                            <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">Submit Decision</button>
+                            {{-- [DIPERBAIKI] Teks tombol submit dinamis --}}
+                            <button type="submit" class="btn btn-primary btn-lg"
+                                id="submitBtn">{{ $submitButtonText }}</button>
                         </div>
                         @endif
                     </form>
@@ -262,14 +314,11 @@
             </div>
         </div>
     </div>
-
-    {{-- Overlay saat proses --}}
+    {{-- (Overlay dan JavaScript tidak perlu diubah) --}}
     <div class="processing-overlay" id="processingOverlay">
         <div class="spinner-border text-primary" role="status"></div>
         <p class="mt-3">Processing your response...</p>
     </div>
-
-    {{-- JavaScript tidak berubah, sudah benar menggunakan submit standar --}}
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const form = document.getElementById('approvalForm');
@@ -281,18 +330,18 @@
             const submitBtn = document.getElementById('submitBtn');
 
             function updateFormBehavior() {
-                if (rejectRadio.checked) {
+                if (rejectRadio && rejectRadio.checked) {
                     notesTextarea.required = true;
                     notesHelpText.textContent = 'Please provide a reason for rejection (required).';
                     notesHelpText.classList.add('text-danger');
                     submitBtn.textContent = 'Submit Rejection';
                     submitBtn.classList.remove('btn-primary');
                     submitBtn.classList.add('btn-danger');
-                } else if (reviewRadio.checked) {
+                } else if (reviewRadio && reviewRadio.checked) {
                     notesTextarea.required = false;
                     notesHelpText.textContent = 'Optional: Add notes for this approval.';
                     notesHelpText.classList.remove('text-danger');
-                    submitBtn.textContent = 'Submit Approval with Review';
+                    // Teks tombol diambil dari Blade, jadi tidak perlu diubah di sini
                     submitBtn.classList.remove('btn-danger');
                     submitBtn.classList.add('btn-primary');
                 }
@@ -306,11 +355,7 @@
 
             if ('{{ $action }}' === 'approve') {
                 overlay.style.display = 'flex';
-                const actionInput = document.createElement('input');
-                actionInput.type = 'hidden';
-                actionInput.name = 'action';
-                actionInput.value = 'approve';
-                form.appendChild(actionInput);
+                // Form akan otomatis di-submit oleh JavaScript jika action-nya 'approve' (atau 'submit')
                 form.submit();
             }
 

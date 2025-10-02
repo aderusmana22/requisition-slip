@@ -22,49 +22,46 @@ class UpdateSampleRequisitionRequest extends FormRequest
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array|string>
      */
-    public function rules(): array
+    public function rules()
     {
-        // Pengecekan apakah ini submit dari form QM, ditandai dengan adanya field 'source'.
         $isQmSubmission = $this->has('source');
 
-        // Aturan validasi dasar yang berlaku untuk semua
-        $rules = [
-            'sub_category'          => 'required|string',
-            'customer_id'           => 'required|exists:customers,id',
-            'account'               => 'required|string|max:255',
-            'cost_center'           => 'nullable|string|max:255',
-            'request_date'          => 'required|date',
-            'objectives'            => 'required|string',
-            'estimated_potential'   => 'required|string',
-
-
-            // Aturan untuk field QA/QM (selalu ada, tapi nullable)
-            'source'                => 'required|string|max:255',
-            'description'           => 'required|string|max:255',
-            'production_date'       => 'required|date',
-            'preparation_method'    => 'required|string|max:255',
-            'sample_notes'          => 'required|string',
-        ];
-
         if ($isQmSubmission) {
-            $rules['items'] = 'nullable|array';
-
+            return [
+                'source'             => 'nullable|string|max:255',
+                'description'        => 'nullable|string|max:255',
+                'production_date'    => 'nullable|date',
+                'preparation_method' => 'nullable|string|max:255',
+                'sample_notes'       => 'nullable|string|max:255',
+            ];
         } else {
-            $rules['items'] = 'required|array|min:1';
-            $rules['items.*.quantity_required'] = 'required|integer|min:1';
-            $rules['items.*.quantity_issued'] = 'required|integer|min:0';
-            $rules['print_batch']           = 'required_if:sub_category,Packaging|boolean';
+            $rules = [
+                'customer_id'         => 'required|exists:customers,id',
+                'request_date'        => 'required|date',
+                'sub_category'        => 'required|string',
+                'cost_center'         => 'nullable|string',
+                'objectives'          => 'required|string',
+                'estimated_potential' => 'required|string',
+                'print_batch'         => 'nullable|boolean',
+                'items'               => 'required|array|min:1',
+                'items.*.quantity_required' => 'required|integer|min:1',
+            ];
 
-            $rules['end_date']              = 'required_if:sub_category,Special Order|date';
-            $rules['weight_selection']      = 'required_if:sub_category,Special Order|string|max:255';
-            $rules['packaging_selection']   = 'required_if:sub_category,Special Order|string|max:255';
-            $rules['sample_count']          = 'required_if:sub_category,Special Order|string|max:255';
-            $rules['purpose']               = 'required_if:sub_category,Special Order|string';
-            $rules['shipment_method']       = 'required_if:sub_category,Special Order|string|max:255';
-            $rules['coa_required']          = 'required_if:sub_category,Special Order|boolean';
+            // Tambahkan validasi khusus jika sub-category adalah 'Special Order'
+            if ($this->input('sub_category') === 'Special Order') {
+                $rules = array_merge($rules, [
+                    'end_date'            => 'required|date|after_or_equal:request_date',
+                    'weight_selection'    => 'required|string',
+                    'packaging_selection' => 'required|string',
+                    'sample_count'        => 'required|string',
+                    'purpose'             => 'required|string',
+                    'coa_required'        => 'required|boolean',
+                    'shipment_method'     => 'required|string',
+                ]);
+            }
+
+            return $rules;
         }
-
-        return $rules;
     }
 
     public function attributes(): array

@@ -16,33 +16,51 @@ class mailSample extends Mailable
     use Queueable, SerializesModels;
 
     public $requisition;
-    public $approver;
+    public $recipient; // Menggunakan nama generik 'recipient'
     public $data;
 
-    public function __construct(Requisition $requisition, User $approver, array $data = [])
+    /**
+     * Kita tambahkan $mailType untuk menentukan jenis email
+     */
+    public function __construct(Requisition $requisition, User $recipient, array $data = [])
     {
         $this->requisition = $requisition;
-        $this->approver = $approver;
+        $this->recipient = $recipient;
         $this->data = $data;
+
+        // Menambahkan recipient ke dalam data agar bisa diakses di view
+        $this->data['recipient'] = $recipient;
     }
 
     /**
      * Get the message envelope.
-     *
-     * @return \Illuminate\Mail\Mailables\Envelope
      */
     public function envelope()
     {
+        // Default subject
+        $subject = 'Request Requisition Sample: ' . $this->requisition->no_srs;
+
+        // Mengubah subject berdasarkan tipe email dari data
+        if (isset($this->data['mail_type'])) {
+            switch ($this->data['mail_type']) {
+                case 'warehouse_process':
+                    $step = $this->data['process_step'] ?? 'Warehouse Process';
+                    $subject = "{$step} for SRS: {$this->requisition->no_srs}";
+                    break;
+                case 'completed_notification':
+                    $subject = 'Completed: Your Sample Requisition ' . $this->requisition->no_srs . ' is Ready';
+                    break;
+            }
+        }
+
         return new Envelope(
             from: new Address(config('mail.from.address'), config('mail.from.name')),
-            subject: 'Request Requisition Sample: ' . $this->requisition->no_srs,
+            subject: $subject,
         );
     }
 
     /**
      * Get the message content definition.
-     *
-     * @return \Illuminate\Mail\Mailables\Content
      */
     public function content()
     {
@@ -54,8 +72,6 @@ class mailSample extends Mailable
 
     /**
      * Get the attachments for the message.
-     *
-     * @return array
      */
     public function attachments()
     {

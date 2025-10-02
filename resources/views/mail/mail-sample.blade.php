@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Requisition Approval Request</title>
+    <title>Requisition Notification</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -12,7 +12,7 @@
             padding: 0;
             background-color: #f8f9fa;
             color: #333;
-            line-height: 1.6;
+            line-height: 1.6
         }
 
         .email-container {
@@ -21,31 +21,29 @@
             background: white;
             border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, .1)
         }
 
         .email-header {
-            background: linear-gradient(135deg, #004a99 0%, #002c5c 100%);
-            /* Warna disesuaikan untuk Sample */
             color: white;
             padding: 30px 40px;
-            text-align: center;
+            text-align: center
         }
 
         .email-title {
             font-size: 28px;
             font-weight: 700;
-            margin: 0;
+            margin: 0
         }
 
         .email-subtitle {
             font-size: 16px;
             margin: 10px 0 0 0;
-            opacity: 0.9;
+            opacity: .9
         }
 
         .email-content {
-            padding: 40px;
+            padding: 40px
         }
 
         .greeting {
@@ -55,23 +53,20 @@
             padding: 20px;
             background: #e9ecef;
             border-radius: 8px;
-            border-left: 4px solid #004a99;
-            /* Warna disesuaikan untuk Sample */
         }
 
         .info-section {
-            margin-bottom: 30px;
+            margin-bottom: 30px
         }
 
         .section-title {
             background: linear-gradient(135deg, #004a99 0%, #002c5c 100%);
-            /* Warna disesuaikan untuk Sample */
             color: white;
             padding: 12px 20px;
             margin: 0 0 15px 0;
             border-radius: 8px 8px 0 0;
             font-weight: 600;
-            font-size: 16px;
+            font-size: 16px
         }
 
         .info-grid {
@@ -80,18 +75,18 @@
             padding: 20px;
             border-radius: 0 0 8px 8px;
             border: 1px solid #e9ecef;
-            border-top: none;
+            border-top: none
         }
 
         .info-grid table {
             width: 100%;
-            border-collapse: collapse;
+            border-collapse: collapse
         }
 
         .info-grid td {
             width: 50%;
             vertical-align: top;
-            padding: 7px;
+            padding: 7px
         }
 
         .info-item {
@@ -99,20 +94,20 @@
             padding: 15px;
             border-radius: 6px;
             border: 1px solid #e9ecef;
-            height: 100%;
+            height: 100%
         }
 
         .info-label {
             font-weight: 600;
             color: #495057;
             font-size: 14px;
-            margin-bottom: 5px;
+            margin-bottom: 5px
         }
 
         .info-value {
             color: #2c3e50;
             font-size: 15px;
-            word-break: break-word;
+            word-break: break-word
         }
 
         .product-table {
@@ -121,7 +116,7 @@
             margin-top: 15px;
             border-radius: 8px;
             overflow: hidden;
-            border: 1px solid #e9ecef;
+            border: 1px solid #e9ecef
         }
 
         .product-table th {
@@ -130,13 +125,13 @@
             padding: 12px;
             text-align: left;
             font-weight: 600;
-            font-size: 14px;
+            font-size: 14px
         }
 
         .product-table td {
             padding: 12px;
             border-bottom: 1px solid #e9ecef;
-            font-size: 14px;
+            font-size: 14px
         }
 
         .action-section {
@@ -145,22 +140,22 @@
             border-radius: 12px;
             text-align: center;
             margin: 30px 0;
-            border: 1px solid #dee2e6;
+            border: 1px solid #dee2e6
         }
 
         .action-title {
             font-size: 20px;
             font-weight: 700;
             color: #2c3e50;
-            margin-bottom: 25px;
+            margin-bottom: 25px
         }
 
         .button-group table {
-            margin: 0 auto;
+            margin: 0 auto
         }
 
         .button-group td {
-            padding: 7px;
+            padding: 7px
         }
 
         .btn {
@@ -173,49 +168,49 @@
             text-align: center;
             color: white !important;
             min-width: 140px;
-            transition: all 0.3s ease;
+            transition: all .3s ease
         }
 
         .btn-approve {
-            background: #28a745;
+            background: #28a745
         }
 
         .btn-review {
-            background: #007bff;
+            background: #007bff
         }
 
         .btn-reject {
-            background: #dc3545;
+            background: #dc3545
         }
 
         .email-footer {
             background: #343a40;
             color: white;
             padding: 30px 40px;
-            text-align: center;
+            text-align: center
         }
 
         .footer-content {
             max-width: 600px;
-            margin: 0 auto;
+            margin: 0 auto
         }
 
         .company-info {
             font-size: 18px;
             font-weight: 600;
-            margin-bottom: 10px;
+            margin-bottom: 10px
         }
 
         .company-tagline {
             font-size: 14px;
-            opacity: 0.8;
-            margin-bottom: 20px;
+            opacity: .8;
+            margin-bottom: 20px
         }
 
         .copyright {
             font-size: 12px;
-            opacity: 0.7;
-            margin-top: 15px;
+            opacity: .7;
+            margin-top: 15px
         }
 
     </style>
@@ -223,17 +218,48 @@
 
 <body>
     <div class="email-container">
-        <div class="email-header">
-            <h1 class="email-title">Sample Requisition Approval</h1>
+        {{-- Header dinamis --}}
+        @if(isset($mail_type) && $mail_type == 'warehouse_process')
+            <div class="email-header" style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);">
+                <h1 class="email-title">{{ $process_step ?? 'Warehouse Process' }}</h1>
+        @elseif(isset($mail_type) && $mail_type == 'completed_notification')
+            <div class="email-header" style="background: linear-gradient(135deg, #198754 0%, #146c43 100%);">
+                <h1 class="email-title">Requisition Completed</h1>
+        @else {{-- Default untuk Approval --}}
+            <div class="email-header" style="background: linear-gradient(135deg, #004a99 0%, #002c5c 100%);">
+                <h1 class="email-title">Sample Requisition Approval</h1>
+        @endif
             <p class="email-subtitle">SRS No: <strong>{{ $requisition->no_srs }}</strong></p>
         </div>
 
         <div class="email-content">
-            <div class="greeting">
-                <strong>Hello {{ $approver->name }},</strong><br>
-                A new sample requisition requires your review and approval.
-            </div>
+            @if(isset($mail_type) && $mail_type == 'warehouse_process')
+                {{-- [DIPERBAIKI] --}}
+                <div class="greeting" style="border-left: 4px solid #0d6efd;">
+                    <strong>Hello {{ $recipient->name }},</strong><br>
+                    Requisition <strong>{{ $requisition->no_srs }}</strong> telah disetujui sepenuhnya dan sekarang memerlukan tindakan Anda untuk proses: <strong>{{ $process_step ?? 'N/A' }}</strong>.
+                </div>
+            @elseif(isset($mail_type) && $mail_type == 'completed_notification')
+                <div class="greeting" style="border-left: 4px solid #198754;">
+                    <strong>Hello {{ $recipient->name }},</strong><br>
+                    Good news! Your sample requisition <strong>{{ $requisition->no_srs }}</strong> has completed the
+                    process and is now ready.
+                </div>
+            @elseif(isset($mail_type) && $mail_type == 'qa_form_notification')
+                <div class="greeting" style="border-left: 4px solid #fd7e14;"> {{-- Warna oranye untuk QA --}}
+                    <strong>Hello {{ $recipient->name }},</strong><br>
+                    Sample requisition <strong>{{ $requisition->no_srs }}</strong> has been fully approved and requires your action to complete the QA/QM HSE form.
+                    <br><br>
+                    Please click the button below to fill out the form in the system.
+                </div>
+            @else
+                <div class="greeting" style="border-left: 4px solid #004a99;">
+                    <strong>Hello {{ $recipient->name }},</strong><br>
+                    A new sample requisition requires your review and approval.
+                </div>
+            @endif
 
+            {{-- Detail Informasi Requisition --}}
             <div class="info-section">
                 <h3 class="section-title">📄 Request Information</h3>
                 <div class="info-grid">
@@ -249,7 +275,8 @@
                                 <div class="info-item">
                                     <div class="info-label">Request Date</div>
                                     <div class="info-value">
-                                        {{ \Carbon\Carbon::parse($requisition->request_date)->format('d M Y') }}</div>
+                                        {{ \Carbon\Carbon::parse($requisition->request_date)->format('d M Y') }}
+                                    </div>
                                 </div>
                             </td>
                         </tr>
@@ -271,44 +298,8 @@
                 </div>
             </div>
 
-            <div class="info-section">
-                <h3 class="section-title">👤 Customer & Objectives</h3>
-                <div class="info-grid">
-                    <table>
-                        <tr>
-                            <td>
-                                <div class="info-item">
-                                    <div class="info-label">Customer Name</div>
-                                    <div class="info-value">{{ $requisition->customer->name ?? 'N/A' }}</div>
-                                </div>
-                            </td>
-                            <td>
-                                <div class="info-item">
-                                    <div class="info-label">Cost Center</div>
-                                    <div class="info-value">{{ $requisition->cost_center ?? 'N/A' }}</div>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            {{-- [MODIFIED] Menampilkan Objectives & Estimated Potential --}}
-                            <td>
-                                <div class="info-item">
-                                    <div class="info-label">Objectives</div>
-                                    <div class="info-value">{{ $requisition->objectives }}</div>
-                                </div>
-                            </td>
-                            <td>
-                                <div class="info-item">
-                                    <div class="info-label">Estimated Potential</div>
-                                    <div class="info-value">{{ $requisition->estimated_potential }}</div>
-                                </div>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-            </div>
-
-            @if($requisition->requisitionItems && $requisition->requisitionItems->count() > 0)
+            {{-- Detail Item --}}
+            @if($requisition->requisitionItems->count() > 0)
             <div class="info-section">
                 <h3 class="section-title">📦 Requested Item List</h3>
                 <div
@@ -323,6 +314,7 @@
                                 <th>Item Name</th>
                                 <th>Unit</th>
                                 <th>Qty Required</th>
+                                <th>Qty Issued</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -338,7 +330,8 @@
                                 <td>{{ $item->itemMaster->item_master_name ?? '-' }}</td>
                                 <td>{{ $item->itemMaster->unit ?? '-' }}</td>
                                 @endif
-                                <td style="text-align: center; font-weight: 600;">{{ $item->quantity_required }}</td>
+                                <td style="text-align: center; font-weight: 600;">{{ $item->quantity_required ?? 0 }}</td>
+                                <td style="text-align: center; font-weight: 600;">{{ $item->quantity_issued ?? 0 }}</td>
                             </tr>
                             @endforeach
                         </tbody>
@@ -347,6 +340,8 @@
             </div>
             @endif
 
+            {{-- Tombol Aksi Dinamis --}}
+            @if(!isset($mail_type) || $mail_type == 'approval')
             <div class="action-section">
                 <h3 class="action-title">Please Choose an Action</h3>
                 <div class="button-group">
@@ -359,14 +354,37 @@
                     </table>
                 </div>
             </div>
+            @elseif($mail_type == 'warehouse_process')
+            <div class="action-section">
+                <h3 class="action-title">Please Choose an Action</h3>
+                <div class="button-group">
+                    <table>
+                        <tr>
+                            <td><a href="{{ $submit_url }}" class="btn btn-approve">Submit</a></td>
+                            <td><a href="{{ $review_url }}" class="btn btn-review">Submit with Review</a></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            @elseif($mail_type == 'qa_form_notification')
+                <div class="action-section">
+                    <h3 class="action-title">Action Required</h3>
+                    <div class="button-group">
+                        <table>
+                            <tr>
+                                <td><a href="{{ $form_url }}" class="btn btn-review" style="background-color: #fd7e14;">Open Form</a></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            @endif
         </div>
 
         <div class="email-footer">
             <div class="footer-content">
                 <div class="company-info">Sample Requisition System</div>
-                {{-- [MODIFIED] Menampilkan departemen requester secara dinamis --}}
-                <div class="company-tagline">{{ $requisition->requester->department->name ?? 'Internal Department' }}
-                </div>
+                <div class="company-tagline">
+                    {{ $requisition->requester->department->name ?? 'Internal Department' }}</div>
                 <div class="copyright">
                     © {{ date('Y') }} PT. Sinar Meadow International Indonesia. All rights reserved.<br>
                     This is an automated message, please do not reply.

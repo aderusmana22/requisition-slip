@@ -742,21 +742,20 @@
 
             function resetForm() {
                 $('#sampleForm')[0].reset();
+                $('#sampleForm').removeAttr('data-mode data-id');
                 $('#sub_category, #customer_id, #product_select, #product_select_fg').val(null).trigger('change');
-                $('.material-type-checkbox').prop('checked', false);
                 $('#requisition-items-tbody').html(
-                    '<tr id="no-items-row"><td colspan="5" class="text-center">No items have been added yet.</td></tr>'
+                    '<tr id="no-items-row"><td colspan="6" class="text-center">No items have been added yet.</td></tr>'
                 );
-                $('#requisition-form-details').hide();
+
                 clearValidationErrors();
-
-                $('#initial-category-selection').show();
+                $('#requisition-form-details').hide();
+                $('#special-order-fields').hide();
+                $('.row.g-3.mb-3').show();
                 $('#main-requisition-data').show();
-
-                $('#sub_category').attr('name', 'sub_category');
-                $('#customer_id').prop('disabled', false);
-                $('#sub_category_hidden').removeAttr('name');
-                $('#customer_id_hidden').removeAttr('name');
+                $('.qa-fields-section').hide();
+                $('#sub_category, #customer_id, .sm-field, .qa-field').prop('disabled', false);
+                $('#saveSampleBtn').text('Save');
             }
 
             $('#btn-create-sample').on('click', function () {
@@ -764,6 +763,7 @@
                 $('#sampleModalLabel').text('Create Sample Requisition');
                 $('#sampleForm').attr('data-mode', 'create').removeAttr('data-id');
                 $('#no_srs').val(nextSrsNumber);
+                $('#sampleModal').modal('show');
             });
 
             $('#sub_category').on('change', function () {
@@ -1026,10 +1026,9 @@
                     overlay.show();
                     submitBtn.prop('disabled', true);
 
-                    const mode = $(form).attr('data-mode');
-                    const id = $(form).attr('data-id');
+                    const mode = $(this).attr('data-mode');
+                    const id = $(this).attr('data-id');
                     let url = (mode === 'edit') ? `/sample-form/${id}` : "{{ route('sample-form.store') }}";
-
                     if (mode === 'edit') {
                         formData.append('_method', 'PUT');
                     }
@@ -1043,16 +1042,25 @@
                         success: function (res) {
                             if (res.success) {
                                 $('#sampleModal').modal('hide');
-                                table.ajax.reload();
                                 successMessage(res.message);
-                            }
-                            if (res.next_srs_number) {
-                                nextSrsNumber = res.next_srs_number;
+
+                                const urlParams = new URLSearchParams(window.location.search);
+                                const openFormId = urlParams.get('open_form');
+                                if (openFormId) {
+                                    setTimeout(function() {
+                                        const qaButton = $(`.btn-qa-form[data-id="${openFormId}"]`);
+                                        if (qaButton.length) {
+                                            qaButton.click();
+                                        } else {
+                                            console.warn(`Tombol QA untuk requisition ID ${openFormId} tidak ditemukan.`);
+                                        }
+                                    }, 500);
+                                }
                             }
                         },
 
                         error: function (xhr) {
-                            if (xhr.status === 422) { // Error validasi
+                            if (xhr.status === 422) {
                                 const errors = xhr.responseJSON.errors;
                                 let itemErrorMessages = new Set();
 
@@ -1678,6 +1686,12 @@
                 resetForm();
                 $('#sampleForm').removeAttr('data-mode data-id');
             });
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const openFormId = urlParams.get('open_form');
+            if (openFormId) {
+                $(`.btn-qa-form[data-id="${openForm-id}"]`).click();
+            }
         });
 
     </script>
