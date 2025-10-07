@@ -17,7 +17,7 @@ use App\Models\Requisition\Payment;
 use App\Models\Requisition\Requisition;
 use App\Models\Requisition\RequisitionItem;
 use App\Models\User;
-use App\Traits\HasApprovalPath;
+use App\Traits\approvalTrait;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;    
@@ -28,7 +28,7 @@ use function Pest\Laravel\json;
 
 class ComplainController extends Controller
 {
-    use HasApprovalPath;
+    use approvalTrait;
 
     /**
      * Helper method to format datetime to Indonesian timezone
@@ -91,11 +91,11 @@ class ComplainController extends Controller
                 'category' => 'Complain',
                 'status' => 'Pending',
                 'objectives' => $validated['objectives'] ?? null,
-                'route_to' => null, // Akan di-set setelah generate approval logs
+                'route_to' => null,
                 'print_batch' => isset($validated['print_batch']) ? (bool) $validated['print_batch'] : false,
             ]);
 
-            // Generate approval logs menggunakan trait HasApprovalPath
+            // Generate approval logs menggunakan trait approvalTrait
             $generatedLogs = $this->generateApprovalLogs($user, $requisition->id, 'Complain');
             
             if ($generatedLogs->isEmpty()) {

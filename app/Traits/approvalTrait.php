@@ -6,7 +6,7 @@ use App\Models\Requisition\ApprovalLog;
 use App\Models\Requisition\ApprovalPath;
 use App\Models\User;
 
-trait HasApprovalPath
+trait approvalTrait
 {
     /**
      * Generate approval logs dari approval path.
@@ -27,7 +27,7 @@ trait HasApprovalPath
 
         $approvalPath = $query->firstOrFail();
 
-        $sequence = collect(json_decode($approvalPath->sequence_approvers, true));
+        $sequence = collect($approvalPath->sequence_approvers);
         $logs = collect();
 
         foreach ($sequence as $index => $role) {

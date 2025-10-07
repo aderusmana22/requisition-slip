@@ -121,7 +121,7 @@ class RequisitionPath extends Controller
                 'id' => $path->id,
                 'category' => $path->category,
                 'sub_category' => $path->sub_category,
-                'sequence_approvers' => $path->getNik()->pluck('name')->all(),
+                'sequence_approvers' => $path->sequence_approvers,
                 'created_at' => $path->created_at,
                 'updated_at' => $path->updated_at,
             ];

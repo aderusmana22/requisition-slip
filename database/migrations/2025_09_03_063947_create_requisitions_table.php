@@ -22,7 +22,7 @@ return new class extends Migration
             $table->unsignedBigInteger('revision_id')->unique()->nullable();
             $table->string('category');
             $table->string('sub_category')->nullable();
-            $table->string('route_to');
+            $table->string('route_to')->nullable();
             $table->string('status');
             $table->text('reason_for_replacement')->nullable();
             $table->text('objectives')->nullable();
