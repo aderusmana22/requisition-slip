@@ -73,7 +73,7 @@ class StoreSampleRequisitionRequest extends FormRequest
             'sample_description_tank'   => 'nullable|string|max:255',
             'production_date'           => 'nullable|date',
             'sample_preparation'        => 'nullable|string|max:255',
-            'qa_notes'                  => 'nullable|string',
+            'description'               => 'nullable|string',
         ];
     }
 

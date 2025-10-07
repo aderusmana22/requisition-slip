@@ -34,7 +34,7 @@
 
                 {{-- Tombol dengan style dan struktur yang sudah benar --}}
                 <div>
-                    <button class="btn new-complain-btn" type="button" data-bs-toggle="modal"
+                    <button class="btn new-sample-btn" type="button" data-bs-toggle="modal"
                         data-bs-target="#sampleModal" id="btn-create-sample">
                         <i class="ph-bold ph-plus"></i>
                         <span>New Sample</span> {{-- Teks diubah agar sesuai --}}
@@ -1014,119 +1014,138 @@
             });
 
             $('#sampleForm').on('submit', function (e) {
-                e.preventDefault();
+                e.preventDefault(); // Menghentikan submit form default
+                    const form = this; // Menyimpan konteks form untuk digunakan nanti
 
-                const form = this;
-                const subCategory = $('#sub_category').val();
+                    // --- 1. Ambil beberapa data kunci untuk ditampilkan di pop-up konfirmasi ---
+                    const subCategory = $('#sub_category option:selected').text().trim();
+                    const customerName = $('#customer_id option:selected').text().trim();
+                    const requestDate = $('#request_date').val();
+                    const itemCount = $('#requisition-items-tbody tr[id^="item-row-"]').length;
 
-                // Fungsi untuk mengirim data via AJAX
-                function submitForm(formData) {
-                    const submitBtn = $('#saveSampleBtn');
-                    const overlay = $('#sampleModal .loading-overlay');
-                    overlay.show();
-                    submitBtn.prop('disabled', true);
+                        // --- 2. Tampilkan SweetAlert untuk konfirmasi ---
+                        Swal.fire({
+                            title: 'Konfirmasi Pengajuan',
+                            html: `Anda akan mengajukan Requisition dengan ringkasan data berikut:
+                                <ul class="text-start mt-3" style="list-style: none; padding-left: 0;">
+                                    <li style="padding: 5px 0;"><strong>Sub Kategori:</strong> ${subCategory || '<i>Belum dipilih</i>'}</li>
+                                    <li style="padding: 5px 0;"><strong>Customer:</strong> ${customerName || '<i>Belum dipilih</i>'}</li>
+                                    <li style="padding: 5px 0;"><strong>Tgl. Request:</strong> ${requestDate}</li>
+                                    <li style="padding: 5px 0;"><strong>Jumlah Item:</strong> ${itemCount} item</li>
+                                </ul>
+                                <hr>
+                                <b class="text-danger">Pastikan semua data yang Anda masukkan sudah benar.</b>`,
+                            icon: 'question',
+                            showCancelButton: true,
+                            confirmButtonColor: '#3085d6',
+                            cancelButtonColor: '#d33',
+                            confirmButtonText: 'Ya, Data Sudah Benar!',
+                            cancelButtonText: 'Batal, Cek Lagi'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                const mode = $(form).attr('data-mode');
+                                const id = $(form).attr('data-id');
+                                const currentSubCategory = $('#sub_category').val();
 
-                    const mode = $(this).attr('data-mode');
-                    const id = $(this).attr('data-id');
-                    let url = (mode === 'edit') ? `/sample-form/${id}` : "{{ route('sample-form.store') }}";
-                    if (mode === 'edit') {
-                        formData.append('_method', 'PUT');
-                    }
+                                function submitForm(formData) {
+                                const submitBtn = $('#saveSampleBtn');
+                                const overlay = $('#sampleModal .loading-overlay');
+                                overlay.show();
+                                submitBtn.prop('disabled', true);
 
-                    $.ajax({
-                        url: url,
-                        method: 'POST',
-                        data: formData,
-                        processData: false,
-                        contentType: false,
-                        success: function (res) {
-                            if (res.success) {
-                                $('#sampleModal').modal('hide');
-                                successMessage(res.message);
+                                let url = (mode === 'edit') ? `/sample-form/${id}` : "{{ route('sample-form.store') }}";
+                                if (mode === 'edit') {
+                                    formData.append('_method', 'PUT');
+                                }
 
-                                const urlParams = new URLSearchParams(window.location.search);
-                                const openFormId = urlParams.get('open_form');
-                                if (openFormId) {
-                                    setTimeout(function() {
-                                        const qaButton = $(`.btn-qa-form[data-id="${openFormId}"]`);
-                                        if (qaButton.length) {
-                                            qaButton.click();
+                                $.ajax({
+                                    url: url,
+                                    method: 'POST',
+                                    data: formData,
+                                    processData: false,
+                                    contentType: false,
+                                    success: function(res) {
+                                        if (res.success) {
+                                            $('#sampleModal').modal('hide');
+                                            successMessage(res.message);
+                                            table.ajax.reload(null, false);
+
+                                            const urlParams = new URLSearchParams(window.location.search);
+                                            const openFormId = urlParams.get('open_form');
+                                            if (openFormId) {
+                                                setTimeout(function() {
+                                                    const qaButton = $(`.btn-qa-form[data-id="${openFormId}"]`);
+                                                    if (qaButton.length) {
+                                                        qaButton.click();
+                                                    } else {
+                                                        console.warn(`Tombol QA untuk requisition ID ${openFormId} tidak ditemukan.`);
+                                                    }
+                                                }, 500);
+                                            }
+                                        }
+                                    },
+
+                                    error: function (xhr) {
+                                        if (xhr.status === 422) {
+                                            const errors = xhr.responseJSON.errors;
+                                            let itemErrorMessages = new Set();
+                                            clearValidationErrors();
+                                            for (const key in errors) {
+                                                const errorMsg = errors[key][0];
+                                                if (key.startsWith('items.')) {
+                                                    itemErrorMessages.add(errorMsg);
+                                                } else {
+                                                    const field = $(`#${key}`);
+                                                    const errorDiv = $(`#${key}_error`);
+                                                    field.addClass('is-invalid');
+                                                    errorDiv.text(errorMsg).show();
+                                                    if (field.hasClass('select2-styled')) {
+                                                        field.next('.select2-container').find('.select2-selection').css('border-color', '#dc3545');
+                                                    }
+                                                }
+                                            }
+                                            if (itemErrorMessages.size > 0) {
+                                                $('#items_error').show().html(Array.from(itemErrorMessages).join('<br>'));
+                                            }
                                         } else {
-                                            console.warn(`Tombol QA untuk requisition ID ${openFormId} tidak ditemukan.`);
+                                            errorMessage(xhr.responseJSON?.message || 'Terjadi kesalahan pada sistem.');
                                         }
-                                    }, 500);
+                                },
+                                complete: function() {
+                                    overlay.hide();
+                                    submitBtn.prop('disabled', false);
                                 }
-                            }
-                        },
-
-                        error: function (xhr) {
-                            if (xhr.status === 422) {
-                                const errors = xhr.responseJSON.errors;
-                                let itemErrorMessages = new Set();
-
-                                for (const key in errors) {
-                                    const errorMsg = errors[key][0];
-
-                                    if (key.startsWith('items.')) {
-                                        const nameSelector = key.replace(/\./g, '][').replace('][', '[');
-                                        const fieldInTable = $(`[name="${nameSelector}"]`);
-
-                                        if (fieldInTable.length) {
-                                            fieldInTable.addClass('is-invalid');
-                                        }
-                                        itemErrorMessages.add(errorMsg);
-                                    } else {
-                                        const field = $(`#${key}`);
-                                        const errorDiv = $(`#${key}_error`);
-
-                                        field.addClass('is-invalid');
-                                        errorDiv.text(errorMsg).show();
-
-                                        if (field.hasClass('select2-styled')) {
-                                            field.next('.select2-container').find('.select2-selection').css('border-color', '#dc3545');
-                                        }
-                                    }
-                                }
-
-                                if (itemErrorMessages.size > 0) {
-                                    $('#items_error').show().html(Array.from(itemErrorMessages).join('<br>'));
-                                }
-
-                            } else {
-                                errorMessage(xhr.responseJSON?.message || 'Terjadi kesalahan pada sistem.');
-                            }
-                        },
-                        complete: function() {
-                            overlay.hide();
-                            submitBtn.prop('disabled', false);
+                            });
                         }
-                    });
-                }
 
-                if (subCategory === 'Packaging' && $(form).attr('data-mode') === 'create') {
-                    Swal.fire({
-                        title: 'Print Batch Number',
-                        text: "Apakah Anda ingin mencetak Batch Number untuk requisition ini?",
-                        icon: 'question',
-                        showDenyButton: true,
-                        confirmButtonText: 'Yes, Print',
-                        denyButtonText: `No, Don't Print`,
-                        confirmButtonColor: '#3085d6',
-                        denyButtonColor: '#6c757d',
-                    }).then((result) => {
-                        let formData = new FormData(form);
-                        if (result.isConfirmed) {
-                            formData.append('print_batch', '1');
-                            submitForm(formData);
-                        } else if (result.isDenied) {
-                            formData.append('print_batch', '0');
+                        // Logika untuk print_batch (jika ada) dipindahkan ke sini juga
+                        if (currentSubCategory === 'Packaging' && mode === 'create') {
+                            Swal.fire({
+                                title: 'Print Batch Number',
+                                text: "Apakah Anda ingin mencetak Batch Number untuk requisition ini?",
+                                icon: 'question',
+                                showDenyButton: true,
+                                confirmButtonText: 'Yes, Print',
+                                denyButtonText: `No, Don't Print`,
+                                confirmButtonColor: '#3085d6',
+                                denyButtonColor: '#6c757d',
+                            }).then((batchResult) => {
+                                let formData = new FormData(form);
+                                if (batchResult.isConfirmed) {
+                                    formData.append('print_batch', '1');
+                                    submitForm(formData);
+                                } else if (batchResult.isDenied) {
+                                    formData.append('print_batch', '0');
+                                    submitForm(formData);
+                                }
+                                // Jika user menutup pop-up, tidak terjadi apa-apa
+                            });
+                        } else {
+                            let formData = new FormData(form);
                             submitForm(formData);
                         }
-                    });
-                } else {
-                    let formData = new FormData(form);
-                    submitForm(formData);
-                }
+                    }
+                });
             });
 
             function setupQaRadioLainnya(baseName) {
@@ -1494,73 +1513,136 @@
                 if (['Submitted', 'Pending'].includes(status)) badgeClass = 'bg-primary';
                 else if (status.includes('Approved') || status === 'Completed') badgeClass = 'bg-success';
                 else if (['Rejected', 'Cancelled'].includes(status)) badgeClass = 'bg-danger';
-                else if (status === 'In Progress') badgeClass = 'bg-warning text-dark';
+                else if (status === 'Processing' || status === 'In Progress') badgeClass = 'bg-warning text-dark';
 
-                let badgeHtml = `<span class="badge fs-6 rounded-pill ${badgeClass}">${status}</span>`;
+                $('#view_status_badge').html(`<span class="badge fs-6 rounded-pill ${badgeClass}">${status}</span>`);
 
-                if (status === 'Rejected' && data.requester && data.requester.email) {
-                    const rejectedLog = data.tracking_history.find(h => h.status.toLowerCase() === 'rejected');
-                    const rejectionNotes = rejectedLog ? rejectedLog.notes : 'No reason provided.';
+                const trackerContainer = $('#approval-tracker-container');
+                trackerContainer.empty();
 
-                    const subject = `Follow-up on Rejected Requisition: ${data.no_srs}`;
-                    const body = `Hi ${data.requester.name},\n\nThis is a follow-up regarding the rejection of sample requisition ${data.no_srs}.\n\nReason for rejection: ${rejectionNotes}\n\nPlease review and advise on the next steps.\n\nThanks,`;
+                // 1. Definisikan langkah-langkah
+                let steps = [
+                    { id: 'submitted', label: 'Request Submit', icon: 'ph-file-arrow-up' }
+                ];
 
-                    const mailtoLink = `mailto:${data.requester.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+                const approvalLogs = data.approval_logs ? data.approval_logs.filter(log => log.level <= 100) : [];
+                const approvalLogsCount = approvalLogs.length;
 
-                    badgeHtml = `<a href="${mailtoLink}" target="_blank" class="badge fs-6 rounded-pill ${badgeClass}" title="Click to send follow-up email">${status} <i class="ph-bold ph-envelope-simple ms-1"></i></a>`;
-                }
-                $('#view_status_badge').html(badgeHtml);
-
-                $('.tracker-step').removeClass('completed active rejected');
-                $('.tracker-details').html('');
-                $('#tracker-progress').css('width', '0%');
-
-                const history = data.tracking_history || [];
-                if (history.length === 0) return;
-
-                let lastCompletedStep = -1;
-                let isRejected = false;
-
-                history.forEach(item => {
-                    if (isRejected) return;
-                    let stepIndex = -1;
-                    const statusLower = item.status.toLowerCase();
-
-                    if (statusLower.includes('created')) { stepIndex = 0; }
-                    else if (statusLower.includes('approved')) { stepIndex = lastCompletedStep + 1; }
-
-                    if (stepIndex > -1) {
-                        const stepEl = $('.tracker-step').eq(stepIndex);
-                        stepEl.addClass('completed');
-                        stepEl.find('.tracker-details').html(`<div class="tracker-user text-primary">${item.user}</div><div class="tracker-date text-dark">${item.date}</div>`);
-                        lastCompletedStep = Math.max(lastCompletedStep, stepIndex);
-                    }
-                    else if (statusLower.includes('sent for approval')) {
-                        const nextStepIndex = lastCompletedStep + 1;
-                        if (nextStepIndex < 6) {
-                             $('.tracker-step').eq(nextStepIndex).addClass('active')
-                                .find('.tracker-details').html(`<div class="tracker-user text-warning fst-italic">Waiting for...</div><div class="tracker-date">${item.user}</div>`);
+                if (approvalLogsCount > 0) {
+                    approvalLogs.forEach((log, index) => {
+                        let stepTitle    = 'Atasan Dept';
+                        if (index === approvalLogsCount - 1) {
+                            stepTitle = 'Bisnis Controller';
                         }
+                            const approverName = log.approver ? log.approver.name : `Level ${log.level}`;
+                            const finalLabel = `${stepTitle}<br><small class="text-muted fw-normal">${approverName}</small>`;
+
+                        steps.push({
+                            id: 'approver_' + log.level,
+                            label: finalLabel,
+                            icon: 'ph-user-check'
+                        });
+                    });
+                }
+
+                if (status !== 'Rejected' && status !== 'Cancelled') {
+                    if (data.sub_category === 'Packaging') {
+                        if (data.print_batch) {
+                            steps.push({ id: 'inward_initial', label: 'Inward (Initial)', icon: 'ph-package' });
+                            steps.push({ id: 'material', label: 'Material Support', icon: 'ph-printer' });
+                            steps.push({ id: 'inward_final', label: 'Inward (Final)', icon: 'ph-package' });
+                        } else {
+                            steps.push({ id: 'inward_single', label: 'Inward Check', icon: 'ph-package' });
+                        }
+                    } else if (data.sub_category === 'Finished Goods') {
+                        steps.push({ id: 'outward', label: 'Outward', icon: 'ph-truck' });
+                    } else if (data.sub_category === 'Special Order') {
+                        steps.push({ id: 'qa_form', label: 'QA/QM Form', icon: 'ph-clipboard-text' });
                     }
-                    else if (statusLower.includes('rejected')) {
-                        const rejectedStepIndex = lastCompletedStep + 1;
-                         if (rejectedStepIndex < 6) {
-                            const stepEl = $('.tracker-step').eq(rejectedStepIndex);
-                            stepEl.removeClass('active').addClass('rejected');
-                            stepEl.find('.tracker-details').html(`<div class="tracker-user text-danger">${item.user}</div><div class="tracker-date">${item.date}</div>`);
-                         }
-                         isRejected = true;
+                    steps.push({ id: 'completed', label: 'Completed', icon: 'ph-check-circle' });
+                }
+
+                let trackerHtml = '<div class="tracker-line"><div class="tracker-line-progress" id="tracker-progress"></div></div>';
+                steps.forEach(step => {
+                    trackerHtml += `
+                        <div class="tracker-step" data-step-id="${step.id}">
+                            <div class="tracker-icon"><i class="ph-bold ${step.icon} fs-6"></i></div>
+                            <div class="tracker-label">${step.label}</div>
+                            <div class="tracker-details"></div>
+                        </div>`;
+                });
+                trackerContainer.html(trackerHtml);
+
+                // 4. Update status visual tracker
+                let lastCompletedIndex = -1;
+                let isRejected = ['Rejected', 'Cancelled'].includes(status);
+
+                // [MODIFIKASI] Tandai 'Request Submit' dan tambahkan detail requester
+                if (data.requester && data.created_at) {
+                    const submittedStep = $(`.tracker-step[data-step-id="submitted"]`);
+                    submittedStep.addClass('completed');
+
+                    const requesterName = data.requester.name;
+                    // Format tanggal dan waktu menjadi lebih mudah dibaca
+                    const creationDate = new Date(data.created_at).toLocaleString('en-GB', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    }).replace(',', ''); // Hapus koma
+
+                    submittedStep.find('.tracker-details').html(
+                        `<div class="tracker-user text-primary">${requesterName}</div>
+                        <div class="tracker-date text-dark">${creationDate}</div>`
+                    );
+                    lastCompletedIndex = 0;
+                }
+
+                approvalLogs.forEach(log => {
+                    const stepId = 'approver_' + log.level;
+                    const stepIndex = steps.findIndex(s => s.id === stepId);
+                    if (stepIndex > -1 && log.status === 'Approved') {
+                        const stepElement = $(`.tracker-step[data-step-id="${stepId}"]`);
+                        stepElement.addClass('completed');
+                        const approvalDate = new Date(log.updated_at).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).replace(',', '');
+                        stepElement.find('.tracker-details').html(
+                            `<div class="tracker-user text-primary">${log.approver.name}</div>
+                            <div class="tracker-date text-dark">${approvalDate}</div>`
+                        );
+                        lastCompletedIndex = Math.max(lastCompletedIndex, stepIndex);
                     }
                 });
 
-                if (lastCompletedStep >= 0 && !isRejected) {
-                    let progressPercentage = (lastCompletedStep / 5) * 100;
-                    $('#tracker-progress').css('width', progressPercentage + '%');
+                if (status === 'Processing' && data.tracking) {
+                    const currentPosition = data.tracking.current_position;
+                    const stepIndex = steps.findIndex(s => currentPosition.toLowerCase().includes(s.label.split('<br>')[0].toLowerCase()));
+
+                    if (stepIndex > -1) {
+                        $(`.tracker-step`).each(function(i) {
+                            if (i < stepIndex) $(this).addClass('completed');
+                        });
+                        $(`.tracker-step[data-step-id="${steps[stepIndex].id}"]`).addClass('active');
+                        lastCompletedIndex = stepIndex - 1;
+                    }
+                } else if (status === 'Completed') {
+                    $('.tracker-step').addClass('completed');
+                    lastCompletedIndex = steps.length - 1;
+                } else if (isRejected) {
+                    const nextStepIndex = lastCompletedIndex + 1;
+                    if (nextStepIndex < steps.length) {
+                        $(`.tracker-step`).eq(nextStepIndex).addClass('rejected');
+                    }
+                } else if (status === 'Pending' || status === 'In Progress') {
+                    const nextStepIndex = lastCompletedIndex + 1;
+                    if (nextStepIndex < steps.length) {
+                        $(`.tracker-step`).eq(nextStepIndex).addClass('active');
+                    }
                 }
 
-                if (data.status === 'Completed') {
-                    $('.tracker-step').removeClass('active').addClass('completed');
-                    $('#tracker-progress').css('width', '100%');
+                if (lastCompletedIndex >= 0 && !isRejected) {
+                    let progressPercentage = (lastCompletedIndex / (steps.length - 1)) * 100;
+                    $('#tracker-progress').css('width', progressPercentage + '%');
                 }
             }
 

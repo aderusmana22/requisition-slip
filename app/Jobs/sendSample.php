@@ -17,41 +17,29 @@ class sendSample implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    protected $requisition;
+    // [MODIFIKASI] Simpan ID, bukan model lengkap
+    protected $requisitionId;
     protected $recipient;
     protected $token;
     protected $mailData;
 
-    /**
-     * Create a new job instance.
-     * Konstruktor diubah agar lebih fleksibel, menerima array data.
-     *
-     * @param \App\Models\Requisition\Requisition $requisition
-     * @param \App\Models\User $recipient Penerima email
-     * @param string|null $token Token untuk aksi (bisa null untuk notifikasi)
-     * @param array $mailData Data tambahan untuk email
-     * @return void
-     */
-    public function __construct(Requisition $requisition, User $recipient, ?string $token, array $mailData = [])
+    public function __construct($requisition, User $recipient, ?string $token, array $mailData = [])
     {
-        $this->requisition = $requisition;
+        // [MODIFIKASI] Ambil ID dari model
+        $this->requisitionId = $requisition->id;
         $this->recipient = $recipient;
         $this->token = $token;
         $this->mailData = $mailData;
     }
 
-    /**
-     * Execute the job.
-     */
     public function handle()
     {
         try {
-            // Tentukan tipe email dari data yang dikirim, defaultnya 'approval'
-            $mailType = $this->mailData['mail_type'] ?? 'approval';
+            $requisition = Requisition::with('requester.department')->findOrFail($this->requisitionId);
 
+            $mailType = $this->mailData['mail_type'] ?? 'approval';
             $dataForMail = $this->mailData;
 
-            // Siapkan URL aksi berdasarkan tipe email
             if ($mailType === 'approval') {
                 $dataForMail['approve_url'] = route('approval.response', ['token' => $this->token, 'action' => 'approve']);
                 $dataForMail['review_url']  = route('approval.response', ['token' => $this->token, 'action' => 'review']);
@@ -61,13 +49,12 @@ class sendSample implements ShouldQueue
                 $dataForMail['review_url'] = route('approval.response', ['token' => $this->token, 'action' => 'review']);
             }
 
-            // Kirim email menggunakan Mailable cerdas yang sudah kita buat
-            Mail::to($this->recipient->email)->send(new mailSample($this->requisition, $this->recipient, $dataForMail));
+            Mail::to($this->recipient->email)->send(new mailSample($requisition, $this->recipient, $dataForMail));
 
-            Log::info("Email (Tipe: {$mailType}) untuk Requisition #{$this->requisition->id} berhasil dikirim ke {$this->recipient->email}.");
+            Log::info("Email (Tipe: {$mailType}) untuk Requisition #{$requisition->id} berhasil dikirim ke {$this->recipient->email}.");
 
         } catch (\Exception $e) {
-            Log::error("Gagal mengirim email untuk Requisition #{$this->requisition->id}. Error: " . $e->getMessage() . " on line " . $e->getLine());
+            Log::error("Gagal mengirim email untuk Requisition #{$requisition->id}. Error: " . $e->getMessage() . " on line " . $e->getLine());
         }
     }
 }

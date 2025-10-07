@@ -4,71 +4,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Approval: {{ $requisition->no_srs }}</title>
+    <title>{{ $pageTitle }} : {{ $requisition->no_srs }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
-
         body {
             font-family: 'Poppins', sans-serif;
-            background-color: #f4f7fc
-        }
-
-        .main-container {
-            display: grid;
-            grid-template-columns: 2.5fr 1fr;
-            gap: 30px;
-            max-width: 1400px;
-            margin: 40px auto;
-            padding: 0 20px
+            background-color: #f4f7fc;
         }
 
         .card {
-            background-color: #fff;
+            border: none;
             border-radius: 16px;
             box-shadow: 0 8px 30px rgba(0, 0, 0, .05);
-            border: none
         }
 
         .card-header.main-header {
-            background: linear-gradient(135deg, #004a99 0%, #002c5c 100%);
+            background: linear-gradient(135deg, #cc982f 0%, #b8871a 100%);
             color: white;
             padding: 20px 30px;
             border-radius: 16px 16px 0 0 !important;
-            border-bottom: none
         }
 
         .section-title {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             font-weight: 700;
-            color: #003b7a;
+            color: #b8871a;
             margin-bottom: 20px;
             padding-bottom: 10px;
             border-bottom: 2px solid #eef2f9;
             display: flex;
-            align-items: center
+            align-items: center;
         }
 
         .section-title i {
             margin-right: 12px;
-            font-size: 1.2rem
+            font-size: 1.1rem;
+            width: 20px;
+            text-align: center;
         }
 
         .info-label {
             color: #8a96a3;
             font-size: .85em;
-            margin-bottom: 2px
+            margin-bottom: 2px;
         }
 
         .info-value {
             color: #212529;
-            font-weight: 500
-        }
-
-        .action-card {
-            position: sticky;
-            top: 40px
+            font-weight: 500;
         }
 
         .processing-overlay {
@@ -78,93 +62,82 @@
             width: 100%;
             height: 100%;
             background-color: rgba(255, 255, 255, .9);
-            display: flex;
+            display: none;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             z-index: 9999;
-            display: none
         }
 
-        .spinner-border {
-            width: 3rem;
-            height: 3rem
-        }
-
-        .tracking-list {
-            list-style: none;
-            padding-left: 0
-        }
-
-        .tracking-item {
-            position: relative;
-            padding: 10px 0 25px 30px;
-            border-left: 2px solid #e9ecef
-        }
-
-        .tracking-item:last-child {
-            border-left: 2px solid transparent
-        }
-
-        .tracking-item::before {
-            content: '';
-            position: absolute;
-            left: -9px;
-            top: 12px;
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
+        .form-control:disabled,
+        .form-control[readonly] {
             background-color: #e9ecef;
-            border: 3px solid #f4f7fc
+            opacity: 1;
         }
 
-        .tracking-item.approved::before {
-            background-color: #28a745
+        .text-primary {
+            color: #b8871a !important;
         }
 
-        .tracking-item.pending::before {
-            background-color: #ffc107
+        .btn-primary {
+            background-color: #cc982f;
+            border-color: #cc982f;
         }
 
-        .tracking-item.rejected::before {
-            background-color: #dc3545
+        .btn-primary:hover {
+            background-color: #b8871a;
+            border-color: #b8871a;
         }
 
-        .tracking-name {
-            font-weight: 600
+        .processing-overlay .spinner-border {
+            color: #cc982f !important;
         }
 
-        .tracking-notes {
-            font-size: .9em;
-            color: #6c757d;
-            font-style: italic
+        /* [DIUBAH] Layout Grid 2 Kolom yang konsisten */
+        .main-container {
+            display: grid;
+            grid-template-columns: 2.5fr 1fr;
+            gap: 30px;
+            max-width: 1400px;
+            margin: 40px auto;
+            padding: 0 20px;
         }
 
-        .tracking-date {
-            font-size: .8em;
-            color: #adb5bd
+        .action-card {
+            position: sticky;
+            top: 40px;
+        }
+
+        .left-column>.card {
+            margin-bottom: 30px;
+        }
+
+        /* Memberi jarak antar card di kolom kiri */
+
+        /* [BARU] Style untuk radio button menyamping */
+        .radio-group-horizontal .form-check {
+            margin-right: 15px;
+            /* Jarak antar radio button */
         }
 
         @media (max-width:1024px) {
             .main-container {
-                grid-template-columns: 1fr
+                grid-template-columns: 1fr;
             }
         }
 
     </style>
-</head>
 
 <body>
     <div class="main-container">
         <div class="left-column">
-            {{-- (Konten kolom kiri: detail requisition, dll. tidak perlu diubah) --}}
             <div class="card">
                 <div class="card-header main-header">
                     <h4 class="mb-0">Sample Requisition Approval</h4>
                     <p class="mb-0 opacity-75">SRS No: {{ $requisition->no_srs }}</p>
                 </div>
                 <div class="card-body p-4 p-md-5">
-                    {{-- Detail Utama --}}
+                    {{-- BAGIAN 1: DETAIL REQUISITION --}}
                     <h5 class="section-title"><i class="fas fa-file-invoice"></i> Requisition Details</h5>
                     <div class="row g-4">
                         <div class="col-md-4">
@@ -202,7 +175,7 @@
                         </div>
                     </div>
 
-                    {{-- Detail Item --}}
+                    {{-- BAGIAN 2: DETAIL ITEM --}}
                     @if($requisition->requisitionItems->count() > 0)
                     <h5 class="section-title mt-5"><i class="fas fa-cubes"></i> Requested Item List</h5>
                     <div class="table-responsive">
@@ -241,57 +214,209 @@
                     </div>
                     @endif
 
-                    <h5 class="section-title mt-5"><i class="fas fa-shoe-prints"></i> Approval & Process Tracking</h5>
-                    <div class="p-3">
-                        <ul class="tracking-list">
-                            @foreach($requisition->approvalLogs->sortBy('level') as $log)
-                            <li class="tracking-item {{ strtolower($log->status) }}">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <span class="tracking-name">{{ $log->approver->name ?? 'N/A' }} (Level
-                                        {{ $log->level }})</span>
-                                    <span
-                                        class="tracking-date">{{ \Carbon\Carbon::parse($log->updated_at)->format('d M Y, H:i') }}</span>
-                                </div>
-                                @if($log->notes)
-                                <p class="tracking-notes mb-0">"{{ $log->notes }}"</p>
-                                @endif
-                            </li>
-                            @endforeach
-                        </ul>
+                    {{-- BAGIAN 3 (KONDISIONAL): DATA MARKETING --}}
+                    @if($isQaForm)
+                    <h5 class="section-title mt-5"><i class="fas fa-tags"></i> Marketing Data (Read-Only)</h5>
+                    <div class="table-responsive">
+                        <table class="table table-bordered align-middle mb-0">
+                            <tbody>
+                                <tr>
+                                    <th style="width: 180px;">Tanggal Selesai Sample</th>
+                                    <td>
+                                        <input type="date" class="form-control"
+                                            value="{{ $requisition->requisitionSpecial->end_date ?? '' }}" readonly>
+                                    </td>
+                                    <th style="width: 180px;">Kemasan Sample</th>
+                                    <td>
+                                        <input type="text" class="form-control"
+                                            value="{{ $requisition->requisitionSpecial->packaging_selection ?? '' }}"
+                                            readonly>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Jumlah Sample</th>
+                                    <td>
+                                        <input type="text" class="form-control"
+                                            value="{{ $requisition->requisitionSpecial->sample_count ?? '' }}" readonly>
+                                    </td>
+                                    <th>Tujuan Sample</th>
+                                    <td>
+                                        <textarea class="form-control" rows="2"
+                                            readonly>{{ $requisition->requisitionSpecial->purpose ?? '' }}</textarea>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Certificate of Analysis</th>
+                                    <td>
+                                        <div>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="radio"
+                                                    @if($requisition->requisitionSpecial->coa_required == 1) checked
+                                                @endif disabled>
+                                                <label class="form-check-label">Yes</label>
+                                            </div>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="radio"
+                                                    @if($requisition->requisitionSpecial->coa_required == 0) checked
+                                                @endif disabled>
+                                                <label class="form-check-label">No</label>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <th>Shipment Method</th>
+                                    <td>
+                                        <input type="text" class="form-control"
+                                            value="{{ $requisition->requisitionSpecial->shipment_method ?? '' }}"
+                                            readonly>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
+                    @endif
                 </div>
             </div>
         </div>
 
+        {{-- Kolom Kanan: Form Aksi --}}
         <div class="right-column">
             <div class="card action-card">
                 <div class="card-body p-4">
-                    {{-- [DIPERBAIKI] Judul form dinamis --}}
-                    <h5 class="section-title"><i class="fas fa-check-to-slot"></i> {{ $pageTitle }}</h5>
-                    <form id="approvalForm" action="{{ route('approval.process') }}" method="POST">
+                    <h5 class="section-title"><i class="fas fa-edit"></i> {{ $pageTitle }}</h5>
+                    <form id="responseForm" action="{{ route('approval.process') }}" method="POST">
                         @csrf
                         <input type="hidden" name="token" value="{{ $token }}">
-
-                        @if($action === 'approve')
-                        <div class="alert alert-success text-center">
-                            <h5 class="alert-heading">Confirm Action</h5>
-                            <p class="mb-0">This request will be processed immediately. Please wait...</p>
+                        @if($action === 'approve' || ($action === 'submit' && $isWarehouseProcess))
+                            <input type="hidden" name="action" value="{{ $action }}">
+                        @endif
+                        @if($isQaForm)
+                        <input type="hidden" name="action" value="qa_submit">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Asal sample <span class="text-danger">*</span></label>
+                            <div class="radio-group-horizontal d-flex flex-wrap">
+                                <div class="form-check me-3 mb-1"><input class="form-check-input" type="radio"
+                                        name="source_option" value="WH"><label class="form-check-label">WH</label></div>
+                                <div class="form-check me-3 mb-1"><input class="form-check-input" type="radio"
+                                        name="source_option" value="Reference Sample"><label
+                                        class="form-check-label">Reference Sample</label></div>
+                                <div class="form-check me-3 mb-1"><input class="form-check-input" type="radio"
+                                        name="source_option" value="Batch Refinery"><label
+                                        class="form-check-label">Batch
+                                        Refinery</label></div>
+                                <div class="form-check me-3 mb-1"><input class="form-check-input" type="radio"
+                                        name="source_option" value="Packing Room"><label
+                                        class="form-check-label">Packing
+                                        Room</label></div>
+                                <div class="form-check me-3 mb-1"><input class="form-check-input" type="radio"
+                                        id="source_other_radio" name="source_option" value="Lainnya"><label
+                                        class="form-check-label">Lainnya...</label></div>
+                            </div>
+                            <input type="text" class="form-control form-control-sm mt-2" id="source_other_input"
+                                style="display: none;" placeholder="Sebutkan asal sample...">
+                            <input type="hidden" name="source" id="source" required>
                         </div>
-                        <input type="hidden" name="action" value="approve">
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Keterangan sample <span
+                                    class="text-danger">*</span></label>
+                            <div class="radio-group-horizontal d-flex flex-wrap">
+                                <div class="form-check me-3 mb-1"><input class="form-check-input" type="radio"
+                                        name="description_option" id="keterangan_batch_radio" value="batch"><label
+                                        class="form-check-label">Batch / Pallet No</label></div>
+                                <div class="form-check me-3 mb-1"><input class="form-check-input" type="radio"
+                                        name="description_option" id="keterangan_wb_radio" value="wb"><label
+                                        class="form-check-label">WB/DEO No</label></div>
+                                <div class="form-check me-3 mb-1"><input class="form-check-input" type="radio"
+                                        name="description_option" id="keterangan_tank_radio" value="tank"><label
+                                        class="form-check-label">Tank No</label></div>
+                            </div>
+                            <div class="input-group mt-2" id="keterangan_sample_input_wrapper" style="display: none;">
+                                <input type="text" class="form-control" id="keterangan_sample_input_1"
+                                    placeholder="Masukkan nomor...">
+                                <span class="input-group-text" id="batch_suffix_p" style="display: none;">P</span>
+                                <input type="text" class="form-control" id="keterangan_sample_input_2"
+                                    style="display: none;" placeholder="No Pallet...">
+                            </div>
+                            <input type="hidden" name="description" id="description" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Tgl Produksi <span
+                                    class="text-danger">*</span></label>
+                            <input type="date" class="form-control" name="production_date" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Persiapan sample <span
+                                    class="text-danger">*</span></label>
+                            <div class="radio-group-horizontal d-flex flex-wrap">
+                                <div class="form-check me-3 mb-1"><input class="form-check-input" type="radio"
+                                        name="preparation_method_option" value="Tidak berubah"><label
+                                        class="form-check-label">Tidak berubah</label></div>
+                                <div class="form-check me-3 mb-1"><input class="form-check-input" type="radio"
+                                        name="preparation_method_option" value="Rework Karton"><label
+                                        class="form-check-label">Rework Karton</label></div>
+                                <div class="form-check me-3 mb-1"><input class="form-check-input" type="radio"
+                                        name="preparation_method_option" value="Rework Stencill"><label
+                                        class="form-check-label">Rework Stencill</label></div>
+                                <div class="form-check me-3 mb-1"><input class="form-check-input" type="radio"
+                                        name="preparation_method_option" value="Rework Label"><label
+                                        class="form-check-label">Rework Label</label></div>
+                                <div class="form-check me-3 mb-1"><input class="form-check-input" type="radio"
+                                        id="preparation_method_other_radio" name="preparation_method_option"
+                                        value="Lainnya"><label class="form-check-label">Lainnya...</label></div>
+                            </div>
+                            <input type="text" class="form-control form-control-sm mt-2"
+                                id="preparation_method_other_input" style="display: none;"
+                                placeholder="Sebutkan metode lain...">
+                            <input type="hidden" name="preparation_method" id="preparation_method" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Keterangan <span class="text-danger">*</span></label>
+                            <div class="radio-group-horizontal d-flex flex-wrap">
+                                <div class="form-check me-3 mb-1"><input class="form-check-input" type="radio"
+                                        name="sample_notes_option" value="Tempel sticker"><label
+                                        class="form-check-label">Tempel sticker</label></div>
+                                <div class="form-check me-3 mb-1"><input class="form-check-input" type="radio"
+                                        id="sample_notes_other_radio" name="sample_notes_option" value="Lainnya"><label
+                                        class="form-check-label">Lainnya...</label></div>
+                            </div>
+                            <input type="text" class="form-control form-control-sm mt-2" id="sample_notes_other_input"
+                                style="display: none;" placeholder="Sebutkan keterangan lain...">
+                            <input type="hidden" name="sample_notes" id="sample_notes" required>
+                        </div>
+
+                        <div class="d-grid mt-4">
+                            <button type="submit" class="btn btn-success btn-lg" id="submitBtn">Submit QA Form</button>
+                        </div>
+
+                        @elseif($isWarehouseProcess)
+                            <input type="hidden" name="action" value="{{ $action }}">
+                        @if ($action === 'review')
+                            <p>Please provide notes for this warehouse step. Notes are required to proceed.</p>
+                            <div class="mb-3">
+                                <label for="notes" class="form-label"><strong>Notes/Reason: <span class="text-danger">*</span></strong></label>
+                                <textarea class="form-control" id="notes" name="notes" rows="10" placeholder="Provide notes for your action..." required></textarea>
+                            </div>
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">Submit with Notes</button>
+                            </div>
+                        @endif
+
                         @else
                         <div class="mb-3">
                             <label class="form-label"><strong>Decision:</strong></label>
-                            <div>
-                                <div class="form-check">
+                            <div class="radio-group-horizontal d-flex flex-wrap">
+                                <div class="form-check me-3 mb-1">
                                     <input class="form-check-input" type="radio" name="action" id="action_review"
                                         value="review" @if($action==='review' ) checked @endif>
-                                    {{-- [DIPERBAIKI] Teks radio button dinamis --}}
-                                    <label class="form-check-label text-primary"
-                                        for="action_review"><strong>{{ $reviewRadioText }}</strong></label>
+                                    <label class="form-check-label text-primary" for="action_review"><strong>
+                                        Approve with Review</strong></label>
                                 </div>
-                                <div class="form-check">
+                                <div class="form-check me-3 mb-1">
                                     <input class="form-check-input" type="radio" name="action" id="action_reject"
-                                        value="reject" @if($action==='reject' ) checked @endif>
+                                        value="reject">
                                     <label class="form-check-label text-danger"
                                         for="action_reject"><strong>Reject</strong></label>
                                 </div>
@@ -299,14 +424,12 @@
                         </div>
                         <div class="mb-3">
                             <label for="notes" class="form-label"><strong>Notes/Reason:</strong></label>
-                            <textarea class="form-control" id="notes" name="notes" rows="6"
+                            <textarea class="form-control" id="notes" name="notes" rows="8"
                                 placeholder="Provide notes for your decision..."></textarea>
-                            <div class="form-text" id="notes-help-text">Notes are required for rejection.</div>
+                            <div class="form-text">Notes are required for rejection or review.</div>
                         </div>
                         <div class="d-grid">
-                            {{-- [DIPERBAIKI] Teks tombol submit dinamis --}}
-                            <button type="submit" class="btn btn-primary btn-lg"
-                                id="submitBtn">{{ $submitButtonText }}</button>
+                            <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">Submit Decision</button>
                         </div>
                         @endif
                     </form>
@@ -314,61 +437,173 @@
             </div>
         </div>
     </div>
-    {{-- (Overlay dan JavaScript tidak perlu diubah) --}}
+
     <div class="processing-overlay" id="processingOverlay">
-        <div class="spinner-border text-primary" role="status"></div>
+        <div class="spinner-border" role="status"></div>
         <p class="mt-3">Processing your response...</p>
     </div>
+
+    <!-- Javascript -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const form = document.getElementById('approvalForm');
+            const form = document.getElementById('responseForm');
             const overlay = document.getElementById('processingOverlay');
-            const reviewRadio = document.getElementById('action_review');
-            const rejectRadio = document.getElementById('action_reject');
-            const notesTextarea = document.getElementById('notes');
-            const notesHelpText = document.getElementById('notes-help-text');
-            const submitBtn = document.getElementById('submitBtn');
+            const isQaForm = {{ $isQaForm ? 'true' : 'false' }};
+            const isWarehouseProcess = {{ $isWarehouseProcess ? 'true' : 'false' }};
+            const isQuickAction = ('{{ $action }}' === 'approve') || ('{{ $action }}' === 'submit' && isWarehouseProcess);
 
-            function updateFormBehavior() {
-                if (rejectRadio && rejectRadio.checked) {
-                    notesTextarea.required = true;
-                    notesHelpText.textContent = 'Please provide a reason for rejection (required).';
-                    notesHelpText.classList.add('text-danger');
-                    submitBtn.textContent = 'Submit Rejection';
-                    submitBtn.classList.remove('btn-primary');
-                    submitBtn.classList.add('btn-danger');
-                } else if (reviewRadio && reviewRadio.checked) {
-                    notesTextarea.required = false;
-                    notesHelpText.textContent = 'Optional: Add notes for this approval.';
-                    notesHelpText.classList.remove('text-danger');
-                    // Teks tombol diambil dari Blade, jadi tidak perlu diubah di sini
-                    submitBtn.classList.remove('btn-danger');
-                    submitBtn.classList.add('btn-primary');
+            // --- 1. FUNGSI UNTUK VALIDASI & SUBMIT ---
+            const handleFormSubmit = () => {
+                let validationPassed = true;
+
+                if (isQaForm) {
+                    let allValid = true;
+                    document.querySelectorAll('#responseForm [required]').forEach(input => {
+                        if (!input.value.trim()) { allValid = false; }
+                    });
+                    if (!allValid) {
+                        Swal.fire({ icon: 'warning', title: 'Form Tidak Lengkap', text: 'Mohon isi semua kolom yang wajib diisi (*).' });
+                        validationPassed = false;
+                    }
+                } else if (isWarehouseProcess) {
+                    const notesTextarea = document.getElementById('notes');
+                    if (!(/[a-zA-Z]/.test(notesTextarea.value.trim()))) {
+                        Swal.fire({ icon: 'warning', title: 'Catatan Diperlukan', text: 'Mohon berikan catatan yang valid.' });
+                        validationPassed = false;
+                    }
+                } else { // Form Approval
+                    const reviewRadio = document.getElementById('action_review');
+                    const rejectRadio = document.getElementById('action_reject');
+                    const notesTextarea = document.getElementById('notes');
+                    if ((reviewRadio.checked || rejectRadio.checked) && !(/[a-zA-Z]/.test(notesTextarea.value.trim()))) {
+                        Swal.fire({ icon: 'warning', title: 'Alasan Diperlukan', text: 'Mohon berikan alasan yang valid.' });
+                        validationPassed = false;
+                    }
                 }
-            }
 
-            if (reviewRadio && rejectRadio) {
-                reviewRadio.addEventListener('change', updateFormBehavior);
-                rejectRadio.addEventListener('change', updateFormBehavior);
-                updateFormBehavior();
-            }
+                if (validationPassed) {
+                    overlay.style.display = 'flex';
+                    form.submit();
+                }
+            };
 
-            if ('{{ $action }}' === 'approve') {
+            // --- 2. LOGIKA AUTO-SUBMIT (UNTUK QUICK ACTION DARI EMAIL) ---
+            if (isQuickAction) {
                 overlay.style.display = 'flex';
-                // Form akan otomatis di-submit oleh JavaScript jika action-nya 'approve' (atau 'submit')
                 form.submit();
             }
-
-            form.addEventListener('submit', function (event) {
-                if (rejectRadio && rejectRadio.checked && !notesTextarea.value.trim()) {
-                    alert('Notes are required for rejection.');
+            // --- 3. JIKA BUKAN AUTO-SUBMIT, PASANG EVENT LISTENER UNTUK KONFIRMASI ---
+            else {
+                form.addEventListener('submit', function (event) {
                     event.preventDefault();
-                    return;
-                }
-                overlay.style.display = 'flex';
-            });
-        });
+                    Swal.fire({
+                        title: 'Konfirmasi Pengiriman',
+                        text: "Apakah Anda yakin ingin melanjutkan?",
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonColor: '#3085d6',
+                        cancelButtonColor: '#d33',
+                        confirmButtonText: 'Ya, Lanjutkan!',
+                        cancelButtonText: 'Batal'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            handleFormSubmit();
+                        }
+                    });
+                });
+            }
 
+            // --- BLOK LOGIKA UNTUK FORM APPROVAL ---
+            if (!isQaForm && !isWarehouseProcess) {
+                const reviewRadio = document.getElementById('action_review');
+                const rejectRadio = document.getElementById('action_reject');
+                const submitBtn = document.getElementById('submitBtn');
+                const updateSubmitButton = () => {
+                    if (reviewRadio.checked) {
+                        submitBtn.textContent = 'Submit Approve with Review';
+                        submitBtn.classList.remove('btn-danger'); submitBtn.classList.add('btn-primary');
+                    } else if (rejectRadio.checked) {
+                        submitBtn.textContent = 'Submit Reject';
+                        submitBtn.classList.remove('btn-primary'); submitBtn.classList.add('btn-danger');
+                    }
+                };
+                reviewRadio.addEventListener('change', updateSubmitButton);
+                rejectRadio.addEventListener('change', updateSubmitButton);
+                updateSubmitButton();
+            }
+
+            // --- BLOK LOGIKA UNTUK FORM QA/QM ---
+            if (isQaForm) {
+                // Fungsi untuk menangani radio button "Lainnya..."
+                function setupQaRadioLainnya(baseName) {
+                    const otherRadio = document.getElementById(`${baseName}_other_radio`);
+                    const otherInput = document.getElementById(`${baseName}_other_input`);
+                    const finalInput = document.getElementById(baseName);
+
+                    document.querySelectorAll(`input[name="${baseName}_option"]`).forEach(radio => {
+                        radio.addEventListener('change', function() {
+                            if (this.value === 'Lainnya') {
+                                otherInput.style.display = 'block';
+                                otherInput.focus();
+                                finalInput.value = otherInput.value;
+                            } else {
+                                otherInput.style.display = 'none';
+                                otherInput.value = '';
+                                finalInput.value = this.value;
+                            }
+                        });
+                    });
+                    otherInput.addEventListener('input', function() {
+                        otherRadio.checked = true;
+                        finalInput.value = this.value;
+                    });
+                }
+
+                setupQaRadioLainnya('source');
+                setupQaRadioLainnya('preparation_method');
+                setupQaRadioLainnya('sample_notes');
+
+                // Fungsi untuk menangani input "Keterangan Sample"
+                const keteranganWrapper = document.getElementById('keterangan_sample_input_wrapper');
+                const keteranganInput1 = document.getElementById('keterangan_sample_input_1');
+                const keteranganInput2 = document.getElementById('keterangan_sample_input_2');
+                const batchSuffix = document.getElementById('batch_suffix_p');
+                const finalDescriptionInput = document.getElementById('description');
+
+                document.querySelectorAll('input[name="description_option"]').forEach(radio => {
+                    radio.addEventListener('change', function() {
+                        const selectedType = this.value;
+                        keteranganInput1.value = '';
+                        keteranganInput2.value = '';
+                        finalDescriptionInput.value = '';
+                        keteranganWrapper.style.display = 'flex';
+
+                        if (selectedType === 'batch') {
+                            keteranganInput1.placeholder = 'Batch No...';
+                            keteranganInput2.style.display = 'block';
+                            keteranganInput2.placeholder = 'Pallet No...';
+                            batchSuffix.style.display = 'inline-block';
+                        } else {
+                            keteranganInput1.placeholder = selectedType === 'wb' ? 'WB/DEO No...' : 'Tank No...';
+                            keteranganInput2.style.display = 'none';
+                            batchSuffix.style.display = 'none';
+                        }
+                    });
+                });
+
+                function updateDescription() {
+                    const selectedType = document.querySelector('input[name="description_option"]:checked')?.value;
+                    if (!selectedType) return;
+                    const val1 = keteranganInput1.value;
+                    const val2 = keteranganInput2.value;
+                    finalDescriptionInput.value = (selectedType === 'batch') ? `${val1}P${val2}` : val1;
+                }
+                keteranganInput1.addEventListener('input', updateDescription);
+                keteranganInput2.addEventListener('input', updateDescription);
+            }
+        });
     </script>
 </body>
 

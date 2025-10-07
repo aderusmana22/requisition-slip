@@ -460,11 +460,11 @@ body {
 }
 
 /* Button Hover Enhanced */
-.new-complain-btn {
+.new-sample-btn {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.new-complain-btn:hover {
+.new-sample-btn:hover {
     transform: translateY(-2px) scale(1.02);
 }
 
@@ -578,7 +578,7 @@ body {
     z-index: 1;
 }
 
-.new-complain-btn {
+.new-sample-btn {
     background: linear-gradient(135deg, rgb(192, 127, 0) 0%, rgb(160, 100, 0) 100%) !important;
     border: none !important;
     color: white !important;
@@ -592,14 +592,14 @@ body {
     gap: 8px;
 }
 
-.new-complain-btn:hover {
+.new-sample-btn:hover {
     background: linear-gradient(135deg, rgb(160, 100, 0) 0%, rgb(128, 80, 0) 100%) !important;
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(192, 127, 0, 0.4);
     color: white !important;
 }
 
-.new-complain-btn i {
+.new-sample-btn i {
     font-size: 1.1em;
 }
 

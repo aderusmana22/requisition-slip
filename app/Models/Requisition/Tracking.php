@@ -14,6 +14,7 @@ class Tracking extends Model
         'current_position',
         'last_updated',
         'notes',
+        'token',
     ];
 
     public function requisition()
