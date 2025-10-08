@@ -321,7 +321,7 @@ CREATE TABLE `requisitions` (
   `revision_id` bigint unsigned DEFAULT NULL,
   `category` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `sub_category` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `route_to` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `route_to` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `status` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `reason_for_replacement` text COLLATE utf8mb4_unicode_ci,
   `objectives` text COLLATE utf8mb4_unicode_ci,

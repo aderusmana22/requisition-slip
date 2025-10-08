@@ -92,92 +92,86 @@
                 <div class="modal-body">
                     <form action="{{ route('complain-form.store') }}" method="POST" data-mode="create" data-id="" id="complineForm" enctype="multipart/form-data">
                     @csrf
-                        <header class="row slip-header mb-2 align-items-center">
-                            <div class="col-10">
-                                <img src="{{ asset('storage/logo.png') }}" alt="Sinar Meadow Logo" class="logo" style="max-height: 60px; width: auto;">
-                            </div>
-                            <div class="col-2">
-                                <p class="form-text text-start">
-                                    FORM NO: FA-INV-05<br>
-                                    REVISION: 3<br>
-                                    DATE: 18 FEBRUARY 2021
-                                </p>
-                            </div>
-                        </header>
-
-                        <!-- judul modal -->
-                        <div class="row mb-4 text-center">
-                            <h4><strong>REQUISITION SLIP</strong></h4>
-                            <p class="">SALES & MARKETING<br>SAMPLE PRODUCT</p>
-                        </div>
-
-                        <!-- data modal -->
-                        <div class="row mb-4 g-2">
-                            <div class="col">
-                                <div class="mb-3 row align-items-center">
-                                    <label for="customer_id" class="col-sm-4 col-form-label"><strong>Customer Name :</strong></label>
-                                    <div class="col-sm-7">
-                                        <select name="customer_id" id="customer_id" class="form-select">
-                                        </select>
-                                        <div data-error-for="customer_id" class="text-danger mt-1 error-message"></div>
-                                    </div>
-                                </div>
-                                <div class="mb-3 row align-items-center">
-                                    <label for="customer_address" class="col-sm-4 col-form-label"><strong>Customer Address :</strong></label>
-                                    <div class="col-sm-7">
-                                        <textarea class="form-control" id="customer_address" name="customer_address" rows="2" readonly></textarea>
-                                        <div data-error-for="customer_address" class="text-danger mt-1 error-message"></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col">
-                                <div class="mb-3 row align-items-center">
-                                    <label for="account" class="col-sm-3 col-form-label"><strong>Account :</strong></label>
-                                    <div class="col-sm-8">
-                                        <h5 id="account_display" style="font-weight: bold; text-align: center;"></h5>
-                                        <input type="hidden" class="form-control" id="account" name="account">
-                                    </div>
-                                </div>
-                                <div class="mb-3 row align-items-center">
-                                    <label for="cost_center" class="col-sm-3 col-form-label"><strong>Cost Center :</strong></label>
-                                    <div class="col-sm-8">
-                                        <input type="text" class="form-control" id="cost_center" name="cost_center">
-                                        <div data-error-for="cost_center" class="text-danger mt-1 error-message"></div>
-                                    </div>
-                                </div>
-                                <div class="mb-3 row align-items-center">
-                                    <label for="rs_number" class="col-sm-3 col-form-label"><strong>Nomor RS :</strong></label>
-                                    <div class="col-sm-8">
-                                        <h5 id="rs_number_display" style="font-weight: bold; text-align: center;"></h5>
-                                        <input type="hidden" class="form-control" id="rs_number" name="rs_number">
-                                    </div>
-                                </div>
-                                <div class="mb-3 row align-items-center">
-                                    <label for="date" class="col-sm-3 col-form-label"><strong>Tanggal :</strong></label>
-                                    <div class="col-sm-8">
-                                        <input type="date" class="form-control" id="date" name="date" value="{{ date('Y-m-d') }}">
-                                    </div>
-                                    <div data-error-for="date" class="text-danger mt-1 error-message"></div>
-                                </div>
-                                <div class="mb-3 row align-items-center">
-                                    <label for="print_batch" class="col-sm-3 col-form-label"><strong>Print Batch</strong></label>
-                                    <div class="col-sm-8">
-                                        <input type="checkbox" class="form-check-input" id="print_batch" name="print_batch" value="1">
-                                    </div>
-                                    <div data-error-for="print_batch" class="text-danger mt-1 error-message"></div>
-                                </div>
-                            </div>
-                        </div>
+                        <!-- Hidden input for print_batch -->
+                        <input type="hidden" id="print_batch" name="print_batch" value="0">
 
                         <div class="row mb-4">
-                            <div class="col-4">
-                                <label for="requisition_items"><strong>List Product</strong></label>
+                            <div class="col-12">
+                                <h5 class="text-primary"><strong>Common Information</strong></h5>
+                                <hr>
+                            </div>
+                        </div>
+
+                        <!-- Customer Information Row -->
+                        <div class="row mb-3 g-3">
+                            <div class="col-6">
+                                <label for="customer_id" class="form-label"><strong>Customer Name :</strong></label>
+                                <select name="customer_id" id="customer_id" class="form-select">
+                                </select>
+                                <div data-error-for="customer_id" class="text-danger mt-1 error-message"></div>
+                            </div>
+                            <div class="col-6">
+                                <label for="customer_address" class="form-label"><strong>Customer Address :</strong></label>
+                                <textarea class="form-control" id="customer_address" name="customer_address" rows="2" readonly></textarea>
+                                <div data-error-for="customer_address" class="text-danger mt-1 error-message"></div>
+                            </div>
+                        </div>
+
+                        <!-- Basic Information Row -->
+                        <div class="row mb-3 g-3">
+                            <div class="col-3">
+                                <label for="rs_number" class="form-label"><strong>Nomor RS :</strong></label>
+                                <h5 id="rs_number_display" class="form-control-plaintext" style="font-weight: bold; text-align: center; border: 1px solid #dee2e6; border-radius: 0.375rem; padding: 0.375rem 0.75rem; background-color: #f8f9fa;"></h5>
+                                <input type="hidden" class="form-control" id="rs_number" name="rs_number">
+                            </div>
+                            <div class="col-3">
+                                <label for="account" class="form-label"><strong>Account :</strong></label>
+                                <h5 id="account_display" class="form-control-plaintext" style="font-weight: bold; text-align: center; border: 1px solid #dee2e6; border-radius: 0.375rem; padding: 0.375rem 0.75rem; background-color: #f8f9fa;"></h5>
+                                <input type="hidden" class="form-control" id="account" name="account">
+                            </div>
+                            <div class="col-3">
+                                <label for="date" class="form-label"><strong>Tanggal :</strong></label>
+                                <input type="date" class="form-control" id="date" name="date" value="{{ date('Y-m-d') }}">
+                                <div data-error-for="date" class="text-danger mt-1 error-message"></div>
+                            </div>
+                            <div class="col-3">
+                                <label for="cost_center" class="form-label"><strong>Cost Center :</strong></label>
+                                <input type="text" class="form-control" id="cost_center" name="cost_center">
+                                <div data-error-for="cost_center" class="text-danger mt-1 error-message"></div>
+                            </div>
+                        </div>
+
+                        <!-- Objectives Row -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <label for="objectives" class="form-label"><strong>Objectives :</strong></label>
+                                <textarea name="objectives" id="objectives" class="form-control" rows="3"></textarea>
+                                <div data-error-for="objectives" class="text-danger mt-1 error-message"></div>
+                            </div>
+                        </div>
+
+                        <!-- Product Details Section -->
+                        <div class="row">
+                            <div class="col-12">
+                                <h5 class="text-primary"><strong>Product Details</strong></h5>
+                                <hr>
+                            </div>
+                        </div>
+
+                        <!-- Product Selection Row -->
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <label for="requisition_items" class="form-label"><strong>Select Products :</strong></label>
                                 <select name="requisition_items[]" id="requisition_items" multiple="multiple" class="form-control" style="display: none;">
                                 </select>
                                 <div data-error-for="requisition_items" class="text-danger mt-1 error-message"></div>
                             </div>
-                            <div class="col-3">
-                                <label for="material_type"><strong>Material Type</strong></label>
+                        </div>
+
+                        <!-- Material Type Filter Row -->
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <label class="form-label"><strong>Material Type Filter :</strong></label>
                                 <div id="material_type_wrapper">
                                     <div class="form-check">
                                         <input class="form-check-input material-type-filter" type="checkbox" name="material_type[]" value="Raw" id="mt-raw">
@@ -194,17 +188,19 @@
                                 </div>
                                 <div data-error-for="material_type" class="text-danger mt-1 error-message"></div>
                             </div>
-                            <div class="col-5">
-                                <label for="objectives"><strong>Objectives</strong></label>
-                                <textarea name="objectives" id="objectives" class="form-control"></textarea>
-                                <div data-error-for="objectives" class="text-danger mt-1 error-message"></div>
-                            </div>
                         </div>
 
-                        <!-- Product Details Section -->
-                        <div class="row">
+                        <!-- Product Table Section -->
+                        <div class="row mb-4">
                             <div class="col-12">
-                                <div id="productDetailsContainer"></div>
+                                <div id="productDetailsContainer">
+                                    <!-- Default placeholder when no products selected -->
+                                    <div id="productDetailsPlaceholder" class="text-center py-2 text-muted border rounded-md">
+                                        <i class="ph-duotone ph-package fs-1 mb-3 d-block text-secondary"></i>
+                                        <h5 class="text-muted mb-2">Product Details</h5>
+                                        <p class="mb-0">Product details will appear here after selecting the products</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -1452,6 +1448,18 @@
                 $('#imagePreviewContainer').addClass('d-none');
                 $('#imagePreviewList').empty();
 
+                // Reset product details container to show placeholder
+                $('#productDetailsContainer').html(`
+                    <div id="productDetailsPlaceholder" class="text-center py-2 text-muted border rounded-md">
+                        <i class="ph-duotone ph-package fs-1 mb-3 d-block text-secondary"></i>
+                        <h5 class="text-muted mb-2">Product Details</h5>
+                        <p class="mb-0">Product details will appear here after selecting the products</p>
+                    </div>
+                `);
+
+                // Reset print_batch hidden input
+                $('#print_batch').val('0');
+
                 var today = new Date().toISOString().split('T')[0];
                 $('#date').val(today);
 
@@ -1543,6 +1551,14 @@
                             detailsContainer.empty();
 
                             if (!selectedProductIds || selectedProductIds.length === 0) {
+                                // Show placeholder when no products selected
+                                detailsContainer.html(`
+                                    <div id="productDetailsPlaceholder" class="text-center py-2 text-muted border rounded-md">
+                                        <i class="ph-duotone ph-package fs-1 mb-3 d-block text-secondary"></i>
+                                        <h5 class="text-muted mb-2">Product Details</h5>
+                                        <p class="mb-0">Product details will appear here after selecting the products</p>
+                                    </div>
+                                `);
                                 return;
                             }
 
@@ -1740,37 +1756,49 @@
 
                 let formData = new FormData(this);
                 
-                // Handle print_batch checkbox - kirim 1 atau 0
-                const printBatchCheckbox = document.getElementById('print_batch');
-                if (printBatchCheckbox) {
-                    // Hapus nilai default dari FormData
-                    formData.delete('print_batch');
+                // Show print batch confirmation dialog first
+                confirmDialog({
+                    title: 'Print Batch Confirmation',
+                    text: 'Do you want to print the batch for this requisition?',
+                    confirmButtonText: 'Yes, Print Batch',
+                    cancelButtonText: 'No, Skip Printing',
+                    confirmButtonColor: '#28a745',
+                    cancelButtonColor: '#6c757d',
+                    icon: 'question',
+                    reverseButtons: true
+                }).then((result) => {
+                    // Set print_batch value based on user choice
+                    const printBatchValue = result.isConfirmed ? 1 : 0;
                     
-                    // Kirim 1 jika checked, 0 jika tidak checked
-                    const value = printBatchCheckbox.checked ? 1 : 0;
-                    formData.append('print_batch', value);
+                    // Update the hidden input value
+                    $('#print_batch').val(printBatchValue);
                     
-                    // Debug log
-                    console.log('Print Batch Checkbox Checked:', printBatchCheckbox.checked);
-                    console.log('Print Batch Value Sent:', value);
-                }
+                    // Recreate FormData to include updated print_batch value
+                    let updatedFormData = new FormData(document.getElementById('complineForm'));
                 
                 if (mode === 'edit') {
-                    formData.append('_method', 'PUT'); // override
+                    updatedFormData.append('_method', 'PUT'); // override
                 }
 
+                // Submit the form
                 $.ajax({
                     url: url,
                     method: method,
-                    data: formData,
+                    data: updatedFormData,
                     processData: false,
                     contentType: false,
                     success: function (res) {
                         $('#complineModal').modal('hide');
                         $('#complainTable').DataTable().ajax.reload(null, false);
-                        qtyCache = {}
-                        successMessage((mode === 'create') ? res.message :
-                            'Complain updated successfully');
+                        qtyCache = {};
+                        
+                        // Show success message with print batch status
+                        const printStatus = printBatchValue ? 'with batch printing' : 'without batch printing';
+                        const successMsg = (mode === 'create') ? 
+                            `${res.message} (${printStatus})` : 
+                            `Complain updated successfully (${printStatus})`;
+                        
+                        successMessage(successMsg);
                     },
                     error: function (xhr) {
                         if (xhr.status === 422) { // Unprocessable Entity -> Error Validasi
@@ -1812,6 +1840,8 @@
                         }
                     }
                 });
+                
+                }); // End of confirmDialog then()
             });
 
             // Handle image modal

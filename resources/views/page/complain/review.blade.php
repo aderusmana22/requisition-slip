@@ -1,218 +1,282 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Requisition Approval Review - {{ config('app.name') }}</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
         body {
-            background-color: #f8f9fa;
+            font-family: 'Poppins', sans-serif;
+            background-color: #f4f7fc;
         }
-        .card-header {
-            background-color: #cc982f;
+
+        .main-container {
+            display: grid;
+            grid-template-columns: 2.5fr 1fr;
+            gap: 30px;
+            max-width: 1400px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .card {
+            background-color: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
+            border: none;
+        }
+
+        .card-header.main-header {
+            background: linear-gradient(135deg, #004a99 0%, #002c5c 100%);
             color: white;
+            padding: 20px 30px;
+            border-radius: 16px 16px 0 0 !important;
+            border-bottom: none;
         }
-        .logo {
-            max-height: 60px;
-            width: auto;
+
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #003b7a;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eef2f9;
+            display: flex;
+            align-items: center;
         }
+
+        .section-title i {
+            margin-right: 12px;
+            font-size: 1.2rem;
+        }
+
+        .info-label {
+            color: #8a96a3;
+            font-size: 0.85em;
+            margin-bottom: 2px;
+        }
+
+        .info-value {
+            color: #212529;
+            font-weight: 500;
+        }
+
+        .action-card {
+            position: sticky;
+            top: 40px;
+        }
+
+        .processing-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            display: none;
+        }
+
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+        }
+
         .status-badge {
             font-size: 0.9em;
             padding: 0.5em 0.7em;
             font-weight: 700;
         }
+
+        @media (max-width: 1024px) {
+            .main-container {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
+
 <body>
-    <div class="container mt-5">
-        <div class="row justify-content-center">
-            <div class="col-lg-10">
-                <div class="card shadow">
-                    <div class="card-header text-center">
-                        <h4 class="mb-0">Requisition Approval Review</h4>
+    <div class="main-container">
+        <div class="left-column">
+            <div class="card">
+                <div class="card-header main-header">
+                    <h4 class="mb-0">Complain Requisition Approval</h4>
+                    <p class="mb-0 opacity-75">SRS No: {{ $requisition->no_srs }}</p>
+                </div>
+                <div class="card-body p-4 p-md-5">
+                    <!-- Judul -->
+                    <div class="row mb-4 text-center">
+                        <h5><strong>REQUISITION SLIP - COMPLAIN</strong></h5>
+                        <p class="mb-0">SALES & MARKETING<br>SAMPLE PRODUCT</p>
                     </div>
-                    <div class="card-body">
-                        <!-- Header dengan logo -->
-                        <header class="row mb-4 align-items-center">
-                            <div class="col-10">
-                                <img src="{{ asset('storage/logo.png') }}" alt="Sinar Meadow Logo" class="logo">
-                            </div>
-                            <div class="col-2">
-                                <p class="small text-end mb-0">
-                                    FORM NO: FA-INV-05<br>
-                                    REVISION: 3<br>
-                                    DATE: 18 FEBRUARY 2021
-                                </p>
-                            </div>
-                        </header>
 
-                        <!-- Judul -->
-                        <div class="row mb-4 text-center">
-                            <h5><strong>REQUISITION SLIP - COMPLAIN</strong></h5>
-                            <p class="mb-0">SALES & MARKETING<br>SAMPLE PRODUCT</p>
+                    {{-- Detail Utama --}}
+                    <h5 class="section-title"><i class="fas fa-file-invoice"></i> Requisition Details</h5>
+                    <div class="row g-4">
+                        <div class="col-md-4">
+                            <div class="info-label">Customer Name</div>
+                            <div class="info-value">{{ $requisition->customer->name ?? '-' }}</div>
                         </div>
-
-                        <!-- Informasi Requisition -->
-                        <div class="row mb-4">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label"><strong>Customer Name:</strong></label>
-                                    <input type="text" class="form-control" value="{{ $requisition->customer->name ?? '-' }}" readonly>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label"><strong>Customer Address:</strong></label>
-                                    <textarea class="form-control" rows="2" readonly>{{ $requisition->customer->address ?? '-' }}</textarea>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label"><strong>Account:</strong></label>
-                                    <input type="text" class="form-control" value="{{ $requisition->account }}" readonly>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label"><strong>Cost Center:</strong></label>
-                                    <input type="text" class="form-control" value="{{ number_format($requisition->cost_center) }}" readonly>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label"><strong>Nomor RS:</strong></label>
-                                    <input type="text" class="form-control" value="{{ $requisition->no_srs }}" readonly>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label"><strong>Request Date:</strong></label>
-                                    <input type="text" class="form-control" value="{{ $requisition->request_date }}" readonly>
-                                </div>
-                            </div>
+                        <div class="col-md-8">
+                            <div class="info-label">Customer Address</div>
+                            <div class="info-value">{{ $requisition->customer->address ?? '-' }}</div>
                         </div>
-
-                        <!-- Objectives -->
+                        <div class="col-md-4">
+                            <div class="info-label">Account</div>
+                            <div class="info-value">{{ $requisition->account }}</div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="info-label">Cost Center</div>
+                            <div class="info-value">{{ number_format($requisition->cost_center) }}</div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="info-label">Nomor RS</div>
+                            <div class="info-value">{{ $requisition->no_srs }}</div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="info-label">Request Date</div>
+                            <div class="info-value">{{ $requisition->request_date }}</div>
+                        </div>
                         @if($requisition->objectives)
-                        <div class="mb-4">
-                            <label class="form-label"><strong>Objectives:</strong></label>
-                            <textarea class="form-control" rows="3" readonly>{{ $requisition->objectives }}</textarea>
+                        <div class="col-md-8">
+                            <div class="info-label">Objectives</div>
+                            <div class="info-value">{{ $requisition->objectives }}</div>
                         </div>
                         @endif
-
-                        <!-- Product Details -->
-                        @if($requisition->requisitionItems && $requisition->requisitionItems->count() > 0)
-                        <div class="mb-4">
-                            <h6><strong>Product Details:</strong></h6>
-                            <div class="table-responsive">
-                                <table class="table table-bordered table-striped">
-                                    <thead class="table-dark">
-                                        <tr>
-                                            <th>Material Type</th>
-                                            <th>Product Code</th>
-                                            <th>Product Name</th>
-                                            <th>Unit</th>
-                                            <th>QTY Required</th>
-                                            <th>QTY Issued</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach($requisition->requisitionItems as $item)
-                                            @php
-                                                $detail = $item->itemMaster->ItemDetails->firstWhere('id', $item->item_detail_id);
-                                            @endphp
-                                            @if($detail)
-                                            <tr>
-                                                <td>{{ $detail->material_type ?? '-' }}</td>
-                                                <td>{{ $detail->item_detail_code ?? '-' }}</td>
-                                                <td>{{ $detail->item_detail_name ?? '-' }}</td>
-                                                <td>{{ $detail->unit ?? '-' }}</td>
-                                                <td>{{ $item->quantity_required }}</td>
-                                                <td>{{ $item->quantity_issued }}</td>
-                                            </tr>
-                                            @endif
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                        @endif
-
-                        <!-- Current Status -->
-                        <div class="mb-4">
-                            <label class="form-label"><strong>Current Status:</strong></label>
-                            <div>
-                                @if($requisition->status == 'Pending')
-                                    <span class="badge status-badge bg-warning text-dark">Pending</span>
-                                @elseif($requisition->status == 'In Progress')
-                                    <span class="badge status-badge bg-info text-white">In Progress</span>
-                                @elseif($requisition->status == 'Approved')
-                                    <span class="badge status-badge bg-success">Approved</span>
-                                @elseif($requisition->status == 'Rejected')
-                                    <span class="badge status-badge bg-danger">Rejected</span>
-                                @else
-                                    <span class="badge status-badge bg-secondary">{{ $requisition->status }}</span>
-                                @endif
-                            </div>
-                        </div>
-
-                        <!-- Review Form -->
-                        <div class="card">
-                            <div class="card-header">
-                                <h6 class="mb-0">Review & Decision</h6>
-                            </div>
-                            <div class="card-body">
-                                <form action="{{ route('complain.approval.process') }}" method="POST" id="reviewForm">
-                                    @csrf
-                                    <input type="hidden" name="token" value="{{ $token }}">
-                                    <input type="hidden" name="id" value="{{ $requisition->id }}">
-                                    
-                                    <!-- Decision -->
-                                    <div class="mb-3">
-                                        <label class="form-label"><strong>Decision:</strong></label>
-                                        <div class="d-flex gap-3">
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="radio" name="status" id="approve" value="approve" required>
-                                                <label class="form-check-label text-success" for="approve">
-                                                    <strong>Approve</strong>
-                                                </label>
-                                            </div>
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="radio" name="status" id="reject" value="reject" required>
-                                                <label class="form-check-label text-danger" for="reject">
-                                                    <strong>Reject</strong>
-                                                </label>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Notes/Reason -->
-                                    <div class="mb-3">
-                                        <label for="notes" class="form-label"><strong>Notes/Reason:</strong></label>
-                                        <textarea class="form-control" id="notes" name="notes" rows="4" 
-                                                  placeholder="Please provide your reason for this decision (optional for approval, required for rejection)"></textarea>
-                                        <div class="form-text">
-                                            <span id="notes-help-text">Please provide a reason for your decision.</span>
-                                        </div>
-                                    </div>
-
-                                    <!-- Submit Button -->
-                                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                                        <button type="submit" class="btn btn-primary" id="submitBtn">
-                                            Submit Review
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
                     </div>
+
+                    {{-- Detail Item --}}
+                    @if($requisition->requisitionItems && $requisition->requisitionItems->count() > 0)
+                    <h5 class="section-title mt-5"><i class="fas fa-cubes"></i> Product Details</h5>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-sm">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Material Type</th>
+                                    <th>Product Code</th>
+                                    <th>Product Name</th>
+                                    <th>Unit</th>
+                                    <th class="text-center">QTY Required</th>
+                                    <th class="text-center">QTY Issued</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($requisition->requisitionItems as $item)
+                                @php
+                                $detail = $item->itemMaster->ItemDetails->firstWhere('id', $item->item_detail_id);
+                                @endphp
+                                @if($detail)
+                                <tr>
+                                    <td>{{ $detail->material_type ?? '-' }}</td>
+                                    <td>{{ $detail->item_detail_code ?? '-' }}</td>
+                                    <td>{{ $detail->item_detail_name ?? '-' }}</td>
+                                    <td>{{ $detail->unit ?? '-' }}</td>
+                                    <td class="text-center">{{ $item->quantity_required }}</td>
+                                    <td class="text-center">{{ $item->quantity_issued }}</td>
+                                </tr>
+                                @endif
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                    @endif
+
+                    <!-- Current Status -->
+                    <h5 class="section-title mt-5"><i class="fas fa-info-circle"></i> Current Status</h5>
+                    <div class="p-3">
+                        @if($requisition->status == 'Pending')
+                        <span class="badge status-badge bg-warning text-dark">Pending</span>
+                        @elseif($requisition->status == 'In Progress')
+                        <span class="badge status-badge bg-info text-white">In Progress</span>
+                        @elseif($requisition->status == 'Approved')
+                        <span class="badge status-badge bg-success">Approved</span>
+                        @elseif($requisition->status == 'Rejected')
+                        <span class="badge status-badge bg-danger">Rejected</span>
+                        @else
+                        <span class="badge status-badge bg-secondary">{{ $requisition->status }}</span>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="right-column">
+            <div class="card action-card">
+                <div class="card-body p-4">
+                    <h5 class="section-title"><i class="fas fa-check-to-slot"></i> Review & Decision</h5>
+                    <form action="{{ route('complain.approval.process') }}" method="POST" id="reviewForm">
+                        @csrf
+                        <input type="hidden" name="token" value="{{ $token }}">
+                        <input type="hidden" name="id" value="{{ $requisition->id }}">
+
+                        <!-- Decision -->
+                        <div class="mb-3">
+                            <label class="form-label"><strong>Decision:</strong></label>
+                            <div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="status" id="approve"
+                                        value="approve" required>
+                                    <label class="form-check-label text-success" for="approve">
+                                        <strong>Approve</strong>
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="status" id="reject"
+                                        value="reject" required>
+                                    <label class="form-check-label text-danger" for="reject">
+                                        <strong>Reject</strong>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Notes/Reason -->
+                        <div class="mb-3">
+                            <label for="notes" class="form-label"><strong>Notes/Reason:</strong></label>
+                            <textarea class="form-control" id="notes" name="notes" rows="6"
+                                placeholder="Please provide your reason for this decision (optional for approval, required for rejection)"></textarea>
+                            <div class="form-text">
+                                <span id="notes-help-text">Please provide a reason for your decision.</span>
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
+                                Submit Review
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
     </div>
 
+    {{-- Overlay saat proses --}}
+    <div class="processing-overlay" id="processingOverlay">
+        <div class="spinner-border text-primary" role="status"></div>
+        <p class="mt-3">Processing your response...</p>
+    </div>
+
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    
+
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const form = document.getElementById('reviewForm');
             const approveRadio = document.getElementById('approve');
             const rejectRadio = document.getElementById('reject');
@@ -248,9 +312,9 @@
             rejectRadio.addEventListener('change', updateFormBehavior);
 
             // Form submission
-            form.addEventListener('submit', function(e) {
+            form.addEventListener('submit', function (e) {
                 e.preventDefault();
-                
+
                 const formData = new FormData(form);
                 const decision = formData.get('status');
                 const notes = formData.get('notes');
@@ -268,8 +332,8 @@
 
                 // Confirmation dialog
                 const title = decision === 'approve' ? 'Confirm Approval' : 'Confirm Rejection';
-                const text = decision === 'approve' 
-                    ? 'Are you sure you want to approve this requisition?' 
+                const text = decision === 'approve'
+                    ? 'Are you sure you want to approve this requisition?'
                     : 'Are you sure you want to reject this requisition?';
                 const confirmButtonColor = decision === 'approve' ? '#28a745' : '#dc3545';
 
@@ -306,29 +370,29 @@
                                 'Accept': 'application/json'
                             }
                         })
-                        .then(response => {
-                            // Check if response is ok
-                            if (!response.ok) {
-                                throw new Error(`HTTP error! status: ${response.status}`);
-                            }
-                            
-                            // Check if response is JSON
-                            const contentType = response.headers.get('content-type');
-                            if (contentType && contentType.includes('application/json')) {
-                                return response.json();
-                            } else {
-                                throw new Error('Server returned non-JSON response');
-                            }
-                        })
-                        .then(data => {
-                            if (data.success && data.message) {
-                                // Immediately show the closing message without SweetAlert
-                                if (window.opener) {
-                                    // If opened in popup, close it
-                                    window.close();
+                            .then(response => {
+                                // Check if response is ok
+                                if (!response.ok) {
+                                    throw new Error(`HTTP error! status: ${response.status}`);
+                                }
+
+                                // Check if response is JSON
+                                const contentType = response.headers.get('content-type');
+                                if (contentType && contentType.includes('application/json')) {
+                                    return response.json();
                                 } else {
-                                    // If in main window, show closing message immediately
-                                    document.body.innerHTML = `
+                                    throw new Error('Server returned non-JSON response');
+                                }
+                            })
+                            .then(data => {
+                                if (data.success && data.message) {
+                                    // Immediately show the closing message without SweetAlert
+                                    if (window.opener) {
+                                        // If opened in popup, close it
+                                        window.close();
+                                    } else {
+                                        // If in main window, show closing message immediately
+                                        document.body.innerHTML = `
                                         <div style="
                                             display: flex;
                                             justify-content: center;
@@ -380,47 +444,47 @@
                                             }
                                         </style>
                                     `;
-                                    document.title = '✅ Approval Completed - Page Closed';
-                                    
-                                    // Auto close countdown
-                                    let countdown = 5;
-                                    const countdownElement = document.getElementById('auto-close-countdown');
-                                    
-                                    const countdownTimer = setInterval(() => {
-                                        countdown--;
-                                        if (countdown > 0) {
-                                            countdownElement.textContent = `This page will close in ${countdown} seconds...`;
-                                        } else {
-                                            countdownElement.textContent = 'Closing now...';
-                                            clearInterval(countdownTimer);
-                                            
-                                            // Try to close after showing the message
-                                            setTimeout(() => {
-                                                window.close();
-                                            }, 5000);
-                                        }
-                                    }, 500);
+                                        document.title = '✅ Approval Completed - Page Closed';
+
+                                        // Auto close countdown
+                                        let countdown = 5;
+                                        const countdownElement = document.getElementById('auto-close-countdown');
+
+                                        const countdownTimer = setInterval(() => {
+                                            countdown--;
+                                            if (countdown > 0) {
+                                                countdownElement.textContent = `This page will close in ${countdown} seconds...`;
+                                            } else {
+                                                countdownElement.textContent = 'Closing now...';
+                                                clearInterval(countdownTimer);
+
+                                                // Try to close after showing the message
+                                                setTimeout(() => {
+                                                    window.close();
+                                                }, 5000);
+                                            }
+                                        }, 500);
+                                    }
+                                } else {
+                                    throw new Error(data.message || 'Invalid response from server');
                                 }
-                            } else {
-                                throw new Error(data.message || 'Invalid response from server');
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error:', error);
-                            let errorMessage = 'An error occurred while processing your request. Please try again.';
-                            
-                            // If error contains specific message, use it
-                            if (error.message && error.message !== 'Failed to fetch') {
-                                errorMessage = error.message;
-                            }
-                            
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Error!',
-                                text: errorMessage,
-                                confirmButtonColor: '#d33'
+                            })
+                            .catch(error => {
+                                console.error('Error:', error);
+                                let errorMessage = 'An error occurred while processing your request. Please try again.';
+
+                                // If error contains specific message, use it
+                                if (error.message && error.message !== 'Failed to fetch') {
+                                    errorMessage = error.message;
+                                }
+
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error!',
+                                    text: errorMessage,
+                                    confirmButtonColor: '#d33'
+                                });
                             });
-                        });
                     }
                 });
             });
@@ -449,13 +513,13 @@
                         Click anywhere to stay on this page.
                     </div>
                 `;
-                
+
                 const cardBody = document.querySelector('.card-body');
                 cardBody.insertAdjacentHTML('beforeend', warningHtml);
-                
+
                 let countdown = 60;
                 const countdownElement = document.getElementById('inactivity-countdown');
-                
+
                 const countdownInterval = setInterval(() => {
                     countdown--;
                     if (countdown > 0) {
@@ -535,4 +599,5 @@
         });
     </script>
 </body>
+
 </html>
