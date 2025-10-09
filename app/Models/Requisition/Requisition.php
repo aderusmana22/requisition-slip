@@ -72,6 +72,18 @@ class Requisition extends Model
         return $this->hasMany(ApprovalLog::class);
     }
 
+    // Relasi ke Tracking (untuk status terakhir)
+    public function tracking()
+    {
+        return $this->hasOne(Tracking::class);
+    }
+
+    // Relasi ini untuk mendapatkan semua riwayat tracking
+    public function trackings()
+    {
+        return $this->hasMany(Tracking::class);
+    }
+
     // Relasi ke Payment
     public function payments()
     {

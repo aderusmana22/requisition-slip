@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Models\Master\ItemDetail;
 use App\Models\Master\ItemMaster;
+use App\Models\Requisition\Requisition; // Import the Requisition model
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -22,49 +23,48 @@ class UpdateSampleRequisitionRequest extends FormRequest
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array|string>
      */
-    public function rules(): array
+    public function rules()
     {
-        // Pengecekan apakah ini submit dari form QM, ditandai dengan adanya field 'source'.
-        $isQmSubmission = $this->has('source');
-
-        // Aturan validasi dasar yang berlaku untuk semua
-        $rules = [
-            'sub_category'          => 'required|string',
-            'customer_id'           => 'required|exists:customers,id',
-            'account'               => 'required|string|max:255',
-            'cost_center'           => 'nullable|string|max:255',
-            'request_date'          => 'required|date',
-            'objectives'            => 'required|string',
-            'estimated_potential'   => 'required|string',
-
-
-            // Aturan untuk field QA/QM (selalu ada, tapi nullable)
-            'source'                => 'required|string|max:255',
-            'description'           => 'required|string|max:255',
-            'production_date'       => 'required|date',
-            'preparation_method'    => 'required|string|max:255',
-            'sample_notes'          => 'required|string',
-        ];
-
-        if ($isQmSubmission) {
-            $rules['items'] = 'nullable|array';
-
+        // Cara paling andal: periksa apakah ada input 'source'.
+        // Jika ada, ini adalah submit dari form QA.
+        if ($this->has('source')) {
+            // Aturan validasi HANYA untuk QA
+            return [
+                'source'             => 'required|string|max:255',
+                'sample_notes'       => 'required|string|max:500',
+                'production_date'    => 'required|date',
+                'preparation_method' => 'required|string|max:255',
+                'description'        => 'required|string',
+            ];
         } else {
-            $rules['items'] = 'required|array|min:1';
-            $rules['items.*.quantity_required'] = 'required|integer|min:1';
-            $rules['items.*.quantity_issued'] = 'required|integer|min:0';
-            $rules['print_batch']           = 'required_if:sub_category,Packaging|boolean';
+            // Jika tidak ada 'source', ini adalah edit biasa oleh Marketing/Requester.
+            $rules = [
+                'customer_id'         => 'required|exists:customers,id',
+                'request_date'        => 'required|date',
+                'sub_category'        => 'required|string',
+                'cost_center'         => 'nullable|string',
+                'objectives'          => 'required|string',
+                'estimated_potential' => 'required|string',
+                'print_batch'         => 'nullable|boolean',
+                'items'               => 'required|array|min:1',
+                'items.*.quantity_required' => 'required|integer|min:1',
+            ];
 
-            $rules['end_date']              = 'required_if:sub_category,Special Order|date';
-            $rules['weight_selection']      = 'required_if:sub_category,Special Order|string|max:255';
-            $rules['packaging_selection']   = 'required_if:sub_category,Special Order|string|max:255';
-            $rules['sample_count']          = 'required_if:sub_category,Special Order|string|max:255';
-            $rules['purpose']               = 'required_if:sub_category,Special Order|string';
-            $rules['shipment_method']       = 'required_if:sub_category,Special Order|string|max:255';
-            $rules['coa_required']          = 'required_if:sub_category,Special Order|boolean';
+            // Aturan tambahan jika ini Special Order
+            if ($this->input('sub_category') === 'Special Order') {
+                $rules = array_merge($rules, [
+                    'end_date'            => 'required|date|after_or_equal:request_date',
+                    'weight_selection'    => 'required|string',
+                    'packaging_selection' => 'required|string',
+                    'sample_count'        => 'required|string',
+                    'purpose'             => 'required|string',
+                    'coa_required'        => 'required|boolean',
+                    'shipment_method'     => 'required|string',
+                ]);
+            }
+
+            return $rules;
         }
-
-        return $rules;
     }
 
     public function attributes(): array
@@ -74,25 +74,22 @@ class UpdateSampleRequisitionRequest extends FormRequest
         $subCategory = $this->input('sub_category');
 
         foreach ($items as $id => $itemData) {
-            $itemName = "Item with ID {$id}"; // Nama default jika item tidak ditemukan
+            $itemName = "Item with ID {$id}"; // Default name
 
             if ($subCategory === 'Packaging') {
-                // Cari di ItemDetail jika sub-kategori adalah Packaging
                 $itemDetail = ItemDetail::find($id);
                 if ($itemDetail) {
                     $itemName = "[{$itemDetail->item_detail_code}] {$itemDetail->item_detail_name}";
                 }
             } else {
-                // Cari di ItemMaster untuk Finished Goods & Special Order
                 $itemMaster = ItemMaster::find($id);
                 if ($itemMaster) {
                     $itemName = "[{$itemMaster->item_master_code}] {$itemMaster->item_master_name}";
                 }
             }
 
-            // Definisikan "nama panggilan" untuk setiap atribut item
-            $attributes["items.{$id}.quantity_required"] = "Qty Required untuk item {$itemName}";
-            $attributes["items.{$id}.quantity_issued"] = "Qty Issued untuk item {$itemName}";
+            $attributes["items.{$id}.quantity_required"] = "Qty Required for item {$itemName}";
+            $attributes["items.{$id}.quantity_issued"] = "Qty Issued for item {$itemName}";
         }
 
         return $attributes;
@@ -106,31 +103,29 @@ class UpdateSampleRequisitionRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'sub_category.required' => 'Sub Kategori wajib dipilih.',
-            'customer_id.required' => 'Customer wajib dipilih.',
-            'no_srs.required' => 'Nomor SRS wajib diisi.',
-            'no_srs.unique' => 'Nomor SRS sudah terdaftar.',
-            'account.required' => 'Akun wajib diisi.',
-            'request_date.required' => 'Tanggal Permintaan wajib diisi.',
-            'objectives.required' => 'Tujuan wajib diisi.',
-            'estimated_potential.required' => 'Estimasi Potensi wajib diisi.',
-            'items.required' => 'Minimal harus ada 1 item yang diminta.',
-            'items.min' => 'Minimal harus ada 1 item yang diminta.',
-            'items.*.quantity_required.required' => 'Qty Required wajib diisi untuk setiap item.',
-            'items.*.quantity_required.min' => 'Qty Required minimal 1.',
-            'request_date.required_if' => 'Tanggal Penyelesaian Sampel wajib diisi untuk Special Order.',
-            'weight_selection.required_if' => 'Berat Sampel wajib diisi untuk Special Order.',
-            'packaging_selection.required_if' => 'Kemasan Sampel wajib diisi untuk Special Order.',
-            'sample_count.required_if' => 'Rincian Jumlah Sampel wajib diisi untuk Special Order.',
-            'shipment_method.required_if' => 'Metode Pengiriman wajib dipilih untuk Special Order.',
-            'coa_required.required_if' => 'COA Required wajib diisi untuk Special Order.',
-            'sample_origin.max' => 'Asal Sampel maksimal 255 karakter.',
-            'sample_description_batch.max' => 'Deskripsi Sampel (Batch) maksimal 255 karakter.',
-            'sample_description_wb.max' => 'Deskripsi Sampel (WB) maksimal 255 karakter.',
-            'sample_description_tank.max' => 'Deskripsi Sampel (Tank) maksimal 255 karakter.',
-            'production_date.date' => 'Tanggal Produksi tidak valid.',
-            'sample_preparation.max' => 'Persiapan Sampel maksimal 255 karakter.',
-            'qa_notes.string' => 'Catatan QA harus berupa teks.',
+            'sub_category.required' => 'Sub Category must be selected.',
+            'customer_id.required' => 'Customer must be selected.',
+            'no_srs.required' => 'SRS Number is required.',
+            'no_srs.unique' => 'SRS Number is already registered.',
+            'account.required' => 'Account is required.',
+            'request_date.required' => 'Request Date is required.',
+            'objectives.required' => 'Objectives are required.',
+            'estimated_potential.required' => 'Estimated Potential is required.',
+            'items.required' => 'At least 1 item must be requested.',
+            'items.min' => 'At least 1 item must be requested.',
+            'items.*.quantity_required.required' => 'Qty Required is required for each item.',
+            'items.*.quantity_required.min' => 'Qty Required must be at least 1.',
+            'end_date.required' => 'Sample Completion Date is required for Special Order.',
+            'weight_selection.required' => 'Sample Weight is required for Special Order.',
+            'packaging_selection.required' => 'Sample Packaging is required for Special Order.',
+            'sample_count.required' => 'Sample Count details are required for Special Order.',
+            'shipment_method.required' => 'Shipment Method must be selected for Special Order.',
+            'coa_required.required' => 'COA Required is required for Special Order.',
+            'source.required' => 'Sample source is required for the QA form.',
+            'sample_notes.required' => 'Sample notes are required for the QA form.',
+            'production_date.required' => 'Production date is required for the QA form.',
+            'preparation_method.required' => 'Sample preparation method is required for the QA form.',
+            'description.required' => 'Description is required for the QA form.',
         ];
     }
 }

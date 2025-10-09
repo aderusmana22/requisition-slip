@@ -2,7 +2,7 @@
 
 namespace App\Models\Requisition;
 
-use App\Models\Master\Requisition;
+use App\Models\Requisition\Requisition;
 use Illuminate\Database\Eloquent\Model;
 
 class Tracking extends Model
@@ -14,6 +14,7 @@ class Tracking extends Model
         'current_position',
         'last_updated',
         'notes',
+        'token',
     ];
 
     public function requisition()
