@@ -30,9 +30,26 @@ trait ApprovalTrait
         $sequence = collect($approvalPath->sequence_approvers);
         $logs = collect();
 
+        // Khusus untuk category complain, cek apakah ada head qa di sequence
+        // if (strtolower($category) === 'complain') {
+        //     $headQaExists = $sequence->contains(function ($role) {
+        //         return strtolower($role) === 'head-QA';
+        //     });
+
+        //     // Jika ada head qa, pastikan head qa di urutan pertama
+        //     if ($headQaExists) {
+        //         // Remove head qa dari sequence original dan buat sequence baru
+        //         $otherRoles = $sequence->filter(function ($role) {
+        //             return strtolower($role) !== 'head-QA';
+        //         });
+
+        //         // Gabungkan dengan head qa di urutan pertama
+        //         $sequence = collect(['head-QA'])->merge($otherRoles);
+        //     }
+        // }
+
         foreach ($sequence as $index => $role) {
             $level = $index + 1;
-
             if (strtolower($role) === 'atasan') {
                 // Ambil NIK atasan requester
                 if ($requester->atasan_nik) {
@@ -51,13 +68,13 @@ trait ApprovalTrait
                 // Ambil semua user dengan role ini
                 $users = User::whereHas('roles', function ($q) use ($role) {
                     $q->where('name', $role);
-                })->get();
+                })->first();
 
-                foreach ($users as $user) {
+                if ($users) {
                     $logs->push([
                         'requisition_id' => $requisitionId,
-                        'approver_nik'   => $user->nik,
-                        'status'         => 'pending',
+                        'approver_nik'   => $users->nik,
+                        'status'         => 'Pending',
                         'level'          => $level,
                         'token'          => bin2hex(random_bytes(16)),
                         'notes'          => null,

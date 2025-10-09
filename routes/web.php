@@ -23,6 +23,9 @@ Route::get('/approval', [ComplainController::class, 'processApproval'])->name('a
 Route::get('/complain/approval-direct', [ComplainController::class, 'processApproval'])->name('approval.process.direct');
 Route::get('/complain/approval/review', [ComplainController::class, 'showReviewPage'])->name('complain.approval.review');
 Route::post('/complain/approval/process', [ComplainController::class, 'processApproval'])->name('complain.approval.process');
+Route::get('/complain/warehouse/approval', [ComplainController::class, 'processWarehouseApproval'])->name('complain.warehouse.approval');
+Route::get('/complain/warehouse/review', [ComplainController::class, 'showWarehouseReviewPage'])->name('complain.warehouse.review');
+Route::post('/complain/warehouse/process', [ComplainController::class, 'processWarehouseApproval'])->name('complain.warehouse.process');
 Route::get('/complain/test-data', [ComplainController::class, 'testData'])->name('complain.test.data');
 
 Route::prefix('requisition')->group(function () {

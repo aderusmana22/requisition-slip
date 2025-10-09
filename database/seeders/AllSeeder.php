@@ -158,6 +158,34 @@ class AllSeeder extends Seeder
         $userRequisitionRole = Role::create(['name' => 'user-requisition']); // as user-requisition
         $approvalRole = Role::create(['name' => 'user-approval']); // as head-department
 
+        //* wh-supervisor
+        $headWhRole = Role::create(['name' => 'wh-supervisor']);
+        $headWhRole->givePermissionTo([
+            'view requisition-approval', 
+            'approve requisition', 
+            'reject requisition']);
+
+        $staffWhRole = Role::create(['name' => 'wh-staff']);
+        $staffWhRole->givePermissionTo([
+            'view requisition', 
+            'create requisition', 
+            'update requisition', 
+            'delete requisition']);
+
+        // * material
+        $headMaterialRole = Role::create(['name' => 'material-supervisor']);
+        $headMaterialRole->givePermissionTo([
+            'view requisition-approval', 
+            'approve requisition', 
+            'reject requisition']);
+
+        $staffMaterialRole = Role::create(['name' => 'material-staff']);
+        $staffMaterialRole->givePermissionTo([
+            'view requisition', 
+            'create requisition', 
+            'update requisition', 
+            'delete requisition']);
+        
         //* Sales & Marketing
         $headSalesMarketingRole = Role::create(['name' => 'head-SNM']);
         $headSalesMarketingRole->givePermissionTo([
@@ -222,6 +250,59 @@ class AllSeeder extends Seeder
 
         //! Create Users and Assign Roles
 
+        //* wh-Users
+        $headWh = User::updateOrCreate([
+            'email' => 'head.wh@example.com'],[
+            'name' => 'Head WH', 
+            'nik' => 'HDWH01', 
+            'username' => 'head.wh', 
+            'password' => Hash::make('password'),
+            'email_verified_at' => now(), 
+            'department_id' => 9, 
+            'status' => 'active', 
+            'atasan_nik' => 'AG1111',
+            ]);
+        $headWh->assignRole($headWhRole);
+
+        $staffWh1 = User::updateOrCreate([
+            'email' => 'staff.wh1@example.com'],[
+            'name' => 'Staff WH 1', 
+            'nik' => 'STWH01', 
+            'username' => 'staff.wh1', 
+            'password' => Hash::make('password'),
+            'email_verified_at' => now(), 
+            'department_id' => 9, 
+            'status' => 'active', 
+            'atasan_nik' => 'HDWH01',
+            ]);
+        $staffWh1->assignRole($staffWhRole);
+
+        $headMaterial = User::updateOrCreate([
+            'email' => 'head.material@example.com'],[
+            'name' => 'Head Material', 
+            'nik' => 'HDMT01', 
+            'username' => 'head.material', 
+            'password' => Hash::make('password'),
+            'email_verified_at' => now(), 
+            'department_id' => 8, 
+            'status' => 'active', 
+            'atasan_nik' => 'AG1111',
+            ]);
+        $headMaterial->assignRole($headMaterialRole);
+
+        $staffMaterial1 = User::updateOrCreate([
+            'email' => 'staff.material1@example.com'],[
+            'name' => 'Staff Material 1', 
+            'nik' => 'STMT01', 
+            'username' => 'staff.material1', 
+            'password' => Hash::make('password'),
+            'email_verified_at' => now(), 
+            'department_id' => 8, 
+            'status' => 'active', 
+            'atasan_nik' => 'HDMT01',
+            ]);
+        $staffMaterial1->assignRole($staffMaterialRole);
+        
         //* Sales & Marketing Users
         $headSales = User::updateOrCreate([
             'email' => 'head.sales@example.com'
