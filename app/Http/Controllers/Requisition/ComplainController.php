@@ -730,7 +730,7 @@ class ComplainController extends Controller
             $nextApprovalLog = ApprovalLog::where('requisition_id', $requisitionId)
                 ->where('level', $currentLevel + 1)
                 ->where('status', 'Pending')
-                ->whereNotNull('token') // Token masih ada = belum approve
+                ->whereNotNull('token')
                 ->first();
 
             if ($nextApprovalLog) {
@@ -741,7 +741,7 @@ class ComplainController extends Controller
                     $requisition = Requisition::find($requisitionId);
                     if ($requisition) {
 
-                        $requisition->route_to = $approver->name;;
+                        $requisition->route_to = $approver->name;
                         $requisition->save();
                         
                         // Kirim email ke approver level berikutnya
@@ -757,6 +757,18 @@ class ComplainController extends Controller
                 if ($requisition) {
                     $requisition->status = 'Approved';
                     $requisition->save();
+
+                    // $printBatch = $requisition->print_batch ? true : false;
+                    // if($printBatch){
+                    //     $requisition->route_to = 'WH supervisor';
+                    //     $requisition->status = 'print batch';
+                    //     $requisition->save();
+                    // }else{
+                    //     $requisition->route_to = 'WH supervisor';
+                    //     $requisition->status = '';
+                    //     $requisition->save();
+                    //     sendPaymentProofer::dispatch($requisition, null, 'new_payment_request');
+                    // }
                 }
             }
 
