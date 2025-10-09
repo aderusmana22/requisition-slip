@@ -139,7 +139,8 @@ class ComplainController extends Controller
         return view('page.complain.index');
     }
 
-    public function destroy($id){
+    public function destroy($id)
+    {
         try{
             DB::transaction(function() use ($id){
                 $data = Requisition::where('id', $id)->first();
