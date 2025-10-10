@@ -408,7 +408,7 @@
                             <td>
                                 <div class="info-item">
                                     <div class="info-label">Cost Center</div>
-                                    <div class="info-value">{{ number_format($requisition->cost_center) }}</div>
+                                    <div class="info-value">{{ $requisition->cost_center }}</div>
                                 </div>
                             </td>
                         </tr>

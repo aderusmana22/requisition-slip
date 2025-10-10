@@ -345,12 +345,7 @@
             <div class="header-content">
                 <div class="warehouse-icon">🏭</div>
                 <h1 class="header-title">Warehouse Approval Required</h1>
-                <p class="header-subtitle">
-                    {{ 
-                        $approvalLog->level == 100 ? 'WH Supervisor - Initial Check' :
-                        ($approvalLog->level == 101 ? 'Material Supervisor - Material Review' : 'WH Supervisor - Final Approval')
-                    }}
-                </p>
+                <p class="header-subtitle">{{ $tracking->current_position }} - Approval Needed</p>
             </div>
         </div>
 
@@ -361,7 +356,7 @@
                 <h2>Hello, {{ $approver->name }}</h2>
                 <p>A requisition complain requires your warehouse approval. Please review the details below and take appropriate action.</p>
                 <div class="level-badge">
-                    📦 Level {{ $approvalLog->level }} Approval
+                    📦 {{ $tracking->current_position }}
                 </div>
             </div>
 
@@ -408,6 +403,20 @@
                                 <span class="print-batch-badge print-batch-yes">✓ Yes</span>
                             @else
                                 <span class="print-batch-badge print-batch-no">✗ No</span>
+                            @endif
+                        </span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Current Level:</span>
+                        <span class="info-value">
+                            @if($tracking->current_position == 'WH Supervisor First')
+                                Warehouse - Initial Check
+                            @elseif($tracking->current_position == 'Material Supervisor')
+                                Material - Review Process
+                            @elseif($tracking->current_position == 'WH Supervisor Final')
+                                Warehouse - Final Approval
+                            @else
+                                {{ $tracking->current_position }}
                             @endif
                         </span>
                     </div>

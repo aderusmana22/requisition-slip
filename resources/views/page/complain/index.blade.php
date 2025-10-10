@@ -397,7 +397,7 @@
                             <div class="col-md-7">
                                 <h6 class="mb-3 fw-bold text-muted">
                                     <i class="ph-duotone ph-target me-2"></i>
-                                    Objectives
+                                    Reason for Complain
                                 </h6>
                                 <div class="objectives-container">
                                     <div class="objectives-text" id="detail_objectives">
@@ -685,18 +685,7 @@
                         }
                     },{
                         data: 'cost_center',
-                        name: 'cost_center',
-                        render: function (data, type, row) {
-                            if (data) {
-                                let formatted = new Intl.NumberFormat('id-ID', {
-                                    style: 'currency',
-                                    currency: 'IDR',
-                                    minimumFractionDigits: 0
-                                }).format(data);
-                                return formatted;
-                            }
-                            return '-';
-                        }
+                        name: 'cost_center'
                     },{
                         data: 'route_to',
                         name: 'route_to'
@@ -967,7 +956,7 @@
                             $('#detail_date').text('-');
                         }
 
-                        $('#detail_objectives').text(data.objectives || 'No objectives specified');
+                        $('#detail_objectives').text(data.objectives || 'No reason specified');
 
                         // Enhanced product list with better styling
                         const selectedProductsDiv = $('#requisition_product_list');
