@@ -143,11 +143,11 @@
         @endif
 
         <a href="javascript:window.close();" class="btn btn-primary">Close</a>
-        <p class="countdown-text">This page will close automatically in <span id="countdown">10</span> seconds.</p>
+        <p class="countdown-text">This page will close automatically in <span id="countdown">5</span> seconds.</p>
     </div>
 
     <script>
-        let seconds = 10;
+        let seconds = 5;
         const countdownElement = document.getElementById('countdown');
         const interval = setInterval(() => {
             seconds--;

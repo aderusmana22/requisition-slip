@@ -1020,8 +1020,8 @@
                     // --- 1. Ambil beberapa data kunci untuk ditampilkan di pop-up konfirmasi ---
                     const subCategory = $('#sub_category option:selected').text().trim();
                     const customerName = $('#customer_id option:selected').text().trim();
+                    const noSrs = $('#no_srs').val();
                     const requestDate = $('#request_date').val();
-                    const itemCount = $('#requisition-items-tbody tr[id^="item-row-"]').length;
 
                         // --- 2. Tampilkan SweetAlert untuk konfirmasi ---
                         Swal.fire({
@@ -1029,9 +1029,9 @@
                             html: `Anda akan mengajukan Requisition dengan ringkasan data berikut:
                                 <ul class="text-start mt-3" style="list-style: none; padding-left: 0;">
                                     <li style="padding: 5px 0;"><strong>Sub Kategori:</strong> ${subCategory || '<i>Belum dipilih</i>'}</li>
+                                    <li style="padding: 5px 0;"><strong>SRS No.:</strong> ${noSrs}</li>
                                     <li style="padding: 5px 0;"><strong>Customer:</strong> ${customerName || '<i>Belum dipilih</i>'}</li>
                                     <li style="padding: 5px 0;"><strong>Tgl. Request:</strong> ${requestDate}</li>
-                                    <li style="padding: 5px 0;"><strong>Jumlah Item:</strong> ${itemCount} item</li>
                                 </ul>
                                 <hr>
                                 <b class="text-danger">Pastikan semua data yang Anda masukkan sudah benar.</b>`,
@@ -1669,67 +1669,41 @@
                 });
             });
 
-            $(document).on('click', '.btn-edit-requisition', function () {
-                const id = $(this).data('id');
-                const button = $(this);
-                const originalIcon = button.html();
-
-                const modal = $('#sampleModal');
-                const overlay = modal.find('.loading-overlay');
-
-                button.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>').prop('disabled', true);
-                overlay.show();
-
-                $.ajax({
-                    url: `/sample-form/${id}/edit`,
-                    type: 'GET',
-                    success: function (response) {
-                        $('#sampleModalLabel').text('Edit Sample Requisition');
-
-                        populateForm(response); // Panggil fungsi yang sudah diperbaiki
-
-                        modal.modal('show');
-                    },
-                    error: function () {
-                        errorMessage('Failed to fetch data for editing.');
-                    },
-                    complete: function() {
-                        button.html(originalIcon).prop('disabled', false);
-                        overlay.hide();
-                    }
-                });
-            });
-
-            $(document).on('click', '.btn-delete-requisition', function () {
+            $(document).on('click', '.btn-cancel-requisition', function () {
                 const requisitionId = $(this).data('id');
+
                 Swal.fire({
                     title: 'Are you sure?',
-                    text: "This action cannot be undone!",
+                    text: "You are about to cancel this requisition. This action cannot be undone!",
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonColor: '#d33',
                     cancelButtonColor: '#3085d6',
-                    confirmButtonText: 'Yes, delete it!',
-                    cancelButtonText: 'Cancel'
+                    confirmButtonText: 'Yes, cancel it!',
+                    cancelButtonText: 'No, keep it'
                 }).then((result) => {
                     if (result.isConfirmed) {
+                        const button = $(this);
+                        const originalHtml = button.html();
+                        button.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>').prop('disabled', true);
+
                         $.ajax({
-                            url: `/sample-form/${requisitionId}`,
+                            url: `/sample-form/${requisitionId}/cancel`, // URL ke route baru
                             type: 'POST',
                             data: {
-                                _method: 'DELETE',
                                 _token: "{{ csrf_token() }}"
                             },
                             success: function (response) {
                                 if (response.success) {
-                                    Swal.fire('Deleted!', response.message,
-                                        'success');
-                                    table.ajax.reload();
+                                    Swal.fire('Cancelled!', response.message, 'success');
+                                    table.ajax.reload(null, false); // Muat ulang tabel
                                 }
                             },
                             error: function (xhr) {
-                                Swal.fire('Failed!', 'A system error occurred.',
-                                    'error');
+                                Swal.fire('Failed!', xhr.responseJSON?.message || 'An error occurred.', 'error');
+                            },
+                            complete: function() {
+                                button.html(originalHtml).prop('disabled', false);
                             }
                         });
                     }

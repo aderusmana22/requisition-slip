@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Master\Department;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Spatie\Permission\Models\Role;
@@ -138,6 +139,11 @@ class UserController extends Controller
 
             $user->syncRoles($request->roles);
 
+            activity()
+                ->causedBy(Auth::user())
+                ->performedOn($user)
+                ->event('users')
+                ->log('Created a new user');
 
         // Return JSON for AJAX
         return response()->json(['success' => true, 'message' => 'User created successfully!']);
@@ -156,6 +162,9 @@ class UserController extends Controller
             'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'department_id' => 'required|exists:departments,id',
         ]);
+
+        $oldData = $user->getOriginal();
+        $oldRoles = $user->getRoleNames();
 
         $data = $request->only([
             'nik',
@@ -205,6 +214,16 @@ class UserController extends Controller
         // Sync roles
         $user->syncRoles($request->roles);
 
+        activity()
+           ->causedBy(Auth::user())
+           ->performedOn($user)
+           ->event('users')
+           ->withProperties([
+               'old' => array_merge($oldData, ['roles' => $oldRoles]),
+               'new' => array_merge($user->getChanges(), ['roles' => $request->roles])
+            ])
+           ->log('Updated user data');
+
         return response()->json([
             'success' => true,
             'message' => 'User updated successfully!'
@@ -215,6 +234,7 @@ class UserController extends Controller
     public function destroy($userId)
     {
         $user = User::findOrFail($userId);
+        $oldData = $user->toArray();
 
         // Hapus file avatar jika ada sebelum menghapus user
         if ($user->avatar) {
@@ -224,6 +244,12 @@ class UserController extends Controller
         }
 
         $user->delete();
+
+        activity()
+           ->causedBy(Auth::user())
+           ->event('users')
+           ->withProperties(['deleted_data' => $oldData])
+           ->log('Deleted a user');
 
         // Return JSON for AJAX
         return response()->json(['success' => true, 'message' => 'User deleted successfully!']);
