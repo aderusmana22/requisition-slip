@@ -521,21 +521,6 @@
                         b. Lainnya: .............
                     </td>
                 </tr>
-
-                {{-- SIGNATURE SECTION --}}
-                <tr class="signature-title-row">
-                    <td style="text-align: center;" colspan="2">Pemohon sample oleh / Tanggal :</td>
-                    <td style="text-align: center;" colspan="2">Disetujui oleh / Tanggal :</td>
-                    <td style="text-align: center;" colspan="3">Persiapan sample oleh / Tanggal :</td>
-                </tr>
-                <tr class="signature-name-row">
-                    <td style="text-align: center; vertical-align: bottom; padding-top: 70px;" colspan="2">(
-                        {{ $requester->name ?? '...' }} )</td>
-                    <td style="text-align: center; vertical-align: bottom; padding-top: 70px;" colspan="2">(
-                        {{ $firstApprover->name ?? '...' }} )</td>
-                    <td style="text-align: center; vertical-align: bottom; padding-top: 70px;" colspan="3">(
-                        ........................................... )</td>
-                </tr>
             </table>
         </div>
     @endif
