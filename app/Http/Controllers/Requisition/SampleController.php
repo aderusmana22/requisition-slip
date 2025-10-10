@@ -114,7 +114,7 @@ class SampleController extends Controller
                 $badgeClass = 'bg-secondary';
                 if ($subCategory == 'Packaging') $badgeClass = 'bg-info';
                 elseif ($subCategory == 'Finished Goods') $badgeClass = 'bg-primary';
-                elseif ($subCategory == 'Special Order') $badgeClass = 'bg-warning text-dark';
+                elseif ($subCategory == 'Special Order') $badgeClass = 'bg-secondary';
                 return '<span class="badge ' . $badgeClass . '">' . e($subCategory) . '</span>';
             })
             ->editColumn('route_to', fn($req) => '<span class="badge bg-warning text-dark"><i class="ph-bold ph-user-switch me-1"></i>' . e($req->route_to) . '</span>')
