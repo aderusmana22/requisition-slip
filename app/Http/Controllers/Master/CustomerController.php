@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Master;
 use App\Http\Controllers\Controller;
 use App\Models\Master\Customer;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -56,6 +57,12 @@ class CustomerController extends Controller
             'slug' => Str::slug($request->name),
         ]);
 
+        activity()
+           ->causedBy(Auth::user())
+           ->performedOn($customer)
+           ->event('customers')
+           ->log('Created a new customer');
+
         return response()->json(['success' => true, 'message' => 'Customer created successfully!']);
     }
 
@@ -66,11 +73,20 @@ class CustomerController extends Controller
             'address' => 'nullable|string|max:500',
         ]);
 
+        $oldData = $customer->getOriginal();
+
         $customer->update([
             'name' => $request->name,
             'address' => $request->address,
             'slug' => Str::slug($request->name),
         ]);
+
+        activity()
+           ->causedBy(Auth::user())
+           ->performedOn($customer)
+           ->event('customers')
+           ->withProperties(['old' => $oldData, 'new' => $customer->getChanges()])
+           ->log('Updated customer data');
 
         return response()->json(['success' => true, 'message' => 'Customer updated successfully!']);
     }
@@ -78,7 +94,14 @@ class CustomerController extends Controller
     public function destroy($id)
     {
         $customer = Customer::findOrFail($id);
+        $oldData = $customer->toArray();
         $customer->delete();
+
+        activity()
+           ->causedBy(Auth::user())
+           ->event('customers')
+           ->withProperties(['deleted_data' => $oldData])
+           ->log('Deleted a customer');
 
         return response()->json(['success' => true, 'message' => 'Customer deleted successfully!']);
     }

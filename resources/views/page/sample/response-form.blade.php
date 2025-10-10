@@ -407,16 +407,17 @@
                         @else
                         <div class="mb-3">
                             <label class="form-label"><strong>Decision:</strong></label>
-                            <div class="radio-group-horizontal d-flex flex-wrap">
-                                <div class="form-check me-3 mb-1">
+                            <div>
+                                <div class="form-check mb-2">
                                     <input class="form-check-input" type="radio" name="action" id="action_review"
-                                        value="review" @if($action==='review' ) checked @endif>
+                                        value="review" @if($action === 'review' && $originalAction !== 'reject') checked @endif> {{-- Modifikasi di sini --}}
                                     <label class="form-check-label text-primary" for="action_review"><strong>
                                         Approve with Review</strong></label>
                                 </div>
                                 <div class="form-check me-3 mb-1">
+                                    {{-- Tambahkan kondisi checked di sini berdasarkan $originalAction --}}
                                     <input class="form-check-input" type="radio" name="action" id="action_reject"
-                                        value="reject">
+                                        value="reject" @if($originalAction === 'reject') checked @endif>
                                     <label class="form-check-label text-danger"
                                         for="action_reject"><strong>Reject</strong></label>
                                 </div>
@@ -450,14 +451,14 @@
         document.addEventListener('DOMContentLoaded', function () {
             const form = document.getElementById('responseForm');
             const overlay = document.getElementById('processingOverlay');
+            const submitBtn = document.getElementById('submitBtn'); // Ambil tombol submit
+
             const isQaForm = {{ $isQaForm ? 'true' : 'false' }};
             const isWarehouseProcess = {{ $isWarehouseProcess ? 'true' : 'false' }};
             const isQuickAction = ('{{ $action }}' === 'approve') || ('{{ $action }}' === 'submit' && isWarehouseProcess);
 
-            // --- 1. FUNGSI UNTUK VALIDASI & SUBMIT ---
-            const handleFormSubmit = () => {
-                let validationPassed = true;
-
+            // --- FUNGSI VALIDASI (TETAP SAMA) ---
+            const validateForm = () => {
                 if (isQaForm) {
                     let allValid = true;
                     document.querySelectorAll('#responseForm [required]').forEach(input => {
@@ -465,13 +466,13 @@
                     });
                     if (!allValid) {
                         Swal.fire({ icon: 'warning', title: 'Form Tidak Lengkap', text: 'Mohon isi semua kolom yang wajib diisi (*).' });
-                        validationPassed = false;
+                        return false;
                     }
                 } else if (isWarehouseProcess) {
                     const notesTextarea = document.getElementById('notes');
                     if (!(/[a-zA-Z]/.test(notesTextarea.value.trim()))) {
                         Swal.fire({ icon: 'warning', title: 'Catatan Diperlukan', text: 'Mohon berikan catatan yang valid.' });
-                        validationPassed = false;
+                        return false;
                     }
                 } else { // Form Approval
                     const reviewRadio = document.getElementById('action_review');
@@ -479,25 +480,34 @@
                     const notesTextarea = document.getElementById('notes');
                     if ((reviewRadio.checked || rejectRadio.checked) && !(/[a-zA-Z]/.test(notesTextarea.value.trim()))) {
                         Swal.fire({ icon: 'warning', title: 'Alasan Diperlukan', text: 'Mohon berikan alasan yang valid.' });
-                        validationPassed = false;
+                        return false;
                     }
                 }
-
-                if (validationPassed) {
-                    overlay.style.display = 'flex';
-                    form.submit();
-                }
+                return true; // Jika semua validasi lolos
             };
 
-            // --- 2. LOGIKA AUTO-SUBMIT (UNTUK QUICK ACTION DARI EMAIL) ---
+            // --- LOGIKA AUTO-SUBMIT (TETAP SAMA) ---
             if (isQuickAction) {
                 overlay.style.display = 'flex';
                 form.submit();
             }
-            // --- 3. JIKA BUKAN AUTO-SUBMIT, PASANG EVENT LISTENER UNTUK KONFIRMASI ---
-            else {
+            // --- LOGIKA SUBMIT MANUAL (YANG DIPERBAIKI) ---
+            else if (form && submitBtn) {
                 form.addEventListener('submit', function (event) {
-                    event.preventDefault();
+                    event.preventDefault(); // Selalu hentikan submit default terlebih dahulu
+
+                    // Jika validasi gagal, hentikan proses
+                    if (!validateForm()) {
+                        return;
+                    }
+
+                    // Simpan teks asli tombol
+                    const originalBtnText = submitBtn.innerHTML;
+
+                    // Langsung nonaktifkan tombol dan tampilkan status loading
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...`;
+
                     Swal.fire({
                         title: 'Konfirmasi Pengiriman',
                         text: "Apakah Anda yakin ingin melanjutkan?",
@@ -509,17 +519,22 @@
                         cancelButtonText: 'Batal'
                     }).then((result) => {
                         if (result.isConfirmed) {
-                            handleFormSubmit();
+                            // Jika dikonfirmasi, tampilkan overlay dan submit form
+                            overlay.style.display = 'flex';
+                            form.submit();
+                        } else {
+                            // Jika dibatalkan, aktifkan kembali tombolnya
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = originalBtnText;
                         }
                     });
                 });
             }
 
-            // --- BLOK LOGIKA UNTUK FORM APPROVAL ---
+            // --- BLOK LOGIKA UNTUK UPDATE TAMPILAN TOMBOL (TETAP SAMA) ---
             if (!isQaForm && !isWarehouseProcess) {
                 const reviewRadio = document.getElementById('action_review');
                 const rejectRadio = document.getElementById('action_reject');
-                const submitBtn = document.getElementById('submitBtn');
                 const updateSubmitButton = () => {
                     if (reviewRadio.checked) {
                         submitBtn.textContent = 'Submit Approve with Review';
@@ -534,14 +549,12 @@
                 updateSubmitButton();
             }
 
-            // --- BLOK LOGIKA UNTUK FORM QA/QM ---
+            // --- BLOK LOGIKA UNTUK FORM QA/QM (TETAP SAMA) ---
             if (isQaForm) {
-                // Fungsi untuk menangani radio button "Lainnya..."
                 function setupQaRadioLainnya(baseName) {
                     const otherRadio = document.getElementById(`${baseName}_other_radio`);
                     const otherInput = document.getElementById(`${baseName}_other_input`);
                     const finalInput = document.getElementById(baseName);
-
                     document.querySelectorAll(`input[name="${baseName}_option"]`).forEach(radio => {
                         radio.addEventListener('change', function() {
                             if (this.value === 'Lainnya') {
@@ -560,18 +573,14 @@
                         finalInput.value = this.value;
                     });
                 }
-
                 setupQaRadioLainnya('source');
                 setupQaRadioLainnya('preparation_method');
                 setupQaRadioLainnya('sample_notes');
-
-                // Fungsi untuk menangani input "Keterangan Sample"
                 const keteranganWrapper = document.getElementById('keterangan_sample_input_wrapper');
                 const keteranganInput1 = document.getElementById('keterangan_sample_input_1');
                 const keteranganInput2 = document.getElementById('keterangan_sample_input_2');
                 const batchSuffix = document.getElementById('batch_suffix_p');
                 const finalDescriptionInput = document.getElementById('description');
-
                 document.querySelectorAll('input[name="description_option"]').forEach(radio => {
                     radio.addEventListener('change', function() {
                         const selectedType = this.value;
@@ -579,7 +588,6 @@
                         keteranganInput2.value = '';
                         finalDescriptionInput.value = '';
                         keteranganWrapper.style.display = 'flex';
-
                         if (selectedType === 'batch') {
                             keteranganInput1.placeholder = 'Batch No...';
                             keteranganInput2.style.display = 'block';
@@ -592,7 +600,6 @@
                         }
                     });
                 });
-
                 function updateDescription() {
                     const selectedType = document.querySelector('input[name="description_option"]:checked')?.value;
                     if (!selectedType) return;

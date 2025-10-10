@@ -50,6 +50,12 @@ class mailSample extends Mailable
                 case 'completed_notification':
                     $subject = 'Completed: Your Sample Requisition ' . $this->requisition->no_srs . ' is Ready';
                     break;
+                case 'rejection_notification':
+                    $subject = 'Rejected: Your Sample Requisition ' . $this->requisition->no_srs;
+                    break;
+                case 'cancellation_notification':
+                    $subject = 'Cancelled: Sample Requisition ' . $this->requisition->no_srs . ' has been cancelled';
+                    break;
             }
         }
 

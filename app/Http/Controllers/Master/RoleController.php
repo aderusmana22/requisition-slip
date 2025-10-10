@@ -6,12 +6,13 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
 class RoleController extends Controller
 {
-    
+
     public function index(Request $request)
     {
         if ($request->ajax()) {
@@ -58,6 +59,12 @@ class RoleController extends Controller
             'guard_name' => 'web',
         ]);
 
+         activity()
+           ->causedBy(Auth::user())
+           ->performedOn($role)
+           ->event('roles')
+           ->log('Created a new role');
+
         return response()->json(['success' => true, 'message' => 'Role created successfully!']);
     }
 
@@ -67,10 +74,19 @@ class RoleController extends Controller
             'name' => 'required|string|max:255|unique:roles,name,' . $role->id,
         ]);
 
+        $oldData = $role->getOriginal();
+
         $role->update([
             'name' => $request->name,
             'guard_name' => 'web',
         ]);
+
+        activity()
+           ->causedBy(Auth::user())
+           ->performedOn($role)
+           ->event('roles')
+           ->withProperties(['old' => $oldData, 'new' => $role->getChanges()])
+           ->log('Updated a role');
 
         return response()->json(['success' => true, 'message' => 'Role updated successfully!']);
     }
@@ -78,7 +94,14 @@ class RoleController extends Controller
     public function destroy($id): JsonResponse
     {
         $role = Role::findOrFail($id);
+        $oldData = $role->toArray();
         $role->delete();
+
+        activity()
+           ->causedBy(Auth::user())
+           ->event('roles')
+           ->withProperties(['deleted_data' => $oldData])
+           ->log('Deleted a role');
 
         return response()->json(['success' => true, 'message' => 'Role deleted successfully!']);
     }
@@ -108,6 +131,14 @@ class RoleController extends Controller
 
         $role = Role::findOrFail($roleId);
         $role->syncPermissions($request->permissions);
+        $oldPermissions = $role->permissions->pluck('name');
+
+        activity()
+           ->causedBy(Auth::user())
+           ->performedOn($role)
+           ->event('roles')
+           ->withProperties(['old_permissions' => $oldPermissions, 'new_permissions' => $request->permissions])
+           ->log('Updated permissions for a role');
 
         return response()->json(['success' => true, 'message' => 'Permissions added to role']);
     }
