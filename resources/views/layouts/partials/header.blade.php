@@ -162,7 +162,7 @@
                             data-bs-target="#profilecanvasRight" data-bs-toggle="offcanvas" href="#"
                             role="button">
                             @if(Auth::user()->avatar)
-                                <img alt="avtar" class="b-r-50 h-35 w-35 bg-dark" src="{{ Auth::user()->avatar }}">
+                                <img alt="avtar" class="b-r-50 h-35 w-35 bg-dark" src="{{ asset(Auth::user()->avatar) }}">
                             @else
                                 <img alt="avtar" class="b-r-50 h-35 w-35 bg-dark" src="{{ asset('assets/images/logo/sinarmeadow.png') }}">
                             @endif
@@ -177,7 +177,7 @@
                                         <div class="d-flex-center">
                                             <span class="h-45 w-45 d-flex-center b-r-10 position-relative">
                                                 @if(Auth::user()->avatar)
-                                                    <img alt="" class="img-fluid b-r-10" src="{{ Auth::user()->avatar }}">
+                                                    <img alt="" class="img-fluid b-r-10" src="{{ asset(Auth::user()->avatar) }}">
                                                 @else
                                                     <img alt="" class="img-fluid b-r-10" src="{{ asset('assets/images/logo/sinarmeadow.png') }}">
                                                 @endif

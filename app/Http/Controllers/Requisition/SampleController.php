@@ -238,7 +238,7 @@ class SampleController extends Controller
             DB::commit();
             return response()->json([
                 'success' => true,
-                'message' => 'Sample Requisition berhasil dibuat.',
+                'message' => 'Sample Requisition was successfully created.',
                 'next_srs_number' => $this->generateSrsNumber()
             ]);
 
@@ -454,9 +454,11 @@ class SampleController extends Controller
 
             return redirect()->route('approval.success')->with([
                 'card_class'    => 'success',
-                'title'         => 'Form Submitted Successfully',
-                'no_srs'        => $requisition->no_srs, // <-- TAMBAHKAN INI
-                'customer_name' => $requisition->customer->name ?? 'N/A' // <-- DAN INI
+                'title'         => 'Form QA/QM HSE Submitted Successfully',
+                'no_srs'        => $requisition->no_srs,
+                'customer_name' => $requisition->customer->name ?? 'N/A',
+                'action_text'   => 'QA/QM HSE Form Submitted', // <-- Teks aksi baru
+                'approver_name' => 'QA/QM HSE Team' // <-- Nama pengisi form
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -486,6 +488,9 @@ class SampleController extends Controller
                 'token'        => null,
             ]);
 
+            $title = 'Action Submitted';
+            $actionText = 'Processed';
+
             if ($action === 'reject') {
                 $requisition->update(['status' => 'Rejected', 'route_to' => 'Finished (Rejected)']);
                 if ($requisition->requester) {
@@ -496,7 +501,17 @@ class SampleController extends Controller
                     ]))->delay(now()->addSeconds(3));;
                 }
                 $newStatus = 'Rejected';
-            } else {
+                $title = 'Requisition Rejected'; // Judul baru
+                $actionText = 'Rejected';         // Teks aksi baru
+            } else { // Ini mencakup 'approve' dan 'review'
+                // Tentukan judul berdasarkan ada atau tidaknya 'notes'
+                if (!empty($notes)) {
+                    $title = 'Approved with Review';
+                    $actionText = 'Approved with Review';
+                } else {
+                    $title = 'Approved without Review';
+                    $actionText = 'Approved';
+                }
                 $nextApprovalLog = ApprovalLog::where('requisition_id', $requisition->id)
                                                 ->where('level', '>', $approvalLog->level)
                                                 ->orderBy('level', 'asc')->first();
@@ -515,10 +530,12 @@ class SampleController extends Controller
 
             return redirect()->route('approval.success')->with([
                 'card_class'    => $action === 'reject' ? 'reject' : 'success',
-                'title'         => 'Action Submitted',
+                'title'         => $title, // <-- Menggunakan judul dinamis
                 'new_status'    => $newStatus,
-                'no_srs'        => $requisition->no_srs, // <-- TAMBAHKAN INI
-                'customer_name' => $requisition->customer->name ?? 'N/A' // <-- DAN INI
+                'no_srs'        => $requisition->no_srs,
+                'customer_name' => $requisition->customer->name ?? 'N/A',
+                'action_text'   => $actionText, // <-- Variabel baru ditambahkan
+                'approver_name' => $approverName, // <-- Variabel baru ditambahkan
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -534,24 +551,28 @@ class SampleController extends Controller
     {
         DB::beginTransaction();
         try {
+            // [MODIFIKASI] Buat pesan default yang lebih dinamis
+            $defaultNote = "Proses {$tracking->current_position} berhasil disubmit tanpa notes.";
+
             $tracking->update([
                 'token'        => null,
                 'last_updated' => now(),
-                'notes'        => $notes ?: 'Proses berhasil disubmit.',
+                'notes'        => $notes ?: $defaultNote, // <-- BARIS INI YANG DIUBAH
             ]);
 
             $newStatus = $this->advanceWarehouseStep($tracking->requisition);
             DB::commit();
 
-            // Di dalam fungsi processWarehouseStep()
-            $requisition = $tracking->requisition->load('customer'); // Ambil requisition & load customer
+            $requisition = $tracking->requisition->load('customer');
 
             return redirect()->route('approval.success')->with([
                 'card_class'    => 'success',
-                'title'         => 'Action Submitted',
+                'title'         => 'Warehouse Step Submitted',
                 'new_status'    => $newStatus,
-                'no_srs'        => $requisition->no_srs, // <-- TAMBAHKAN INI
-                'customer_name' => $requisition->customer->name ?? 'N/A' // <-- DAN INI
+                'no_srs'        => $requisition->no_srs,
+                'customer_name' => $requisition->customer->name ?? 'N/A',
+                'action_text'   => 'Process Warehouse Submitted',
+                'approver_name' => $tracking->current_position
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -724,16 +745,80 @@ class SampleController extends Controller
     {
         $requisition = Requisition::with([
             'customer:id,name,address',
-            'requester:nik,name,email',
-            'requisitionItems:requisition_id,item_master_id,item_detail_id,material_type,quantity_required,quantity_issued',
+            // [MODIFIKASI] Tambahkan 'avatar' ke relasi user
+            'requester:nik,name,email,avatar',
             'requisitionItems.itemMaster:id,item_master_code,item_master_name,unit',
             'requisitionItems.itemDetail:id,item_detail_code,item_detail_name,unit',
             'requisitionSpecial',
-            'approvalLogs:id,requisition_id,approver_nik,status,notes,updated_at,level',
-            'approvalLogs.approver:nik,name',
-            'trackings'
+            'approvalLogs' => fn($q) => $q->with('approver:nik,name,avatar')->orderBy('updated_at', 'asc'),
+            'trackings' => fn($q) => $q->orderBy('last_updated', 'asc'),
         ])->findOrFail($id);
-        return response()->json($requisition);
+
+        $history = [];
+
+        // 1. Kejadian: Pembuatan Requisition
+        $history[] = [
+            'actor' => $requisition->requester->name ?? 'Requester',
+            'avatar' => $requisition->requester->avatar ? asset($requisition->requester->avatar) : null,
+            'action' => 'Created Requisition',
+            'notes' => $requisition->objectives,
+            'timestamp' => $requisition->created_at,
+        ];
+
+        // 2. Kejadian: Approval & Rejection
+        foreach ($requisition->approvalLogs as $log) {
+            if ($log->status !== 'Pending') {
+                $actionText = 'Unknown';
+                if ($log->status === 'Approved') {
+                    if (!empty($log->notes) && !str_starts_with($log->notes, 'Approved by')) {
+                        $actionText = 'Approved with Review';
+                    } else {
+                        $actionText = 'Approved not Review';
+                    }
+                } elseif ($log->status === 'Rejected') {
+                    $actionText = 'Rejected';
+                }
+                $history[] = [
+                    'actor' => $log->approver->name ?? 'Approver',
+                    'avatar' => $log->approver->avatar ? asset($log->approver->avatar) : null,
+                    'action' => $actionText,
+                    'notes' => $log->notes,
+                    'timestamp' => $log->approved_at ?? $log->updated_at,
+                ];
+            }
+        }
+
+        // 3. Kejadian: Proses Warehouse & QA
+        foreach ($requisition->trackings as $tracking) {
+            if ($tracking->last_updated) {
+                $actorName = ($tracking->current_position === 'Waiting for QA/QM Form') ? 'QA/QM HSE Team' : $tracking->current_position;
+                $history[] = [
+                    'actor' => $actorName,
+                    'avatar' => null, // [MODIFIKASI] Tim tidak punya avatar
+                    'action' => 'Completed Step: ' . $tracking->current_position,
+                    'notes' => $tracking->notes,
+                    'timestamp' => $tracking->last_updated,
+                ];
+            }
+        }
+
+        // 4. Kejadian: Pembatalan
+        if ($requisition->status === 'Cancelled') {
+            $history[] = [
+                'actor' => $requisition->requester->name ?? 'Requester',
+                'avatar' => $requisition->requester->avatar ? asset($requisition->requester->avatar) : null, // [MODIFIKASI]
+                'action' => 'Cancelled Requisition',
+                'notes' => 'Requisition was cancelled by the requester.',
+                'timestamp' => $requisition->updated_at,
+            ];
+        }
+
+        usort($history, fn($a, $b) => $a['timestamp'] <=> $b['timestamp']);
+
+        $responseData = $requisition->toArray();
+        $responseData['history'] = $history;
+
+        return response()->json($responseData);
     }
 
     public function edit($id)

@@ -24,6 +24,8 @@
         .greeting { font-size: 18px; color: #2c3e50; margin-bottom: 25px; padding: 20px; background: #fef8e7; border-radius: 8px; border-left: 4px solid #cc982f; }
         .info-section { margin-bottom: 30px; }
         .section-title { background: linear-gradient(135deg, #cc982f 0%, #b8871a 100%); color: white; padding: 12px 20px; margin: 0 0 15px 0; border-radius: 8px 8px 0 0; font-weight: 600; font-size: 16px; }
+        .info-category { background: #fff3cd; color: #856404; font-size: 15px; word-break: break-word; }
+        .info-subcategory { background: #cdeaffff; color: #2927a5ff; font-size: 15px; word-break: break-word; }
         .info-grid { width: 100%; background: #f8f9fa; padding: 20px; border-radius: 0 0 8px 8px; border: 1px solid #e9ecef; border-top: none; }
         .info-grid table { width: 100%; border-collapse: collapse; }
         .info-grid td { width: 50%; vertical-align: top; padding: 7px; }
@@ -35,6 +37,7 @@
         .status-processing { background: #cce7ff; color: #0066cc; }
         .status-approved { background: #d4edda; color: #155724; }
         .status-rejected { background: #f8d7da; color: #721c24; }
+
         .product-table {
             width: 100%;
             border-collapse: collapse;
@@ -113,6 +116,20 @@
                         <tr>
                             <td>
                                 <div class="info-item">
+                                    <div class="info-label">Category</div>
+                                    <div class="info-value">{{ $requisition->category }}</div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="info-item">
+                                    <div class="info-label">Sub Category</div>
+                                    <div class="info-value">{{ $requisition->sub_category }}</div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="info-item">
                                     <div class="info-label">Request Number</div>
                                     <div class="info-value">{{ $requisition->no_srs }}</div>
                                 </div>
@@ -150,6 +167,8 @@
                                             <span class="status-badge status-rejected">Rejected</span>
                                         @elseif($requisition->status == 'Completed')
                                             <span class="status-badge status-approved">Completed</span>
+                                        @elseif($requisition->status == 'Canceled')
+                                            <span class="status-badge status-rejected">Canceled</span>
                                         @else
                                             <span>{{ $requisition->status }}</span>
                                         @endif
@@ -237,7 +256,6 @@
                     <h3 class="action-title" style="color: #28a745;">✅ Process Completed</h3>
                     <p class="action-subtitle">Tidak ada tindakan lebih lanjut yang diperlukan dari Anda untuk email ini. Terima kasih.</p>
 
-                {{-- [PERBAIKAN] TAMBAHKAN BLOK INI UNTUK MENANGANI PEMBATALAN --}}
                 @elseif(isset($mail_type) && $mail_type === 'cancellation_notification')
                     <h3 class="action-title" style="color: #6c757d;">🚫 Requisition Cancelled</h3>
                     <p class="action-subtitle">This requisition has been cancelled by the requester. No action is required from you.</p>
@@ -249,17 +267,24 @@
                         <br>
                         Alasan: <i>"{{ $rejection_notes ?? 'Tidak ada alasan yang diberikan.' }}"</i>
                     </p>
+
+                {{-- [PERBAIKAN] Blok 'else' ini sekarang hanya akan berjalan untuk email approval biasa --}}
                 @else
-                    {{-- BLOK INI SEKARANG HANYA UNTUK APPROVAL BIASA --}}
-                    <h3 class="action-title">⚡ Take Action</h3>
-                    <p class="action-subtitle">Please review the request above and choose your action below</p>
-                    <div class="button-group">
-                        <table><tr>
-                            <td><a href="{{ $approve_url }}" class="btn btn-approve">✅ Quick Approve</a></td>
-                            <td><a href="{{ $review_url }}" class="btn btn-review">📝 Review with Notes</a></td>
-                            <td><a href="{{ $reject_url }}" class="btn btn-reject">❌ Quick Reject</a></td>
-                        </tr></table>
-                    </div>
+                    {{-- Pastikan variabel URL ada sebelum menampilkan tombol --}}
+                    @if(isset($approve_url) && isset($review_url) && isset($reject_url))
+                        <h3 class="action-title">⚡ Take Action</h3>
+                        <p class="action-subtitle">Please review the request above and choose your action below</p>
+                        <div class="button-group">
+                            <table><tr>
+                                <td><a href="{{ $approve_url }}" class="btn btn-approve">✅ Quick Approve</a></td>
+                                <td><a href="{{ $review_url }}" class="btn btn-review">📝 Review with Notes</a></td>
+                                <td><a href="{{ $reject_url }}" class="btn btn-reject">❌ Quick Reject</a></td>
+                            </tr></table>
+                        </div>
+                    @else
+                        <h3 class="action-title">ℹ️ Notification Only</h3>
+                        <p class="action-subtitle">This is a notification email. No action is required from you.</p>
+                    @endif
                 @endif
             </div>
         </div>
