@@ -18,7 +18,7 @@
                 <ul class="dropdown-menu">
                     <li><a class="dropdown-item" href="{{ route('sample-form.create') }}">Sample</a></li>
                     <li><a class="dropdown-item" href="{{ route('complain-form.create') }}">Complain Packaging</a></li>
-                    <li><a class="dropdown-item" href="{{ route('free-goods.create') }}">FreeGoods</a></li>
+                    <li><a class="dropdown-item" href="{{ route('freegoods-form.create') }}">FreeGoods</a></li>
                 </ul>
             </div>
         </div>
@@ -174,7 +174,7 @@
                                 <option value="all">Semua Kategori</option>
                                 <option value="sample">Sample</option>
                                 <option value="complain">Complain</option>
-                                <option value="freegood">Free Goods</option>
+                                <option value="freegoods">Free Goods</option>
                             </select>
                             <select class="form-select form-select-sm" style="width: auto;" id="topItemMonthFilter">
                                 <option value="all">Semua Bulan</option>
@@ -277,7 +277,7 @@
                                 <option value="all">Semua Kategori</option>
                                 <option value="sample">Sample</option>
                                 <option value="complain">Complain</option>
-                                <option value="freegood">Free Goods</option>
+                                <option value="freegoods">Free Goods</option>
                             </select>
                             <select class="form-select form-select-sm" style="width: auto;"
                                 id="topCustomerMonthFilter">
@@ -785,7 +785,7 @@
                             "Print Batch Number?".</p>
                     </div>
 
-                    <div class="tab-pane fade" id="free-goods" role="tabpanel">
+                    <div class="tab-pane fade" id="freegoods" role="tabpanel">
                         <div class="row gy-4">
                             <div class="col-lg-6 border-end-lg">
                                 <h6>Flow 1: Dari Departemen SnM</h6>

@@ -19,6 +19,7 @@ Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
+// --- Approval & Process Routes (Umum dan Sample/Complain) ---
 Route::get('/approval', [ComplainController::class, 'processApproval'])->name('approval.process');
 Route::get('/complain/approval-direct', [ComplainController::class, 'processApproval'])->name('approval.process.direct');
 Route::get('/complain/approval/review', [ComplainController::class, 'showReviewPage'])->name('complain.approval.review');
@@ -35,48 +36,60 @@ Route::prefix('requisition')->group(function () {
     Route::post('/upload-payment-proof', [ComplainController::class, 'uploadPaymentProof'])->name('upload.payment.proof');
 });
 
-
-//! pindahkan ke midddleware approver
-Route::get('/getapproverlist', [RequisitionPath::class, 'approverList'])->name('get.approverlist');
-Route::resource('/approvers', RequisitionPath::class);
-Route::get('/categories', [RequisitionPath::class, 'categories'])->name('get.categories');
-Route::get('/approver-name', [RequisitionPath::class, 'approverName'])->name('get.approver.name');
-
+// Approval Link dari Email (Sample Requisition)
 Route::get('/approval/response/{token}', [SampleController::class, 'showResponseForm'])->name('approval.response');
 Route::post('/approval/process', [SampleController::class, 'processApproval'])->name('approval.process');
 Route::get('/approval/success', [SampleController::class, 'showSuccessPage'])->name('approval.success');
+
+// Approval Link dari Email (Free Goods Requisition)
+Route::get('/fg-approval/response/{token}', [FreeGoodsController::class, 'showResponseForm'])->name('fg.approval.response');
+Route::post('/fg-approval/process', [FreeGoodsController::class, 'processApproval'])->name('fg.approval.process');
+
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // Requisition Routes
+    // --- Sample Requisition Routes ---
     Route::resource('sample-form', SampleController::class);
     Route::get('/sample-data', [SampleController::class, 'getData'])->name('sample.data');
     Route::post('/get-products-by-material-types', [SampleController::class, 'getProductsByMaterialTypes'])->name('sample.getProductsByMaterialTypes');
     Route::post('/get-item-details-by-products', [SampleController::class, 'getItemDetailsByProducts'])->name('sample.getItemDetailsByProducts');
     Route::get('/get-all-item-masters', [SampleController::class, 'getAllItemMasters'])->name('sample.getAllItemMasters');
 
+    // --- Complain Requisition Routes ---
     Route::resource('complain-form', ComplainController::class);
-    Route::resource('free-goods', FreeGoodsController::class);
 
+    // --- FREE GOODS REQUISITION ROUTES (Fokus perbaikan) ---
+    // 1. Route untuk tampilan utama (index page)
+    Route::get('/freegoods-requisition', [FreeGoodsController::class, 'index'])->name('freegoods.index');
+    // 2. Route Resource (store, show, update, destroy)
+    Route::resource('freegoods-form', FreeGoodsController::class)->parameters(['freegoods-form' => 'id']);
+    // 3. Route untuk DataTables (THE MISSING ROUTE)
+    Route::get('/freegoods-data', [FreeGoodsController::class, 'getData'])->name('freegoods.data'); 
+    // 4. Route untuk mengisi Product Select2
+    Route::get('/get-all-item-masters-fg', [FreeGoodsController::class, 'getAllItemMasters'])->name('freegoods.getAllItemMasters');
+
+    // --- Reports, Approval, Log Routes ---
     Route::get('/sample-form/reports', [SampleController::class, 'reports'])->name('sample-form.reports');
     Route::get('/complain-form/reports', [ComplainController::class, 'reports'])->name('complain-form.reports');
-    Route::get('/free-goods/reports', [FreeGoodsController::class, 'reports'])->name('free-goods.reports');
-
+    Route::get('/freegoods-form/reports', [FreeGoodsController::class, 'reports'])->name('freegoods-form.reports');
+    
     Route::get('/sample-form/approval', [SampleController::class, 'approval'])->name('sample-form.approval');
     Route::get('/complain-form/approval', [ComplainController::class, 'approval'])->name('complain-form.approval');
-    Route::get('/free-goods/approval', [FreeGoodsController::class, 'approval'])->name('free-goods.approval');
+    Route::get('/freegoods-form/approval', [FreeGoodsController::class, 'approval'])->name('freegoods-form.approval');
 
-     Route::get('/sample-form/log', [SampleController::class, 'log'])->name('sample-form.log');
+    Route::get('/sample-form/log', [SampleController::class, 'log'])->name('sample-form.log');
     Route::get('/complain-form/log', [ComplainController::class, 'log'])->name('complain-form.log');
-    Route::get('/free-goods/log', [FreeGoodsController::class, 'log'])->name('free-goods.log');
-
-    //! pindahkan ke midddleware approver
+    Route::get('/freegoods-form/log', [FreeGoodsController::class, 'log'])->name('freegoods-form.log');
+    
+    // --- Requisition Path (Approvers) ---
     Route::get('/getapproverlist', [RequisitionPath::class, 'approverList'])->name('get.approverlist');
+    Route::resource('/approvers', RequisitionPath::class);
+    Route::get('/categories', [RequisitionPath::class, 'categories'])->name('get.categories');
+    Route::get('/approver-name', [RequisitionPath::class, 'approverName'])->name('get.approver.name');
 });
-
 
 
 Route::group(['middleware' => ['role:super-admin|admin']], function () {
@@ -94,5 +107,5 @@ Route::group(['middleware' => ['role:super-admin|admin']], function () {
 
 });
 
-
+ 
 require __DIR__ . '/auth.php';
