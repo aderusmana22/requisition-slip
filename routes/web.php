@@ -27,6 +27,7 @@ Route::get('/complain/warehouse/approval', [ComplainController::class, 'processW
 Route::get('/complain/warehouse/review', [ComplainController::class, 'showWarehouseReviewPage'])->name('complain.warehouse.review');
 Route::post('/complain/warehouse/process', [ComplainController::class, 'processWarehouseApproval'])->name('complain.warehouse.process');
 Route::get('/complain/test-data', [ComplainController::class, 'testData'])->name('complain.test.data');
+Route::get('/complain/test-warehouse/{id}', [ComplainController::class, 'testWarehouseTracking'])->name('complain.test.warehouse');
 
 Route::prefix('requisition')->group(function () {
     Route::get('/getComplainData', [ComplainController::class, 'getData'])->name('get.complain.data');
