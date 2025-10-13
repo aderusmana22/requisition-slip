@@ -1194,7 +1194,7 @@
                     if (!specificDetail) {
                         return `
                             <tr class="table-danger">
-                                <td colspan="6" class="text-center py-3">
+                                <td colspan="8" class="text-center py-3">
                                     <i class="ph-duotone ph-warning-circle text-danger me-2"></i>
                                     Product Detail with ID ${item.item_detail_id} not found.
                                 </td>
@@ -1233,6 +1233,16 @@
                                        value="${item.quantity_issued}" readonly
                                        style="background: rgba(25, 135, 84, 0.1); border-color: rgba(25, 135, 84, 0.3);">
                             </td>
+                            <td class="text-center">
+                                <input type="date" class="form-control text-center"
+                                       value="${item.batch_number || ''}" readonly
+                                       style="background: rgba(13, 110, 253, 0.1); border-color: rgba(13, 110, 253, 0.3);">
+                            </td>
+                            <td class="text-center">
+                                <input type="text" class="form-control text-center"
+                                       value="${item.remarks || ''}" readonly
+                                       style="background: rgba(108, 117, 125, 0.1); border-color: rgba(108, 117, 125, 0.3);">
+                            </td>
                         </tr>
                     `;
                 }).join('');
@@ -1247,17 +1257,23 @@
                                 <th style="width: 15%;">
                                     <i class="ph-duotone ph-barcode me-2"></i>Detail Code
                                 </th>
-                                <th style="width: 25%;">
+                                <th style="width: 20%;">
                                     <i class="ph-duotone ph-package me-2"></i>Detail Name
                                 </th>
-                                <th style="width: 10%;">
+                                <th style="width: 8%;">
                                     <i class="ph-duotone ph-ruler me-2"></i>Unit
                                 </th>
-                                <th style="width: 17%;">
+                                <th style="width: 12%;">
                                     <i class="ph-duotone ph-shopping-cart me-2"></i>QTY Required
                                 </th>
-                                <th style="width: 17%;">
+                                <th style="width: 12%;">
                                     <i class="ph-duotone ph-check-circle me-2"></i>QTY Issued
+                                </th>
+                                <th style="width: 10%;">
+                                    <i class="ph-duotone ph-calendar me-2"></i>Batch Number
+                                </th>
+                                <th style="width: 18%;">
+                                    <i class="ph-duotone ph-note me-2"></i>Remarks
                                 </th>
                             </tr>
                         </thead>
@@ -1533,7 +1549,7 @@
                             const detailsContainer = $('#productDetailsContainer');
 
                             // Simpan nilai input sebelumnya kalo ada
-                            detailsContainer.find('input[name$="[qty_required]"], input[name$="[qty_issued]"]').each(function () {
+                            detailsContainer.find('input[name$="[qty_required]"], input[name$="[qty_issued]"], input[name$="[batch_number]"], input[name$="[remarks]"]').each(function () {
                                 qtyCache[$(this).attr('name')] = $(this).val();
                             });
 
@@ -1566,6 +1582,8 @@
                                     tableRowsHTML += filteredDetails.map(detail => {
                                         const rqName = `items[${productId}][details][${detail.id}][qty_required]`;
                                         const isName = `items[${productId}][details][${detail.id}][qty_issued]`;
+                                        const batchName = `items[${productId}][details][${detail.id}][batch_number]`;
+                                        const remarksName = `items[${productId}][details][${detail.id}][remarks]`;
                                         return `
                                             <tr>
                                                 <td>${detail.material_type}</td>
@@ -1590,6 +1608,23 @@
                                                         value="${qtyCache[isName] ?? ''}">
                                                     <div data-error-for="${isName}" class="text-danger mt-1 error-message"></div>
                                                 </td>
+                                                <td>
+                                                    <input
+                                                        type="date"
+                                                        class="form-control"
+                                                        name="${batchName}"
+                                                        value="${qtyCache[batchName] ?? ''}">
+                                                    <div data-error-for="${batchName}" class="text-danger mt-1 error-message"></div>
+                                                </td>
+                                                <td>
+                                                    <input
+                                                        type="text"
+                                                        class="form-control"
+                                                        name="${remarksName}"
+                                                        placeholder="Enter remarks"
+                                                        value="${qtyCache[remarksName] ?? ''}">
+                                                    <div data-error-for="${remarksName}" class="text-danger mt-1 error-message"></div>
+                                                </td>
                                             </tr>
                                         `;
                                     }).join(''); // Gabungkan semua baris menjadi satu string HTML
@@ -1597,7 +1632,7 @@
                                     // data dengan filter tidak ditemukan
                                     tableRowsHTML += `
                                         <tr>
-                                            <td colspan="6" class="bg-light text-danger text-center">
+                                            <td colspan="8" class="bg-light text-danger text-center">
                                                 Tidak ada material tipe <strong>${selectedTypes.join(", ")}</strong> pada produk <strong>${selectedProduct.item_master_code}</strong>
                                             </td>
                                         </tr>
@@ -1615,6 +1650,8 @@
                                             <th>Unit</th>
                                             <th>QTY Required</th>
                                             <th>QTY Issued</th>
+                                            <th>Batch Number</th>
+                                            <th>Remarks</th>
                                         </tr>
                                     </thead>
                                     <tbody>

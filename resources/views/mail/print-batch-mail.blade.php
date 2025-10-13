@@ -441,15 +441,19 @@
                             <th>Item Code</th>
                             <th>Qty Required</th>
                             <th>Qty Issued</th>
+                            <th>Batch Number</th>
+                            <th>Remarks</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach($requisition->requisitionItems as $item)
                         <tr>
-                            <td><strong>{{ $item->itemMaster->item_name ?? 'N/A' }}</strong></td>
-                            <td>{{ $item->itemMaster->item_code ?? 'N/A' }}</td>
+                            <td><strong>{{ $item->itemMaster->item_master_name ?? 'N/A' }}</strong></td>
+                            <td>{{ $item->itemMaster->item_master_code ?? 'N/A' }}</td>
                             <td style="text-align: center;"><span style="background: #e3f2fd; color: #1976d2; padding: 4px 8px; border-radius: 12px; font-weight: 600;">{{ $item->quantity_required ?? 0 }}</span></td>
                             <td style="text-align: center;"><span style="background: #e8f5e8; color: #2e7d32; padding: 4px 8px; border-radius: 12px; font-weight: 600;">{{ $item->quantity_issued ?? 0 }}</span></td>
+                            <td>{{ date('j/n/y', strtotime($item->batch_number)) ?? 'N/A' }}</td>
+                            <td>{{ $item->remarks ?? '-' }}</td>
                         </tr>
                         @endforeach
                     </tbody>

@@ -207,6 +207,8 @@ class ComplainController extends Controller
                         'item_detail_id'    => $itemDetailId,
                         'quantity_required' => $detailData['qty_required'] ?? 0,
                         'quantity_issued'   => $detailData['qty_issued'] ?? 0,
+                        'batch_number'      => !empty($detailData['batch_number']) ? $detailData['batch_number'] : null,
+                        'remarks'           => !empty($detailData['remarks']) ? $detailData['remarks'] : null,
                         'created_at'        => $now,
                         'updated_at'        => $now,
                     ];

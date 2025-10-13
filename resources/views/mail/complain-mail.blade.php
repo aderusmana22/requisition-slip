@@ -441,6 +441,8 @@
                                 <th>Unit</th>
                                 <th>QTY Required</th>
                                 <th>QTY Issued</th>
+                                <th>Batch Number</th>
+                                <th>remarks</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -456,6 +458,8 @@
                                     <td>{{ $detail->unit ?? '-' }}</td>
                                     <td style="text-align: center; font-weight: 600;">{{ $item->quantity_required }}</td>
                                     <td style="text-align: center; font-weight: 600;">{{ $item->quantity_issued }}</td>
+                                    <td style="text-align: center; font-weight: 600;">{{ date('j/n/y', strtotime($item->batch_number)) ?? '-' }}</td>
+                                    <td style="text-align: center; font-weight: 600;">{{ $item->remarks ?? '-' }}</td>
                                 </tr>
                                 @endif
                             @endforeach
