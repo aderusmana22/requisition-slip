@@ -19,6 +19,7 @@ use App\Models\Requisition\Requisition;
 use App\Models\Requisition\RequisitionItem;
 use App\Models\User;
 use App\Traits\approvalTrait;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;    
@@ -401,7 +402,8 @@ class ComplainController extends Controller
         return response()->json(['items' => $items]);
     }
 
-    public function getFormDetail($id){
+    public function getFormDetail($id)
+    {
         try {
             $complain = Requisition::with([
                 'customer', 
@@ -1360,7 +1362,8 @@ class ComplainController extends Controller
         }
     }
 
-    public function sendFinalEmail($requisitionId, $level){
+    public function sendFinalEmail($requisitionId, $level)
+    {
         try{
             $requisition = Requisition::with('requester')->findOrFail($requisitionId);
 
@@ -1394,7 +1397,8 @@ class ComplainController extends Controller
         }
     }
 
-    public function sendConfirmationEmail($requisitionId , $level){
+    public function sendConfirmationEmail($requisitionId , $level)
+    {
         try{
             DB::transaction(function() use($requisitionId , $level){
                 $requisition = Requisition::with('requester')->findOrFail($requisitionId);
@@ -1426,5 +1430,58 @@ class ComplainController extends Controller
         catch(\Exception $e){
             Log::error('Failed to send confirmation email: ' . $e->getMessage());
         }
+    }
+
+
+    public function printReport($id)
+    {
+        $requisition = Requisition::with([
+            'customer',
+            'requester.department',
+            'requisitionItems.itemMaster',
+            'requisitionItems.itemDetail',
+            'requisitionSpecial',
+            // Ambil semua approval logs, tidak hanya yang 'Approved'
+            'approvalLogs' => fn($q) => $q->orderBy('level', 'asc'),
+            'approvalLogs.approver.roles'
+        ])->findOrFail($id);
+
+        // Siapkan data approver untuk view
+        $approvals = $requisition->approvalLogs->map(function ($log) {
+            $statusText = 'NOT REVIEWED';
+            if ($log->status === 'Approved' && !empty($log->notes) && $log->notes !== 'Approved by ' . ($log->approver->name ?? '')) {
+                $statusText = 'APPROVED WITH REVIEW';
+            } elseif ($log->status === 'Approved') {
+                $statusText = 'APPROVED NOT REVIEW';
+            } elseif ($log->status === 'Rejected') {
+                $statusText = 'NOT APPROVED';
+            }
+
+            // Ambil role pertama (atau gabungkan jika multi-role)
+            $roleNames = $log->approver?->roles->pluck('name')->toArray() ?? [];
+            $roleDisplay = !empty($roleNames) ? implode(', ', $roleNames) : 'N/A';
+
+            return (object) [
+                'name' => $log->approver->name ?? 'N/A',
+                'position' => $roleDisplay,
+                'status' => $statusText,
+                'approved_at' => $log->approved_at,
+                'notes' => $log->notes,
+            ];
+        });
+
+        // Kirim semua data yang dibutuhkan ke view
+        $data = [
+            'requisition' => $requisition,
+            'requester' => $requisition->requester,
+            'approvals' => $approvals, // <-- VARIABEL APPROVALS DITAMBAHKAN DI SINI
+            // Variabel approver lama untuk tanda tangan (jika masih diperlukan)
+            'firstApprover' => $requisition->approvalLogs->first()->approver ?? null,
+            'lastApprover' => $requisition->approvalLogs->last()->approver ?? null,
+        ];
+
+        // return response()->json($data); // Untuk debugging, kembalikan data sebagai JSON
+        $pdf = Pdf::loadView('page.complain.report', $data)->setPaper('a4', 'landscape');
+        return $pdf->stream('RS Complain - ' . $requisition->no_srs . '.pdf');
     }
 }

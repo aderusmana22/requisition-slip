@@ -34,7 +34,7 @@ Route::prefix('requisition')->group(function () {
     Route::get('/getSerial', [ComplainController::class, 'getSerial'])->name('get.serial');
     Route::get('/getProductList', [ComplainController::class, 'getProductList'])->name('get.product.list');
     Route::get('/getformdetail/{id}', [ComplainController::class, 'getFormDetail'])->name('get.form.detail');
-
+    Route::get('/complain-report/{id}', [ComplainController::class, 'printReport'])->name('complain.report');
     Route::post('/upload-payment-proof', [ComplainController::class, 'uploadPaymentProof'])->name('upload.payment.proof');
 });
 

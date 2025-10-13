@@ -632,6 +632,7 @@
         }
 
         $(document).ready(function() {
+            const printUrlTemplate = "{{ route('complain.report', ['id' => '__ID__']) }}";
             let customerSelect = $('#customer_id');
             let addressField = $('#customer_address');
             let productselect = $('#requisition_items');
@@ -725,15 +726,8 @@
                         orderable: false,
                         searchable: false,
                         render: function (data, type, row) {
-                            let editUrl = `/complain/${data}/edit`;
+                            let printUrl = printUrlTemplate.replace('__ID__', data);
                             let status = (row.status || '').toLowerCase();
-
-                            // Enhanced button styling with custom tooltips
-                            let editButton = (status === 'pending')
-                                ? `<a href="${editUrl}" class="btn btn-secondary btn-sm action-btn-hover" data-tooltip="Edit Complaint">
-                                    <i class="ph-duotone ph-pencil-simple"></i>
-                                   </a>`
-                                : '';
 
                             let deleteButton = (status === 'pending')
                                 ? `<button type="button" class="btn btn-danger btn-sm delete-button action-btn-hover" data-id="${data}"
@@ -754,7 +748,9 @@
                                         data-tooltip="View Details">
                                         <i class="ph-duotone ph-eye"></i>
                                     </button>
-                                    ${editButton}
+                                    <a href="${printUrl}" target="_blank" class="btn btn-secondary btn-sm action-btn-hover" data-tooltip="Print Complaint">
+                                    <i class="ph-duotone ph-printer"></i>
+                                    </a>
                                     ${deleteButton}
                                     ${paymentProofButton}
                                 </div>
