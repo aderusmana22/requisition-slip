@@ -9,6 +9,8 @@ use App\Jobs\sendComplain;
 use App\Jobs\sendMailComplain;
 use App\Jobs\sendPaymentProofer;
 use App\Jobs\sendPrintBatchMail;
+use App\Jobs\sendRejectionNotification;
+use App\Jobs\sendWarehouseCompletion;
 use App\Models\Master\Customer;
 use App\Models\Master\ItemMaster;
 use App\Models\Requisition\ApprovalLog;
@@ -17,6 +19,7 @@ use App\Models\Requisition\ComplainImage;
 use App\Models\Requisition\Payment;
 use App\Models\Requisition\Requisition;
 use App\Models\Requisition\RequisitionItem;
+use App\Models\Requisition\Tracking;
 use App\Models\User;
 use App\Traits\approvalTrait;
 use Carbon\Carbon;
@@ -29,7 +32,7 @@ use function Pest\Laravel\json;
 
 class ComplainController extends Controller
 {
-    use approvalTrait;
+    use ApprovalTrait;
 
     /**
      * Helper method to format datetime to Indonesian timezone
@@ -44,94 +47,63 @@ class ComplainController extends Controller
     }
 
     /**
-     * Generate warehouse approval logs berdasarkan print_batch
+     * Generate warehouse tracking berdasarkan print_batch
      */
-    private function generateWarehouseApprovalLogs($requisitionId, $printBatch)
+    private function generateWarehouseTracking($requisitionId, $printBatch)
     {
-        $warehouseLogs = collect();
-
         if ($printBatch === true) {
-            // Jika print_batch true: WH Supervisor (100) -> Material Supervisor (101) -> WH Supervisor (102)
+            // Jika print_batch true: WH Supervisor First -> Material Supervisor -> WH Supervisor Final
             
-            // Level 100 - WH Supervisor
-            $whSupervisors = User::whereHas('roles', function ($q) {
-                $q->where('name', 'wh-supervisor');
-            })->get();
+            // 1. WH Supervisor First
+            Tracking::create([
+                'requisition_id' => $requisitionId,
+                'current_position' => 'WH Supervisor First',
+                'last_updated' => null,
+                'notes' => 'Waiting for WH Supervisor initial approval',
+                'token' => bin2hex(random_bytes(16)),
+            ]);
 
-            foreach ($whSupervisors as $supervisor) {
-                $warehouseLogs->push([
-                    'requisition_id' => $requisitionId,
-                    'approver_nik'   => $supervisor->nik,
-                    'status'         => 'Pending',
-                    'level'          => 100,
-                    'token'          => bin2hex(random_bytes(16)),
-                    'notes'          => null,
-                    'created_at'     => now(),
-                    'updated_at'     => now(),
-                ]);
-            }
+            // 2. Material Supervisor
+            Tracking::create([
+                'requisition_id' => $requisitionId,
+                'current_position' => 'Material Supervisor',
+                'last_updated' => null,
+                'notes' => 'Waiting for Material Supervisor approval',
+                'token' => bin2hex(random_bytes(16)),
+            ]);
 
-            // Level 101 - Material Supervisor
-            $materialSupervisors = User::whereHas('roles', function ($q) {
-                $q->where('name', 'material-supervisor');
-            })->get();
+            // 3. WH Supervisor Final
+            Tracking::create([
+                'requisition_id' => $requisitionId,
+                'current_position' => 'WH Supervisor Final',
+                'last_updated' => null,
+                'notes' => 'Waiting for WH Supervisor final approval',
+                'token' => bin2hex(random_bytes(16)),
+            ]);
 
-            foreach ($materialSupervisors as $supervisor) {
-                $warehouseLogs->push([
-                    'requisition_id' => $requisitionId,
-                    'approver_nik'   => $supervisor->nik,
-                    'status'         => 'Pending',
-                    'level'          => 101,
-                    'token'          => bin2hex(random_bytes(16)),
-                    'notes'          => null,
-                    'created_at'     => now(),
-                    'updated_at'     => now(),
-                ]);
-            }
-
-            // Level 102 - WH Supervisor (lagi)
-            foreach ($whSupervisors as $supervisor) {
-                $warehouseLogs->push([
-                    'requisition_id' => $requisitionId,
-                    'approver_nik'   => $supervisor->nik,
-                    'status'         => 'Pending',
-                    'level'          => 102,
-                    'token'          => bin2hex(random_bytes(16)),
-                    'notes'          => null,
-                    'created_at'     => now(),
-                    'updated_at'     => now(),
-                ]);
-            }
+            Log::info("Generated warehouse tracking for requisition {$requisitionId}", [
+                'print_batch' => true,
+                'tracking_count' => 3,
+                'sequence' => 'WH Supervisor First -> Material Supervisor -> WH Supervisor Final'
+            ]);
         } else {
-            // Jika print_batch false: hanya WH Supervisor (102)
-            $whSupervisors = User::whereHas('roles', function ($q) {
-                $q->where('name', 'wh-supervisor');
-            })->get();
+            // Jika print_batch false: hanya WH Supervisor Final
+            Tracking::create([
+                'requisition_id' => $requisitionId,
+                'current_position' => 'WH Supervisor Final',
+                'last_updated' => null,
+                'notes' => 'Waiting for WH Supervisor final approval',
+                'token' => bin2hex(random_bytes(16)),
+            ]);
 
-            foreach ($whSupervisors as $supervisor) {
-                $warehouseLogs->push([
-                    'requisition_id' => $requisitionId,
-                    'approver_nik'   => $supervisor->nik,
-                    'status'         => 'Pending',
-                    'level'          => 102,
-                    'token'          => bin2hex(random_bytes(16)),
-                    'notes'          => null,
-                    'created_at'     => now(),
-                    'updated_at'     => now(),
-                ]);
-            }
-        }
-
-        // Bulk insert warehouse approval logs
-        if ($warehouseLogs->isNotEmpty()) {
-            ApprovalLog::insert($warehouseLogs->toArray());
-            Log::info("Generated warehouse approval logs for requisition {$requisitionId}", [
-                'print_batch' => $printBatch,
-                'logs_count' => $warehouseLogs->count()
+            Log::info("Generated warehouse tracking for requisition {$requisitionId}", [
+                'print_batch' => false,
+                'tracking_count' => 1,
+                'sequence' => 'WH Supervisor Final only'
             ]);
         }
 
-        return $warehouseLogs;
+        return true;
     }
 
     public function index()
@@ -195,8 +167,8 @@ class ComplainController extends Controller
                 throw new \Exception('Tidak ada approval path yang ditemukan untuk kategori Complain.');
             }
 
-            // Generate additional warehouse approval logs berdasarkan print_batch
-            $this->generateWarehouseApprovalLogs($requisition->id, $requisition->print_batch);
+            // Generate additional warehouse tracking berdasarkan print_batch
+            $this->generateWarehouseTracking($requisition->id, $requisition->print_batch);
 
             // Convert generated logs ke format yang dibutuhkan untuk job dispatch
             foreach ($generatedLogs as $logData) {
@@ -235,6 +207,8 @@ class ComplainController extends Controller
                         'item_detail_id'    => $itemDetailId,
                         'quantity_required' => $detailData['qty_required'] ?? 0,
                         'quantity_issued'   => $detailData['qty_issued'] ?? 0,
+                        'batch_number'      => !empty($detailData['batch_number']) ? $detailData['batch_number'] : null,
+                        'remarks'           => !empty($detailData['remarks']) ? $detailData['remarks'] : null,
                         'created_at'        => $now,
                         'updated_at'        => $now,
                     ];
@@ -401,7 +375,8 @@ class ComplainController extends Controller
         return response()->json(['items' => $items]);
     }
 
-    public function getFormDetail($id){
+    public function getFormDetail($id)
+    {
         try {
             $complain = Requisition::with([
                 'customer', 
@@ -566,6 +541,18 @@ class ComplainController extends Controller
                         $requisition->status = 'payment proof';
                         $requisition->save();
                         sendPaymentProofer::dispatch($requisition, null, 'rejection_warning');
+                    }else{
+                        // Send rejection notification to requester
+                        $rejectedBy = User::where('nik', $approvalLog->approver_nik)->first();
+                        if ($rejectedBy) {
+                            sendRejectionNotification::dispatch(
+                                $requisition,
+                                $rejectedBy,
+                                $notes,
+                                'approval',
+                                now()
+                            );
+                        }
                     }
                 }
 
@@ -683,6 +670,18 @@ class ComplainController extends Controller
                         $requisition->status = 'payment proof';
                         $requisition->save();
                         sendPaymentProofer::dispatch($requisition, null, 'rejection_warning');
+                    }else{
+                        // Send rejection notification to requester
+                        $rejectedBy = User::where('nik', $approvalLog->approver_nik)->first();
+                        if ($rejectedBy) {
+                            sendRejectionNotification::dispatch(
+                                $requisition, 
+                                $rejectedBy, 
+                                null, 
+                                'approval',
+                                now()
+                            );
+                        }
                     }
                 }
 
@@ -790,107 +789,23 @@ class ComplainController extends Controller
                 ->first();
 
             if ($nextApprovalLog) {
-                // Cari data approver
                 $approver = User::where('nik', $nextApprovalLog->approver_nik)->first();
                 if ($approver) {
-                    // Cari data requisition
                     $requisition = Requisition::find($requisitionId);
                     if ($requisition) {
-
                         $requisition->route_to = $approver->name;
                         $requisition->save();
                         
-                        // Kirim email ke approver level berikutnya
                         sendMailComplain::dispatch($approver, $requisition, $nextApprovalLog);
-
                         Log::info("Email approval dikirim ke level {$nextApprovalLog->level} - {$approver->name}");
                         return true;
                     }
                 }
-            }else{
-                // Jika tidak ada next level dalam approval normal, cek warehouse phase
-                $requisition = Requisition::find($requisitionId);
-                
-                if ($requisition && $currentLevel < 100) {
-                    // Approval normal selesai, mulai warehouse phase
-                    if ($whPhase === true) {
-                        // Print batch true: kirim confirmation email untuk memulai sequence WH
-                        $requisition->status = 'Waiting Warehouse Confirmation';
-                        $requisition->save();
-                        
-                        // Kirim confirmation email ke requester atau stakeholder terkait
-                        $this->sendConfirmationEmail($requisitionId, $currentLevel);
-                        Log::info("Confirmation email sent for warehouse sequence - print_batch: true");
-                        return true;
-                    } else {
-                        // Print batch false: langsung ke final email untuk WH Supervisor level 102
-                        $requisition->status = 'Waiting Final Warehouse Approval';
-                        $requisition->save();
-                        
-                        // Kirim final email langsung ke WH Supervisor level 102
-                        $this->sendFinalEmail($requisitionId, 102);
-                        Log::info("Final email sent directly to WH Supervisor level 102 - print_batch: false");
-                        return true;
-                    }
-                } else if ($requisition && $currentLevel >= 100) {
-                    // Sedang dalam warehouse phase
-                    if ($currentLevel === 100) {
-                        // Dari level 100 ke 101 (Material Supervisor)
-                        $nextWarehouseLog = ApprovalLog::where('requisition_id', $requisitionId)
-                            ->where('level', 101)
-                            ->where('status', 'Pending')
-                            ->whereNotNull('token')
-                            ->first();
-                            
-                        if ($nextWarehouseLog) {
-                            $approver = User::where('nik', $nextWarehouseLog->approver_nik)->first();
-                            if ($approver) {
-                                $requisition->status = 'Warehouse Process - Material Supervisor';
-                                $requisition->route_to = $approver->name;
-                                $requisition->save();
-                                
-                                sendMailComplain::dispatch($approver, $requisition, $nextWarehouseLog);
-                                Log::info("Email warehouse approval dikirim ke level 101 - {$approver->name}");
-                                return true;
-                            }
-                        }
-                    } else if ($currentLevel === 101) {
-                        // Dari level 101 ke 102 (WH Supervisor final)
-                        $nextWarehouseLog = ApprovalLog::where('requisition_id', $requisitionId)
-                            ->where('level', 102)
-                            ->where('status', 'Pending')
-                            ->whereNotNull('token')
-                            ->first();
-                            
-                        if ($nextWarehouseLog) {
-                            $approver = User::where('nik', $nextWarehouseLog->approver_nik)->first();
-                            if ($approver) {
-                                $requisition->status = 'Warehouse Process - Final Check';
-                                $requisition->route_to = $approver->name;
-                                $requisition->save();
-                                
-                                sendMailComplain::dispatch($approver, $requisition, $nextWarehouseLog);
-                                Log::info("Email warehouse approval dikirim ke level 102 - {$approver->name}");
-                                return true;
-                            }
-                        }
-                    } else if ($currentLevel === 102) {
-                        // Warehouse phase selesai
-                        $requisition->status = 'Completed';
-                        $requisition->route_to = null;
-                        $requisition->save();
-                        
-                        // Kirim notifikasi final ke requester
-                        $requester = User::where('nik', $requisition->requester_nik)->first();
-                        if ($requester) {
-                            // Bisa ditambahkan job untuk kirim email completion ke requester
-                            Log::info("Requisition {$requisitionId} completed - all approvals done");
-                        }
-                        return true;
-                    }
-                }
+            } else {
+                // Tidak ada approval level berikutnya - mulai warehouse phase dari tracking
+                Log::info("No more approval levels found, checking warehouse tracking for requisition {$requisitionId}");
+                return $this->processWarehouseTracking($requisitionId);
             }
-
             return false;
         } catch (\Exception $e) {
             Log::error('Error sending next level notification: ' . $e->getMessage());
@@ -899,259 +814,140 @@ class ComplainController extends Controller
     }
 
     /**
-     * Handle approval dari warehouse phase (dipanggil dari email links)
+     * Process warehouse tracking dan kirim email bertingkat sesuai urutan tracking
+     */
+    private function processWarehouseTracking($requisitionId)
+    {
+        try {
+            $requisition = Requisition::find($requisitionId);
+            if (!$requisition) {
+                Log::error("Requisition not found for warehouse tracking: {$requisitionId}");
+                return false;
+            }
+
+            // Ambil semua tracking untuk requisition ini, urutkan berdasarkan ID (urutan insert)
+            $trackings = Tracking::where('requisition_id', $requisitionId)
+                ->whereNotNull('token')
+                ->orderBy('id', 'asc')
+                ->get();
+
+            if ($trackings->isEmpty()) {
+                Log::warning("No warehouse tracking found for requisition {$requisitionId}");
+                return false;
+            }
+
+            // Cari tracking pertama yang belum diproses (last_updated masih null)
+            $currentTracking = $trackings->whereNull('last_updated')->first();
+
+            if (!$currentTracking) {
+                Log::info("All warehouse tracking completed for requisition {$requisitionId}");
+                return true;
+            }
+
+            // Tentukan approver berdasarkan current_position
+            $approver = $this->getApproverByPosition($currentTracking->current_position);
+            
+            if (!$approver) {
+                Log::error("No approver found for position: {$currentTracking->current_position}");
+                return false;
+            }
+
+            // Update last_updated untuk menandai tracking ini sedang diproses
+            $currentTracking->last_updated = now();
+            $currentTracking->save();
+
+            // Update route_to di requisition
+            $requisition->route_to = $approver->name;
+            $requisition->save();
+
+            // Kirim email menggunakan sendPrintBatchMail
+            sendPrintBatchMail::dispatch($approver, $requisition, $currentTracking);
+
+            Log::info("Warehouse email sent for requisition {$requisitionId}", [
+                'position' => $currentTracking->current_position,
+                'approver' => $approver->name,
+                'tracking_id' => $currentTracking->id
+            ]);
+
+            return true;
+
+        } catch (\Exception $e) {
+            Log::error('Error processing warehouse tracking: ' . $e->getMessage(), [
+                'requisition_id' => $requisitionId,
+                'trace' => $e->getTraceAsString()
+            ]);
+            return false;
+        }
+    }
+
+    /**
+     * Mendapatkan approver berdasarkan position di tracking
+     */
+    private function getApproverByPosition($position)
+    {
+        try {
+            switch ($position) {
+                case 'WH Supervisor First':
+                case 'WH Supervisor Final':
+                    // Ambil user dengan role wh-supervisor yang pertama
+                    return User::role('wh-supervisor')->first();
+                    
+                case 'Material Supervisor':
+                    // Ambil user dengan role material-supervisor yang pertama
+                    return User::role('material-supervisor')->first();
+                    
+                default:
+                    Log::warning("Unknown position in tracking: {$position}");
+                    return null;
+            }
+        } catch (\Exception $e) {
+            Log::error("Error getting approver by position: " . $e->getMessage(), [
+                'position' => $position
+            ]);
+            return null;
+        }
+    }
+
+    /**
+     * Process warehouse approval (untuk direct approval dari email)
      */
     public function processWarehouseApproval(Request $request)
     {
-        // Check if token is already used/expired first
-        $tokenStatus = $this->checkWarehouseTokenStatus($request);
-        if ($tokenStatus !== null) {
-            return $tokenStatus;
-        }
-
-        if ($request->isMethod('post')) {
-            return $this->processWarehouseApprovalWithValidation($request);
-        } else {
-            return $this->processDirectWarehouseApproval($request);
-        }
-    }
-
-    /**
-     * Check if warehouse token is already used or expired
-     */
-    private function checkWarehouseTokenStatus(Request $request)
-    {
-        $token = $request->query('token') ?? $request->input('token');
-        $id = $request->query('id') ?? $request->input('id');
-
-        // Jika ID atau token tidak ada dalam request
-        if (!$token || !$id) {
-            return view('page.complain.approval-invalid', [
-                'message' => 'The warehouse approval link is missing required parameters.',
-                'errorType' => 'missing_params'
-            ]);
-        }
-
-        // Cek apakah requisition ID ada terlebih dahulu
-        $requisitionExists = ApprovalLog::where('requisition_id', $id)
-            ->whereIn('level', [100, 101, 102])
-            ->exists();
-        
-        // Jika requisition ID tidak ditemukan sama sekali
-        if (!$requisitionExists) {
-            return view('page.complain.approval-invalid', [
-                'message' => 'Invalid warehouse approval link - requisition not found.',
-                'errorType' => 'invalid_link'
-            ]);
-        }
-
-        // Jika requisition ID ada, cek apakah token masih valid
-        $approvalLog = ApprovalLog::where('requisition_id', $id)
-            ->where('token', $token)
-            ->whereIn('level', [100, 101, 102])
-            ->first();
-
-        // Jika token tidak ditemukan (sudah null/digunakan), berarti link expired
-        if (!$approvalLog) {
-            $lastApprovalLog = ApprovalLog::where('requisition_id', $id)
-                ->whereIn('level', [100, 101, 102])
-                ->orderBy('updated_at', 'desc')
-                ->first();
-
-            $lastActionDate = $lastApprovalLog ? $this->formatToIndonesianTime($lastApprovalLog->updated_at) : 'Unknown';
-
-            return view('page.complain.approval-expired', [
-                'message' => 'This warehouse approval link has already been used and is no longer valid.',
-                'errorType' => 'token_expired',
-                'lastActionDate' => $lastActionDate,
-                'requisition' => Requisition::with('customer')->find($id),
-                'approvalLog' => $lastApprovalLog
-            ]);
-        }
-
-        // Jika approval log ditemukan dan masih pending, lanjut ke proses normal
-        if ($approvalLog->status === 'Pending') {
-            return null;
-        }
-
-        // Jika approval log ditemukan tapi sudah diproses (bukan Pending)
-        $requisition = Requisition::with('customer')->find($id);
-        
-        return view('page.complain.approval-expired', compact('requisition', 'approvalLog'));
-    }
-
-    /**
-     * Process warehouse approval with validation (from review form)
-     */
-    private function processWarehouseApprovalWithValidation(Request $request)
-    {
-        $request->validate([
-            'token' => 'required|string',
-            'id' => 'required|integer',
-            'status' => 'required|in:approve,reject',
-            'notes' => $request->input('status') === 'reject' ? 'required|string|max:1000' : 'nullable|string|max:1000',
-        ], [
-            'notes.required' => 'Notes/reason is required for rejection.',
-            'notes.max' => 'Notes cannot exceed 1000 characters.',
-        ]);
-
         try {
-            $token = $request->input('token');
-            $id = $request->input('id');
-            $status = $request->input('status');
-            $notes = $request->input('notes');
-
-            $requisition = null;
-
-            DB::transaction(function () use ($token, $id, $status, $notes, &$requisition) {
-                $approvalLog = ApprovalLog::where('requisition_id', $id)
-                    ->where('token', $token)
-                    ->where('status', 'Pending')
-                    ->whereIn('level', [100, 101, 102])
-                    ->first();
-
-                if (!$approvalLog) {
-                    throw new \Exception('Invalid or expired warehouse approval link.');
-                }
-
-                // Update status approval log 
-                $approvalLog->status = ($status === 'approve') ? 'Approved' : 'Rejected';
-                $approvalLog->notes = $notes;
-                $approvalLog->token = null;
-                $approvalLog->save();
-
-                $requisition = Requisition::with('customer')->find($approvalLog->requisition_id);
-                $currentLevel = $approvalLog->level;
-
-                // Jika diapprove, lanjutkan ke level warehouse berikutnya
-                if ($status === 'approve') {
-                    if (!$requisition) {
-                        throw new \Exception('Requisition not found.');
-                    }
-
-                    $this->continueWarehouseApproval($requisition->id, $currentLevel, $requisition->print_batch);
-                } else {
-                    // Jika direject, set status ke rejected
-                    if (!$requisition) {
-                        throw new \Exception('Requisition not found.');
-                    }
-                
-                    $requisition->status = 'Rejected at Warehouse Level';
-                    $requisition->save();
-                }
-
-                activity()
-                    ->causedBy(User::where('nik', $approvalLog->approver_nik)->first())
-                    ->performedOn($approvalLog)
-                    ->event('processed warehouse approval')
-                    ->withProperties(['ip' => request()->ip(), 'user_agent' => request()->userAgent()])
-                    ->log('User ' . ($approvalLog->approver_nik ?? 'Unknown') . ' has ' . $approvalLog->status . ' warehouse level ' . $currentLevel . ' for requisition ID: ' . $approvalLog->requisition_id);
-            });
-
-            // Check if it's an AJAX request
-            if ($request->ajax() || $request->wantsJson()) {
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Your warehouse decision has been recorded successfully.',
-                    'status' => $status,
-                    'requisition_id' => $requisition->id ?? null
-                ]);
-            }
-
-            // Untuk non-AJAX warehouse approval with validation, tampilkan halaman hasil
-            return view('page.complain.approval-result', compact('requisition', 'status'));
-
-        } catch (\Exception $e) {
-            $errorMessage = $e->getMessage();
-            
-            // Check if it's an AJAX request for error handling
-            if ($request->ajax() || $request->wantsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => $errorMessage,
-                    'error' => 'warehouse_approval_failed'
-                ], 400);
-            }
-            
-            return view('page.complain.approval-invalid', [
-                'message' => 'Terjadi kesalahan saat memproses warehouse approval.',
-                'errorType' => 'server_error'
-            ]);
-        }
-    }
-
-    /**
-     * Process direct warehouse approval (from email quick OK links)
-     */
-    private function processDirectWarehouseApproval(Request $request)
-    {
-        try {
-            $token = $request->query('token');
-            $id = $request->query('id');
-            $status = $request->query('status', 'approve'); // Default approve untuk warehouse
+            $token = $request->query('token') ?? $request->input('token');
+            $id = $request->query('id') ?? $request->input('id');
+            $status = $request->query('status') ?? $request->input('status'); // approve or reject
 
             if (!$token || !$id) {
-                return view('page.complain.approval-invalid', [
-                    'message' => 'Invalid warehouse approval link - missing parameters.',
-                    'errorType' => 'missing_params'
-                ]);
+                return response()->json(['message' => 'Invalid request parameters'], 400);
             }
 
-            $requisition = null;
+            // Cek apakah tracking dengan token ini masih valid
+            $tracking = Tracking::where('requisition_id', $id)
+                ->where('token', $token)
+                ->whereNotNull('last_updated') // tracking yang sudah dimulai prosesnya
+                ->first();
 
-            DB::transaction(function () use ($token, $id, $status, &$requisition) {
-                $approvalLog = ApprovalLog::where('requisition_id', $id)
-                    ->where('token', $token)
-                    ->where('status', 'Pending')
-                    ->whereIn('level', [100, 101, 102])
-                    ->first();
+            if (!$tracking) {
+                $requisition = Requisition::with('customer')->find($id);
+                return view('page.complain.warehouse-expired', compact('requisition'));
+            }
 
-                if (!$approvalLog) {
-                    throw new \Exception('Invalid or expired warehouse approval link.');
-                }
-
-                // Update status approval log 
-                $approvalLog->status = 'Approved';
-                $approvalLog->notes = 'Quick approved via warehouse email';
-                $approvalLog->token = null;
-                $approvalLog->save();
-
-                $requisition = Requisition::with('customer')->find($approvalLog->requisition_id);
-                $currentLevel = $approvalLog->level;
-
-                if ($requisition) {
-                    // Lanjutkan ke level warehouse berikutnya
-                    $this->continueWarehouseApproval($requisition->id, $currentLevel, $requisition->print_batch);
-                }
-
-                activity()
-                    ->causedBy(User::where('nik', $approvalLog->approver_nik)->first())
-                    ->performedOn($approvalLog)
-                    ->event('processed warehouse approval')
-                    ->withProperties(['ip' => request()->ip(), 'user_agent' => request()->userAgent()])
-                    ->log('User ' . ($approvalLog->approver_nik ?? 'Unknown') . ' has quick approved warehouse level ' . $currentLevel . ' for requisition ID: ' . $approvalLog->requisition_id);
-            });
-
-            // tampilkan halaman hasil approval
-            return view('page.complain.approval-result', [
-                'requisition' => $requisition, 
-                'status' => 'approve',
-                'message' => 'Warehouse approval processed successfully.'
-            ]);
+            if ($request->isMethod('post')) {
+                return $this->processWarehouseApprovalWithValidation($request, $tracking);
+            } else {
+                // Show direct approval page atau langsung approve/reject
+                return $this->processDirectWarehouseApproval($tracking, $status);
+            }
 
         } catch (\Exception $e) {
-            $errorMessage = $e->getMessage();
-            Log::error('Error processing warehouse approval: ' . $errorMessage);
-            
-            return view('page.complain.approval-invalid', [
-                'message' => 'Terjadi kesalahan saat memproses warehouse approval.',
-                'errorType' => 'server_error'
-            ]);
+            Log::error('Error in warehouse approval process: ' . $e->getMessage());
+            return response()->json(['message' => 'Server error occurred'], 500);
         }
     }
 
     /**
-     * Show warehouse review page for approval with review
+     * Show warehouse review page
      */
     public function showWarehouseReviewPage(Request $request)
     {
@@ -1160,134 +956,214 @@ class ComplainController extends Controller
             $id = $request->query('id');
 
             if (!$token || !$id) {
-                return view('page.complain.approval-invalid', [
-                    'message' => 'Invalid warehouse approval link - missing parameters.',
-                    'errorType' => 'missing_params'
-                ]);
+                return response()->json(['message' => 'Invalid request parameters'], 400);
             }
 
-            // Check if token is already used/expired first
-            $tokenStatus = $this->checkWarehouseTokenStatus($request);
-            if ($tokenStatus !== null) {
-                return $tokenStatus;
-            }
-
-            // Verify approval log exists and is valid
-            $approvalLog = ApprovalLog::where('requisition_id', $id)
+            $tracking = Tracking::where('requisition_id', $id)
                 ->where('token', $token)
-                ->where('status', 'Pending')
-                ->whereIn('level', [100, 101, 102])
+                ->whereNotNull('last_updated') // tracking yang sudah dimulai prosesnya
                 ->first();
 
-            if (!$approvalLog) {
-                return view('page.complain.approval-invalid', [
-                    'message' => 'Invalid or expired warehouse approval link.',
-                    'errorType' => 'token_expired'
-                ]);
+            if (!$tracking) {
+                $requisition = Requisition::with('customer')->find($id);
+                return view('page.complain.warehouse-expired', compact('requisition'));
             }
 
-            // Get requisition with related data
-            $requisition = Requisition::with(['customer', 'requisitionItems.itemMaster.ItemDetails'])
+            $requisition = Requisition::with(['customer', 'requester', 'requisitionItems.itemMaster'])
                 ->find($id);
 
-            if (!$requisition) {
-                return view('page.complain.approval-invalid', [
-                    'message' => 'Requisition not found.',
-                    'errorType' => 'not_found'
+            return view('page.complain.warehouse-review', compact('requisition', 'token', 'tracking'));
+
+        } catch (\Exception $e) {
+            Log::error('Error showing warehouse review page: ' . $e->getMessage());
+            return response()->json(['message' => 'Server error occurred'], 500);
+        }
+    }
+
+    /**
+     * Process direct warehouse approval (langsung approve/reject dari email)
+     */
+    private function processDirectWarehouseApproval($tracking, $status = 'approve')
+    {
+        try {
+            DB::beginTransaction();
+
+            // Validate status
+            if (!in_array($status, ['approve', 'reject'])) {
+                $status = 'approve'; // default to approve for backward compatibility
+            }
+
+            // Invalidate token untuk menandai tracking sudah selesai
+            $tracking->token = null;
+            $tracking->notes = $status === 'approve' 
+                ? 'Approved via direct email link' 
+                : 'Rejected via direct email link';
+            $tracking->save();
+
+            $requisition = Requisition::find($tracking->requisition_id);
+
+            if ($status === 'approve') {
+                // Cek apakah ada tracking berikutnya (yang last_updated masih null)
+                $nextTracking = Tracking::where('requisition_id', $tracking->requisition_id)
+                    ->where('id', '>', $tracking->id)
+                    ->whereNull('last_updated')
+                    ->orderBy('id', 'asc')
+                    ->first();
+
+                if ($nextTracking) {
+                    // Masih ada tracking berikutnya, lanjutkan ke level berikutnya
+                    $this->processWarehouseTracking($tracking->requisition_id);
+                    
+                    Log::info("Warehouse tracking approved, proceeding to next level", [
+                        'tracking_id' => $tracking->id,
+                        'next_tracking_id' => $nextTracking->id,
+                        'position' => $tracking->current_position
+                    ]);
+                } else {
+                    // Semua warehouse tracking selesai
+                    $requisition->status = 'Approved';
+                    $requisition->route_to = 'Completed';
+                    $requisition->save();
+
+                    // Send completion notification to requester
+                    $completedBy = $this->getApproverByPosition($tracking->current_position);
+                    if ($completedBy) {
+                        sendWarehouseCompletion::dispatch(
+                            $requisition,
+                            $completedBy,
+                            now()
+                        );
+                    }
+
+                    Log::info("All warehouse tracking completed for requisition {$tracking->requisition_id}");
+                }
+            } else {
+                // Rejected - stop process
+                $requisition->status = 'Rejected';
+                $requisition->route_to = 'Rejected at ' . $tracking->current_position;
+                $requisition->save();
+
+                // Send rejection notification to requester
+                $rejectedBy = $this->getApproverByPosition($tracking->current_position);
+                if ($rejectedBy) {
+                    sendRejectionNotification::dispatch(
+                        $requisition, 
+                        $rejectedBy, 
+                        null, // no specific reason for direct rejection
+                        'warehouse',
+                        now()
+                    );
+                }
+
+                // Invalidate semua tracking berikutnya
+                Tracking::where('requisition_id', $tracking->requisition_id)
+                    ->where('id', '>', $tracking->id)
+                    ->update(['token' => null]);
+
+                Log::info("Warehouse tracking rejected for requisition {$tracking->requisition_id}", [
+                    'tracking_id' => $tracking->id,
+                    'position' => $tracking->current_position
                 ]);
             }
 
-            // Get level description
-            $levelDescription = $this->getWarehouseLevelDescription($approvalLog->level);
+            DB::commit();
 
-            return view('page.complain.warehouse-review', compact('requisition', 'token', 'approvalLog', 'levelDescription'));
+            return view('page.complain.warehouse-success', compact('requisition', 'tracking'));
+
         } catch (\Exception $e) {
-            Log::error('Error showing warehouse review page: ' . $e->getMessage());
-            return view('page.complain.approval-invalid', [
-                'message' => 'An error occurred while loading the warehouse review page.',
-                'errorType' => 'server_error'
-            ]);
+            DB::rollBack();
+            Log::error('Error in direct warehouse approval: ' . $e->getMessage());
+            throw $e;
         }
     }
 
     /**
-     * Get warehouse level description
+     * Process warehouse approval dengan validasi form
      */
-    private function getWarehouseLevelDescription($level)
+    private function processWarehouseApprovalWithValidation(Request $request, $tracking)
     {
-        switch ($level) {
-            case 100:
-                return 'WH Supervisor - Initial Check';
-            case 101:
-                return 'Material Supervisor - Material Review';
-            case 102:
-                return 'WH Supervisor - Final Approval';
-            default:
-                return 'Warehouse Level ' . $level;
-        }
-    }
+        $request->validate([
+            'status' => 'required|in:approve,reject',
+            'notes' => $request->input('status') === 'reject' ? 'required|string|max:1000' : 'nullable|string|max:1000',
+        ]);
 
-    /**
-     * Continue warehouse approval process
-     */
-    private function continueWarehouseApproval($requisitionId, $currentLevel, $printBatch)
-    {
         try {
-            $requisition = Requisition::find($requisitionId);
+            DB::beginTransaction();
+
+            $status = $request->input('status');
+            $notes = $request->input('notes');
+
+            // Update tracking
+            $tracking->notes = $notes ?? ($status === 'approve' ? 'Approved via review form' : 'Rejected via review form');
             
-            if ($currentLevel === 100 && $printBatch === true) {
-                // Dari level 100 ke 101 (Material Supervisor)
-                $nextWarehouseLog = ApprovalLog::where('requisition_id', $requisitionId)
-                    ->where('level', 101)
-                    ->where('status', 'Pending')
-                    ->whereNotNull('token')
+            // Invalidate token untuk menandai tracking sudah selesai
+            $tracking->token = null;
+            $tracking->save();
+
+            $requisition = Requisition::find($tracking->requisition_id);
+
+            if ($status === 'approve') {
+                // Cek apakah ada tracking berikutnya (yang last_updated masih null)
+                $nextTracking = Tracking::where('requisition_id', $tracking->requisition_id)
+                    ->where('id', '>', $tracking->id)
+                    ->whereNull('last_updated')
+                    ->orderBy('id', 'asc')
                     ->first();
-                    
-                if ($nextWarehouseLog) {
-                    $approver = User::where('nik', $nextWarehouseLog->approver_nik)->first();
-                    if ($approver) {
-                        $requisition->status = 'Warehouse Process - Material Supervisor';
-                        $requisition->route_to = $approver->name;
-                        $requisition->save();
-                        
-                        sendPrintBatchMail::dispatch($approver, $requisition, $nextWarehouseLog);
-                        Log::info("Email warehouse approval dikirim ke level 101 - {$approver->name}");
+
+                if ($nextTracking) {
+                    // Lanjutkan ke level berikutnya
+                    $this->processWarehouseTracking($tracking->requisition_id);
+                } else {
+                    // Semua selesai
+                    $requisition->status = 'Approved';
+                    $requisition->route_to = 'Completed';
+                    $requisition->save();
+
+                    // Send completion notification to requester
+                    $completedBy = $this->getApproverByPosition($tracking->current_position);
+                    if ($completedBy) {
+                        sendWarehouseCompletion::dispatch(
+                            $requisition,
+                            $completedBy,
+                            now()
+                        );
                     }
                 }
-            } else if ($currentLevel === 101) {
-                // Dari level 101 ke 102 (WH Supervisor final)
-                $nextWarehouseLog = ApprovalLog::where('requisition_id', $requisitionId)
-                    ->where('level', 102)
-                    ->where('status', 'Pending')
-                    ->whereNotNull('token')
-                    ->first();
-                    
-                if ($nextWarehouseLog) {
-                    $approver = User::where('nik', $nextWarehouseLog->approver_nik)->first();
-                    if ($approver) {
-                        $requisition->status = 'Warehouse Process - Final Check';
-                        $requisition->route_to = $approver->name;
-                        $requisition->save();
-                        
-                        sendPrintBatchMail::dispatch($approver, $requisition, $nextWarehouseLog);
-                        Log::info("Email warehouse approval dikirim ke level 102 - {$approver->name}");
-                    }
-                }
-            } else if ($currentLevel === 102) {
-                // Warehouse phase selesai
-                $requisition->status = 'Completed';
-                $requisition->route_to = null;
+            } else {
+                // Rejected - stop process
+                $requisition->status = 'Rejected';
+                $requisition->route_to = 'Rejected at ' . $tracking->current_position;
                 $requisition->save();
-                
-                // Kirim notifikasi final ke requester
-                $requester = User::where('nik', $requisition->requester_nik)->first();
-                if ($requester) {
-                    Log::info("Requisition {$requisitionId} completed - all warehouse approvals done");
-                    // Bisa ditambahkan job untuk kirim email completion ke requester
+
+                // Send rejection notification to requester
+                $rejectedBy = $this->getApproverByPosition($tracking->current_position);
+                if ($rejectedBy) {
+                    sendRejectionNotification::dispatch(
+                        $requisition, 
+                        $rejectedBy, 
+                        $notes, 
+                        'warehouse',
+                        now()
+                    );
                 }
+
+                // Invalidate semua tracking berikutnya
+                Tracking::where('requisition_id', $tracking->requisition_id)
+                    ->where('id', '>', $tracking->id)
+                    ->update(['token' => null]);
             }
+
+            DB::commit();
+
+            return response()->json([
+                'message' => $status === 'approve' ? 'Warehouse approval successful' : 'Warehouse request rejected',
+                'status' => $status
+            ]);
+
         } catch (\Exception $e) {
-            Log::error('Error continuing warehouse approval: ' . $e->getMessage());
+            DB::rollBack();
+            Log::error('Error in warehouse approval validation: ' . $e->getMessage());
+            return response()->json(['message' => 'Server error occurred'], 500);
         }
     }
 
@@ -1295,6 +1171,47 @@ class ComplainController extends Controller
     {
         $headsQA = User::role('head-qa')->get();
         return response()->json($headsQA);
+    }
+
+    /**
+     * Test function untuk warehouse tracking system
+     */
+    public function testWarehouseTracking($requisitionId)
+    {
+        try {
+            Log::info("Testing warehouse tracking for requisition: {$requisitionId}");
+            
+            // Test apakah ada tracking untuk requisition ini
+            $trackings = Tracking::where('requisition_id', $requisitionId)
+                ->orderBy('id', 'asc')
+                ->get();
+                
+            if ($trackings->isEmpty()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'No tracking found for this requisition',
+                    'requisition_id' => $requisitionId
+                ]);
+            }
+            
+            // Test process warehouse tracking
+            $result = $this->processWarehouseTracking($requisitionId);
+            
+            return response()->json([
+                'status' => $result ? 'success' : 'error',
+                'message' => $result ? 'Warehouse tracking processed successfully' : 'Failed to process warehouse tracking',
+                'trackings' => $trackings,
+                'requisition_id' => $requisitionId
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Error testing warehouse tracking: ' . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage(),
+                'requisition_id' => $requisitionId
+            ]);
+        }
     }
 
     public function uploadPaymentProof(paymentProofRequest $request)
@@ -1360,71 +1277,4 @@ class ComplainController extends Controller
         }
     }
 
-    public function sendFinalEmail($requisitionId, $level){
-        try{
-            $requisition = Requisition::with('requester')->findOrFail($requisitionId);
-
-            // Untuk final email, langsung ke level 102 (WH Supervisor final)
-            $finalWarehouseLog = ApprovalLog::where('requisition_id', $requisitionId)
-                ->where('level', $level) // Level 102
-                ->where('status', 'Pending')
-                ->whereNotNull('token')
-                ->first();
-            
-            if ($finalWarehouseLog) {
-                $approver = User::where('nik', $finalWarehouseLog->approver_nik)->first();
-                if ($approver) {
-                    // Update status dan route_to
-                    $requisition->status = 'Warehouse Process - Final Check';
-                    $requisition->route_to = $approver->name;
-                    $requisition->save();
-                    
-                    // Kirim email ke WH Supervisor final (level 102)
-                    sendPrintBatchMail::dispatch($approver, $requisition, $finalWarehouseLog);
-                    Log::info("Final email sent to WH Supervisor Level {$level}: {$approver->name}");
-                } else {
-                    Log::warning("No approver found for warehouse level {$level} in requisition {$requisitionId}");
-                }
-            } else {
-                Log::warning("No warehouse approval log found for level {$level} in requisition {$requisitionId}");
-            }
-        }
-        catch(\Exception $e){
-            Log::error('Failed to send final email: ' . $e->getMessage());
-        }
-    }
-
-    public function sendConfirmationEmail($requisitionId , $level){
-        try{
-            DB::transaction(function() use($requisitionId , $level){
-                $requisition = Requisition::with('requester')->findOrFail($requisitionId);
-
-                // Untuk confirmation email, mulai sequence warehouse dari level 100
-                $firstWarehouseLog = ApprovalLog::where('requisition_id', $requisition->id)
-                    ->where('level', 100)
-                    ->where('status', 'Pending')
-                    ->whereNotNull('token')
-                    ->first();
-                
-                if ($firstWarehouseLog) {
-                    $approver = User::where('nik', $firstWarehouseLog->approver_nik)->first();
-                    if ($approver) {
-                        // Update status dan route_to
-                        $requisition->status = 'Warehouse Process - WH Supervisor Check 1';
-                        $requisition->route_to = $approver->name;
-                        $requisition->save();
-                        
-                        // Kirim email ke WH Supervisor pertama (level 100)
-                        sendPrintBatchMail::dispatch($approver, $requisition, $firstWarehouseLog);
-                        Log::info("Confirmation email sent to start warehouse sequence - Level 100: {$approver->name}");
-                    }
-                } else {
-                    Log::warning("No warehouse approval log found for level 100 in requisition {$requisitionId}");
-                }
-            });
-        }
-        catch(\Exception $e){
-            Log::error('Failed to send confirmation email: ' . $e->getMessage());
-        }
-    }
 }
