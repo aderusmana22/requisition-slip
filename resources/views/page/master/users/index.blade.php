@@ -8,7 +8,7 @@
         <link href="{{ asset('assets/vendor/select/select2.min.css') }}" rel="stylesheet" type="text/css">
     @endpush
 
-    <!-- Breadcrumb --> 
+    <!-- Breadcrumb -->
     <div class="row m-1">
         <div class="col-12 ">
             <h4 class="main-title">Users List</h4>

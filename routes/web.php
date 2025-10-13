@@ -24,6 +24,9 @@ Route::get('/approval', [ComplainController::class, 'processApproval'])->name('a
 Route::get('/complain/approval-direct', [ComplainController::class, 'processApproval'])->name('approval.process.direct');
 Route::get('/complain/approval/review', [ComplainController::class, 'showReviewPage'])->name('complain.approval.review');
 Route::post('/complain/approval/process', [ComplainController::class, 'processApproval'])->name('complain.approval.process');
+Route::get('/complain/warehouse/approval', [ComplainController::class, 'processWarehouseApproval'])->name('complain.warehouse.approval');
+Route::get('/complain/warehouse/review', [ComplainController::class, 'showWarehouseReviewPage'])->name('complain.warehouse.review');
+Route::post('/complain/warehouse/process', [ComplainController::class, 'processWarehouseApproval'])->name('complain.warehouse.process');
 Route::get('/complain/test-data', [ComplainController::class, 'testData'])->name('complain.test.data');
 
 Route::prefix('requisition')->group(function () {
@@ -39,7 +42,7 @@ Route::prefix('requisition')->group(function () {
 // Approval Link dari Email (Sample Requisition)
 Route::get('/approval/response/{token}', [SampleController::class, 'showResponseForm'])->name('approval.response');
 Route::post('/approval/process', [SampleController::class, 'processApproval'])->name('approval.process');
-Route::get('/approval/success', [SampleController::class, 'showSuccessPage'])->name('approval.success');
+Route::get('/approval   /success', [SampleController::class, 'showSuccessPage'])->name('approval.success');
 
 // Approval Link dari Email (Free Goods Requisition)
 Route::get('/fg-approval/response/{token}', [FreeGoodsController::class, 'showResponseForm'])->name('fg.approval.response');
@@ -54,6 +57,8 @@ Route::middleware('auth')->group(function () {
     // --- Sample Requisition Routes ---
     Route::resource('sample-form', SampleController::class);
     Route::get('/sample-data', [SampleController::class, 'getData'])->name('sample.data');
+    Route::get('/sample-report/{id}', [SampleController::class, 'printReport'])->name('sample.report');
+    Route::post('/sample-form/{id}/cancel', [SampleController::class, 'cancelRequisition'])->name('sample.cancel');
     Route::post('/get-products-by-material-types', [SampleController::class, 'getProductsByMaterialTypes'])->name('sample.getProductsByMaterialTypes');
     Route::post('/get-item-details-by-products', [SampleController::class, 'getItemDetailsByProducts'])->name('sample.getItemDetailsByProducts');
     Route::get('/get-all-item-masters', [SampleController::class, 'getAllItemMasters'])->name('sample.getAllItemMasters');

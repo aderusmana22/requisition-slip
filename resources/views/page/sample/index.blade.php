@@ -190,12 +190,16 @@
                                     <label class="form-label fw-bold">3. Berat Sample<i class="text-danger">*</i></label>
                                     <div>
                                         <div class="form-check form-check-inline">
+                                            <input class="form-check-input sample-weight-radio" type="radio" name="weight_selection_option" value="30kg">
+                                            <label class="form-check-label">30kg</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
                                             <input class="form-check-input sample-weight-radio" type="radio" name="weight_selection_option" value="15kg">
                                             <label class="form-check-label">15kg</label>
                                         </div>
                                         <div class="form-check form-check-inline">
-                                            <input class="form-check-input sample-weight-radio" type="radio" name="weight_selection_option" value="30kg">
-                                            <label class="form-check-label">30kg</label>
+                                            <input class="form-check-input sample-weight-radio" type="radio" name="weight_selection_option" value="1kg">
+                                            <label class="form-check-label">1kg</label>
                                         </div>
                                         <div class="form-check form-check-inline">
                                             <input class="form-check-input sample-weight-radio" type="radio" name="weight_selection_option" value="500g">
@@ -204,6 +208,18 @@
                                         <div class="form-check form-check-inline">
                                             <input class="form-check-input sample-weight-radio" type="radio" name="weight_selection_option" value="250g">
                                             <label class="form-check-label">250g</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input sample-weight-radio" type="radio" name="weight_selection_option" value="5lt">
+                                            <label class="form-check-label">5lt</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input sample-weight-radio" type="radio" name="weight_selection_option" value="1lt">
+                                            <label class="form-check-label">1lt</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input sample-weight-radio" type="radio" name="weight_selection_option" value="500ml">
+                                            <label class="form-check-label">500ml</label>
                                         </div>
                                         <div class="form-check form-check-inline">
                                             <input class="form-check-input sample-weight-radio" type="radio" id="weight_other_radio" name="weight_selection_option" value="Lainnya">
@@ -271,9 +287,39 @@
                                         <label for="end_date" class="form-label">Tanggal Selesai Sample<i class="text-danger">*</i></label>
                                         <input type="date" class="form-control sm-field" name="end_date">
                                     </div>
-                                     <div class="col-md-6">
+                                    <div class="col-md-6">
                                         <label class="form-label">Kemasan Sample<i class="text-danger">*</i></label>
-                                        <input type="text" class="form-control sm-field" name="packaging_selection" placeholder="e.g.: Karton, Tub, Botol">
+
+                                        {{-- [MODIFIKASI] Menyesuaikan atribut agar cocok dengan fungsi setupQaRadioLainnya --}}
+                                        <div id="packaging-options-wrapper">
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input sm-field" type="radio" name="packaging_selection_option" id="pack_tub" value="Tub">
+                                                <label class="form-check-label" for="pack_tub">a. Tub</label>
+                                            </div>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input sm-field" type="radio" name="packaging_selection_option" id="pack_karton" value="Karton">
+                                                <label class="form-check-label" for="pack_karton">b. Karton</label>
+                                            </div>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input sm-field" type="radio" name="packaging_selection_option" id="pack_botol" value="Botol">
+                                                <label class="form-check-label" for="pack_botol">c. Botol</label>
+                                            </div>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input sm-field" type="radio" name="packaging_selection_option" id="pack_jerrycan" value="Jerrycan">
+                                                <label class="form-check-label" for="pack_jerrycan">d. Jerrycan</label>
+                                            </div>
+                                            <div class="form-check form-check-inline">
+                                                {{-- ID radio 'Lainnya' diubah --}}
+                                                <input class="form-check-input sm-field" type="radio" name="packaging_selection_option" id="packaging_selection_other_radio" value="Lainnya">
+                                                <label class="form-check-label" for="packaging_selection_other_radio">e. Lainnya...</label>
+                                            </div>
+                                        </div>
+
+                                        {{-- ID input teks 'Lainnya' diubah --}}
+                                        <input type="text" class="form-control sm-field mt-2" id="packaging_selection_other_input" style="display: none;" placeholder="Sebutkan kemasan lain...">
+
+                                        {{-- Hidden input tetap sama, ID disesuaikan --}}
+                                        <input type="hidden" name="packaging_selection" id="packaging_selection" required>
                                     </div>
                                     <div class="col-md-6">
                                         <label for="sample_count" class="form-label">Jumlah Sample<i class="text-danger">*</i></label>
@@ -299,9 +345,37 @@
                                         </div>
                                     </div>
                                     <div class="col-md-6">
-                                        <label class="form-label">Shipment Method<i class="text-danger">*</i></label>
-                                        <input type="text" class="form-control sm-field" name="shipment_method"
-                                            placeholder="e.g.: Delivery (DHL), Others: Gojek">
+                                        <label class="form-label">Dikirim Melalui <i class="text-danger">*</i></label>
+
+                                        {{-- [MODIFIKASI] Menggunakan radio button untuk pilihan --}}
+                                        <div>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input sm-field" type="radio" name="shipment_method_option" id="ship_sales" value="Sales">
+                                                <label class="form-check-label" for="ship_sales">a. Sales</label>
+                                            </div>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input sm-field" type="radio" name="shipment_method_option" id="ship_dhl" value="Delivery (DHL)">
+                                                <label class="form-check-label" for="ship_dhl">b. Delivery (DHL)</label>
+                                            </div>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input sm-field" type="radio" name="shipment_method_option" id="ship_container" value="Container">
+                                                <label class="form-check-label" for="ship_container">c. Container</label>
+                                            </div>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input sm-field" type="radio" name="shipment_method_option" id="ship_kurir" value="Kurir">
+                                                <label class="form-check-label" for="ship_kurir">d. Kurir</label>
+                                            </div>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input sm-field" type="radio" name="shipment_method_option" id="shipment_method_other_radio" value="Lainnya">
+                                                <label class="form-check-label" for="shipment_method_other_radio">e. Lainnya...</label>
+                                            </div>
+                                        </div>
+
+                                        {{-- Input teks yang muncul jika "Lainnya" dipilih --}}
+                                        <input type="text" class="form-control sm-field mt-2" id="shipment_method_other_input" style="display: none;" placeholder="Sebutkan metode pengiriman lain...">
+
+                                        {{-- Hidden input untuk menyimpan nilai akhir yang akan disubmit --}}
+                                        <input type="hidden" name="shipment_method" id="shipment_method" required>
                                     </div>
                                 </div>
 
@@ -572,6 +646,16 @@
                                 <div class="tracker-step" data-step-name="Ready for Dispatch"><div class="tracker-icon"><i class="ph-bold ph-truck fs-6"></i></div><div class="tracker-label">Dispatch</div><div class="tracker-details"></div></div>
                                 <div class="tracker-step" data-step-name="Completed"><div class="tracker-icon"><i class="ph-bold ph-check-circle fs-6"></i></div><div class="tracker-label">Completed</div><div class="tracker-details"></div></div>
                             </div>
+                        </div>
+                    </div>
+                    <div class="card view-modal-card">
+                        <div class="card-header view-modal-card-header">
+                            <h5 class="fw-bold text-primary mb-3"><i class="ph-bold ph-clock-counter-clockwise me-2"></i> Requisition History</h5>
+                        </div>
+                        <div class="card-body p-4">
+                            <ul class="list-group list-group-flush" id="history-log-container">
+                                {{-- History akan diisi oleh JavaScript di sini --}}
+                            </ul>
                         </div>
                     </div>
                 </div>
@@ -1020,8 +1104,8 @@
                     // --- 1. Ambil beberapa data kunci untuk ditampilkan di pop-up konfirmasi ---
                     const subCategory = $('#sub_category option:selected').text().trim();
                     const customerName = $('#customer_id option:selected').text().trim();
+                    const noSrs = $('#no_srs').val();
                     const requestDate = $('#request_date').val();
-                    const itemCount = $('#requisition-items-tbody tr[id^="item-row-"]').length;
 
                         // --- 2. Tampilkan SweetAlert untuk konfirmasi ---
                         Swal.fire({
@@ -1029,9 +1113,9 @@
                             html: `Anda akan mengajukan Requisition dengan ringkasan data berikut:
                                 <ul class="text-start mt-3" style="list-style: none; padding-left: 0;">
                                     <li style="padding: 5px 0;"><strong>Sub Kategori:</strong> ${subCategory || '<i>Belum dipilih</i>'}</li>
+                                    <li style="padding: 5px 0;"><strong>SRS No.:</strong> ${noSrs}</li>
                                     <li style="padding: 5px 0;"><strong>Customer:</strong> ${customerName || '<i>Belum dipilih</i>'}</li>
                                     <li style="padding: 5px 0;"><strong>Tgl. Request:</strong> ${requestDate}</li>
-                                    <li style="padding: 5px 0;"><strong>Jumlah Item:</strong> ${itemCount} item</li>
                                 </ul>
                                 <hr>
                                 <b class="text-danger">Pastikan semua data yang Anda masukkan sudah benar.</b>`,
@@ -1170,6 +1254,8 @@
                 });
             }
 
+            setupQaRadioLainnya('shipment_method');
+            setupQaRadioLainnya('packaging_selection');
             setupQaRadioLainnya('source');
             setupQaRadioLainnya('preparation_method');
             setupQaRadioLainnya('sample_notes');
@@ -1528,23 +1614,19 @@
                 const approvalLogs = data.approval_logs ? data.approval_logs.filter(log => log.level <= 100) : [];
                 const approvalLogsCount = approvalLogs.length;
 
-                if (approvalLogsCount > 0) {
+                if (approvalLogs.length > 0) {
                     approvalLogs.forEach((log, index) => {
-                        let stepTitle    = 'Atasan Dept';
-                        if (index === approvalLogsCount - 1) {
-                            stepTitle = 'Bisnis Controller';
-                        }
-                            const approverName = log.approver ? log.approver.name : `Level ${log.level}`;
-                            const finalLabel = `${stepTitle}<br><small class="text-muted fw-normal">${approverName}</small>`;
-
+                        let stepTitle = 'Atasan Dept';
+                        if (index === approvalLogs.length - 1) { stepTitle = 'Bisnis Controller'; }
+                        const approverName = log.approver ? log.approver.name : `Level ${log.level}`;
+                        const finalLabel = `${stepTitle}<br><small class="text-muted fw-normal">${approverName}</small>`;
                         steps.push({
                             id: 'approver_' + log.level,
                             label: finalLabel,
-                            icon: 'ph-user-check'
+                            icon: 'ph-user' // Ikon sudah diperbaiki
                         });
                     });
                 }
-
                 if (status !== 'Rejected' && status !== 'Cancelled') {
                     if (data.sub_category === 'Packaging') {
                         if (data.print_batch) {
@@ -1562,6 +1644,8 @@
                     steps.push({ id: 'completed', label: 'Completed', icon: 'ph-check-circle' });
                 }
 
+
+                // 2. Render HTML dasar untuk tracker (tetap sama)
                 let trackerHtml = '<div class="tracker-line"><div class="tracker-line-progress" id="tracker-progress"></div></div>';
                 steps.forEach(step => {
                     trackerHtml += `
@@ -1614,35 +1698,131 @@
                     }
                 });
 
-                if (status === 'Processing' && data.tracking) {
-                    const currentPosition = data.tracking.current_position;
-                    const stepIndex = steps.findIndex(s => currentPosition.toLowerCase().includes(s.label.split('<br>')[0].toLowerCase()));
+                if (data.trackings && data.trackings.length > 0) {
+                    const positionToStepId = {
+                        'Inward WH Supervisor (Initial Check)': 'inward_initial',
+                        'Material Support Supervisor': 'material',
+                        'Inward WH Supervisor (Final Check)': 'inward_final',
+                        'Inward WH Supervisor': 'inward_single',
+                        'Outward WH Supervisor': 'outward',
+                        'Waiting for QA/QM Form': 'qa_form'
+                    };
 
-                    if (stepIndex > -1) {
-                        $(`.tracker-step`).each(function(i) {
-                            if (i < stepIndex) $(this).addClass('completed');
-                        });
-                        $(`.tracker-step[data-step-id="${steps[stepIndex].id}"]`).addClass('active');
-                        lastCompletedIndex = stepIndex - 1;
-                    }
-                } else if (status === 'Completed') {
+                    data.trackings.forEach(tracking => {
+                        const stepId = positionToStepId[tracking.current_position];
+                        if (stepId && tracking.last_updated) {
+                            const stepIndex = steps.findIndex(s => s.id === stepId);
+                            const stepElement = $(`.tracker-step[data-step-id="${stepId}"]`);
+                            stepElement.addClass('completed');
+
+                            // [FIX] Gunakan teks statis untuk QA, dan nama posisi untuk WH
+                            const userName = (stepId === 'qa_form') ? 'QA/QM HSE Team' : tracking.current_position;
+                            const completionDate = new Date(tracking.last_updated).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).replace(',', '');
+
+                            stepElement.find('.tracker-details').html(
+                                `<div class="tracker-user text-primary">${userName}</div>
+                                <div class="tracker-date text-dark">${completionDate}</div>`
+                            );
+                            lastCompletedIndex = Math.max(lastCompletedIndex, stepIndex);
+                        }
+                    });
+                }
+
+                if (data.status === 'Completed') {
                     $('.tracker-step').addClass('completed');
+                    const completedStep = $(`.tracker-step[data-step-id="completed"]`);
+
+                    // Selalu isi detail untuk step 'Completed' dengan nama requester
+                    const requesterName = data.requester ? data.requester.name : 'Requester';
+                    const completionDate = new Date(data.updated_at).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).replace(',', '');
+
+                    completedStep.find('.tracker-details').html(
+                        `<div class="tracker-user text-primary">${requesterName}</div>
+                        <div class="tracker-date text-dark">${completionDate}</div>`
+                    );
+
                     lastCompletedIndex = steps.length - 1;
+
                 } else if (isRejected) {
-                    const nextStepIndex = lastCompletedIndex + 1;
-                    if (nextStepIndex < steps.length) {
-                        $(`.tracker-step`).eq(nextStepIndex).addClass('rejected');
+                    if (data.status === 'Cancelled') {
+                        const submittedStep = $(`.tracker-step[data-step-id="submitted"]`);
+                        submittedStep.addClass('rejected'); // Beri style 'rejected'
+                        const cancelDate = new Date(data.updated_at).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).replace(',', '');
+                        submittedStep.find('.tracker-details').html(
+                            `<div class="tracker-user text-danger">${data.requester.name}</div>
+                            <div class="tracker-date text-dark">${cancelDate}</div>`
+                        );
+                    } else { // Status 'Rejected'
+                        const rejectedLog = data.approval_logs.find(log => log.status === 'Rejected');
+                        if (rejectedLog) {
+                            const stepId = 'approver_' + rejectedLog.level;
+                            const stepElement = $(`.tracker-step[data-step-id="${stepId}"]`);
+                            stepElement.addClass('rejected');
+                            const rejectionDate = new Date(rejectedLog.updated_at).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).replace(',', '');
+                            stepElement.find('.tracker-details').html(
+                                `<div class="tracker-user text-danger">${rejectedLog.approver.name}</div>
+                                <div class="tracker-date text-dark">${rejectionDate}</div>`
+                            );
+                        }
                     }
-                } else if (status === 'Pending' || status === 'In Progress') {
+                } else if (status === 'Pending' || status === 'In Progress' || status === 'Processing') {
                     const nextStepIndex = lastCompletedIndex + 1;
                     if (nextStepIndex < steps.length) {
                         $(`.tracker-step`).eq(nextStepIndex).addClass('active');
                     }
                 }
 
+                // Update progress bar
                 if (lastCompletedIndex >= 0 && !isRejected) {
                     let progressPercentage = (lastCompletedIndex / (steps.length - 1)) * 100;
                     $('#tracker-progress').css('width', progressPercentage + '%');
+                }
+
+                const historyContainer = $('#history-log-container');
+                historyContainer.empty();
+
+                if (data.history && data.history.length > 0) {
+                    data.history.forEach(log => {
+                        let badgeClass = 'badge-created';
+                        let avatarClass = 'avatar-created';
+
+                        const action = log.action.toLowerCase();
+                        if (action.includes('approved not review')) { badgeClass = 'badge-approved'; avatarClass = 'avatar-approved'; }
+                        else if (action.includes('approved with review')) { badgeClass = 'badge-review'; avatarClass = 'avatar-review'; }
+                        else if (action.includes('rejected') || action.includes('cancelled')) { badgeClass = 'badge-rejected'; avatarClass = 'avatar-rejected'; }
+                        else if (action.includes('completed step')) { badgeClass = 'badge-process'; avatarClass = 'avatar-process'; }
+
+                        // [MODIFIKASI] Logika untuk menampilkan avatar atau inisial
+                        let avatarHtml = '';
+                        const actorInitial = log.actor ? log.actor.charAt(0).toUpperCase() : '?';
+
+                        if (log.avatar) {
+                            avatarClass += ' has-image'; // Tambah kelas untuk styling
+                            avatarHtml = `<img src="${log.avatar}" alt="${actorInitial}">`;
+                        } else {
+                            avatarHtml = actorInitial;
+                        }
+
+                        const notesHtml = log.notes ? `<div class="history-notes">"${log.notes}"</div>` : '';
+                        const logDate = new Date(log.timestamp).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+                        const historyItem = `
+                            <li class="list-group-item history-item">
+                                <div class="history-avatar ${avatarClass}">${avatarHtml}</div>
+                                <div class="history-content">
+                                    <div class="history-actor">${log.actor}</div>
+                                    ${notesHtml}
+                                </div>
+                                <div class="history-meta">
+                                    <div class="history-badge ${badgeClass}">${log.action}</div>
+                                    <div class="history-timestamp">${logDate}</div>
+                                </div>
+                            </li>
+                        `;
+                        historyContainer.append(historyItem);
+                    });
+                } else {
+                    historyContainer.html('<li class="list-group-item">No history data available.</li>');
                 }
             }
 
@@ -1669,67 +1849,41 @@
                 });
             });
 
-            $(document).on('click', '.btn-edit-requisition', function () {
-                const id = $(this).data('id');
-                const button = $(this);
-                const originalIcon = button.html();
-
-                const modal = $('#sampleModal');
-                const overlay = modal.find('.loading-overlay');
-
-                button.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>').prop('disabled', true);
-                overlay.show();
-
-                $.ajax({
-                    url: `/sample-form/${id}/edit`,
-                    type: 'GET',
-                    success: function (response) {
-                        $('#sampleModalLabel').text('Edit Sample Requisition');
-
-                        populateForm(response); // Panggil fungsi yang sudah diperbaiki
-
-                        modal.modal('show');
-                    },
-                    error: function () {
-                        errorMessage('Failed to fetch data for editing.');
-                    },
-                    complete: function() {
-                        button.html(originalIcon).prop('disabled', false);
-                        overlay.hide();
-                    }
-                });
-            });
-
-            $(document).on('click', '.btn-delete-requisition', function () {
+            $(document).on('click', '.btn-cancel-requisition', function () {
                 const requisitionId = $(this).data('id');
+
                 Swal.fire({
                     title: 'Are you sure?',
-                    text: "This action cannot be undone!",
+                    text: "You are about to cancel this requisition. This action cannot be undone!",
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonColor: '#d33',
                     cancelButtonColor: '#3085d6',
-                    confirmButtonText: 'Yes, delete it!',
-                    cancelButtonText: 'Cancel'
+                    confirmButtonText: 'Yes, cancel it!',
+                    cancelButtonText: 'No, keep it'
                 }).then((result) => {
                     if (result.isConfirmed) {
+                        const button = $(this);
+                        const originalHtml = button.html();
+                        button.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>').prop('disabled', true);
+
                         $.ajax({
-                            url: `/sample-form/${requisitionId}`,
+                            url: `/sample-form/${requisitionId}/cancel`, // URL ke route baru
                             type: 'POST',
                             data: {
-                                _method: 'DELETE',
                                 _token: "{{ csrf_token() }}"
                             },
                             success: function (response) {
                                 if (response.success) {
-                                    Swal.fire('Deleted!', response.message,
-                                        'success');
-                                    table.ajax.reload();
+                                    Swal.fire('Cancelled!', response.message, 'success');
+                                    table.ajax.reload(null, false); // Muat ulang tabel
                                 }
                             },
                             error: function (xhr) {
-                                Swal.fire('Failed!', 'A system error occurred.',
-                                    'error');
+                                Swal.fire('Failed!', xhr.responseJSON?.message || 'An error occurred.', 'error');
+                            },
+                            complete: function() {
+                                button.html(originalHtml).prop('disabled', false);
                             }
                         });
                     }

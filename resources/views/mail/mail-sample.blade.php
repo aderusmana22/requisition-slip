@@ -7,7 +7,15 @@
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #f8f9fa; color: #333; line-height: 1.6; }
         .email-container { max-width: 800px; margin: 20px auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1); }
-        .email-header { background: linear-gradient(135deg, #cc982f 0%, #b8871a 100%); color: white; padding: 25px 40px; display: flex; align-items: center; }
+        .email-header {
+            background: linear-gradient(135deg, #cc982f 0%, #b8871a 100%);
+            color: white;
+            padding: 25px 40px;
+            display: flex;
+            align-items: center;
+            text-align: center;
+            justify-content: center;
+        }
         .logo-container { padding-right: 20px; }
         .company-logo { max-height: 50px; width: auto; }
         .header-text .company-name { font-size: 20px; font-weight: 700; margin: 0; }
@@ -16,6 +24,8 @@
         .greeting { font-size: 18px; color: #2c3e50; margin-bottom: 25px; padding: 20px; background: #fef8e7; border-radius: 8px; border-left: 4px solid #cc982f; }
         .info-section { margin-bottom: 30px; }
         .section-title { background: linear-gradient(135deg, #cc982f 0%, #b8871a 100%); color: white; padding: 12px 20px; margin: 0 0 15px 0; border-radius: 8px 8px 0 0; font-weight: 600; font-size: 16px; }
+        .info-category { background: #fff3cd; color: #856404; font-size: 15px; word-break: break-word; }
+        .info-subcategory { background: #cdeaffff; color: #2927a5ff; font-size: 15px; word-break: break-word; }
         .info-grid { width: 100%; background: #f8f9fa; padding: 20px; border-radius: 0 0 8px 8px; border: 1px solid #e9ecef; border-top: none; }
         .info-grid table { width: 100%; border-collapse: collapse; }
         .info-grid td { width: 50%; vertical-align: top; padding: 7px; }
@@ -27,6 +37,30 @@
         .status-processing { background: #cce7ff; color: #0066cc; }
         .status-approved { background: #d4edda; color: #155724; }
         .status-rejected { background: #f8d7da; color: #721c24; }
+
+        .product-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #e9ecef
+        }
+
+        .product-table th {
+            background: #343a40;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 14px
+        }
+
+        .product-table td {
+            padding: 12px;
+            border-bottom: 1px solid #e9ecef;
+            font-size: 14px
+        }
         .action-section { background: #fef8e7; padding: 30px; border-radius: 12px; text-align: center; margin: 30px 0; border: 1px solid #cc982f; }
         .action-title { font-size: 20px; font-weight: 700; color: #2c3e50; margin-bottom: 15px; }
         .action-subtitle { color: #6c757d; margin-bottom: 25px; font-size: 16px; }
@@ -46,20 +80,30 @@
     <div class="email-container">
         <div class="email-header">
             <div class="header-content">
-                <img src="{{ asset('storage/logo.png') }}" alt="{{ config('app.name') }}" class="company-logo">
-                <h1 class="email-title">Requisition Approval Request</h1>
-                <p class="email-subtitle">Sales & Marketing - Packaging Replacement Request</p>
+                <img src="{{ asset('assets/images/logo/logohitam.png') }}" alt="{{ config('app.name') }}" class="company-logo">
+                <h1 class="email-title">Requisition Slip Request</h1>
+                <p class="email-subtitle">{{ $requisition->no_srs }} - Sample Request</p>
             </div>
         </div>
 
         <div class="email-content">
-            {{-- ===================== BAGIAN GREETING YANG DIPERBAIKI ===================== --}}
+            {{-- ===================== BAGIAN GREETING ===================== --}}
             <div class="greeting">
                 <strong>Hello {{ $recipient->name }},</strong><br>
                 @if(isset($mail_type) && $mail_type === 'qa_form_notification')
                     Requisition <strong>{{ $requisition->no_srs }}</strong> requires your action to complete the QA/QM HSE form. Please click the button below.
                 @elseif(isset($mail_type) && $mail_type === 'warehouse_process')
                     Requisition <strong>{{ $requisition->no_srs }}</strong> has been fully approved and now requires your action for the process: <strong>{{ $process_step ?? 'N/A' }}</strong>.
+
+                {{-- 👇 SYNTAX YANG HILANG ADA DI SINI 👇 --}}
+                @elseif(isset($mail_type) && $mail_type === 'completed_notification')
+                    Kabar baik! Sample Requisition Anda dengan nomor <strong>{{ $requisition->no_srs }}</strong> telah selesai diproses dan siap untuk langkah selanjutnya.
+                @elseif(isset($mail_type) && $mail_type === 'rejection_notification')
+                    Mohon maaf, Sample Requisition Anda dengan nomor <strong>{{ $requisition->no_srs }}</strong> telah ditolak.
+                @elseif(isset($mail_type) && $mail_type === 'cancellation_notification')
+                    This is a notification to inform you that the sample requisition <strong>{{ $requisition->no_srs }}</strong> from <strong>{{ $requisition->requester->name ?? 'N/A' }}</strong> has been cancelled.
+                    <br><br>
+                    No further action is required from you for this request.
                 @else
                     A new sample requisition requires your review and approval. Please check the details and choose an action.
                 @endif
@@ -69,6 +113,20 @@
                 <h3 class="section-title">📄 Request Information</h3>
                 <div class="info-grid">
                     <table>
+                        <tr>
+                            <td>
+                                <div class="info-item">
+                                    <div class="info-label">Category</div>
+                                    <div class="info-value">{{ $requisition->category }}</div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="info-item">
+                                    <div class="info-label">Sub Category</div>
+                                    <div class="info-value">{{ $requisition->sub_category }}</div>
+                                </div>
+                            </td>
+                        </tr>
                         <tr>
                             <td>
                                 <div class="info-item">
@@ -94,7 +152,12 @@
                                 <div class="info-item">
                                     <div class="info-label">Current Status</div>
                                     <div class="info-value">
-                                        @if($requisition->status == 'Pending')
+                                        {{-- JIKA INI ADALAH EMAIL UNTUK PROSES GUDANG, TAMPILKAN "APPROVED" --}}
+                                        @if(isset($mail_type) && $mail_type === 'warehouse_process')
+                                            <span class="status-badge status-approved">Approved</span>
+
+                                        {{-- JIKA BUKAN, GUNAKAN LOGIKA STATUS SEPERTI BIASA --}}
+                                        @elseif($requisition->status == 'Pending')
                                             <span class="status-badge status-pending">Pending</span>
                                         @elseif($requisition->status == 'In Progress' || $requisition->status == 'Processing')
                                             <span class="status-badge status-processing">In Progress</span>
@@ -102,6 +165,10 @@
                                             <span class="status-badge status-approved">Approved</span>
                                         @elseif($requisition->status == 'Rejected')
                                             <span class="status-badge status-rejected">Rejected</span>
+                                        @elseif($requisition->status == 'Completed')
+                                            <span class="status-badge status-approved">Completed</span>
+                                        @elseif($requisition->status == 'Canceled')
+                                            <span class="status-badge status-rejected">Canceled</span>
                                         @else
                                             <span>{{ $requisition->status }}</span>
                                         @endif
@@ -109,12 +176,14 @@
                                 </div>
                             </td>
                         </tr>
-                         <tr>
-                            <td colspan="2">
+                        <tr>
+                            <td>
                                 <div class="info-item">
                                     <div class="info-label">Objectives</div>
                                     <div class="info-value">{{ $requisition->objectives }}</div>
                                 </div>
+                            </td>
+                            <td>
                                 <div class="info-item">
                                     <div class="info-label">Estimated Potential</div>
                                     <div class="info-value">{{ $requisition->estimated_potential ?? 'N/A' }}</div>
@@ -124,6 +193,48 @@
                     </table>
                 </div>
             </div>
+
+            {{-- Detail Item --}}
+            @if($requisition->requisitionItems->count() > 0)
+            <div class="info-section">
+                <h3 class="section-title">📦 Requested Item List</h3>
+                <div
+                    style="background: #f8f9fa; border-radius: 0 0 8px 8px; border: 1px solid #e9ecef; border-top: none;">
+                    <table class="product-table">
+                        <thead>
+                            <tr>
+                                @if($requisition->sub_category == 'Packaging')
+                                <th>Material Type</th>
+                                @endif
+                                <th>Item Code</th>
+                                <th>Item Name</th>
+                                <th>Unit</th>
+                                <th>Qty Required</th>
+                                <th>Qty Issued</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($requisition->requisitionItems as $item)
+                            <tr>
+                                @if($requisition->sub_category == 'Packaging')
+                                <td>{{ $item->material_type ?? '-' }}</td>
+                                <td>{{ $item->itemDetail->item_detail_code ?? '-' }}</td>
+                                <td>{{ $item->itemDetail->item_detail_name ?? '-' }}</td>
+                                <td>{{ $item->itemDetail->unit ?? '-' }}</td>
+                                @else
+                                <td>{{ $item->itemMaster->item_master_code ?? '-' }}</td>
+                                <td>{{ $item->itemMaster->item_master_name ?? '-' }}</td>
+                                <td>{{ $item->itemMaster->unit ?? '-' }}</td>
+                                @endif
+                                <td style="text-align: center; font-weight: 600;">{{ $item->quantity_required ?? 0 }}</td>
+                                <td style="text-align: center; font-weight: 600;">{{ $item->quantity_issued ?? 0 }}</td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            @endif
 
             <div class="action-section">
                 @if(isset($mail_type) && $mail_type == 'qa_form_notification')
@@ -141,16 +252,39 @@
                             <td><a href="{{ $review_url }}" class="btn btn-review">📝 Submit with Notes</a></td>
                         </tr></table>
                     </div>
+                @elseif(isset($mail_type) && $mail_type === 'completed_notification')
+                    <h3 class="action-title" style="color: #28a745;">✅ Process Completed</h3>
+                    <p class="action-subtitle">Tidak ada tindakan lebih lanjut yang diperlukan dari Anda untuk email ini. Terima kasih.</p>
+
+                @elseif(isset($mail_type) && $mail_type === 'cancellation_notification')
+                    <h3 class="action-title" style="color: #6c757d;">🚫 Requisition Cancelled</h3>
+                    <p class="action-subtitle">This requisition has been cancelled by the requester. No action is required from you.</p>
+
+                @elseif(isset($mail_type) && $mail_type === 'rejection_notification')
+                    <h3 class="action-title" style="color: #dc3545;">❌ Requisition Rejected</h3>
+                    <p class="action-subtitle">
+                        Ditolak oleh: <strong>{{ $approver_name ?? 'Approver' }}</strong>
+                        <br>
+                        Alasan: <i>"{{ $rejection_notes ?? 'Tidak ada alasan yang diberikan.' }}"</i>
+                    </p>
+
+                {{-- [PERBAIKAN] Blok 'else' ini sekarang hanya akan berjalan untuk email approval biasa --}}
                 @else
-                    <h3 class="action-title">⚡ Take Action</h3>
-                    <p class="action-subtitle">Please review the request above and choose your action below</p>
-                    <div class="button-group">
-                        <table><tr>
-                            <td><a href="{{ $approve_url }}" class="btn btn-approve">✅ Quick Approve</a></td>
-                            <td><a href="{{ $review_url }}" class="btn btn-review">📝 Review with Notes</a></td>
-                            <td><a href="{{ $reject_url }}" class="btn btn-reject">❌ Quick Reject</a></td>
-                        </tr></table>
-                    </div>
+                    {{-- Pastikan variabel URL ada sebelum menampilkan tombol --}}
+                    @if(isset($approve_url) && isset($review_url) && isset($reject_url))
+                        <h3 class="action-title">⚡ Take Action</h3>
+                        <p class="action-subtitle">Please review the request above and choose your action below</p>
+                        <div class="button-group">
+                            <table><tr>
+                                <td><a href="{{ $approve_url }}" class="btn btn-approve">✅ Quick Approve</a></td>
+                                <td><a href="{{ $review_url }}" class="btn btn-review">📝 Review with Notes</a></td>
+                                <td><a href="{{ $reject_url }}" class="btn btn-reject">❌ Quick Reject</a></td>
+                            </tr></table>
+                        </div>
+                    @else
+                        <h3 class="action-title">ℹ️ Notification Only</h3>
+                        <p class="action-subtitle">This is a notification email. No action is required from you.</p>
+                    @endif
                 @endif
             </div>
         </div>
