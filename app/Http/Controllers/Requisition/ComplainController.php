@@ -1400,4 +1400,6 @@ class ComplainController extends Controller
         $pdf = Pdf::loadView('page.complain.report', $data)->setPaper('a4', 'landscape');
         return $pdf->stream('RS Complain - ' . $requisition->no_srs . '.pdf');
     }
+
+    
 }

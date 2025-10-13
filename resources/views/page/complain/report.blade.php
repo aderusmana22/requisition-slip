@@ -292,7 +292,13 @@
                                 <th style="width: 8%;">QTY REQUIRED</th>
                                 <th style="width: 8%;">QTY ISSUED</th>
                                 <th style="width: 15%;">OBJECTIVES</th>
+
+                                @if($requisition->category == 'Complain')
+                                <th style="width: 15%;">Remarks <br> (Batch Code)</th>
+                                @else
                                 <th style="width: 15%;">Estimasi Potensi (Remarks in Carton)</th>
+                                @endif
+                            
                             </tr>
                         </thead>
 
@@ -325,7 +331,7 @@
                                 @if($loop->first)
                                     <td class="notes-column text-center" rowspan="{{ $totalRows }}">{{ $requisition->objectives }}</td>
                                 @endif
-                                <td class="text-center">{{ $requisition->requisition_items->batch_number ?? '-' }} . {{ $requisition->requisition_items->remarks ?? '-'}}</td>
+                                <td class="text-center">{{ strtoupper($item->batch_number?->format('d M y')) ?? '-' }} . {{ $item->remarks ?? '-'}}</td>
                             </tr>
                             @endforeach
 
@@ -334,14 +340,24 @@
                             <tr>
                                 @if($requisition->sub_category == 'Packaging')
                                     <td>&nbsp;</td> {{-- Kolom ekstra untuk Material Type --}}
+                                    <td>&nbsp;</td>
+                                    <td>&nbsp;</td>
+                                    <td>&nbsp;</td>
+                                    <td>&nbsp;</td>
+                                    <td>&nbsp;</td>
+                                @else
+                                    <td>&nbsp;</td>
+                                    <td>&nbsp;</td>
+                                    <td>&nbsp;</td>
+                                    <td>&nbsp;</td>
+                                    <td>&nbsp;</td>
                                 @endif
-                                <td>&nbsp;</td> <td></td> <td></td> <td></td> <td></td>
 
                                 {{-- Pastikan kolom rowspan hanya dirender sekali jika tidak ada item sama sekali --}}
                                 @if($itemCount == 0 && $i == 0)
                                     <td class="notes-column text-center" rowspan="{{ $totalRows }}">{{ $requisition->objectives }}</td>
                                 @endif
-                                <td>&nbsp;</td><td></td><td></td><td></td><td></td>
+                                <td>&nbsp;</td>
                             </tr>
                             @endfor
                         </tbody>
