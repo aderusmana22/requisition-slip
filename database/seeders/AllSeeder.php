@@ -5,7 +5,6 @@ namespace Database\Seeders;
 use App\Models\Master\Department;
 use App\Models\User;
 use Carbon\Carbon;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Permission;
@@ -19,59 +18,59 @@ class AllSeeder extends Seeder
     public function run(): void
     {
         //
-        // Create Permissions
-         Permission::create(['name' => 'view role']);
-        Permission::create(['name' => 'create role']);
-        Permission::create(['name' => 'update role']);
-        Permission::create(['name' => 'delete role']);
+        // Create Permissions - Menggunakan updateOrCreate
+        Permission::updateOrCreate(['name' => 'view role']);
+        Permission::updateOrCreate(['name' => 'create role']);
+        Permission::updateOrCreate(['name' => 'update role']);
+        Permission::updateOrCreate(['name' => 'delete role']);
 
-        Permission::create(['name' => 'view permission']);
-        Permission::create(['name' => 'create permission']);
-        Permission::create(['name' => 'update permission']);
-        Permission::create(['name' => 'delete permission']);
+        Permission::updateOrCreate(['name' => 'view permission']);
+        Permission::updateOrCreate(['name' => 'create permission']);
+        Permission::updateOrCreate(['name' => 'update permission']);
+        Permission::updateOrCreate(['name' => 'delete permission']);
 
-        Permission::create(['name' => 'view user']);
-        Permission::create(['name' => 'create user']);
-        Permission::create(['name' => 'update user']);
-        Permission::create(['name' => 'delete user']);
+        Permission::updateOrCreate(['name' => 'view user']);
+        Permission::updateOrCreate(['name' => 'create user']);
+        Permission::updateOrCreate(['name' => 'update user']);
+        Permission::updateOrCreate(['name' => 'delete user']);
 
-        Permission::create(['name' => 'view department']);
-        Permission::create(['name' => 'create department']);
-        Permission::create(['name' => 'update department']);
-        Permission::create(['name' => 'delete department']);
+        Permission::updateOrCreate(['name' => 'view department']);
+        Permission::updateOrCreate(['name' => 'create department']);
+        Permission::updateOrCreate(['name' => 'update department']);
+        Permission::updateOrCreate(['name' => 'delete department']);
 
-        Permission::create(['name' => 'view requisition']);
-        Permission::create(['name' => 'create requisition']);
-        Permission::create(['name' => 'update requisition']);
-        Permission::create(['name' => 'delete requisition']);
+        Permission::updateOrCreate(['name' => 'view requisition']);
+        Permission::updateOrCreate(['name' => 'create requisition']);
+        Permission::updateOrCreate(['name' => 'update requisition']);
+        Permission::updateOrCreate(['name' => 'delete requisition']);
 
-        Permission::create(['name' => 'view approval']);
+        Permission::updateOrCreate(['name' => 'view approval']);
 
-        Permission::create(['name' => 'view item']);
-        Permission::create(['name' => 'create item']);
-        Permission::create(['name' => 'update item']);
-        Permission::create(['name' => 'delete item']);
+        Permission::updateOrCreate(['name' => 'view item']);
+        Permission::updateOrCreate(['name' => 'create item']);
+        Permission::updateOrCreate(['name' => 'update item']);
+        Permission::updateOrCreate(['name' => 'delete item']);
 
 
-        Permission::create(['name' => 'view customer']);
-        Permission::create(['name' => 'create customer']);
-        Permission::create(['name' => 'update customer']);
-        Permission::create(['name' => 'delete customer']);
+        Permission::updateOrCreate(['name' => 'view customer']);
+        Permission::updateOrCreate(['name' => 'create customer']);
+        Permission::updateOrCreate(['name' => 'update customer']);
+        Permission::updateOrCreate(['name' => 'delete customer']);
 
-        Permission::create(['name' => 'view report']);
-        Permission::create(['name' => 'create report']);
-        Permission::create(['name' => 'update report']);
-        Permission::create(['name' => 'delete report']);
+        Permission::updateOrCreate(['name' => 'view report']);
+        Permission::updateOrCreate(['name' => 'create report']);
+        Permission::updateOrCreate(['name' => 'update report']);
+        Permission::updateOrCreate(['name' => 'delete report']);
 
-        Permission::create(['name' => 'view approval-sequence']);
-        Permission::create(['name' => 'update approval-sequence']);
-        Permission::create(['name' => 'delete approval-sequence']);
+        Permission::updateOrCreate(['name' => 'view approval-sequence']);
+        Permission::updateOrCreate(['name' => 'update approval-sequence']);
+        Permission::updateOrCreate(['name' => 'delete approval-sequence']);
 
-        Permission::create(['name' => 'view requisition-approval']);
-        Permission::create(['name' => 'approve requisition']);
-        Permission::create(['name' => 'reject requisition']);
+        Permission::updateOrCreate(['name' => 'view requisition-approval']);
+        Permission::updateOrCreate(['name' => 'approve requisition']);
+        Permission::updateOrCreate(['name' => 'reject requisition']);
 
-        Permission::create(['name' => 'view dashboard']);
+        Permission::updateOrCreate(['name' => 'view dashboard']);
 
         $now = Carbon::now();
         $departments = [
@@ -153,19 +152,19 @@ class AllSeeder extends Seeder
             Department::updateOrCreate(['id' => $dept['id']], $dept);
         }
 
-         //! Create Roles
-        $superAdminRole = Role::create(['name' => 'super-admin']); //as super-admin
-        $userRequisitionRole = Role::create(['name' => 'user-requisition']); // as user-requisition
-        $approvalRole = Role::create(['name' => 'user-approval']); // as head-department
+         //! Create Roles - Menggunakan updateOrCreate
+        $superAdminRole = Role::updateOrCreate(['name' => 'super-admin']); //as super-admin
+        $userRequisitionRole = Role::updateOrCreate(['name' => 'user-requisition']); // as user-requisition
+        $approvalRole = Role::updateOrCreate(['name' => 'user-approval']); // as head-department
 
         //* Sales & Marketing
-        $headSalesMarketingRole = Role::create(['name' => 'head-SNM']);
+        $headSalesMarketingRole = Role::updateOrCreate(['name' => 'head-SNM']);
         $headSalesMarketingRole->givePermissionTo([
             'view requisition-approval',
             'approve requisition',
             'reject requisition']);
 
-        $staffSalesMarketingRole = Role::create(['name' => 'staff-SNM']);
+        $staffSalesMarketingRole = Role::updateOrCreate(['name' => 'staff-SNM']);
         $staffSalesMarketingRole->givePermissionTo([
             'view requisition',
             'create requisition',
@@ -173,13 +172,13 @@ class AllSeeder extends Seeder
             'delete requisition']);
 
         //* R&D
-        $headRndRole = Role::create(['name' => 'head-R&D']);
+        $headRndRole = Role::updateOrCreate(['name' => 'head-R&D']);
         $headRndRole->givePermissionTo([
             'view requisition-approval',
             'approve requisition',
             'reject requisition']);
 
-        $staffRndRole = Role::create(['name' => 'staff-R&D']);
+        $staffRndRole = Role::updateOrCreate(['name' => 'staff-R&D']);
         $staffRndRole->givePermissionTo([
             'view requisition',
             'create requisition',
@@ -187,13 +186,13 @@ class AllSeeder extends Seeder
             'delete requisition']);
 
         //* QA
-        $headQaRole = Role::create(['name' => 'head-QA']);
+        $headQaRole = Role::updateOrCreate(['name' => 'head-QA']);
         $headQaRole->givePermissionTo([
             'view requisition-approval',
             'approve requisition',
             'reject requisition']);
 
-        $staffQaRole = Role::create(['name' => 'staff-QA']);
+        $staffQaRole = Role::updateOrCreate(['name' => 'staff-QA']);
         $staffQaRole->givePermissionTo([
             'view requisition',
             'create requisition',
@@ -201,20 +200,20 @@ class AllSeeder extends Seeder
             'delete requisition']);
 
         //* HCD
-        $headHcdRole = Role::create(['name' => 'head-HCD']);
+        $headHcdRole = Role::updateOrCreate(['name' => 'head-HCD']);
         $headHcdRole->givePermissionTo([
             'view requisition-approval',
             'approve requisition',
             'reject requisition']);
 
-        $staffHcdRole = Role::create(['name' => 'staff-HCD']);
+        $staffHcdRole = Role::updateOrCreate(['name' => 'staff-HCD']);
         $staffHcdRole->givePermissionTo([
             'view requisition',
             'create requisition',
             'update requisition',
             'delete requisition']);
 
-        $atasanRole = Role::create(['name' => 'atasan']);
+        $atasanRole = Role::updateOrCreate(['name' => 'atasan']);
         $atasanRole->givePermissionTo([
             'view requisition-approval', 
             'approve requisition', 
@@ -421,8 +420,9 @@ class AllSeeder extends Seeder
         ]);
 
         $superAdminRole->givePermissionTo($allPermissionNames);
-        $userRequisitionRole->givePermissionTo($userRequisitionRole);
-        $approvalRole->givePermissionTo($approvalRole);
+        // Baris yang dihapus karena berpotensi error:
+        // $userRequisitionRole->givePermissionTo($userRequisitionRole); 
+        // $approvalRole->givePermissionTo($approvalRole);
 
         $superAdminUser = User::updateOrCreate(
             ['email' => 'superadmin@example.com'],

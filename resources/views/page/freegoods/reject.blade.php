@@ -23,7 +23,7 @@
         }
 
         .header {
-            background-color: #dc3545; /* Tetap merah untuk notifikasi Reject */
+            background-color: #dc3545; /* Warna Reject (Merah) */
             color: #ffffff;
             padding: 20px;
             text-align: center;
@@ -58,7 +58,7 @@
 
         .notes-box {
             background-color: #f8d7da;
-            border-left: 5px solid #dc3545; /* Tetap merah untuk notes Reject */
+            border-left: 5px solid #dc3545; /* Warna Reject (Merah) */
             padding: 15px;
             margin-top: 20px;
         }
@@ -82,7 +82,7 @@
         <div class="content">
             <p>Hello <strong>{{ $requisition->requester->name }}</strong>,</p>
             <p>
-                We regret to inform you that your Free Goods Requisition with the number
+                We regret to inform you that your **Free Goods Requisition** with the number
                 <strong>{{ $requisition->no_srs }}</strong> has been rejected.
             </p>
 

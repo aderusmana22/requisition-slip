@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Requisition Action Confirmed</title>
+    <title>Approval Response</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
     <style>
@@ -43,19 +43,21 @@
         }
 
         .response-card.success {
-            border-color: #28a745;
+            /* WARNA SUCCESS BORDER: Coklat Emas */
+            border-color: #cc982f;
         }
 
         .response-card.success .icon-circle {
-            background-color: #28a745;
+            /* WARNA SUCCESS ICON: Coklat Emas */
+            background-color: #cc982f;
         }
 
         .response-card.reject {
-            border-color: #dc3545;
+            border-color: #dc3545; /* Tetap merah */
         }
 
         .response-card.reject .icon-circle {
-            background-color: #dc3545;
+            background-color: #dc3545; /* Tetap merah */
         }
 
         h3 {
@@ -107,7 +109,7 @@
 </head>
 
 <body>
-    {{-- Tentukan class berdasarkan data sesi yang di-pass dari Controller --}}
+    {{-- [DIPERBAIKI] Tentukan class berdasarkan data sesi --}}
     <div class="response-card {{ session('card_class', 'success') }}">
         <div class="icon-circle">
             <i class="fas {{ session('card_class') === 'reject' ? 'fa-times-circle' : 'fa-check-circle' }}"></i>
@@ -116,25 +118,23 @@
         <h3>{{ session('title', 'Action Submitted') }}</h3>
         <p class="message">{{ session('message', 'Your response has been recorded.') }}</p>
 
+        {{-- [DIPERBAIKI] Hanya tampilkan box jika ada datanya --}}
         @if(session('no_srs'))
         <div class="details-box">
             <div class="detail-item">
-                {{-- LABEL DIUBAH DARI SRS NUMBER ke RS Number --}}
-                <span class="detail-label">RS Number:</span> 
+                <span class="detail-label">FG Number:</span>
                 <span class="detail-value">{{ session('no_srs') }}</span>
             </div>
             <div class="detail-item">
                 <span class="detail-label">Customer:</span>
                 <span class="detail-value">{{ session('customer_name') }}</span>
             </div>
-            
             @if(session('action_text') && session('approver_name'))
             <div class="detail-item">
                 <span class="detail-label">Action Taken:</span>
                 <span class="detail-value">{{ session('action_text') }} by {{ session('approver_name') }}</span>
             </div>
             @endif
-            
             @if(session('new_status'))
             <div class="detail-item">
                 <span class="detail-label">New Status:</span>
@@ -151,11 +151,6 @@
     <script>
         let seconds = 10;
         const countdownElement = document.getElementById('countdown');
-        const closeButton = document.querySelector('.btn-primary');
-
-        // Aktifkan tombol close di awal, tapi kita tetap jalankan countdown
-        closeButton.disabled = false;
-
         const interval = setInterval(() => {
             seconds--;
             countdownElement.textContent = seconds;

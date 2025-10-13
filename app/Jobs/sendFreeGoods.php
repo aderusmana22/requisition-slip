@@ -30,11 +30,16 @@ class sendFreeGoods implements ShouldQueue
     }
 
     public function handle()
-    {
-        // Masukkan token dan requisition ke dalam data untuk digunakan di Mailer
-        $this->data['token'] = $this->token;
-        
-        Mail::to($this->recipient->email)
-            ->send(new MailFreeGoods($this->requisition, $this->recipient, $this->data));
-    }
+{
+    $this->requisition->load([
+        'customer',                  
+        'requester',                
+        'requisitionItems.itemMaster'
+    ]); 
+
+    $this->data['token'] = $this->token;
+    
+    Mail::to($this->recipient->email)
+        ->send(new MailFreeGoods($this->requisition, $this->recipient, $this->data));
+}
 }

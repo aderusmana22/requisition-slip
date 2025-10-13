@@ -20,7 +20,8 @@
         }
 
         .card-header.main-header {
-            background: linear-gradient(135deg, #008779 0%, #00665c 100%); /* Warna Free Goods */
+            /* WARNA UTAMA SAMPLE */
+            background: linear-gradient(135deg, #cc982f 0%, #b8871a 100%);
             color: white;
             padding: 20px 30px;
             border-radius: 16px 16px 0 0 !important;
@@ -29,7 +30,8 @@
         .section-title {
             font-size: 1.1rem;
             font-weight: 700;
-            color: #00665c; /* Warna Free Goods */
+            /* WARNA SEKUNDER SAMPLE */
+            color: #b8871a;
             margin-bottom: 20px;
             padding-bottom: 10px;
             border-bottom: 2px solid #eef2f9;
@@ -76,21 +78,24 @@
         }
 
         .text-primary {
-            color: #008779 !important; /* Warna Free Goods */
+            /* WARNA PRIMARY TEXT */
+            color: #b8871a !important;
         }
 
         .btn-primary {
-            background-color: #008779; /* Warna Free Goods */
-            border-color: #008779;
+            /* WARNA PRIMARY BUTTON */
+            background-color: #cc982f;
+            border-color: #cc982f;
         }
 
         .btn-primary:hover {
-            background-color: #00665c;
-            border-color: #00665c;
+            background-color: #b8871a;
+            border-color: #b8871a;
         }
 
         .processing-overlay .spinner-border {
-            color: #008779 !important; /* Warna Free Goods */
+            /* WARNA SPINNER */
+            color: #cc982f !important;
         }
 
         /* [DIUBAH] Layout Grid 2 Kolom yang konsisten */
@@ -133,6 +138,7 @@
         <div class="left-column">
             <div class="card">
                 <div class="card-header main-header">
+                    {{-- Judul disesuaikan --}}
                     <h4 class="mb-0">Free Goods Requisition Approval</h4>
                     <p class="mb-0 opacity-75">FG No: {{ $requisition->no_srs }}</p>
                 </div>
@@ -175,7 +181,7 @@
                         </div>
                     </div>
 
-                    {{-- BAGIAN 2: DETAIL ITEM --}}
+                    {{-- BAGIAN 2: DETAIL ITEM (Disimplifikasi untuk Free Goods) --}}
                     @if($requisition->requisitionItems->count() > 0)
                     <h5 class="section-title mt-5"><i class="fas fa-cubes"></i> Requested Item List</h5>
                     <div class="table-responsive">
@@ -193,7 +199,6 @@
                             <tbody>
                                 @foreach($requisition->requisitionItems as $item)
                                 <tr>
-                                    {{-- Karena ini Free Goods, selalu itemMaster --}}
                                     <td>{{ $item->itemMaster->item_master_code ?? '-' }}</td>
                                     <td>{{ $item->itemMaster->item_master_name ?? '-' }}</td>
                                     <td>{{ $item->itemMaster->unit ?? '-' }}</td>
@@ -206,7 +211,7 @@
                     </div>
                     @endif
 
-                    {{-- HILANGKAN: BAGIAN 3 (KONDISIONAL): DATA MARKETING --}}
+                    {{-- HAPUS: BAGIAN 3 (KONDISIONAL): DATA MARKETING DAN QA FORM --}}
                 </div>
             </div>
         </div>
@@ -216,33 +221,33 @@
             <div class="card action-card">
                 <div class="card-body p-4">
                     <h5 class="section-title"><i class="fas fa-edit"></i> {{ $pageTitle }}</h5>
+                    {{-- Ubah action ke route Free Goods --}}
                     <form id="responseForm" action="{{ route('fg.approval.process') }}" method="POST">
                         @csrf
                         <input type="hidden" name="token" value="{{ $token }}">
                         
                         @if($isWarehouseProcess)
-                            <input type="hidden" name="action" value="submit">
-                        @endif
-
-                        @if($isWarehouseProcess || $action === 'review')
-                            <p>Please provide notes for this step. Notes are required to proceed.</p>
+                            <input type="hidden" name="action" value="submit"> 
+                            
+                            <p>Please provide notes for this warehouse step. Notes are required to proceed.</p>
                             <div class="mb-3">
                                 <label for="notes" class="form-label"><strong>Notes/Reason: <span class="text-danger">*</span></strong></label>
                                 <textarea class="form-control" id="notes" name="notes" rows="10" placeholder="Provide notes for your action..." required></textarea>
                             </div>
                             <div class="d-grid">
-                                <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">{{ $isWarehouseProcess ? 'Submit Warehouse Process' : 'Submit Review' }}</button>
+                                <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">Submit Warehouse Process</button>
                             </div>
-                        @else 
+
+                        @else
                         {{-- Logika Approval Normal --}}
                         <div class="mb-3">
                             <label class="form-label"><strong>Decision:</strong></label>
                             <div class="radio-group-horizontal d-flex flex-wrap">
                                 <div class="form-check me-3 mb-1">
                                     <input class="form-check-input" type="radio" name="action" id="action_review"
-                                        value="review" checked>
+                                        value="review" @if($action==='review' ) checked @endif>
                                     <label class="form-check-label text-primary" for="action_review"><strong>
-                                        Approve</strong></label>
+                                        Approve with Review</strong></label>
                                 </div>
                                 <div class="form-check me-3 mb-1">
                                     <input class="form-check-input" type="radio" name="action" id="action_reject"
@@ -280,9 +285,10 @@
             const form = document.getElementById('responseForm');
             const overlay = document.getElementById('processingOverlay');
             const isWarehouseProcess = {{ $isWarehouseProcess ? 'true' : 'false' }};
+            // Logic Quick Action hanya untuk approval, bukan review form
             const isQuickAction = ('{{ $action }}' === 'approve') || ('{{ $action }}' === 'submit' && isWarehouseProcess);
-
-            // --- 1. FUNGSI UNTUK VALIDASI & SUBMIT ---
+            
+            // --- FUNGSI UNTUK VALIDASI & SUBMIT ---
             const handleFormSubmit = () => {
                 let validationPassed = true;
 
@@ -296,7 +302,8 @@
                     const reviewRadio = document.getElementById('action_review');
                     const rejectRadio = document.getElementById('action_reject');
                     const notesTextarea = document.getElementById('notes');
-                    if ((rejectRadio.checked) && !(/[a-zA-Z]/.test(notesTextarea.value.trim()))) {
+                    // Cek jika (Review/Reject dipilih) DAN Notes kosong/invalid
+                    if ((reviewRadio?.checked || rejectRadio?.checked) && !(/[a-zA-Z]/.test(notesTextarea?.value.trim()))) {
                         Swal.fire({ icon: 'warning', title: 'Alasan Diperlukan', text: 'Mohon berikan alasan yang valid.' });
                         validationPassed = false;
                     }
@@ -308,12 +315,12 @@
                 }
             };
 
-            // --- 2. LOGIKA AUTO-SUBMIT (UNTUK QUICK ACTION DARI EMAIL) ---
+            // --- LOGIKA AUTO-SUBMIT (UNTUK QUICK ACTION DARI EMAIL) ---
             if (isQuickAction) {
                 overlay.style.display = 'flex';
                 form.submit();
             }
-            // --- 3. JIKA BUKAN AUTO-SUBMIT, PASANG EVENT LISTENER UNTUK KONFIRMASI ---
+            // --- JIKA BUKAN AUTO-SUBMIT, PASANG EVENT LISTENER UNTUK KONFIRMASI ---
             else {
                 form.addEventListener('submit', function (event) {
                     event.preventDefault();
@@ -334,14 +341,14 @@
                 });
             }
 
-            // --- BLOK LOGIKA UNTUK FORM APPROVAL ---
+            // --- BLOK LOGIKA UNTUK FORM APPROVAL (Update Tombol) ---
             if (!isWarehouseProcess) {
                 const reviewRadio = document.getElementById('action_review');
                 const rejectRadio = document.getElementById('action_reject');
                 const submitBtn = document.getElementById('submitBtn');
                 const updateSubmitButton = () => {
                     if (reviewRadio.checked) {
-                        submitBtn.textContent = 'Submit Approve';
+                        submitBtn.textContent = 'Submit Approve with Review';
                         submitBtn.classList.remove('btn-danger'); submitBtn.classList.add('btn-primary');
                     } else if (rejectRadio.checked) {
                         submitBtn.textContent = 'Submit Reject';
@@ -352,9 +359,6 @@
                 rejectRadio.addEventListener('change', updateSubmitButton);
                 updateSubmitButton();
             }
-
-            // HILANGKAN: BLOK LOGIKA UNTUK FORM QA/QM
-
         });
     </script>
 </body>

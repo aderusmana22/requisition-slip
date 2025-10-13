@@ -17,7 +17,7 @@ trait ApprovalTrait
      * @param  int|string  $requisitionId
      * @param  string  $category
      * @param  string|null  $subCategory
-     * @param  string|null  $requesterDepartmentCode // Parameter baru untuk logika kondisional
+     * @param  string|null  $requesterDepartmentCode // Parameter Department Code
      * @return \Illuminate\Support\Collection
      */
     public function generateApprovalLogs($requester, $requisitionId, $category, $subCategory = null, $requesterDepartmentCode = null)
@@ -28,93 +28,72 @@ trait ApprovalTrait
             $query->where('sub_category', $subCategory);
         }
 
-        // --- BARIS YANG MENGHASILKAN ERROR JIKA DATA TIDAK DITEMUKAN ---
-        // Memaksa Laravel mencari rute, jika tidak ada, akan throw error.
+        // Ambil satu baris ApprovalPath (firstOrFail akan throw error jika tidak ada)
         $approvalPath = $query->firstOrFail(); 
-        // ---------------------------------------------------
-
+        
         $sequences = $approvalPath->sequence_approvers;
         $logs = collect();
         $targetSequence = collect();
 
-        // 1. Tentukan alur mana yang akan digunakan berdasarkan Department Code
-        // Cek jika requester adalah dari SnM (kode 5300)
-        if ($requesterDepartmentCode === '5300' && isset($sequences['5300'])) {
-            $targetSequence = collect($sequences['5300']);
-        } elseif (isset($sequences['NON-5300'])) {
-            $targetSequence = collect($sequences['NON-5300']);
+        // 1. Tentukan kunci alur mana yang akan digunakan: "5300" (SnM) atau "NON-5300"
+        $pathKey = ($requesterDepartmentCode === '5300') ? '5300' : 'NON-5300';
+        
+        if (isset($sequences[$pathKey])) {
+            $targetSequence = collect($sequences[$pathKey]);
         } else {
-             // Fallback jika tidak ditemukan alur spesifik
-             throw new \Exception("Approval sequence not defined for Category: {$category}, Sub: {$subCategory}, Dept: {$requesterDepartmentCode}");
+             // Error jika kunci alur tidak ada di data JSON
+             throw new \Exception("Approval sequence not defined in JSON for path key: {$pathKey}");
         }
         
         // 2. Iterasi melalui alur yang dipilih
         foreach ($targetSequence as $approverStep) {
-            $level = $approverStep['level'] ?? 1; // Ambil level dari data JSON
+            $level = $approverStep['level'] ?? 10; 
             $approverType = strtolower($approverStep['type'] ?? '');
-            $approverValue = $approverStep['value'] ?? null; // NIK, Role Name, atau null jika 'atasan'
+            $approverValue = $approverStep['value'] ?? null;
 
-            // Lewati jika tipe atau nilai tidak valid
             if (empty($approverType) || ($approverType !== 'atasan' && empty($approverValue))) {
                 Log::warning("Skipping invalid approver step in sequence for requisition ID: {$requisitionId}. Data: " . json_encode($approverStep));
                 continue;
             }
 
+            $approvers = collect();
+
             if ($approverType === 'atasan') {
-                // Tipe 'atasan' (Manager Requester)
+                // Tipe 'atasan' (SnM Manager / Atasan Requester)
                 if ($requester->atasan_nik) {
-                    $logs->push([
-                        'requisition_id' => $requisitionId,
-                        'approver_nik'   => $requester->atasan_nik,
-                        'status'         => 'pending',
-                        'level'          => $level,
-                        'token'          => bin2hex(random_bytes(16)),
-                        'notes'          => null,
-                        'created_at'     => now(),
-                        'updated_at'     => now(),
-                    ]);
+                    $approvers->push(User::where('nik', $requester->atasan_nik)->first());
                 }
             } elseif ($approverType === 'nik') {
                 // Tipe 'nik' (Hardcoded NIK)
+                 $approvers->push(User::where('nik', $approverValue)->first());
+            } elseif ($approverType === 'role') {
+                // Tipe 'role' (HCD Dept. Head atau Business Controller)
+                $users = User::whereHas('roles', function ($q) use ($approverValue) {
+                    $q->where('name', $approverValue);
+                })->get();
+                $approvers = $users;
+            }
+
+            // Tambahkan ke log jika user ditemukan
+            foreach ($approvers->filter() as $user) {
                  $logs->push([
                     'requisition_id' => $requisitionId,
-                    'approver_nik'   => $approverValue,
-                    'status'         => 'pending',
+                    'approver_nik'   => $user->nik,
+                    'status'         => 'Pending',
                     'level'          => $level,
                     'token'          => bin2hex(random_bytes(16)),
                     'notes'          => null,
                     'created_at'     => now(),
                     'updated_at'     => now(),
                 ]);
-            } elseif ($approverType === 'role') {
-                // Tipe 'role'
-                // Ambil semua user dengan role ini
-                $users = User::whereHas('roles', function ($q) use ($approverValue) {
-                    $q->where('name', $approverValue);
-                })->get();
-
-                foreach ($users as $user) {
-                    $logs->push([
-                        'requisition_id' => $requisitionId,
-                        'approver_nik'   => $user->nik,
-                        'status'         => 'pending',
-                        'level'          => $level,
-                        'token'          => bin2hex(random_bytes(16)),
-                        'notes'          => null,
-                        'created_at'     => now(),
-                        'updated_at'     => now(),
-                    ]);
-                }
             }
         }
 
-        // Bulk insert biar lebih cepat
+        // Bulk insert
         if ($logs->isNotEmpty()) {
             ApprovalLog::insert($logs->toArray());
         }
 
         return $logs;
     }
-    
-   
 }

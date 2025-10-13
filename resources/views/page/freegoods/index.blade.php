@@ -9,10 +9,11 @@
     @push('css')
         <link rel="stylesheet" href="{{ asset('assets/vendor/select/select2.min.css') }}">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
-        {{-- Kita akan mendefinisikan color palette baru untuk Free Goods --}}
+        
         <style>
             .new-freegoods-btn {
-                background-color: #008779; /* Hijau Teal */
+                /* WARNA UTAMA SAMPLE */
+                background-color: #cc982f; 
                 color: white;
                 border: none;
                 padding: 10px 15px;
@@ -21,8 +22,13 @@
                 transition: background-color 0.3s ease;
             }
             .new-freegoods-btn:hover {
-                background-color: #00665c;
+                /* WARNA SEKUNDER SAMPLE */
+                background-color: #b8871a;
                 color: white;
+            }
+            /* Ganti warna badge info menjadi warna yang lebih sesuai dengan palette coklat/emas */
+            .text-info {
+                color: #b8871a !important; 
             }
         </style>
     @endpush
@@ -87,7 +93,6 @@
         </div>
     </div>
 
-    {{-- Create/Edit Modal (Ganti ID dari sampleModal ke fgModal) --}}
     <div class="modal fade" id="fgModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static"
         data-bs-keyboard="false">
         <div class="modal-dialog modal-dialog-centered modal-xl">
@@ -98,7 +103,8 @@
                     </div>
                     <h5 class="mt-3 fw-bold">Processing...</h5>
                 </div>
-                <div class="modal-header" style="background-color: #008779;"> {{-- Warna header modal baru --}}
+                {{-- Ganti warna header modal ke warna Sample --}}
+                <div class="modal-header" style="background-color: #cc982f;"> 
                     <h5 class="modal-title text-white" id="fgModalLabel">Create New Free Goods Requisition</h5>
                     <button type="button" class="btn-close btn-close-white m-0 fs-5" data-bs-dismiss="modal"
                         aria-label="Close"></button>
@@ -123,8 +129,8 @@
                         <div id="requisition-form-details">
                             <div id="main-requisition-data">
                                 <hr>
-                                {{-- Ganti warna text-primary ke text-info --}}
-                                <h5 class="fw-bold text-info mb-3">Requisition Details</h5> 
+                                {{-- Ganti warna text-info menjadi text-warning (atau warna yang merepresentasikan coklat) --}}
+                                <h5 class="fw-bold text-warning mb-3">Requisition Details</h5> 
                                 <div class="row g-3">
                                     <div class="col-md-6">
                                         <label for="customer_id" class="form-label">Customer Name<i
@@ -186,7 +192,7 @@
 
                                 <hr class="mt-4">
 
-                                <h5 class="fw-bold text-info mb-2">Product Details</h5>
+                                <h5 class="fw-bold text-warning mb-2">Product Details</h5>
                                 
                                 {{-- [BARU] Product Selection untuk Free Goods --}}
                                 <div class="mb-3" id="product-selection-container-fg">
@@ -242,7 +248,8 @@
     <div class="modal fade" id="viewModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
         <div class="modal-dialog modal-dialog-centered modal-xl">
             <div class="modal-content">
-                <div class="modal-header" style="background-color: #008779;">
+                {{-- Ganti warna header modal ke warna Sample --}}
+                <div class="modal-header" style="background-color: #cc982f;">
                      <h5 class="modal-title text-white" id="viewModalLabel"><i class="ph-bold ph-file-text me-2"></i>Free Goods Requisition Details</h5>
                     <button type="button" class="btn-close btn-close-white m-0 fs-5" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
@@ -251,8 +258,8 @@
                     {{-- CARD 1: MAIN REQUISITION DETAILS --}}
                     <div class="card view-modal-card">
                         <div class="card-header view-modal-card-header">
-                            {{-- Ganti warna text-primary ke text-info --}}
-                            <h5 class="fw-bold text-info mb-3"><i class="ph-bold ph-identification-card me-2"></i> Requisition Details</h5> 
+                            {{-- Ganti warna text-info menjadi text-warning --}}
+                            <h5 class="fw-bold text-warning mb-3"><i class="ph-bold ph-identification-card me-2"></i> Requisition Details</h5> 
                         </div>
                         <div class="card-body p-4">
                             <div class="row g-4">
@@ -304,8 +311,8 @@
                     {{-- CARD 2: REQUESTED ITEM LIST --}}
                     <div class="card view-modal-card">
                          <div class="card-header">
-                            {{-- Ganti warna text-primary ke text-info --}}
-                            <h5 class="fw-bold text-info mb-3"><i class="ph-bold  ph-list me-2"></i>Requested Item List</h5> 
+                            {{-- Ganti warna text-info menjadi text-warning --}}
+                            <h5 class="fw-bold text-warning mb-3"><i class="ph-bold  ph-list me-2"></i>Requested Item List</h5> 
                         </div>
                         <div class="card-body p-1">
                             <div class="table-responsive">
@@ -331,8 +338,8 @@
                     {{-- CARD 4: APPROVAL TRACKING (MOVED TO BOTTOM) --}}
                     <div class="card view-modal-card">
                         <div class="card-header view-modal-card-header">
-                            {{-- Ganti warna text-primary ke text-info --}}
-                            <h5 class="fw-bold text-info mb-3"><i class="ph-bold ph-path me-2"></i> Approval & Process Tracking</h5> 
+                            {{-- Ganti warna text-info menjadi text-warning --}}
+                            <h5 class="fw-bold text-warning mb-3"><i class="ph-bold ph-path me-2"></i> Approval & Process Tracking</h5> 
                         </div>
                         <div class="card-body p-4">
                             <div class="d-flex align-items-center mb-4">
@@ -390,11 +397,11 @@
             const userDepartmentName = "{{ $userDepartmentName ?? '' }}";
 
             function initSelect2() {
-                // Hapus formatSubCategory, karena tidak ada Sub Category
                 
                 function formatCustomer(option) {
                     if (!option.id) return '<span class="text-muted">Select Customer</span>';
-                    return `<i class='ph ph-user-circle me-2 text-info'></i> <span style='font-weight:500;'>${option.text}</span>`;
+                    // Ganti warna icon ke text-warning (Coklat)
+                    return `<i class='ph ph-user-circle me-2 text-warning'></i> <span style='font-weight:500;'>${option.text}</span>`;
                 }
                 $('#customer_id').select2({
                     dropdownParent: $('#fgModal'), // Ganti ID Modal
@@ -845,8 +852,7 @@
                     const requesterName = data.requester.name;
                     const creationDate = new Date(data.created_at).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).replace(',', '');
                     submittedStep.find('.tracker-details').html(
-                        `<div class="tracker-user text-info">${requesterName}</div>
-                        <div class="tracker-date text-dark">${creationDate}</div>`
+                        `<div class="tracker-user text-warning">${requesterName}</div>` // WARNA TEKS DISESUAIKAN
                     );
                     lastCompletedIndex = 0;
                 }
@@ -860,8 +866,7 @@
                         stepElement.addClass('completed');
                         const approvalDate = new Date(log.updated_at).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).replace(',', '');
                         stepElement.find('.tracker-details').html(
-                            `<div class="tracker-user text-info">${log.approver.name}</div>
-                            <div class="tracker-date text-dark">${approvalDate}</div>`
+                            `<div class="tracker-user text-warning">${log.approver.name}</div>` // WARNA TEKS DISESUAIKAN
                         );
                         lastCompletedIndex = Math.max(lastCompletedIndex, stepIndex);
                     }

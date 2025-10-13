@@ -155,7 +155,8 @@ class FreeGoodsController extends Controller
         try {
             $validated = $request->validated();
             $user = User::with('atasan', 'department')->find(Auth::id());
-            $userDepartment = $user->department?->name ?? 'N/A';
+            $userDepartmentCode = $user->department?->code ?? null;
+            $subCategory = 'General Request';
 
             // Menentukan sub_category
             $subCategory = 'General Request'; // Sesuai flowchart
@@ -190,7 +191,7 @@ class FreeGoodsController extends Controller
 
             // Panggil fungsi dari trait untuk membuat semua log approval
             // Kita akan menggunakan 'General Request' sebagai sub_category untuk path lookup
-            $this->generateApprovalLogs($user, $requisition->id, 'FREE GOODS', $subCategory);
+            $this->generateApprovalLogs($user, $requisition->id, 'FREE GOODS', $subCategory, $userDepartmentCode);
 
             // Cari log pertama untuk dikirim email
             $firstLog = ApprovalLog::where('requisition_id', $requisition->id)->orderBy('level', 'asc')->first();
