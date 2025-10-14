@@ -7,6 +7,7 @@ use App\Http\Controllers\Master\PermissionController;
 use App\Http\Controllers\Master\RoleController;
 use App\Http\Controllers\Master\UserController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Requisition\ComplainApprovalController;
 use App\Http\Controllers\Requisition\ComplainController;
 use App\Http\Controllers\Requisition\FreeGoodsController;
 use App\Http\Controllers\Requisition\RequisitionPath;
@@ -19,25 +20,8 @@ Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
-Route::get('/approval', [ComplainController::class, 'processApproval'])->name('approval.process');
-Route::get('/complain/approval-direct', [ComplainController::class, 'processApproval'])->name('approval.process.direct');
-Route::get('/complain/approval/review', [ComplainController::class, 'showReviewPage'])->name('complain.approval.review');
-Route::post('/complain/approval/process', [ComplainController::class, 'processApproval'])->name('complain.approval.process');
-Route::get('/complain/warehouse/approval', [ComplainController::class, 'processWarehouseApproval'])->name('complain.warehouse.approval');
-Route::get('/complain/warehouse/review', [ComplainController::class, 'showWarehouseReviewPage'])->name('complain.warehouse.review');
-Route::post('/complain/warehouse/process', [ComplainController::class, 'processWarehouseApproval'])->name('complain.warehouse.process');
-Route::get('/complain/test-data', [ComplainController::class, 'testData'])->name('complain.test.data');
-Route::get('/complain/test-warehouse/{id}', [ComplainController::class, 'testWarehouseTracking'])->name('complain.test.warehouse');
-
-Route::prefix('requisition')->group(function () {
-    Route::get('/getComplainData', [ComplainController::class, 'getData'])->name('get.complain.data');
-    Route::get('/getCostumerList', [ComplainController::class, 'getCustomerList'])->name('customers.list');
-    Route::get('/getSerial', [ComplainController::class, 'getSerial'])->name('get.serial');
-    Route::get('/getProductList', [ComplainController::class, 'getProductList'])->name('get.product.list');
-    Route::get('/getformdetail/{id}', [ComplainController::class, 'getFormDetail'])->name('get.form.detail');
-    Route::get('/complain-report/{id}', [ComplainController::class, 'printReport'])->name('complain.report');
-    Route::post('/upload-payment-proof', [ComplainController::class, 'uploadPaymentProof'])->name('upload.payment.proof');
-});
+Route::resource('/complain-form/approval', ComplainApprovalController::class)->only(['index']);
+Route::get('/getapproverdata/{id?}', [ComplainApprovalController::class, 'getData'])->name('get.approver.data');
 
 
 //! pindahkan ke midddleware approver
@@ -67,12 +51,33 @@ Route::middleware('auth')->group(function () {
     Route::resource('complain-form', ComplainController::class);
     Route::resource('free-goods', FreeGoodsController::class);
 
+    // route complain
+    Route::get('/approval', [ComplainController::class, 'processApproval'])->name('approval.process');
+    Route::get('/complain/approval-direct', [ComplainController::class, 'processApproval'])->name('approval.process.direct');
+    Route::get('/complain/approval/review', [ComplainController::class, 'showReviewPage'])->name('complain.approval.review');
+    Route::post('/complain/approval/process', [ComplainController::class, 'processApproval'])->name('complain.approval.process');
+    Route::get('/complain/warehouse/approval', [ComplainController::class, 'processWarehouseApproval'])->name('complain.warehouse.approval');
+    Route::get('/complain/warehouse/review', [ComplainController::class, 'showWarehouseReviewPage'])->name('complain.warehouse.review');
+    Route::post('/complain/warehouse/process', [ComplainController::class, 'processWarehouseApproval'])->name('complain.warehouse.process');
+    Route::get('/complain/test-data', [ComplainController::class, 'testData'])->name('complain.test.data');
+    Route::get('/complain/test-warehouse/{id}', [ComplainController::class, 'testWarehouseTracking'])->name('complain.test.warehouse');
+
+    Route::prefix('requisition')->group(function () {
+        Route::get('/getComplainData', [ComplainController::class, 'getData'])->name('get.complain.data');
+        Route::get('/getCostumerList', [ComplainController::class, 'getCustomerList'])->name('customers.list');
+        Route::get('/getSerial', [ComplainController::class, 'getSerial'])->name('get.serial');
+        Route::get('/getProductList', [ComplainController::class, 'getProductList'])->name('get.product.list');
+        Route::get('/getformdetail/{id}', [ComplainController::class, 'getFormDetail'])->name('get.form.detail');
+        Route::get('/complain-report/{id}', [ComplainController::class, 'printReport'])->name('complain.report');
+        Route::post('/upload-payment-proof', [ComplainController::class, 'uploadPaymentProof'])->name('upload.payment.proof');
+    });
+    // ===== terakhir dari complain ====
+
     Route::get('/sample-form/reports', [SampleController::class, 'reports'])->name('sample-form.reports');
     Route::get('/complain-form/reports', [ComplainController::class, 'reports'])->name('complain-form.reports');
     Route::get('/free-goods/reports', [FreeGoodsController::class, 'reports'])->name('free-goods.reports');
 
     Route::get('/sample-form/approval', [SampleController::class, 'approval'])->name('sample-form.approval');
-    Route::get('/complain-form/approval', [ComplainController::class, 'approval'])->name('complain-form.approval');
     Route::get('/free-goods/approval', [FreeGoodsController::class, 'approval'])->name('free-goods.approval');
 
      Route::get('/sample-form/log', [SampleController::class, 'log'])->name('sample-form.log');

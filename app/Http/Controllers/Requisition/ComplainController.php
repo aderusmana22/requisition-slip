@@ -486,7 +486,7 @@ class ComplainController extends Controller
             'token' => 'required|string',
             'id' => 'required|integer',
             'status' => 'required|in:approve,reject',
-            'notes' => $request->input('status') === 'reject' ? 'required|string|max:1000' : 'nullable|string|max:1000',
+            'notes' => $request->input('status') === 'reject' ? 'nullable|string|max:1000' : 'nullable|string|max:1000',
         ], [
             'notes.required' => 'Notes/reason is required for rejection.',
             'notes.max' => 'Notes cannot exceed 1000 characters.',

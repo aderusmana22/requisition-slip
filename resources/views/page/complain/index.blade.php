@@ -1231,7 +1231,7 @@
                             </td>
                             <td class="text-center">
                                 <input type="date" class="form-control text-center"
-                                       value="${item.batch_number || ''}" readonly
+                                       value="${item.batch_number ? new Date(item.batch_number).toISOString().split('T')[0] : ''}" readonly
                                        style="background: rgba(13, 110, 253, 0.1); border-color: rgba(13, 110, 253, 0.3);">
                             </td>
                             <td class="text-center">
