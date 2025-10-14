@@ -22,6 +22,7 @@ use App\Models\Requisition\RequisitionItem;
 use App\Models\Requisition\Tracking;
 use App\Models\User;
 use App\Traits\approvalTrait;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;    
@@ -485,7 +486,7 @@ class ComplainController extends Controller
             'token' => 'required|string',
             'id' => 'required|integer',
             'status' => 'required|in:approve,reject',
-            'notes' => $request->input('status') === 'reject' ? 'required|string|max:1000' : 'nullable|string|max:1000',
+            'notes' => $request->input('status') === 'reject' ? 'nullable|string|max:1000' : 'nullable|string|max:1000',
         ], [
             'notes.required' => 'Notes/reason is required for rejection.',
             'notes.max' => 'Notes cannot exceed 1000 characters.',
@@ -1277,4 +1278,128 @@ class ComplainController extends Controller
         }
     }
 
+    public function sendFinalEmail($requisitionId, $level)
+    {
+        try{
+            $requisition = Requisition::with('requester')->findOrFail($requisitionId);
+
+            // Untuk final email, langsung ke level 102 (WH Supervisor final)
+            $finalWarehouseLog = ApprovalLog::where('requisition_id', $requisitionId)
+                ->where('level', $level) // Level 102
+                ->where('status', 'Pending')
+                ->whereNotNull('token')
+                ->first();
+            
+            if ($finalWarehouseLog) {
+                $approver = User::where('nik', $finalWarehouseLog->approver_nik)->first();
+                if ($approver) {
+                    // Update status dan route_to
+                    $requisition->status = 'Warehouse Process - Final Check';
+                    $requisition->route_to = $approver->name;
+                    $requisition->save();
+                    
+                    // Kirim email ke WH Supervisor final (level 102)
+                    sendPrintBatchMail::dispatch($approver, $requisition, $finalWarehouseLog);
+                    Log::info("Final email sent to WH Supervisor Level {$level}: {$approver->name}");
+                } else {
+                    Log::warning("No approver found for warehouse level {$level} in requisition {$requisitionId}");
+                }
+            } else {
+                Log::warning("No warehouse approval log found for level {$level} in requisition {$requisitionId}");
+            }
+        }
+        catch(\Exception $e){
+            Log::error('Failed to send final email: ' . $e->getMessage());
+        }
+    }
+
+    public function sendConfirmationEmail($requisitionId , $level)
+    {
+        try{
+            DB::transaction(function() use($requisitionId , $level){
+                $requisition = Requisition::with('requester')->findOrFail($requisitionId);
+
+                // Untuk confirmation email, mulai sequence warehouse dari level 100
+                $firstWarehouseLog = ApprovalLog::where('requisition_id', $requisition->id)
+                    ->where('level', 100)
+                    ->where('status', 'Pending')
+                    ->whereNotNull('token')
+                    ->first();
+                
+                if ($firstWarehouseLog) {
+                    $approver = User::where('nik', $firstWarehouseLog->approver_nik)->first();
+                    if ($approver) {
+                        // Update status dan route_to
+                        $requisition->status = 'Warehouse Process - WH Supervisor Check 1';
+                        $requisition->route_to = $approver->name;
+                        $requisition->save();
+                        
+                        // Kirim email ke WH Supervisor pertama (level 100)
+                        sendPrintBatchMail::dispatch($approver, $requisition, $firstWarehouseLog);
+                        Log::info("Confirmation email sent to start warehouse sequence - Level 100: {$approver->name}");
+                    }
+                } else {
+                    Log::warning("No warehouse approval log found for level 100 in requisition {$requisitionId}");
+                }
+            });
+        }
+        catch(\Exception $e){
+            Log::error('Failed to send confirmation email: ' . $e->getMessage());
+        }
+    }
+
+
+    public function printReport($id)
+    {
+        $requisition = Requisition::with([
+            'customer',
+            'requester.department',
+            'requisitionItems.itemMaster',
+            'requisitionItems.itemDetail',
+            'requisitionSpecial',
+            // Ambil semua approval logs, tidak hanya yang 'Approved'
+            'approvalLogs' => fn($q) => $q->orderBy('level', 'asc'),
+            'approvalLogs.approver.roles'
+        ])->findOrFail($id);
+
+        // Siapkan data approver untuk view
+        $approvals = $requisition->approvalLogs->map(function ($log) {
+            $statusText = 'NOT REVIEWED';
+            if ($log->status === 'Approved' && !empty($log->notes) && $log->notes !== 'Approved by ' . ($log->approver->name ?? '')) {
+                $statusText = 'APPROVED WITH REVIEW';
+            } elseif ($log->status === 'Approved') {
+                $statusText = 'APPROVED NOT REVIEW';
+            } elseif ($log->status === 'Rejected') {
+                $statusText = 'NOT APPROVED';
+            }
+
+            // Ambil role pertama (atau gabungkan jika multi-role)
+            $roleNames = $log->approver?->roles->pluck('name')->toArray() ?? [];
+            $roleDisplay = !empty($roleNames) ? implode(', ', $roleNames) : 'N/A';
+
+            return (object) [
+                'name' => $log->approver->name ?? 'N/A',
+                'position' => $roleDisplay,
+                'status' => $statusText,
+                'approved_at' => $log->approved_at,
+                'notes' => $log->notes,
+            ];
+        });
+
+        // Kirim semua data yang dibutuhkan ke view
+        $data = [
+            'requisition' => $requisition,
+            'requester' => $requisition->requester,
+            'approvals' => $approvals, // <-- VARIABEL APPROVALS DITAMBAHKAN DI SINI
+            // Variabel approver lama untuk tanda tangan (jika masih diperlukan)
+            'firstApprover' => $requisition->approvalLogs->first()->approver ?? null,
+            'lastApprover' => $requisition->approvalLogs->last()->approver ?? null,
+        ];
+
+        // return response()->json($data); // Untuk debugging, kembalikan data sebagai JSON
+        $pdf = Pdf::loadView('page.complain.report', $data)->setPaper('a4', 'landscape');
+        return $pdf->stream('RS Complain - ' . $requisition->no_srs . '.pdf');
+    }
+
+    
 }

@@ -22,6 +22,10 @@ class RequisitionItem extends Model
         'remarks',
     ];
 
+    protected $casts = [
+        'batch_number' => 'date',
+    ];
+    
     public function requisition()
     {
         return $this->belongsTo(Requisition::class, 'requisition_id');
