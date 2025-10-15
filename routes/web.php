@@ -9,6 +9,7 @@ use App\Http\Controllers\Master\UserController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Requisition\ComplainApprovalController;
 use App\Http\Controllers\Requisition\ComplainController;
+use App\Http\Controllers\Requisition\ComplainLogController;
 use App\Http\Controllers\Requisition\FreeGoodsController;
 use App\Http\Controllers\Requisition\RequisitionPath;
 use App\Http\Controllers\Requisition\SampleController;
@@ -23,7 +24,9 @@ Route::get('/dashboard', function () {
 Route::resource('/complain-form/approval', ComplainApprovalController::class)->only(['index']);
 Route::get('/getapproverdata/{id?}', [ComplainApprovalController::class, 'getData'])->name('get.approver.data');
 
+Route::get('/complain/log/data', [ComplainLogController::class, 'getData'])->name('complain.log.data');
 
+    
 //! pindahkan ke midddleware approver
 Route::get('/getapproverlist', [RequisitionPath::class, 'approverList'])->name('get.approverlist');
 Route::resource('/approvers', RequisitionPath::class);
@@ -61,6 +64,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/complain/warehouse/process', [ComplainController::class, 'processWarehouseApproval'])->name('complain.warehouse.process');
     Route::get('/complain/test-data', [ComplainController::class, 'testData'])->name('complain.test.data');
     Route::get('/complain/test-warehouse/{id}', [ComplainController::class, 'testWarehouseTracking'])->name('complain.test.warehouse');
+    // log complain
+    Route::get('/complain/log',[ComplainLogController::class, 'index'])->name('complain.log.index');
 
     Route::prefix('requisition')->group(function () {
         Route::get('/getComplainData', [ComplainController::class, 'getData'])->name('get.complain.data');
@@ -81,7 +86,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/free-goods/approval', [FreeGoodsController::class, 'approval'])->name('free-goods.approval');
 
      Route::get('/sample-form/log', [SampleController::class, 'log'])->name('sample-form.log');
-    Route::get('/complain-form/log', [ComplainController::class, 'log'])->name('complain-form.log');
     Route::get('/free-goods/log', [FreeGoodsController::class, 'log'])->name('free-goods.log');
 
     //! pindahkan ke midddleware approver

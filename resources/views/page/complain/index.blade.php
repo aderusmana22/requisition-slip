@@ -144,7 +144,7 @@
                         <!-- Objectives Row -->
                         <div class="row mb-4">
                             <div class="col-12">
-                                <label for="objectives" class="form-label"><strong>Objectives :</strong></label>
+                                <label for="objectives" class="form-label"><strong>reason for replacement :</strong></label>
                                 <textarea name="objectives" id="objectives" class="form-control" rows="3"></textarea>
                                 <div data-error-for="objectives" class="text-danger mt-1 error-message"></div>
                             </div>
