@@ -47,7 +47,7 @@ Route::get('/approval   /success', [SampleController::class, 'showSuccessPage'])
 // Approval Link dari Email (Free Goods Requisition)
 Route::get('/fg-approval/response/{token}', [FreeGoodsController::class, 'showResponseForm'])->name('fg.approval.response');
 Route::post('/fg-approval/process', [FreeGoodsController::class, 'processApproval'])->name('fg.approval.process');
-
+Route::get('/approval/success', [FreeGoodsController::class, 'showSuccessPage'])->name('fg.approval.success');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

@@ -188,7 +188,6 @@
                         <table class="table table-bordered table-sm">
                             <thead class="table-light">
                                 <tr>
-                                    {{-- Hanya Item Master columns --}}
                                     <th>Item Code</th>
                                     <th>Item Name</th>
                                     <th>Unit</th>
@@ -210,8 +209,6 @@
                         </table>
                     </div>
                     @endif
-
-                    {{-- HAPUS: BAGIAN 3 (KONDISIONAL): DATA MARKETING DAN QA FORM --}}
                 </div>
             </div>
         </div>
@@ -245,13 +242,13 @@
                             <div class="radio-group-horizontal d-flex flex-wrap">
                                 <div class="form-check me-3 mb-1">
                                     <input class="form-check-input" type="radio" name="action" id="action_review"
-                                        value="review" @if($action==='review' ) checked @endif>
+                                        value="review" @if($action ==='review' || $action === 'approve' ) checked @endif>
                                     <label class="form-check-label text-primary" for="action_review"><strong>
-                                        Approve with Review</strong></label>
+                                        Approve</strong></label>
                                 </div>
                                 <div class="form-check me-3 mb-1">
                                     <input class="form-check-input" type="radio" name="action" id="action_reject"
-                                        value="reject">
+                                        value="reject" @if($action ==='reject' ) checked @endif>
                                     <label class="form-check-label text-danger"
                                         for="action_reject"><strong>Reject</strong></label>
                                 </div>
@@ -284,79 +281,109 @@
         document.addEventListener('DOMContentLoaded', function () {
             const form = document.getElementById('responseForm');
             const overlay = document.getElementById('processingOverlay');
-            const isWarehouseProcess = {{ $isWarehouseProcess ? 'true' : 'false' }};
-            // Logic Quick Action hanya untuk approval, bukan review form
-            const isQuickAction = ('{{ $action }}' === 'approve') || ('{{ $action }}' === 'submit' && isWarehouseProcess);
             
+            // Variabel action yang masuk dari URL
+            const actionFromUrl = '{{ $action }}'; 
+            const isWarehouseProcess = {{ $isWarehouseProcess ? 'true' : 'false' }};
+
             // --- FUNGSI UNTUK VALIDASI & SUBMIT ---
             const handleFormSubmit = () => {
                 let validationPassed = true;
 
-                if (isWarehouseProcess) {
+                // Cek validasi Notes
+                if (!isWarehouseProcess) {
+                    const rejectRadio = document.getElementById('action_reject');
+                    const notesTextarea = document.getElementById('notes');
+                    
+                    // Notes required jika Reject dipilih, atau jika Review dipilih (manual review)
+                    if (rejectRadio.checked || actionFromUrl === 'review') {
+                        if (!(/[a-zA-Z]/.test(notesTextarea.value.trim()))) {
+                            Swal.fire({ icon: 'warning', title: 'Alasan Diperlukan', text: 'Mohon berikan alasan yang valid.' });
+                            validationPassed = false;
+                        }
+                    }
+                } else if (isWarehouseProcess && actionFromUrl !== 'approve') {
+                     // Untuk proses WH, notes wajib kecuali dari quick approve (walau WH biasanya butuh notes)
                     const notesTextarea = document.getElementById('notes');
                     if (!(/[a-zA-Z]/.test(notesTextarea.value.trim()))) {
                         Swal.fire({ icon: 'warning', title: 'Catatan Diperlukan', text: 'Mohon berikan catatan yang valid.' });
                         validationPassed = false;
                     }
-                } else { // Form Approval
-                    const reviewRadio = document.getElementById('action_review');
-                    const rejectRadio = document.getElementById('action_reject');
-                    const notesTextarea = document.getElementById('notes');
-                    // Cek jika (Review/Reject dipilih) DAN Notes kosong/invalid
-                    if ((reviewRadio?.checked || rejectRadio?.checked) && !(/[a-zA-Z]/.test(notesTextarea?.value.trim()))) {
-                        Swal.fire({ icon: 'warning', title: 'Alasan Diperlukan', text: 'Mohon berikan alasan yang valid.' });
-                        validationPassed = false;
-                    }
                 }
 
                 if (validationPassed) {
+                    // PENTING: Jika Quick Approve, set value radio button ke 'approve' sebelum submit
+                    if (actionFromUrl === 'approve') {
+                        document.getElementById('action_review').value = 'approve';
+                    }
+                    
                     overlay.style.display = 'flex';
                     form.submit();
                 }
             };
 
-            // --- LOGIKA AUTO-SUBMIT (UNTUK QUICK ACTION DARI EMAIL) ---
-            if (isQuickAction) {
-                overlay.style.display = 'flex';
-                form.submit();
+            // --- LOGIKA AUTO-SUBMIT (SOLUSI NOT FOUND) ---
+            // Jika action yang masuk adalah 'approve' (dari Quick Approve link), 
+            // kita panggil submit langsung tanpa konfirmasi Swal dan tanpa menampilkan form.
+            if (actionFromUrl === 'approve' && !isWarehouseProcess) {
+                // Di sini kita tidak menampilkan form karena action='approve'
+                // Kita bypass konfirmasi dan langsung panggil handler submit.
+                // Logika ini bergantung pada Controller yang mengirimkan action='approve' ke blade
+                
+                // Pastikan nilai form action adalah 'approve'
+                document.getElementById('action_review').value = 'approve'; 
+                
+                // Langsung kirim form
+                handleFormSubmit();
+                
+                // Hentikan eksekusi script agar user tidak melihat form
+                document.body.style.display = 'none'; 
+                return;
             }
-            // --- JIKA BUKAN AUTO-SUBMIT, PASANG EVENT LISTENER UNTUK KONFIRMASI ---
-            else {
-                form.addEventListener('submit', function (event) {
-                    event.preventDefault();
-                    Swal.fire({
-                        title: 'Konfirmasi Pengiriman',
-                        text: "Apakah Anda yakin ingin melanjutkan?",
-                        icon: 'question',
-                        showCancelButton: true,
-                        confirmButtonColor: '#3085d6',
-                        cancelButtonColor: '#d33',
-                        confirmButtonText: 'Ya, Lanjutkan!',
-                        cancelButtonText: 'Batal'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            handleFormSubmit();
-                        }
-                    });
+            // --- END LOGIKA AUTO-SUBMIT ---
+
+
+            // --- LOGIKA MANUAL SUBMIT (Jika form ditampilkan) ---
+            form.addEventListener('submit', function (event) {
+                event.preventDefault();
+                
+                // Jika tombol yang ditekan adalah Reject, atau Review, minta konfirmasi
+                Swal.fire({
+                    title: 'Konfirmasi Pengiriman',
+                    text: "Apakah Anda yakin ingin melanjutkan?",
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Ya, Lanjutkan!',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Jika manual submit, action diambil dari radio button yang ter-check
+                        handleFormSubmit();
+                    }
                 });
-            }
+            });
 
             // --- BLOK LOGIKA UNTUK FORM APPROVAL (Update Tombol) ---
             if (!isWarehouseProcess) {
                 const reviewRadio = document.getElementById('action_review');
                 const rejectRadio = document.getElementById('action_reject');
                 const submitBtn = document.getElementById('submitBtn');
+                
                 const updateSubmitButton = () => {
                     if (reviewRadio.checked) {
-                        submitBtn.textContent = 'Submit Approve with Review';
+                        submitBtn.textContent = 'Submit Approve';
                         submitBtn.classList.remove('btn-danger'); submitBtn.classList.add('btn-primary');
                     } else if (rejectRadio.checked) {
                         submitBtn.textContent = 'Submit Reject';
                         submitBtn.classList.remove('btn-primary'); submitBtn.classList.add('btn-danger');
                     }
                 };
+                
                 reviewRadio.addEventListener('change', updateSubmitButton);
                 rejectRadio.addEventListener('change', updateSubmitButton);
+                
                 updateSubmitButton();
             }
         });

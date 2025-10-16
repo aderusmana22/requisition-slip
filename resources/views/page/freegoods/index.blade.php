@@ -3,7 +3,7 @@
     Free Goods Requisition
     @endsection
 
-    {{-- Re-use styles dari Sample --}}
+    
     @include('components.sample-table-styles') 
 
     @push('css')
@@ -11,9 +11,14 @@
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
         
         <style>
+            :root {
+                --fg-primary-color: #cc982f;
+                --fg-secondary-color: #b8871a;
+                --fg-dark-color: #6d4b0f;
+            }
+
             .new-freegoods-btn {
-                /* WARNA UTAMA SAMPLE */
-                background-color: #cc982f; 
+                background-color: var(--fg-primary-color); 
                 color: white;
                 border: none;
                 padding: 10px 15px;
@@ -22,13 +27,36 @@
                 transition: background-color 0.3s ease;
             }
             .new-freegoods-btn:hover {
-                /* WARNA SEKUNDER SAMPLE */
-                background-color: #b8871a;
+                background-color: var(--fg-secondary-color);
                 color: white;
             }
-            /* Ganti warna badge info menjadi warna yang lebih sesuai dengan palette coklat/emas */
             .text-info {
-                color: #b8871a !important; 
+                color: var(--fg-secondary-color) !important; 
+            }
+            .text-warning {
+                color: var(--fg-primary-color) !important;
+            }
+
+            /* ========================================================= */
+            /* KRITIS: GAYA HEADER TABEL SESUAI GAMBAR */
+            /* ========================================================= */
+            .main-table-container .table-responsive table.dataTable thead tr th {
+                background-color: var(--fg-secondary-color) !important;
+                color: #fff !important;
+                border-color: #9c7316 !important;
+                font-weight: 700;
+                font-size: 14px;
+                padding: 10px 15px;
+                text-align: center;
+                vertical-align: middle;
+            }
+
+            .main-table-container .table-responsive table.dataTable thead tr th:first-child {
+                border-top-left-radius: 8px;
+                text-align: left;
+            }
+            .main-table-container .table-responsive table.dataTable thead tr th:last-child {
+                border-top-right-radius: 8px;
             }
         </style>
     @endpush
@@ -73,10 +101,10 @@
                 </div>
 
                 <div class="table-responsive">
-                    {{-- Ganti ID table dari sampleTable ke fgTable --}}
                     <table class="w-100 display" id="fgTable">
                         <thead>
                             <tr>
+                                {{-- Judul Kolom Disesuaikan Agar Mirip Gambar, menggunakan nama kolom yang ada --}}
                                 <th>No.</th>
                                 <th>Requester</th>
                                 <th>Customer</th>
@@ -104,12 +132,11 @@
                     <h5 class="mt-3 fw-bold">Processing...</h5>
                 </div>
                 {{-- Ganti warna header modal ke warna Sample --}}
-                <div class="modal-header" style="background-color: #cc982f;"> 
+                <div class="modal-header" style="background-color: var(--fg-primary-color);"> 
                     <h5 class="modal-title text-white" id="fgModalLabel">Create New Free Goods Requisition</h5>
                     <button type="button" class="btn-close btn-close-white m-0 fs-5" data-bs-dismiss="modal"
                         aria-label="Close"></button>
                 </div>
-                {{-- Ganti ID form dari sampleForm ke fgForm --}}
                 <form id="fgForm" enctype="multipart/form-data">
                     @csrf
                     <div class="modal-body">
@@ -117,7 +144,7 @@
                             {{-- HILANGKAN: 1. Select Sub Category --}}
                             <div class="col-md-6">
                                 <label for="category" class="form-label fw-bold">1. Category</label>
-                                <input type="text" class="form-control" value="FREE GOODS (General Request)" readonly>
+                                <input type="text" class="form-control" value="FREE GOODS" readonly>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">Requester Department</label>
@@ -129,13 +156,11 @@
                         <div id="requisition-form-details">
                             <div id="main-requisition-data">
                                 <hr>
-                                {{-- Ganti warna text-info menjadi text-warning (atau warna yang merepresentasikan coklat) --}}
                                 <h5 class="fw-bold text-warning mb-3">Requisition Details</h5> 
                                 <div class="row g-3">
                                     <div class="col-md-6">
                                         <label for="customer_id" class="form-label">Customer Name<i
                                                 class="text-danger">*</i></label>
-                                        {{-- Ganti ID select2 agar tidak tabrakan, tapi karena select2 id sama, biarkan saja --}}
                                         <select class="form-select select2-styled" id="customer_id" name="customer_id"
                                             style="width: 100%;">
                                             <option></option>
@@ -152,7 +177,6 @@
                                     </div>
                                     <div class="col-md-3">
                                         <label for="no_srs" class="form-label">FG No.<i class="text-danger">*</i></label>
-                                        {{-- Ganti ID no_srs ke no_fg --}}
                                         <input type="text" class="form-control" id="no_fg" name="no_fg"
                                             value="{{ $generatedFg }}" readonly>
                                     </div>
@@ -194,11 +218,9 @@
 
                                 <h5 class="fw-bold text-warning mb-2">Product Details</h5>
                                 
-                                {{-- [BARU] Product Selection untuk Free Goods --}}
                                 <div class="mb-3" id="product-selection-container-fg">
                                     <label for="product_select_fg" class="form-label fw-bold">2. Select Product Name<i
                                             class="text-danger">*</i></label>
-                                    {{-- Re-use ID product_select_fg dari Sample --}}
                                     <select class="form-select select2-styled" id="product_select_fg" multiple="multiple"
                                         style="width: 100%;"></select>
                                     <button type="button" class="btn btn-success btn-sm mt-2" id="btn-add-items-master">
@@ -213,7 +235,6 @@
                                     <table class="table table-bordered w-100">
                                         <thead class="thead-dark">
                                             <tr>
-                                                {{-- Hilangkan Material Type Column --}}
                                                 <th>Item Code</th>
                                                 <th>Item Name</th>
                                                 <th>Unit</th>
@@ -221,7 +242,6 @@
                                                 <th style="width: 15%;">Qty Issued</th>
                                             </tr>
                                         </thead>
-                                        {{-- Ganti ID tbody dari sample ke fg --}}
                                         <tbody id="requisition-items-tbody-fg"> 
                                             <tr id="no-items-row">
                                                 <td colspan="5" class="text-center">No items have been added yet.</td>
@@ -230,9 +250,6 @@
                                     </table>
                                 </div>
                             </div>
-
-                            {{-- HILANGKAN: special-order-fields & qa-fields-section --}}
-
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -248,8 +265,7 @@
     <div class="modal fade" id="viewModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
         <div class="modal-dialog modal-dialog-centered modal-xl">
             <div class="modal-content">
-                {{-- Ganti warna header modal ke warna Sample --}}
-                <div class="modal-header" style="background-color: #cc982f;">
+                <div class="modal-header" style="background-color: var(--fg-primary-color);">
                      <h5 class="modal-title text-white" id="viewModalLabel"><i class="ph-bold ph-file-text me-2"></i>Free Goods Requisition Details</h5>
                     <button type="button" class="btn-close btn-close-white m-0 fs-5" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
@@ -258,7 +274,6 @@
                     {{-- CARD 1: MAIN REQUISITION DETAILS --}}
                     <div class="card view-modal-card">
                         <div class="card-header view-modal-card-header">
-                            {{-- Ganti warna text-info menjadi text-warning --}}
                             <h5 class="fw-bold text-warning mb-3"><i class="ph-bold ph-identification-card me-2"></i> Requisition Details</h5> 
                         </div>
                         <div class="card-body p-4">
@@ -311,7 +326,6 @@
                     {{-- CARD 2: REQUESTED ITEM LIST --}}
                     <div class="card view-modal-card">
                          <div class="card-header">
-                            {{-- Ganti warna text-info menjadi text-warning --}}
                             <h5 class="fw-bold text-warning mb-3"><i class="ph-bold  ph-list me-2"></i>Requested Item List</h5> 
                         </div>
                         <div class="card-body p-1">
@@ -326,19 +340,15 @@
                                             <th class="text-center">Qty Issued</th>
                                         </tr>
                                     </thead>
-                                    {{-- Ganti ID tbody dari view-items-tbody ke view-items-tbody-fg --}}
                                     <tbody id="view-items-tbody-fg"></tbody> 
                                 </table>
                             </div>
                         </div>
                     </div>
 
-                    {{-- HILANGKAN: CARD 3: SPECIAL ORDER DETAILS --}}
-
-                    {{-- CARD 4: APPROVAL TRACKING (MOVED TO BOTTOM) --}}
+                    {{-- CARD 4: APPROVAL TRACKING --}}
                     <div class="card view-modal-card">
                         <div class="card-header view-modal-card-header">
-                            {{-- Ganti warna text-info menjadi text-warning --}}
                             <h5 class="fw-bold text-warning mb-3"><i class="ph-bold ph-path me-2"></i> Approval & Process Tracking</h5> 
                         </div>
                         <div class="card-body p-4">
@@ -347,7 +357,7 @@
                                 <div id="view_status_badge"></div>
                             </div>
                             <div class="tracker-container" id="approval-tracker-container-fg">
-                                {{-- Tracker steps akan diisi oleh JS, sesuai alur Free Goods: Requester -> Manager/HCD -> BC -> Outward WH -> Completed --}}
+                                {{-- Tracker steps akan diisi oleh JS --}}
                             </div>
                         </div>
                     </div>
@@ -364,7 +374,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         // --- Unchanged JS from original file ---
-        let nextFgNumber = "{{ $generatedFg }}"; // Ganti nama variabel
+        let nextFgNumber = "{{ $generatedFg }}"; 
 
         function successMessage(message) {
             Swal.fire({
@@ -404,7 +414,7 @@
                     return `<i class='ph ph-user-circle me-2 text-warning'></i> <span style='font-weight:500;'>${option.text}</span>`;
                 }
                 $('#customer_id').select2({
-                    dropdownParent: $('#fgModal'), // Ganti ID Modal
+                    dropdownParent: $('#fgModal'), 
                     placeholder: 'Select Customer',
                     allowClear: true,
                     templateResult: formatCustomer,
@@ -414,13 +424,12 @@
                     }
                 });
 
-                // Ganti product_select ke product_select_fg
                 $('#product_select_fg').select2({
-                    dropdownParent: $('#fgModal'), // Ganti ID Modal
+                    dropdownParent: $('#fgModal'), 
                     placeholder: 'Select products',
                     allowClear: true,
                     ajax: {
-                        url: "{{ route('freegoods.getAllItemMasters') }}",
+                        url: "{{ route('freegoods.getAllItemMasters') }}", 
                         dataType: 'json',
                         delay: 250,
                         processResults: function (data) {
@@ -438,11 +447,9 @@
             }
             initSelect2();
 
-            // Ganti ID table dari sampleTable ke fgTable
             const table = $('#fgTable').DataTable({
                 processing: true,
                 serverSide: true,
-                // Ganti route ajax dari sample.data ke freegoods.data
                 ajax: "{{ route('freegoods.data') }}",
                 columns: [{
                         data: 'DT_RowIndex',
@@ -485,7 +492,7 @@
                 ]
             });
 
-            let searchInput = $('#fgTable_filter input'); // Ganti ID
+            let searchInput = $('#fgTable_filter input'); 
             searchInput.unbind();
             let debounceTimer;
             searchInput.bind('keyup', function (e) {
@@ -496,7 +503,7 @@
                 }, 500);
             });
 
-            $('#fgTable_filter input').attr({ // Ganti ID
+            $('#fgTable_filter input').attr({ 
                 'placeholder': '🔍 Search Free Goods...',
                 'class': 'form-control'
             });
@@ -509,24 +516,23 @@
             }
 
             function resetForm() {
-                $('#fgForm')[0].reset(); // Ganti ID Form
-                $('#fgForm').removeAttr('data-mode data-id'); // Ganti ID Form
+                $('#fgForm')[0].reset(); 
+                $('#fgForm').removeAttr('data-mode data-id'); 
                 $('#customer_id, #product_select_fg').val(null).trigger('change');
-                // Ganti ID tbody
                 $('#requisition-items-tbody-fg').html(
                     '<tr id="no-items-row"><td colspan="5" class="text-center">No items have been added yet.</td></tr>'
                 );
 
                 clearValidationErrors();
-                $('#fgModalLabel').text('Create New Free Goods Requisition'); // Ganti Label
-                $('#no_fg').val(nextFgNumber); // Ganti ID No SRS
-                $('#saveFgBtn').text('Save'); // Ganti ID Button
+                $('#fgModalLabel').text('Create New Free Goods Requisition'); 
+                $('#no_fg').val(nextFgNumber); 
+                $('#saveFgBtn').text('Save'); 
             }
 
-            $('#btn-create-fg').on('click', function () { // Ganti ID Button
+            $('#btn-create-fg').on('click', function () { 
                 resetForm();
-                $('#fgForm').attr('data-mode', 'create').removeAttr('data-id'); // Ganti ID Form
-                $('#fgModal').modal('show'); // Ganti ID Modal
+                $('#fgForm').attr('data-mode', 'create').removeAttr('data-id'); 
+                $('#fgModal').modal('show'); 
             });
 
             $('#customer_id').on('change', function () {
@@ -542,20 +548,16 @@
                         return;
                     }
                     $.ajax({
-                        // Ganti route dari sample ke freegoods
                         url: "{{ route('freegoods.getAllItemMasters') }}", 
                         method: 'GET',
                         success: function (allMasters) {
-                            const tbody = $('#requisition-items-tbody-fg'); // Ganti ID tbody
+                            const tbody = $('#requisition-items-tbody-fg'); 
                             $('#no-items-row').remove();
                             
-                            // Ambil list item masters yang dipilih dari hasil AJAX
                             const selectedMasters = allMasters.filter(m => selectedMasterIds.includes(String(m.id)));
 
                             selectedMasters.forEach(master => {
-                                // Cek apakah item sudah ada di tabel
                                 if ($(`#item-row-master-${master.id}`).length === 0) {
-                                    // Item Master untuk Free Goods
                                     const newRow = `
                                         <tr id="item-row-master-${master.id}" data-master-id="${master.id}">
                                             <td>${master.item_master_code}</td>
@@ -573,30 +575,28 @@
 
             $('#product_select_fg').on('select2:unselect', function (e) {
                 const unselectedMasterId = e.params.data.id;
-                // Hapus item master yang di-unselect
                 $(`tr[data-master-id="${unselectedMasterId}"][id^="item-row-master-"]`).remove();
 
-                if ($('#requisition-items-tbody-fg tr').length === 0) { // Ganti ID tbody
-                    $('#requisition-items-tbody-fg').html( // Ganti ID tbody
+                if ($('#requisition-items-tbody-fg tr').length === 0) { 
+                    $('#requisition-items-tbody-fg').html( 
                         '<tr id="no-items-row"><td colspan="5" class="text-center">No items have been added yet.</td></tr>'
                         );
                 }
             });
 
-            $('#fgForm').on('submit', function (e) { // Ganti ID Form
+            $('#fgForm').on('submit', function (e) { 
                 e.preventDefault(); 
                 const form = this; 
 
                 const customerName = $('#customer_id option:selected').text().trim();
                 const requestDate = $('#request_date').val();
-                // Ganti ID tbody
                 const itemCount = $('#requisition-items-tbody-fg tr[id^="item-row-"]').length; 
 
                 Swal.fire({
                     title: 'Konfirmasi Pengajuan',
                     html: `Anda akan mengajukan Requisition dengan ringkasan data berikut:
                         <ul class="text-start mt-3" style="list-style: none; padding-left: 0;">
-                            <li style="padding: 5px 0;"><strong>Kategori:</strong> FREE GOODS (General Request)</li>
+                            <li style="padding: 5px 0;"><strong>Kategori:</strong> FREE GOODS</li>
                             <li style="padding: 5px 0;"><strong>Customer:</strong> ${customerName || '<i>Belum dipilih</i>'}</li>
                             <li style="padding: 5px 0;"><strong>Tgl. Request:</strong> ${requestDate}</li>
                             <li style="padding: 5px 0;"><strong>Jumlah Item:</strong> ${itemCount} item</li>
@@ -615,12 +615,11 @@
                         const id = $(form).attr('data-id');
 
                         function submitForm(formData) {
-                        const submitBtn = $('#saveFgBtn'); // Ganti ID Button
-                        const overlay = $('#fgModal .loading-overlay'); // Ganti ID Modal
+                        const submitBtn = $('#saveFgBtn'); 
+                        const overlay = $('#fgModal .loading-overlay'); 
                         overlay.show();
                         submitBtn.prop('disabled', true);
 
-                        // Ganti URL route dari sample-form ke freegoods-form
                         let url = (mode === 'edit') ? `/freegoods-form/${id}` : "{{ route('freegoods-form.store') }}";
                         if (mode === 'edit') {
                             formData.append('_method', 'PUT');
@@ -634,10 +633,9 @@
                             contentType: false,
                             success: function(res) {
                                 if (res.success) {
-                                    $('#fgModal').modal('hide'); // Ganti ID Modal
+                                    $('#fgModal').modal('hide'); 
                                     successMessage(res.message);
                                     table.ajax.reload(null, false);
-                                    // Update next FG number
                                     nextFgNumber = res.next_fg_number; 
                                 }
                             },
@@ -676,10 +674,9 @@
                 }
                 
                 let formData = new FormData(form);
-                // Kita tambahkan nilai Category secara eksplisit
                 formData.append('category', 'FREE GOODS');
                 formData.append('sub_category', 'General Request');
-                formData.append('no_srs', $('#no_fg').val()); // Ambil dari input No FG
+                formData.append('no_srs', $('#no_fg').val()); 
                 
                 submitForm(formData);
                     }
@@ -687,11 +684,11 @@
             });
 
             function populateForm(data) {
-                $('#fgForm').attr('data-mode', 'edit').attr('data-id', data.id); // Ganti ID Form
+                $('#fgForm').attr('data-mode', 'edit').attr('data-id', data.id); 
 
                 // Isi form
                 $('#customer_id').val(data.customer_id).trigger('change.select2');
-                $('#no_fg').val(data.no_srs); // Ganti ID No SRS
+                $('#no_fg').val(data.no_srs); 
                 $('#account').val(data.account);
                 $('#cost_center').val(data.cost_center);
                 $('#request_date').val(data.request_date);
@@ -712,7 +709,7 @@
                 productSelectFg.trigger('change.select2');
 
                 // Mengisi Item List
-                const itemTbody = $('#requisition-items-tbody-fg'); // Ganti ID tbody
+                const itemTbody = $('#requisition-items-tbody-fg'); 
                 itemTbody.empty();
                 const colspan = 5;
 
@@ -740,7 +737,7 @@
                     itemTbody.html(`<tr id="no-items-row"><td colspan="${colspan}" class="text-center">No items found.</td></tr>`);
                 }
 
-                $('#saveFgBtn').text('Save Changes').prop('disabled', false); // Ganti ID Button
+                $('#saveFgBtn').text('Save Changes').prop('disabled', false); 
             }
 
             function populateViewForm(data) {
@@ -754,7 +751,7 @@
                 $('#view_objectives').text(data.objectives || '-');
                 $('#view_estimated_potential').text(data.estimated_potential || '-');
 
-                const viewItemTbody = $('#view-items-tbody-fg'); // Ganti ID tbody
+                const viewItemTbody = $('#view-items-tbody-fg'); 
                 viewItemTbody.empty();
                 const colspan = 5;
 
@@ -793,7 +790,7 @@
                 $('#view_status_badge').html(`<span class="badge fs-6 rounded-pill ${badgeClass}">${status}</span>`);
 
                 // Approval Tracker
-                const trackerContainer = $('#approval-tracker-container-fg'); // Ganti ID container
+                const trackerContainer = $('#approval-tracker-container-fg'); 
                 trackerContainer.empty();
 
                 // 1. Definisikan langkah-langkah Free Goods
@@ -802,18 +799,16 @@
                 ];
                 
                 // Alur Free Goods: Requester -> Manager/HCD -> BC -> Outward WH -> Completed
-                // Kita asumsikan level approval (Manager/HCD dan BC) adalah level <= 100
                 const approvalLogs = data.approval_logs ? data.approval_logs.filter(log => log.level <= 100) : [];
                 
-                let nextLevel = 1;
-                let isSnM = data.requester.department?.name === 'SnM'; // Asumsi department user ada di data
+                // Asumsi department user ada di data
+                let isSnM = data.requester.department?.name === 'SnM' || data.requester.department?.code === '5300'; 
                 let approvalSteps = [
                     { label: isSnM ? 'SnM Manager' : 'HCD Dept. Head', icon: 'ph-user-plus' },
                     { label: 'Business Controller', icon: 'ph-briefcase' }
                 ];
 
                 approvalSteps.forEach((step, index) => {
-                    // Cari log approval yang sudah terekam di level ini (jika ada)
                     const log = approvalLogs.find(l => l.level === (index + 1)); 
                     const approverName = log && log.approver ? log.approver.name : step.label;
                     
@@ -830,7 +825,7 @@
                     steps.push({ id: 'completed', label: 'Completed', icon: 'ph-check-circle' });
                 }
 
-                let trackerHtml = '<div class="tracker-line"><div class="tracker-line-progress" id="tracker-progress-fg"></div></div>'; // Ganti ID progress
+                let trackerHtml = '<div class="tracker-line"><div class="tracker-line-progress" id="tracker-progress-fg"></div></div>'; 
                 steps.forEach(step => {
                     trackerHtml += `
                         <div class="tracker-step" data-step-id="${step.id}">
@@ -841,7 +836,7 @@
                 });
                 trackerContainer.html(trackerHtml);
 
-                // 4. Update status visual tracker (Logic sama seperti Sample)
+                // 4. Update status visual tracker
                 let lastCompletedIndex = -1;
                 let isRejected = ['Rejected', 'Cancelled'].includes(status);
 
@@ -852,7 +847,7 @@
                     const requesterName = data.requester.name;
                     const creationDate = new Date(data.created_at).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).replace(',', '');
                     submittedStep.find('.tracker-details').html(
-                        `<div class="tracker-user text-warning">${requesterName}</div>` // WARNA TEKS DISESUAIKAN
+                        `<div class="tracker-user text-warning">${requesterName}</div>` 
                     );
                     lastCompletedIndex = 0;
                 }
@@ -866,42 +861,38 @@
                         stepElement.addClass('completed');
                         const approvalDate = new Date(log.updated_at).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).replace(',', '');
                         stepElement.find('.tracker-details').html(
-                            `<div class="tracker-user text-warning">${log.approver.name}</div>` // WARNA TEKS DISESUAIKAN
+                            `<div class="tracker-user text-warning">${log.approver.name}</div>` 
                         );
                         lastCompletedIndex = Math.max(lastCompletedIndex, stepIndex);
                     }
                 });
 
                 // Tracking Steps
-                if (data.trackings && data.trackings.length > 0) {
-                    const currentTrack = data.trackings[data.trackings.length - 1];
-                    if (currentTrack.current_position.includes('Outward WH Supervisor')) {
-                        const stepIndex = steps.findIndex(s => s.id === 'outward');
-                        if(stepIndex > -1) {
-                            $(`.tracker-step[data-step-id="outward"]`).addClass('active');
-                            // Asumsi step Outward dimulai setelah semua approval selesai, jadi kita hanya perlu set lastCompletedIndex
-                            lastCompletedIndex = Math.max(lastCompletedIndex, stepIndex - 1); 
-                        }
-                    } else if (currentTrack.current_position === 'Completed') {
-                         const stepIndex = steps.findIndex(s => s.id === 'completed');
-                         if(stepIndex > -1) {
-                             $(`.tracker-step`).addClass('completed');
-                             lastCompletedIndex = stepIndex;
-                         }
+                let currentTrackingPosition = data.trackings ? data.trackings.find(t => !t.last_updated)?.current_position : null;
+                
+                if (currentTrackingPosition && currentTrackingPosition.includes('Outward WH Supervisor')) {
+                    const stepIndex = steps.findIndex(s => s.id === 'outward');
+                    if(stepIndex > -1) {
+                        $(`.tracker-step[data-step-id="outward"]`).addClass('active');
+                        // Set lastCompletedIndex ke step terakhir sebelum Outward
+                        lastCompletedIndex = Math.max(lastCompletedIndex, stepIndex - 1); 
                     }
+                } else if (status === 'Completed' && data.trackings && data.trackings.length > 0) {
+                     const stepIndex = steps.findIndex(s => s.id === 'completed');
+                     if(stepIndex > -1) {
+                         $(`.tracker-step`).addClass('completed');
+                         lastCompletedIndex = stepIndex;
+                     }
                 }
                 
                 // Update Progress Line
                 if (lastCompletedIndex >= 0 && !isRejected) {
                     let totalSteps = steps.length - 1;
-                    // Hitung persentase langkah yang sudah selesai (contoh: 0/4, 1/4, 2/4, 3/4, 4/4)
                     let progressPercentage = (lastCompletedIndex / totalSteps) * 100;
-                    // Sesuaikan jika hanya ada 1 step, progress 100%
                     if (totalSteps === 0) progressPercentage = 100; 
                     
-                    $('#tracker-progress-fg').css('width', progressPercentage + '%'); // Ganti ID progress
+                    $('#tracker-progress-fg').css('width', progressPercentage + '%'); 
                 }
-
 
                 // Final Status Marker
                 if (status === 'Completed') {
@@ -928,7 +919,6 @@
                 button.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>').prop('disabled', true);
 
                 $.ajax({
-                    // Ganti URL route dari sample-form ke freegoods-form
                     url: `/freegoods-form/${id}`, 
                     type: 'GET',
                     success: function(response) {
@@ -949,18 +939,17 @@
                 const button = $(this);
                 const originalIcon = button.html();
 
-                const modal = $('#fgModal'); // Ganti ID Modal
+                const modal = $('#fgModal'); 
                 const overlay = modal.find('.loading-overlay');
 
                 button.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>').prop('disabled', true);
                 overlay.show();
 
                 $.ajax({
-                    // Ganti URL route dari sample-form ke freegoods-form
                     url: `/freegoods-form/${id}/edit`, 
                     type: 'GET',
                     success: function (response) {
-                        $('#fgModalLabel').text('Edit Free Goods Requisition'); // Ganti Label
+                        $('#fgModalLabel').text('Edit Free Goods Requisition'); 
 
                         populateForm(response);
 
@@ -990,7 +979,6 @@
                 }).then((result) => {
                     if (result.isConfirmed) {
                         $.ajax({
-                            // Ganti URL route dari sample-form ke freegoods-form
                             url: `/freegoods-form/${requisitionId}`,
                             type: 'POST',
                             data: {
@@ -1013,11 +1001,9 @@
                 });
             });
             
-            // HILANGKAN: btn-qa-form
-            
-            $('#fgModal').on('hidden.bs.modal', function () { // Ganti ID Modal
+            $('#fgModal').on('hidden.bs.modal', function () { 
                 resetForm();
-                $('#fgForm').removeAttr('data-mode data-id'); // Ganti ID Form
+                $('#fgForm').removeAttr('data-mode data-id'); 
             });
 
         });
