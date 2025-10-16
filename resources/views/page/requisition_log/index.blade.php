@@ -61,7 +61,7 @@
                                 <th><i class="ph-duotone ph-user me-1"></i>User</th>
                                 <th><i class="ph-duotone ph-chat-text me-1"></i>Description</th>
                                 <th><i class="ph-duotone ph-file-text me-1"></i>event</th>
-                                <th><i class="ph-duotone ph-globe me-1"></i>IP Address</th>
+                                <th><i class="ph-duotone ph-globe me-1"></i>Requisition</th>
                                 <th><i class="ph-duotone ph-device-mobile me-1"></i>User Agent</th>
                                 <th class="text-center"><i class="ph-duotone ph-calendar me-1"></i>Date</th>
                                 <th><i class="ph-duotone ph-gear me-1"></i>Actions</th>
@@ -291,7 +291,7 @@
                         name: 'description',
                         width: '20%',
                         render: function (data, type, row) {
-                            return truncateText(data, 80);
+                            return truncateText(data, 90);
                         }
                     },
                     {
@@ -307,11 +307,11 @@
                     },
                     {
                         data: 'properties',
-                        name: 'ip',
+                        name: 'requisition_no',
                         width: '9%',
                         render: function (data, type, row) {
-                            if (data && data.ip) {
-                                return `<code class="small">${data.ip}</code>`;
+                            if (data && data.requisition_no) {
+                                return `<code class="small"><strong>${data.requisition_no}</strong></code>`;
                             }
                             return '<span class="text-muted">-</span>';
                         }

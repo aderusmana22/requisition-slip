@@ -246,7 +246,7 @@ class ComplainController extends Controller
                 ->causedBy($casuer)
                 ->performedOn($requisition, $requisitionitems)
                 ->event('created requisition complain')
-                ->withProperties(['ip' => request()->ip(), 'user_agent' => request()->userAgent()])
+                ->withProperties(['ip' => request()->ip(), 'user_agent' => request()->userAgent(), 'requisition_no' => $requisition->no_srs, ])
                 ->log('user ' . $casuer->name . ' Membuat Requisition Complain dengan ID: ' . $requisition->id . ' dan No SRS: ' . $requisition->no_srs);
             });
 
@@ -563,7 +563,7 @@ class ComplainController extends Controller
                     ->causedBy(User::where('nik', $approvalLog->approver_nik)->first())
                     ->performedOn($approvalLog)
                     ->event('processed approval')
-                    ->withProperties(['ip' => request()->ip(), 'user_agent' => request()->userAgent()])
+                    ->withProperties(['ip' => request()->ip(), 'user_agent' => request()->userAgent(), 'requisition_no' => $requisition->no_srs])
                     ->log('User ' . ($approvalLog->approver->name ?? 'Unknown') . ' has ' . $approvalLog->status . ' requisition ID: ' . $approvalLog->requisition_id . ' No: '. $requisition->no_srs . ' with notes: ' . ($notes ?? 'No notes provided'));
             });
 
@@ -693,7 +693,7 @@ class ComplainController extends Controller
                     ->causedBy(User::where('nik', $approvalLog->approver_nik)->first())
                     ->performedOn($approvalLog)
                     ->event('processed approval')
-                    ->withProperties(['ip' => request()->ip(), 'user_agent' => request()->userAgent()])
+                    ->withProperties(['ip' => request()->ip(), 'user_agent' => request()->userAgent(), 'requisition_no' => $requisition->no_srs])
                     ->log('User ' . ($approvalLog->approver->name ?? 'Unknown') . ' has ' . $approvalLog->status . ' requisition ID: ' . $approvalLog->requisition_id . ' No: '. $requisition->no_srs . ' with notes: ' . ($notes ?? 'No notes provided'));
             });
 
@@ -1010,8 +1010,8 @@ class ComplainController extends Controller
                     'position' => $tracking->current_position
                 ]);
             } else {
-                $requisition->status = 'Approved';
-                $requisition->route_to = 'Completed';
+                $requisition->status = 'Completed';
+                $requisition->route_to = '-';
                 $requisition->save();
 
                 // Send completion notification to requester
@@ -1039,7 +1039,8 @@ class ComplainController extends Controller
                         'ip' => request()->ip(), 
                         'user_agent' => request()->userAgent(),
                         'complain' => true,
-                        'warehouse_position' => $tracking->current_position
+                        'warehouse_position' => $tracking->current_position,
+                        'requisition_no' => $requisition->no_srs
                     ])
                     ->log('User ' . $approver->name . ' approved warehouse tracking for requisition ID: ' . $requisition->id . ' No: ' . $requisition->no_srs . ' at position: ' . $tracking->current_position);
             }
@@ -1089,8 +1090,8 @@ class ComplainController extends Controller
                 $this->processWarehouseTracking($tracking->requisition_id);
             } else {
                 // Semua selesai
-                $requisition->status = 'Approved';
-                $requisition->route_to = 'Completed';
+                $requisition->status = 'Completed';
+                $requisition->route_to = '-';
                 $requisition->save();
 
                 // Send completion notification to requester
@@ -1115,7 +1116,8 @@ class ComplainController extends Controller
                     ->withProperties([
                         'ip' => request()->ip(), 
                         'user_agent' => request()->userAgent(),
-                        'warehouse_position' => $tracking->current_position
+                        'warehouse_position' => $tracking->current_position,
+                        'requisition_no' => $requisition->no_srs,
                     ])
                     ->log('User ' . $approver->name . ' approved warehouse tracking for requisition ID: ' . $requisition->id . ' No: ' . $requisition->no_srs . ' at position: ' . $tracking->current_position . ' with notes: ' . ($notes ?? 'No notes provided'));
             }
@@ -1218,7 +1220,7 @@ class ComplainController extends Controller
                         ->causedBy(User::find($user->id))
                         ->performedOn($requisition)
                         ->event('uploaded payment proof')
-                        ->withProperties(['ip' => request()->ip(), 'user_agent' => request()->userAgent()])
+                        ->withProperties(['ip' => request()->ip(), 'user_agent' => request()->userAgent(), 'requisition_no' => $requisition->no_srs])
                         ->log('User ' . $user->name . ' uploaded payment proof for requisition ID: ' . $requisition->id . ' No: '. $requisition->no_srs);
                 }
 

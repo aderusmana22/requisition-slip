@@ -694,18 +694,35 @@
                         data: 'status',
                         name: 'status',
                         render: function (data, type, row) {
-                            if (data == 'Pending') {
-                                return '<span class="badge status-badge-lg bg-warning text-dark">Pending</span>';
-                            } else if (data == 'In Progress') {
-                                return '<span class="badge status-badge-lg bg-info text-white">In Progress</span>';
-                            } else if (data == 'Completed' || data == 'Success') {
-                                return '<span class="badge status-badge-lg bg-success">Completed</span>';
-                            } else if (data == 'Rejected' || data == 'Failed') {
-                                return '<span class="badge status-badge-lg bg-danger">Rejected</span>';
-                            } else if (data == 'payment proof') {
-                                return '<span class="badge status-badge-lg bg-danger text-white">Need Payment Proof</span>';
-                            } else {
-                                return '<span class="badge status-badge-lg bg-secondary">' + data + '</span>';
+                            // Normalize status untuk comparison
+                            const status = (data || '').toLowerCase().trim();
+                            
+                            switch(status) {
+                                case 'pending':
+                                    return '<span class="badge status-badge-lg status-pending">Pending</span>';
+                                
+                                case 'approved':
+                                    return '<span class="badge status-badge-lg status-approved">Approved</span>';
+                                
+                                case 'rejected':
+                                case 'failed':
+                                    return '<span class="badge status-badge-lg status-rejected">Rejected</span>';
+                                
+                                case 'in progress':
+                                    return '<span class="badge status-badge-lg status-in-progress">In Progress</span>';
+                                
+                                case 'completed':
+                                case 'success':
+                                    return '<span class="badge status-badge-lg status-completed">Completed</span>';
+                                
+                                case 'cancelled':
+                                    return '<span class="badge status-badge-lg status-cancelled">Cancelled</span>';
+                                
+                                case 'payment proof':
+                                    return '<span class="badge status-badge-lg status-payment-proof">Payment Proof</span>';
+                                
+                                default:
+                                    return '<span class="badge status-badge-lg bg-secondary">' + data + '</span>';
                             }
                         }
                     },
@@ -1309,30 +1326,47 @@
                 const statusContainer = $('#current_status_display');
                 const status = data.status || 'Unknown';
 
-                // Map status to CSS classes and display text
+                // Map status to CSS classes and display text dengan teks bilingual
                 let statusClass = 'status-badge-progress';
                 let statusText = status;
 
-                switch(status.toLowerCase()) {
+                switch(status.toLowerCase().trim()) {
                     case 'pending':
-                        statusClass = 'status-badge-pending';
-                        statusText = 'Pending Review';
+                        statusClass = 'status-pending';
+                        statusText = 'Pending';
                         break;
                     case 'approved':
-                        statusClass = 'status-badge-approved';
+                        statusClass = 'status-approved';
                         statusText = 'Approved';
                         break;
                     case 'rejected':
-                        statusClass = 'status-badge-rejected';
+                    case 'failed':
+                        statusClass = 'status-rejected';
                         statusText = 'Rejected';
                         break;
                     case 'in progress':
-                        statusClass = 'status-badge-progress';
+                        statusClass = 'status-in-progress';
                         statusText = 'In Progress';
                         break;
+                    case 'completed':
+                    case 'success':
+                        statusClass = 'status-completed';
+                        statusText = 'Completed - Selesai';
+                        break;
+                    case 'cancelled':
+                        statusClass = 'status-cancelled';
+                        statusText = 'Cancelled';
+                        break;
+                    case 'payment proof':
+                        statusClass = 'status-payment-proof';
+                        statusText = 'Payment Proof';
+                        break;
+                    default:
+                        statusClass = 'bg-secondary';
+                        statusText = status;
                 }
 
-                statusContainer.html(`<div class="current-status-badge ${statusClass}">${statusText}</div>`);
+                statusContainer.html(`<div class="current-status-badge status-badge-lg ${statusClass}">${statusText}</div>`);
 
                 // Populate approval history
                 const historyContainer = $('#approval_history_list');

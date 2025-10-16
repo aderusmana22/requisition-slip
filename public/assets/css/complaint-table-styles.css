@@ -775,37 +775,181 @@ body {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
     border: 2px solid transparent !important;
     transition: all 0.3s ease !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+.status-badge-lg::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    transition: left 0.5s ease;
 }
 
 .status-badge-lg:hover {
-    transform: translateY(-1px) !important;
+    transform: translateY(-1px) scale(1.05) !important;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
 }
 
-.bg-warning.status-badge-lg {
-    background: linear-gradient(135deg, rgb(192, 127, 0) 0%, rgb(160, 100, 0) 100%) !important;
+.status-badge-lg:hover::before {
+    left: 100%;
+}
+
+/* ========================================
+   ENHANCED STATUS COLOR SCHEME
+   ======================================== */
+
+/* Pending - Menunggu persetujuan awal (Warm Orange) */
+.status-pending {
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b1a 100%) !important;
     color: white !important;
-    border-color: rgba(192, 127, 0, 0.3) !important;
+    border-color: rgba(255, 140, 66, 0.4) !important;
+    box-shadow: 0 3px 12px rgba(255, 140, 66, 0.3) !important;
+}
+
+.status-pending:hover {
+    box-shadow: 0 5px 16px rgba(255, 140, 66, 0.4) !important;
+}
+
+/* Approved - Disetujui (Emerald Green) */
+.status-approved {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+    color: white !important;
+    border-color: rgba(16, 185, 129, 0.4) !important;
+    box-shadow: 0 3px 12px rgba(16, 185, 129, 0.3) !important;
+}
+
+.status-approved:hover {
+    box-shadow: 0 5px 16px rgba(16, 185, 129, 0.4) !important;
+}
+
+/* Rejected - Ditolak (Coral Red) */
+.status-rejected {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+    color: white !important;
+    border-color: rgba(239, 68, 68, 0.4) !important;
+    box-shadow: 0 3px 12px rgba(239, 68, 68, 0.3) !important;
+}
+
+.status-rejected:hover {
+    box-shadow: 0 5px 16px rgba(239, 68, 68, 0.4) !important;
+}
+
+/* In Progress - Sedang diproses (Royal Blue) */
+.status-in-progress {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+    color: white !important;
+    border-color: rgba(59, 130, 246, 0.4) !important;
+    box-shadow: 0 3px 12px rgba(59, 130, 246, 0.3) !important;
+}
+
+.status-in-progress:hover {
+    box-shadow: 0 5px 16px rgba(59, 130, 246, 0.4) !important;
+}
+
+/* Completed - Selesai (Jade Green) */
+.status-completed {
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%) !important;
+    color: white !important;
+    border-color: rgba(34, 197, 94, 0.4) !important;
+    box-shadow: 0 3px 12px rgba(34, 197, 94, 0.3) !important;
+}
+
+.status-completed:hover {
+    box-shadow: 0 5px 16px rgba(34, 197, 94, 0.4) !important;
+}
+
+/* Cancelled - Dibatalkan (Slate Gray) */
+.status-cancelled {
+    background: linear-gradient(135deg, #64748b 0%, #475569 100%) !important;
+    color: white !important;
+    border-color: rgba(100, 116, 139, 0.4) !important;
+    box-shadow: 0 3px 12px rgba(100, 116, 139, 0.3) !important;
+}
+
+.status-cancelled:hover {
+    box-shadow: 0 5px 16px rgba(100, 116, 139, 0.4) !important;
+}
+
+/* Payment Proof - Butuh bukti pembayaran (Deep Purple) */
+.status-payment-proof {
+    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%) !important;
+    color: white !important;
+    border-color: rgba(139, 92, 246, 0.4) !important;
+    box-shadow: 0 3px 12px rgba(139, 92, 246, 0.3) !important;
+    position: relative !important;
+}
+
+.status-payment-proof:hover {
+    box-shadow: 0 5px 16px rgba(139, 92, 246, 0.4) !important;
+}
+
+/* Payment Proof with pulsing animation */
+.status-payment-proof::after {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+    border-radius: 14px;
+    z-index: -1;
+    animation: pulse-purple 2s infinite;
+    opacity: 0.7;
+}
+
+@keyframes pulse-purple {
+    0% {
+        transform: scale(1);
+        opacity: 0.7;
+    }
+    50% {
+        transform: scale(1.05);
+        opacity: 0.5;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 0.7;
+    }
+}
+
+/* ========================================
+   LEGACY BOOTSTRAP COLOR SUPPORT
+   ======================================== */
+
+.bg-warning.status-badge-lg {
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b1a 100%) !important;
+    color: white !important;
+    border-color: rgba(255, 140, 66, 0.4) !important;
 }
 
 .bg-info.status-badge-lg {
-    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%) !important;
-    border-color: rgba(23, 162, 184, 0.3) !important;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+    color: white !important;
+    border-color: rgba(59, 130, 246, 0.4) !important;
 }
 
 .bg-success.status-badge-lg {
-    background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%) !important;
-    border-color: rgba(40, 167, 69, 0.3) !important;
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%) !important;
+    color: white !important;
+    border-color: rgba(34, 197, 94, 0.4) !important;
 }
 
 .bg-danger.status-badge-lg {
-    background: linear-gradient(135deg, #dc3545 0%, #bd2130 100%) !important;
-    border-color: rgba(220, 53, 69, 0.3) !important;
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+    color: white !important;
+    border-color: rgba(239, 68, 68, 0.4) !important;
 }
 
 .bg-secondary.status-badge-lg {
-    background: linear-gradient(135deg, #6c757d 0%, #545b62 100%) !important;
-    border-color: rgba(108, 117, 125, 0.3) !important;
+    background: linear-gradient(135deg, #64748b 0%, #475569 100%) !important;
+    color: white !important;
+    border-color: rgba(100, 116, 139, 0.4) !important;
 }
 
 /* DataTable Info & Pagination */
@@ -909,13 +1053,21 @@ body {
 .current-status-badge {
     text-align: center;
     padding: 12px;
-    border-radius: 8px;
+    border-radius: 12px;
     font-weight: bold;
     font-size: 14px;
     text-transform: uppercase;
     letter-spacing: 1px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
 }
 
+.current-status-badge:hover {
+    transform: translateY(-2px) scale(1.02);
+}
+
+/* Legacy status badge classes for backward compatibility */
 .status-badge-pending {
     background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
     color: #856404;
