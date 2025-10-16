@@ -380,13 +380,89 @@ class ComplainController extends Controller
                 'customer', 
                 'requester',
                 'requisitionItems.itemMaster.ItemDetails', 
-                'approvalLogs', 
-                'approvalLogs.approver',
+                'approvalLogs.approver', 
                 'payments',
-                'complainImages'
+                'complainImages',
+                'trackings' => function($query) {
+                    $query->orderBy('created_at', 'asc');
+                }
             ])->findOrFail($id);
 
-            return response()->json($complain);
+            // Build history array similar to SampleController
+            $history = [];
+
+            // 1. Kejadian: Pembuatan Requisition
+            $history[] = [
+                'type' => 'created',
+                'timestamp' => $complain->created_at,
+                'title' => 'Requisition Created',
+                'description' => 'Requisition complain was created by ' . ($complain->requester->name ?? 'Unknown'),
+                'icon' => 'ph-file-plus',
+                'color' => 'primary'
+            ];
+
+            // 2. Kejadian: Approval & Rejection
+            foreach ($complain->approvalLogs as $log) {
+                if ($log->status === 'Approved') {
+                    $history[] = [
+                        'type' => 'approved',
+                        'timestamp' => $log->approved_at ?? $log->updated_at,
+                        'title' => 'Approved by ' . ($log->approver->name ?? 'Unknown'),
+                        'description' => 'Level ' . $log->level . ' approval completed' . 
+                                       ($log->notes ? '. Notes: ' . $log->notes : ''),
+                        'icon' => 'ph-check-circle',
+                        'color' => 'success'
+                    ];
+                } elseif ($log->status === 'Rejected') {
+                    $history[] = [
+                        'type' => 'rejected',
+                        'timestamp' => $log->approved_at ?? $log->updated_at,
+                        'title' => 'Rejected by ' . ($log->approver->name ?? 'Unknown'),
+                        'description' => 'Level ' . $log->level . ' approval rejected' . 
+                                       ($log->notes ? '. Reason: ' . $log->notes : ''),
+                        'icon' => 'ph-x-circle',
+                        'color' => 'danger'
+                    ];
+                }
+            }
+
+            // 3. Kejadian: Proses Warehouse & Tracking
+            foreach ($complain->trackings as $tracking) {
+                if ($tracking->token === null) { // Sudah diproses (token null berarti sudah approve)
+                    $history[] = [
+                        'type' => 'warehouse_processed',
+                        'timestamp' => $tracking->last_updated ?? $tracking->updated_at,
+                        'title' => $tracking->current_position . ' Completed',
+                        'description' => 'Warehouse process completed' . 
+                                       ($tracking->notes ? '. Notes: ' . $tracking->notes : ''),
+                        'icon' => 'ph-package',
+                        'color' => 'info'
+                    ];
+                }
+            }
+
+            // 4. Kejadian: Pembatalan
+            if ($complain->status === 'Cancelled') {
+                $history[] = [
+                    'type' => 'cancelled',
+                    'timestamp' => $complain->updated_at,
+                    'title' => 'Requisition Cancelled',
+                    'description' => 'Requisition was cancelled',
+                    'icon' => 'ph-x-circle',
+                    'color' => 'danger'
+                ];
+            }
+
+            // Sort history by timestamp
+            usort($history, function($a, $b) {
+                return $a['timestamp'] <=> $b['timestamp'];
+            });
+
+            // Add history to response
+            $responseData = $complain->toArray();
+            $responseData['history'] = $history;
+
+            return response()->json($responseData);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return response()->json(['message' => 'Complain data not found.'], 404);
         } catch (\Exception $e) {
@@ -840,8 +916,8 @@ class ComplainController extends Controller
                 return false;
             }
 
-            // Cari tracking pertama yang belum diproses (token masih null)
-            $currentTracking = $trackings->whereNull('token')->first();
+            // Cari tracking pertama yang belum diproses
+            $currentTracking = $trackings->whereNotNull('token')->first();
 
             if (!$currentTracking) {
                 Log::info("All warehouse tracking completed for requisition {$requisitionId}");
@@ -924,7 +1000,6 @@ class ComplainController extends Controller
             // Cek apakah tracking dengan token ini masih valid
             $tracking = Tracking::where('requisition_id', $id)
                 ->where('token', $token)
-                ->whereNotNull('last_updated')
                 ->first();
 
             if (!$tracking) {
@@ -996,7 +1071,7 @@ class ComplainController extends Controller
 
             $nextTracking = Tracking::where('requisition_id', $tracking->requisition_id)
                 ->where('id', '>', $tracking->id)
-                ->whereNull('token')
+                ->whereNotNull('token')
                 ->orderBy('id', 'asc')
                 ->first();
 
@@ -1079,10 +1154,10 @@ class ComplainController extends Controller
 
             $requisition = Requisition::find($tracking->requisition_id);
 
-            // Cek apakah ada tracking berikutnya (yang token masih null)
+            // Cek apakah ada tracking berikutnya
             $nextTracking = Tracking::where('requisition_id', $tracking->requisition_id)
                 ->where('id', '>', $tracking->id)
-                ->whereNull('token')
+                ->whereNotNull('token')
                 ->orderBy('id', 'asc')
                 ->first();
 
