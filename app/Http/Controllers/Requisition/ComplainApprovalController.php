@@ -23,7 +23,6 @@ class ComplainApprovalController extends Controller
         try{
             $user = Auth::user();
 
-            // Ambil semua requisition dengan kategori 'Complain'
             $complainIds = Requisition::where('category', 'Complain')->pluck('id');
 
             if ($complainIds->isEmpty()) {
@@ -33,9 +32,13 @@ class ComplainApprovalController extends Controller
                 ], 200);
             }
 
-            $data = ApprovalLog::whereIn('requisition_id', $complainIds)
-                ->where('approver_nik', $user->nik)
-                ->whereNotNull('token')
+            $query = ApprovalLog::whereIn('requisition_id', $complainIds);
+
+            if (!$user->hasRole('super admin')) {
+                $query->where('approver_nik', $user->nik);
+            }
+
+            $data = $query->whereNotNull('token')
                 ->where(function($query) {
                 
                     $query->whereRaw('level = (
@@ -53,35 +56,6 @@ class ComplainApprovalController extends Controller
                 ->get();
 
             if ($data->isEmpty()) {
-                $whpath = 
-                $tracking = Tracking::whereIn('requisition_id', $complainIds)
-                    ->where('current_position', $user->nik)
-                    ->whereNotNull('token')
-                    ->with([
-                        'requisition' => function ($query) {
-                            $query->with(['customer', 'requester']);
-                        }
-                    ])
-                    ->first();
-
-                if ($tracking) {
-                    $requisition = $tracking->requisition;
-                    return response()->json([
-                        'message' => 'Ada requisition complain yang menunggu approval dari Anda.',
-                        'data' => [
-                            'tracking_id' => $tracking->id,
-                            'requisition_id' => $tracking->requisition_id,
-                            'requisition_number' => $requisition->no_srs,
-                            'status' => $requisition->status,
-                            'updated_at' => $requisition->updated_at,
-                            'token' => $tracking->token,
-                            'requisition_detail'=>[
-                                'requester_name' => $requisition->requester->name ?? 'N/A',
-                            ]
-                        ]
-                    ], 200);
-                }
-
                 return response()->json([
                     'message' => 'Tidak ada requisition complain yang menunggu approval dari Anda.',
                     'data' => []
@@ -108,7 +82,7 @@ class ComplainApprovalController extends Controller
                         'requester_name' => $requisition->requester->name ?? 'N/A',
                         'customer_id' => $requisition->customer_id ?? null,
                         'category' => $requisition->category ?? null,
-                        'created_at' => $requisition->created_at ?? null,
+                        'updated_at' => $requisition->updated_at ?? null,
                         'status' => $requisition->status ?? null,
                     ]
                 ];

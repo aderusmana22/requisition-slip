@@ -9,6 +9,7 @@ use App\Http\Controllers\Master\UserController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Requisition\ComplainApprovalController;
 use App\Http\Controllers\Requisition\ComplainController;
+use App\Http\Controllers\Requisition\ComplainLogController;
 use App\Http\Controllers\Requisition\FreeGoodsController;
 use App\Http\Controllers\Requisition\RequisitionPath;
 use App\Http\Controllers\Requisition\SampleController;
@@ -23,8 +24,18 @@ Route::get('/dashboard', function () {
 Route::resource('/complain-form/approval', ComplainApprovalController::class)->only(['index']);
 Route::get('/getapproverdata/{id?}', [ComplainApprovalController::class, 'getData'])->name('get.approver.data');
 
+Route::get('/complain/log/data', [ComplainLogController::class, 'getData'])->name('complain.log.data');
 
-//! pindahkan ke midddleware approver
+// ! route email complain approval dan warehouse
+Route::get('/complain/approval-direct', [ComplainController::class, 'processApproval'])->name('approval.process.direct');
+Route::get('/complain/approval/review', [ComplainController::class, 'showReviewPage'])->name('complain.approval.review');
+Route::post('/complain/approval/process', [ComplainController::class, 'processApproval'])->name('complain.approval.process');
+Route::get('/complain/warehouse/approval', [ComplainController::class, 'processWarehouseApproval'])->name('complain.warehouse.approval');
+Route::get('/complain/warehouse/review', [ComplainController::class, 'showWarehouseReviewPage'])->name('complain.warehouse.review');
+Route::post('/complain/warehouse/process', [ComplainController::class, 'processWarehouseApproval'])->name('complain.warehouse.process');
+// =====
+
+//! pindahkan ke midddleware approver untuk approvalpath
 Route::get('/getapproverlist', [RequisitionPath::class, 'approverList'])->name('get.approverlist');
 Route::resource('/approvers', RequisitionPath::class);
 Route::get('/categories', [RequisitionPath::class, 'categories'])->name('get.categories');
@@ -63,21 +74,13 @@ Route::middleware('auth')->group(function () {
     Route::resource('complain-form', ComplainController::class);
     Route::resource('free-goods', FreeGoodsController::class);
 
-    Route::get('/complain-form/reports', [ComplainController::class, 'reports'])->name('complain-form.reports');
-    Route::get('/free-goods/reports', [FreeGoodsController::class, 'reports'])->name('free-goods.reports');
-
-    Route::get('/complain-form/approval', [ComplainController::class, 'approval'])->name('complain-form.approval');
-
-    // route complain
+    // * route complain form
     Route::get('/approval', [ComplainController::class, 'processApproval'])->name('approval.process');
-    Route::get('/complain/approval-direct', [ComplainController::class, 'processApproval'])->name('approval.process.direct');
-    Route::get('/complain/approval/review', [ComplainController::class, 'showReviewPage'])->name('complain.approval.review');
-    Route::post('/complain/approval/process', [ComplainController::class, 'processApproval'])->name('complain.approval.process');
-    Route::get('/complain/warehouse/approval', [ComplainController::class, 'processWarehouseApproval'])->name('complain.warehouse.approval');
-    Route::get('/complain/warehouse/review', [ComplainController::class, 'showWarehouseReviewPage'])->name('complain.warehouse.review');
-    Route::post('/complain/warehouse/process', [ComplainController::class, 'processWarehouseApproval'])->name('complain.warehouse.process');
     Route::get('/complain/test-data', [ComplainController::class, 'testData'])->name('complain.test.data');
     Route::get('/complain/test-warehouse/{id}', [ComplainController::class, 'testWarehouseTracking'])->name('complain.test.warehouse');
+
+    // * route log complain
+    Route::get('/complain/log',[ComplainLogController::class, 'index'])->name('complain.log.index');
 
     Route::prefix('requisition')->group(function () {
         Route::get('/getComplainData', [ComplainController::class, 'getData'])->name('get.complain.data');
@@ -88,17 +91,16 @@ Route::middleware('auth')->group(function () {
         Route::get('/complain-report/{id}', [ComplainController::class, 'printReport'])->name('complain.report');
         Route::post('/upload-payment-proof', [ComplainController::class, 'uploadPaymentProof'])->name('upload.payment.proof');
     });
-    // ===== terakhir dari complain ====
+    //*  ===== terakhir dari complain ====
 
     Route::get('/sample-form/reports', [SampleController::class, 'reports'])->name('sample-form.reports');
     Route::get('/complain-form/reports', [ComplainController::class, 'reports'])->name('complain-form.reports');
     Route::get('/free-goods/reports', [FreeGoodsController::class, 'reports'])->name('free-goods.reports');
 
     Route::get('/sample-form/approval', [SampleController::class, 'approval'])->name('sample-form.approval');
->>>>>>> 927f65dd3ff7678a02a8efbb77a5511085ceb539
     Route::get('/free-goods/approval', [FreeGoodsController::class, 'approval'])->name('free-goods.approval');
 
-    Route::get('/complain-form/log', [ComplainController::class, 'log'])->name('complain-form.log');
+     Route::get('/sample-form/log', [SampleController::class, 'log'])->name('sample-form.log');
     Route::get('/free-goods/log', [FreeGoodsController::class, 'log'])->name('free-goods.log');
 
     //! pindahkan ke midddleware approver
