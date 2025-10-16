@@ -64,8 +64,7 @@
         .action-section { background: #fef8e7; padding: 30px; border-radius: 12px; text-align: center; margin: 30px 0; border: 1px solid #cc982f; }
         .action-title { font-size: 20px; font-weight: 700; color: #2c3e50; margin-bottom: 15px; }
         .action-subtitle { color: #6c757d; margin-bottom: 25px; font-size: 16px; }
-        .button-group table { margin: 0 auto; }
-        .button-group td { padding: 7px; }
+
         .btn { display: inline-block; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; text-align: center; color: white !important; min-width: 140px; transition: all .3s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         .btn-approve { background: linear-gradient(135deg, #28a745 0%, #20c997 100%); }
         .btn-reject { background: linear-gradient(135deg, #dc3545 0%, #e74c3c 100%); }
@@ -74,6 +73,40 @@
         .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.15); }
         .email-footer { background: #343a40; color: white; padding: 30px 40px; text-align: center; }
         .copyright { font-size: 12px; opacity: .7; margin-top: 15px; }
+        /* Atur tabel utama untuk tombol */
+        .button-group {
+            width: 100%;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        /* Beri jarak antar sel tombol di tampilan desktop */
+        .button-cell {
+            padding: 5px;
+        }
+
+        /* Pastikan tombol mengisi selnya */
+        .button-group .btn {
+            width: 100%; /* Tombol akan mengisi lebar sel */
+            box-sizing: border-box; /* Padding tidak akan menambah lebar */
+        }
+
+
+        /* --- INI BAGIAN PENTING UNTUK RESPONSIVE --- */
+        @media screen and (max-width: 600px) {
+            /* Ubah sel tabel (td) menjadi block element */
+            .button-group .button-cell {
+                display: block;
+                width: 100% !important;
+                padding: 8px 0; /* Beri jarak vertikal antar tombol */
+            }
+
+            /* Atur lebar tombol di mobile agar tidak terlalu mepet ke tepi */
+            .button-group .btn {
+                width: 90% !important;
+                margin: 0 auto;
+            }
+        }
     </style>
 </head>
 <body>
@@ -94,8 +127,6 @@
                     Requisition <strong>{{ $requisition->no_srs }}</strong> requires your action to complete the QA/QM HSE form. Please click the button below.
                 @elseif(isset($mail_type) && $mail_type === 'warehouse_process')
                     Requisition <strong>{{ $requisition->no_srs }}</strong> has been fully approved and now requires your action for the process: <strong>{{ $process_step ?? 'N/A' }}</strong>.
-
-                {{-- 👇 SYNTAX YANG HILANG ADA DI SINI 👇 --}}
                 @elseif(isset($mail_type) && $mail_type === 'completed_notification')
                     Kabar baik! Sample Requisition Anda dengan nomor <strong>{{ $requisition->no_srs }}</strong> telah selesai diproses dan siap untuk langkah selanjutnya.
                 @elseif(isset($mail_type) && $mail_type === 'rejection_notification')
@@ -241,16 +272,16 @@
                     <h3 class="action-title">📝 Complete QA Form</h3>
                     <p class="action-subtitle">Please click the button below to open the form and complete the required fields.</p>
                     <div class="button-group">
-                        <table><tr><td><a href="{{ $form_url }}" class="btn btn-qa-form">Open QA Form</a></td></tr></table>
+                        <tr><td><a href="{{ $form_url }}" class="btn btn-qa-form">Open QA Form</a></td></tr>
                     </div>
                 @elseif(isset($mail_type) && $mail_type == 'warehouse_process')
                     <h3 class="action-title">📦 Warehouse Action Required</h3>
                     <p class="action-subtitle">Process step: <strong>{{ $process_step ?? 'N/A' }}</strong>. Please choose an action.</p>
                     <div class="button-group">
-                        <table><tr>
-                            <td><a href="{{ $submit_url }}" class="btn btn-approve">✅ Submit Process</a></td>
-                            <td><a href="{{ $review_url }}" class="btn btn-review">📝 Submit with Notes</a></td>
-                        </tr></table>
+                        <tr>
+                            <td class="button-cell"><a href="{{ $submit_url }}" class="btn btn-approve">✅ Submit Process</a></td>
+                            <td class="button-cell"><a href="{{ $review_url }}" class="btn btn-review">📝 Submit with Notes</a></td>
+                        </tr>
                     </div>
                 @elseif(isset($mail_type) && $mail_type === 'completed_notification')
                     <h3 class="action-title" style="color: #28a745;">✅ Process Completed</h3>
@@ -274,13 +305,19 @@
                     @if(isset($approve_url) && isset($review_url) && isset($reject_url))
                         <h3 class="action-title">⚡ Take Action</h3>
                         <p class="action-subtitle">Please review the request above and choose your action below</p>
-                        <div class="button-group">
-                            <table><tr>
-                                <td><a href="{{ $approve_url }}" class="btn btn-approve">✅ Quick Approve</a></td>
-                                <td><a href="{{ $review_url }}" class="btn btn-review">📝 Review with Notes</a></td>
-                                <td><a href="{{ $reject_url }}" class="btn btn-reject">❌ Quick Reject</a></td>
-                            </tr></table>
-                        </div>
+                        <table class="button-group" role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+                            <tr>
+                                <td class="button-cell">
+                                    <a href="{{ $approve_url }}" class="btn btn-approve">✅ Quick Approve</a>
+                                </td>
+                                <td class="button-cell">
+                                    <a href="{{ $review_url }}" class="btn btn-review">📝 Review with Notes</a>
+                                </td>
+                                <td class="button-cell">
+                                    <a href="{{ $reject_url }}" class="btn btn-reject">❌ Quick Reject</a>
+                                </td>
+                            </tr>
+                        </table>
                     @else
                         <h3 class="action-title">ℹ️ Notification Only</h3>
                         <p class="action-subtitle">This is a notification email. No action is required from you.</p>

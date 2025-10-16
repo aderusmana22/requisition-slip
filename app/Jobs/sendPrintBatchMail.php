@@ -12,6 +12,8 @@ use App\Models\Requisition\ApprovalLog;
 use App\Models\User;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\printBatchMail;
+use App\Models\Requisition\Tracking;
+use Illuminate\Support\Facades\Log;
 
 class sendPrintBatchMail implements ShouldQueue
 {
@@ -19,16 +21,16 @@ class sendPrintBatchMail implements ShouldQueue
 
     protected $approver;
     protected $requisition;
-    protected $approvalLog;
+    protected $tracking;
 
     /**
      * Create a new job instance.
      */
-    public function __construct(User $approver, Requisition $requisition, ApprovalLog $approvalLog)
+    public function __construct(User $approver, Requisition $requisition, Tracking $tracking)
     {
         $this->approver = $approver;
         $this->requisition = $requisition;
-        $this->approvalLog = $approvalLog;
+        $this->tracking = $tracking;
     }
 
     /**
@@ -41,22 +43,32 @@ class sendPrintBatchMail implements ShouldQueue
             ->find($this->requisition->id);
 
         $quickOkLink = route('complain.warehouse.approval', [
-            'id' => $this->approvalLog->requisition_id,
-            'token' => $this->approvalLog->token,
-            'status' => 'approve',
+            'id' => $this->tracking->requisition_id,
+            'token' => $this->tracking->token,
         ]);
 
         $okWithReviewLink = route('complain.warehouse.review', [
-            'id' => $this->approvalLog->requisition_id,
-            'token' => $this->approvalLog->token,
+            'id' => $this->tracking->requisition_id,
+            'token' => $this->tracking->token,
         ]);
 
-        Mail::to($this->approver->email)->send(new printBatchMail(
-            $this->approver,
-            $requisitionWithData ?? $this->requisition,
-            $this->approvalLog,
-            $quickOkLink,
-            $okWithReviewLink
-        ));
+        try {
+            Mail::to($this->approver->email)->send(new printBatchMail(
+                $this->approver,
+                $requisitionWithData ?? $this->requisition,
+                $this->tracking,
+                $quickOkLink,
+                $okWithReviewLink
+            ));
+
+        } catch (\Exception $e) {
+            Log::error('Job - sendPrintBatchMail: Failed to send email', [
+                'error' => $e->getMessage(),
+                'to_email' => $this->approver->email,
+                'requisition_id' => $this->requisition->id,
+                'token' => $this->tracking->token
+            ]);
+            throw $e;
+        }
     }
 }

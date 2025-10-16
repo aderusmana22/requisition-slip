@@ -120,9 +120,31 @@
             /* Jarak antar radio button */
         }
 
-        @media (max-width:1024px) {
+        @media (max-width: 992px) {
             .main-container {
+                /* Mengubah layout menjadi 1 kolom di layar kecil */
                 grid-template-columns: 1fr;
+
+                /* Mengurangi jarak/padding agar tidak terlalu mepet ke tepi */
+                gap: 20px;
+                padding: 0 15px;
+                margin-top: 20px;
+                margin-bottom: 20px;
+            }
+
+            .action-card {
+                /* Menonaktifkan posisi 'sticky' di mobile agar tidak aneh */
+                position: static;
+                top: auto;
+            }
+
+            .card-body.p-md-5 {
+                /* Mengurangi padding di dalam card agar tidak terlalu sesak */
+                padding: 1.5rem !important;
+            }
+
+            .main-header h4 {
+                font-size: 1.25rem; /* Sedikit mengecilkan judul utama */
             }
         }
 
@@ -283,7 +305,7 @@
             <div class="card action-card">
                 <div class="card-body p-4">
                     <h5 class="section-title"><i class="fas fa-edit"></i> {{ $pageTitle }}</h5>
-                    <form id="responseForm" action="{{ route('approval.process') }}" method="POST">
+                    <form id="responseForm" action="{{ route('approval-sample.process-form') }}" method="POST">
                         @csrf
                         <input type="hidden" name="token" value="{{ $token }}">
                         @if($action === 'approve' || ($action === 'submit' && $isWarehouseProcess))

@@ -345,12 +345,7 @@
             <div class="header-content">
                 <div class="warehouse-icon">🏭</div>
                 <h1 class="header-title">Warehouse Approval Required</h1>
-                <p class="header-subtitle">
-                    {{ 
-                        $approvalLog->level == 100 ? 'WH Supervisor - Initial Check' :
-                        ($approvalLog->level == 101 ? 'Material Supervisor - Material Review' : 'WH Supervisor - Final Approval')
-                    }}
-                </p>
+                <p class="header-subtitle">{{ $tracking->current_position }} - Approval Needed</p>
             </div>
         </div>
 
@@ -361,7 +356,7 @@
                 <h2>Hello, {{ $approver->name }}</h2>
                 <p>A requisition complain requires your warehouse approval. Please review the details below and take appropriate action.</p>
                 <div class="level-badge">
-                    📦 Level {{ $approvalLog->level }} Approval
+                    📦 {{ $tracking->current_position }}
                 </div>
             </div>
 
@@ -411,6 +406,20 @@
                             @endif
                         </span>
                     </div>
+                    <div class="info-item">
+                        <span class="info-label">Current Level:</span>
+                        <span class="info-value">
+                            @if($tracking->current_position == 'WH Supervisor First')
+                                Warehouse - Initial Check
+                            @elseif($tracking->current_position == 'Material Supervisor')
+                                Material - Review Process
+                            @elseif($tracking->current_position == 'WH Supervisor Final')
+                                Warehouse - Final Approval
+                            @else
+                                {{ $tracking->current_position }}
+                            @endif
+                        </span>
+                    </div>
                 </div>
             </div>
 
@@ -432,15 +441,19 @@
                             <th>Item Code</th>
                             <th>Qty Required</th>
                             <th>Qty Issued</th>
+                            <th>Batch Number</th>
+                            <th>Remarks</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach($requisition->requisitionItems as $item)
                         <tr>
-                            <td><strong>{{ $item->itemMaster->item_name ?? 'N/A' }}</strong></td>
-                            <td>{{ $item->itemMaster->item_code ?? 'N/A' }}</td>
+                            <td><strong>{{ $item->itemMaster->item_master_name ?? 'N/A' }}</strong></td>
+                            <td>{{ $item->itemMaster->item_master_code ?? 'N/A' }}</td>
                             <td style="text-align: center;"><span style="background: #e3f2fd; color: #1976d2; padding: 4px 8px; border-radius: 12px; font-weight: 600;">{{ $item->quantity_required ?? 0 }}</span></td>
                             <td style="text-align: center;"><span style="background: #e8f5e8; color: #2e7d32; padding: 4px 8px; border-radius: 12px; font-weight: 600;">{{ $item->quantity_issued ?? 0 }}</span></td>
+                            <td>{{ date('j/n/y', strtotime($item->batch_number)) ?? 'N/A' }}</td>
+                            <td>{{ $item->remarks ?? '-' }}</td>
                         </tr>
                         @endforeach
                     </tbody>

@@ -35,7 +35,7 @@ class sendSample implements ShouldQueue
     public function handle()
     {
         try {
-            $requisition = Requisition::with('requester.department')->findOrFail($this->requisitionId);
+            $requisition = Requisition::with('requester')->findOrFail($this->requisitionId);
 
             $mailType = $this->mailData['mail_type'] ?? 'approval';
             $dataForMail = $this->mailData;

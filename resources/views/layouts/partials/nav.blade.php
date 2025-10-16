@@ -70,8 +70,8 @@
                  </a>
                  <ul class="collapse" id="requisition-slip-approval">
                      <li><a href="{{ route('sample-form.approval') }}">Sample Approval</a></li>
-                     <li><a href="{{ route('complain-form.approval') }}">Complain Approval</a></li>
                      <li><a href="{{ route('freegoods-form.approval') }}">Free Goods Approval</a></li>
+                     <li><a href="{{ route('approval.index') }}">Complain Approval</a></li>
                  </ul>
              </li>
              <li class="menu-title"><span>Requisition Slip Approval</span></li>
