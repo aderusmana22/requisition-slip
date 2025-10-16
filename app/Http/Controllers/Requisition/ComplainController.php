@@ -1035,11 +1035,11 @@ class ComplainController extends Controller
 
             $tracking = Tracking::where('requisition_id', $id)
                 ->where('token', $token)
-                ->whereNotNull('last_updated') // tracking yang sudah dimulai prosesnya
+                ->whereNotNull('token')
                 ->first();
 
             if (!$tracking) {
-                $requisition = Requisition::with('customer')->find($id);
+                $requisition = Requisition::with(['customer', 'requisitionItems'])->find($id);
                 return view('page.complain.warehouse-expired', compact('requisition'));
             }
 
