@@ -42,8 +42,9 @@ Route::get('/categories', [RequisitionPath::class, 'categories'])->name('get.cat
 Route::get('/approver-name', [RequisitionPath::class, 'approverName'])->name('get.approver.name');
 
 Route::get('/approval/response/{token}', [SampleController::class, 'showResponseForm'])->name('approval.response');
-Route::post('/approval/process', [SampleController::class, 'processApproval'])->name('approval.process');
-Route::get('/approval   /success', [SampleController::class, 'showSuccessPage'])->name('approval.success');
+Route::post('/approvals/resend/{token}', [SampleController::class, 'resendApprovalEmail'])->name('approvals.resend');
+Route::post('/approval/process', [SampleController::class, 'processApproval'])->name('approval-sample.process-form');
+Route::get('/approval/success', [SampleController::class, 'showSuccessPage'])->name('approval.success');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -51,9 +52,20 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     // Requisition Routes
-    Route::resource('sample-form', SampleController::class);
-    Route::get('/sample-data', [SampleController::class, 'getData'])->name('sample.data');
+    Route::get('/sample-form/approval', [SampleController::class, 'approvalPage'])->name('sample-form.approval');
+    Route::get('/sample-approval/data', [SampleController::class, 'getApprovalData'])->name('sample.approval.data');
+
+    Route::get('/sample-form/reports', [SampleController::class, 'reportsPage'])->name('sample-form.reports');
+    Route::get('/sample-reports/data', [SampleController::class, 'getReportsData'])->name('sample.reports.data');
+    Route::get('/sample-report/print-batch', [SampleController::class, 'printReports'])->name('report_sample.print.batch');
     Route::get('/sample-report/{id}', [SampleController::class, 'printReport'])->name('sample.report');
+
+    Route::get('/sample-form/log', [SampleController::class, 'logPage'])->name('sample-form.log');
+    Route::get('/sample-log/data', [SampleController::class, 'getLogData'])->name('sample.log.data');
+
+    Route::resource('sample-form', SampleController::class);
+
+    Route::get('/sample-data', [SampleController::class, 'getData'])->name('sample.data');
     Route::post('/sample-form/{id}/cancel', [SampleController::class, 'cancelRequisition'])->name('sample.cancel');
     Route::post('/get-products-by-material-types', [SampleController::class, 'getProductsByMaterialTypes'])->name('sample.getProductsByMaterialTypes');
     Route::post('/get-item-details-by-products', [SampleController::class, 'getItemDetailsByProducts'])->name('sample.getItemDetailsByProducts');

@@ -360,7 +360,7 @@
             $special = $requisition->requisitionSpecial;
 
             // Blok logika terpusat
-            $weight_options = ['25 Kg', '15 Kg', '250 gr', '500g', '1 Kg', '500 ml', '1 lt', '5 lt'];
+            $weight_options = ['25Kg', '15Kg', '250gr', '500g', '1Kg', '500ml', '1lt', '5lt'];
             $packaging_options = ['Tub', 'Karton', 'Botol', 'Jerrycan'];
             $shipment_options = ['Sales', 'Delivery (DHL)', 'Container', 'Kurir'];
             $source_options = ['WH', 'Reference Sample', 'Batch Refinery', 'Packing Room'];
@@ -425,8 +425,9 @@
                     <td style="width: 20%; white-space: nowrap; border: none; border-right: 1px solid #333; padding-right: 8px;">Berat sample</td>
                     <td style="white-space: nowrap; border: none; padding-left: 8px;" colspan="6">
                         :
-                        @foreach(['a. 25 Kg', 'b. 15 Kg', 'c. 250 gr', 'd. 500 gr', 'e. 1 Kg', 'f. 500 ml', 'g. 1 lt', 'h. 5 lt'] as $option)
+                        @foreach(['a. 25Kg', 'b. 15Kg', 'c. 250gr', 'd. 500gr', 'e. 1Kg', 'f. 500ml', 'g. 1lt', 'h. 5lt'] as $option)
                             @if(str_contains($option, $special->weight_selection) && !$is_other_weight)<b><u>{{ $option }}</u></b>@else{{ $option }}@endif
+                            &nbsp;&nbsp;&nbsp;
                         @endforeach
                         i. Lainnya: @if($is_other_weight)<b><u>{{ $special->weight_selection }}</u></b>@else.............@endif
                     </td>
@@ -437,6 +438,7 @@
                         :
                         @foreach(['a. Tub', 'b. Karton', 'c. Botol', 'd. Jerrycan'] as $option)
                             @if(str_contains($option, $special->packaging_selection) && !$is_other_packaging)<b><u>{{ $option }}</u></b>@else{{ $option }}@endif
+                            &nbsp;&nbsp;&nbsp;
                         @endforeach
                         e. Lainnya: @if($is_other_packaging)<b><u>{{ $special->packaging_selection }}</u></b>@else.............@endif
                     </td>
@@ -454,6 +456,7 @@
                     <td style="white-space: nowrap; border: none; padding-left: 8px;" colspan="6">
                         :
                         @if($special->coa_required)<b><u>a. Ya</u></b>@else a. Ya @endif
+                        &nbsp;&nbsp;&nbsp;
                         @if(!$special->coa_required)<b><u>b. Tidak</u></b>@else b. Tidak @endif
                     </td>
                 </tr>
@@ -463,6 +466,7 @@
                         :
                         @foreach(['a. Sales', 'b. Delivery (DHL)', 'c. Container', 'd. Kurir'] as $option)
                             @if(str_contains($option, $special->shipment_method) && !$is_other_shipment)<b><u>{{ $option }}</u></b>@else{{ $option }}@endif
+                            &nbsp;&nbsp;&nbsp;
                         @endforeach
                         e. Lainnya: @if($is_other_shipment)<b><u>{{ $special->shipment_method }}</u></b>@else.............@endif
                     </td>
@@ -474,17 +478,17 @@
                     <td style="width: 20%; white-space: nowrap; border: none; border-right: 1px solid #333; padding-right: 8px;">Asal sample</td>
                     <td style="white-space: nowrap; border: none; padding-left: 8px;" colspan="6">
                         :
-                        @if($special->source == 'WH')<b><u>a. WH</u></b>@else a. WH @endif
-                        @if($special->source == 'Reference Sample')<b><u>b. Reference Sample</u></b>@else b. Reference Sample @endif
-                        @if($special->source == 'Batch Refinery')<b><u>c. Batch Refinery</u></b>@else c. Batch Refinery @endif
-                        @if($special->source == 'Packing Room')<b><u>d. Packing Room</u></b>@else d. Packing Room @endif
-                        e. Lainnya: @if($is_other_source)<b><u>{{ $special->source }}</u></b>@else.............@endif
+                        @if($special->source == 'WH')<b><u>a. WH</u></b>@else a. WH @endif&nbsp;&nbsp;&nbsp;
+                        @if($special->source == 'Reference Sample')<b><u>b. Reference Sample</u></b>@else b. Reference Sample @endif&nbsp;&nbsp;&nbsp;
+                        @if($special->source == 'Batch Refinery')<b><u>c. Batch Refinery</u></b>@else c. Batch Refinery @endif&nbsp;&nbsp;&nbsp;
+                        @if($special->source == 'Packing Room')<b><u>d. Packing Room</u></b>@else d. Packing Room @endif&nbsp;&nbsp;&nbsp;
+                        e. Lainnya: @if($is_other_source)<b><u>{{ $special->source }}</u></b>@else.............@endif&nbsp;&nbsp;&nbsp;
                     </td>
                 </tr>
                 <tr>
                     <td style="width: 20%; white-space: nowrap; border: none; border-right: 1px solid #333; padding-right: 8px;">Keterangan sample</td>
                     <td style="white-space: nowrap; border: none; padding-left: 8px;" colspan="6">
-                        : a. Batch / Pallet No: {!! $batch_no !!} P {!! $pallet_no !!} &nbsp;&nbsp; b. WB/DEO No / c. Tank No: {!! $wb_deo_tank_no !!}
+                        : a. Batch / Pallet No: {!! $batch_no !!} P {!! $pallet_no !!} &nbsp;&nbsp; b. WB/DEO No / &nbsp;&nbsp;&nbsp; c. Tank No: {!! $wb_deo_tank_no !!}
                     </td>
                 </tr>
                 <tr>
@@ -498,18 +502,18 @@
                     <td style="width: 20%; white-space: nowrap; border: none; border-right: 1px solid #333; padding-right: 8px;">Persiapan sample</td>
                     <td style="white-space: nowrap; border: none; padding-left: 8px;" colspan="6">
                         :
-                        @if($special->preparation_method == 'Tidak berubah')<b><u>a. Tidak berubah</u></b>@else a. Tidak berubah @endif
-                        @if($special->preparation_method == 'Rework Karton')<b><u>b. Rework Karton</u></b>@else b. Rework Karton @endif
-                        @if($special->preparation_method == 'Rework Stencill')<b><u>c. Rework Stencil</u></b>@else c. Rework Stencil @endif
-                        @if($special->preparation_method == 'Rework Label')<b><u>d. Rework Label</u></b>@else d. Rework Label @endif
-                        e. Lainnya: @if($is_other_preparation)<b><u>{{ $special->preparation_method }}</u></b>@else.............@endif
+                        @if($special->preparation_method == 'Tidak berubah')<b><u>a. Tidak berubah</u></b>@else a. Tidak berubah @endif&nbsp;&nbsp;&nbsp;
+                        @if($special->preparation_method == 'Rework Karton')<b><u>b. Rework Karton</u></b>@else b. Rework Karton @endif&nbsp;&nbsp;&nbsp;
+                        @if($special->preparation_method == 'Rework Stencill')<b><u>c. Rework Stencil</u></b>@else c. Rework Stencil @endif&nbsp;&nbsp;&nbsp;
+                        @if($special->preparation_method == 'Rework Label')<b><u>d. Rework Label</u></b>@else d. Rework Label @endif&nbsp;&nbsp;&nbsp;
+                        e. Lainnya: @if($is_other_preparation)<b><u>{{ $special->preparation_method }}</u></b>@else.............@endif&nbsp;&nbsp;&nbsp;
                     </td>
                 </tr>
                 <tr>
                     <td style="width: 20%; white-space: nowrap; border: none; border-right: 1px solid #333; padding-right: 8px;">Keterangan</td>
                     <td style="white-space: nowrap; border: none; padding-left: 8px;" colspan="6">
                         :
-                        @if($special->sample_notes == 'Tempel sticker')<b><u>a. Tempel sticker</u></b>@else a. Tempel sticker @endif
+                        @if($special->sample_notes == 'Tempel sticker')<b><u>a. Tempel sticker</u></b>@else a. Tempel sticker @endif&nbsp;&nbsp;&nbsp;
                         b. Lainnya: @if($is_other_notes)<b><u>{{ $special->sample_notes }}</u></b>@else.............@endif
                     </td>
                 </tr>
@@ -589,8 +593,8 @@
                                         @endif
                                     </td>
                                     <td class="text-center">
-                                        @if($approval->approved_at)
-                                            {{ \Carbon\Carbon::parse($approval->approved_at)->format('d M Y H:i') }}
+                                        @if($approval->updated_at)
+                                            {{ \Carbon\Carbon::parse($approval->updated_at)->format('d M Y H:i') }}
                                         @else
                                             -
                                         @endif
