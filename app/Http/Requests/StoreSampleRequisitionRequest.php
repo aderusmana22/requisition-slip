@@ -132,7 +132,7 @@ class StoreSampleRequisitionRequest extends FormRequest
             'end_date.required_if' => 'Sample Completion Date is required for Special Orders.',
             'weight_selection.required_if' => 'Sample Weight is required for Special Orders.',
             'packaging_selection.required_if' => 'Sample Packaging is required for Special Orders.',
-            'sample_count.required_if' => 'Number of Samples is required for Special Orders.',
+            'sample_count.required_if' => 'Samples Count is required for Special Orders.',
             'purpose.required_if' => 'Sample Purpose is required for Special Orders.',
             'shipment_method.required_if' => 'Shipment Method is required for Special Orders.',
             'coa_required.required_if' => 'Certificate of Analysis option is required for Special Orders.',

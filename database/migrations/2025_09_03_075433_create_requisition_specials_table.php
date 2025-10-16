@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('products')->nullable();
             $table->string('weight_selection')->nullable();
             $table->string('packaging_selection')->nullable();
-            $table->integer('sample_count')->nullable();
+            $table->string('sample_count')->nullable();
             $table->text('purpose')->nullable();
             $table->boolean('coa_required')->default(false);
             $table->string('shipment_method')->nullable();
