@@ -22,6 +22,8 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::resource('/complain-form/approval', ComplainApprovalController::class)->only(['index']);
+Route::get('/complain-form/reports', [ComplainController::class, 'reports'])->name('complain-form.reports');
+
 Route::get('/getapproverdata/{id?}', [ComplainApprovalController::class, 'getData'])->name('get.approver.data');
 
 Route::get('/complain/log/data', [ComplainLogController::class, 'getData'])->name('complain.log.data');
@@ -79,10 +81,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/complain-report/{id}', [ComplainController::class, 'printReport'])->name('complain.report');
         Route::post('/upload-payment-proof', [ComplainController::class, 'uploadPaymentProof'])->name('upload.payment.proof');
     });
+
+    // *bulk action report
+    Route::post('/report/print-bulk', [ComplainController::class, 'printBulkReport'])->name('report.print.bulk');
     //*  ===== terakhir dari complain ====
 
     Route::get('/sample-form/reports', [SampleController::class, 'reports'])->name('sample-form.reports');
-    Route::get('/complain-form/reports', [ComplainController::class, 'reports'])->name('complain-form.reports');
     Route::get('/free-goods/reports', [FreeGoodsController::class, 'reports'])->name('free-goods.reports');
 
     Route::get('/sample-form/approval', [SampleController::class, 'approval'])->name('sample-form.approval');
