@@ -280,6 +280,30 @@
             return text.substring(0, maxLength) + '...';
         }
 
+        function getStatusBadge(data){
+        const status = (data || '').toLowerCase().trim();
+            switch (status) {
+                case 'pending':
+                    return '<span class="badge status-badge-lg status-pending">Pending</span>';
+                case 'approved':
+                    return '<span class="badge status-badge-lg status-approved">Approved</span>';
+                case 'rejected':
+                case 'failed':
+                    return '<span class="badge status-badge-lg status-rejected">Rejected</span>';
+                case 'in progress':
+                    return '<span class="badge status-badge-lg status-in-progress">In Progress</span>';
+                case 'completed':
+                case 'success':
+                    return '<span class="badge status-badge-lg status-completed">Completed</span>';
+                case 'cancelled':
+                    return '<span class="badge status-badge-lg status-cancelled">Cancelled</span>';
+                case 'payment proof':
+                    return '<span class="badge status-badge-lg status-payment-proof">Payment Proof</span>';
+                default:
+                    return '<span class="badge status-badge-lg bg-secondary">' + data + '</span>';
+            }
+        }
+
         // Function to update selected count and button state
         function updateSelectedCount() {
             const selectedCheckboxes = $('.row-selector:checked');
