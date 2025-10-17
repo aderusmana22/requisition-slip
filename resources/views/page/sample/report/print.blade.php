@@ -194,7 +194,7 @@
     {{-- ======================================================= --}}
     {{-- ========= HALAMAN 1: TEMPLATE UTAMA (SEMUA TIPE) ========= --}}
     {{-- ======================================================= --}}
-
+    @foreach($requisitions as $requisition)
     <div class="page">
         <table class="bordered">
             <tr>
@@ -614,6 +614,7 @@
             </tr>
         </table>
     </div>
+    @endforeach
 </body>
 
 </html>
