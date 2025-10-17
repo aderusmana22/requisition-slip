@@ -299,16 +299,25 @@
                                 <i class="ph-duotone ph-check-circle me-2"></i>
                                 Your Decision <span class="text-danger">*</span>
                             </label>
-                            <div class="d-flex gap-3">
+                            <div class="d-flex flex-column gap-2">
                                 <div class="form-check">
                                     <input class="form-check-input" type="radio" name="status" id="approve_radio" value="approve" required>
                                     <label class="form-check-label text-success fw-medium" for="approve_radio">
+                                        <i class="ph-duotone ph-check-circle me-1"></i>
                                         Approve
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="status" id="approve_with_review_radio" value="approve_with_review" required>
+                                    <label class="form-check-label text-info fw-medium" for="approve_with_review_radio">
+                                        <i class="ph-duotone ph-check-circle me-1"></i>
+                                        Approve with Review
                                     </label>
                                 </div>
                                 <div class="form-check">
                                     <input class="form-check-input" type="radio" name="status" id="reject_radio" value="reject" required>
                                     <label class="form-check-label text-danger fw-medium" for="reject_radio">
+                                        <i class="ph-duotone ph-x-circle me-1"></i>
                                         Reject
                                     </label>
                                 </div>
@@ -325,7 +334,7 @@
                             <textarea class="form-control" id="review_notes" name="notes" rows="4" 
                                 placeholder="Enter your notes or comments here..."></textarea>
                             <div class="form-text">
-                                <span id="notes_help_text">Optional for approval, required for rejection.</span>
+                                <span id="notes_help_text">Optional for approve, required for approve with review and reject.</span>
                             </div>
                         </div>
                     </form>
@@ -603,12 +612,17 @@
             if (selectedDecision === 'reject') {
                 notesField.prop('required', true);
                 requiredIndicator.show();
-                helpText.text('Notes are required.');
+                helpText.text('Notes are required for rejection.');
                 notesField.attr('placeholder', 'Please provide reason for rejection...');
-            } else {
+            } else if (selectedDecision === 'approve_with_review') {
                 notesField.prop('required', true);
                 requiredIndicator.show();
-                helpText.text('Notes are required.');
+                helpText.text('Notes are required for approve with review.');
+                notesField.attr('placeholder', 'Please provide your review notes...');
+            } else {
+                notesField.prop('required', false);
+                requiredIndicator.hide();
+                helpText.text('Notes are optional for approval.');
                 notesField.attr('placeholder', 'Enter your notes or comments here...');
             }
         };
@@ -667,8 +681,6 @@
                 }
             });
 
-            // === DataTable Setup ===
-            // === DataTable Setup ===
             const table = $('#approvalTable').DataTable({
                 processing: false,
                 serverSide: false,
@@ -706,7 +718,7 @@
                         render: (data, type, row) => data || row.requisition_details?.customer?.name || 'N/A'
                     },
                     {
-                        data: 'updated_at',
+                        data: 'requisition_details.updated_at',
                         render: (data) => {
                             if (!data) return 'N/A';
                             
@@ -743,15 +755,7 @@
                                             data-id="${row.requisition_id}" data-tooltip="View Details">
                                         <i class="ph-duotone ph-eye"></i>
                                     </button>
-                                    <button type="button" class="btn btn-success btn-sm approve-button action-btn-hover" 
-                                            data-token="${token}" data-tooltip="Approve">
-                                        <i class="ph-duotone ph-check"></i>
-                                    </button>
-                                    <button type="button" class="btn btn-danger btn-sm reject-button action-btn-hover" 
-                                            data-token="${token}" data-tooltip="Reject">
-                                        <i class="ph-duotone ph-x"></i>
-                                    </button>
-                                    <button type="button" class="btn btn-warning btn-sm review-button action-btn-hover" 
+                                    <button type="button" class="btn btn-primary btn-sm review-button action-btn-hover" 
                                             data-token="${token}" data-tooltip="Review with Notes">
                                         <i class="ph-duotone ph-note"></i>
                                     </button>
@@ -770,7 +774,6 @@
                 }
             });
 
-            // === Custom Search with Debounce ===
             const searchInput = $('#approvalTable_filter input').unbind();
             let debounceTimer;
             searchInput.on('keyup', function() {
@@ -881,40 +884,6 @@
                         }
                     });
                 })
-                .on('click', '.approve-button', function() {
-                    const token = $(this).data('token');
-                    const requisitionId = $(this).closest('tr').find('.detail-button').data('id');
-                    
-                    showConfirmDialog({
-                        title: 'Approve Request?',
-                        text: 'Are you sure you want to approve this complain request?',
-                        confirmButtonText: 'Yes, Approve',
-                        confirmButtonColor: '#28a745',
-                        icon: 'question'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            makeApprovalRequest(approvalProcessUrl, { token, id: requisitionId, status: 'approve' }, 
-                                () => showSuccessMessage('Request approved successfully!', 'Approved'));
-                        }
-                    });
-                })
-                .on('click', '.reject-button', function() {
-                    const token = $(this).data('token');
-                    const requisitionId = $(this).closest('tr').find('.detail-button').data('id');
-                    
-                    showConfirmDialog({
-                        title: 'Reject Request?',
-                        text: 'Are you sure you want to reject this complain request?',
-                        confirmButtonText: 'Yes, Reject',
-                        confirmButtonColor: '#dc3545',
-                        icon: 'warning'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            makeApprovalRequest(approvalProcessUrl, { token, id: requisitionId, status: 'reject' }, 
-                                () => showSuccessMessage('Request rejected successfully!', 'Rejected'));
-                        }
-                    });
-                })
                 .on('click', '.review-button', function() {
                     const token = $(this).data('token');
                     const requisitionId = $(this).closest('tr').find('.detail-button').data('id');
@@ -952,8 +921,9 @@
                     notes: $('#review_notes').val()
                 };
                 
-                if (formData.status === 'reject' && !formData.notes.trim()) {
-                    showErrorMessage('Notes are required for rejection.');
+                // Validasi notes berdasarkan status
+                if ((formData.status === 'reject' || formData.status === 'approve_with_review') && !formData.notes.trim()) {
+                    showErrorMessage('Notes are required for this action.');
                     return;
                 }
                 
@@ -961,8 +931,26 @@
                 
                 makeApprovalRequest(approvalProcessUrl, formData, () => {
                     $('#reviewModal').modal('hide');
-                    const message = formData.status === 'approve' ? 'Request approved successfully!' : 'Request rejected successfully!';
-                    const title = formData.status === 'approve' ? 'Approved' : 'Rejected';
+                    let message, title;
+                    
+                    switch(formData.status) {
+                        case 'approve':
+                            message = 'Request approved successfully!';
+                            title = 'Approved';
+                            break;
+                        case 'approve_with_review':
+                            message = 'Request approved with review successfully!';
+                            title = 'Approved with Review';
+                            break;
+                        case 'reject':
+                            message = 'Request rejected successfully!';
+                            title = 'Rejected';
+                            break;
+                        default:
+                            message = 'Request processed successfully!';
+                            title = 'Processed';
+                    }
+                    table.ajax.reload(null, false);
                     showSuccessMessage(message, title);
                 });
             });

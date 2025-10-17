@@ -144,7 +144,7 @@
                         <!-- Objectives Row -->
                         <div class="row mb-4">
                             <div class="col-12">
-                                <label for="objectives" class="form-label"><strong>Objectives :</strong></label>
+                                <label for="objectives" class="form-label"><strong>reason for replacement :</strong></label>
                                 <textarea name="objectives" id="objectives" class="form-control" rows="3"></textarea>
                                 <div data-error-for="objectives" class="text-danger mt-1 error-message"></div>
                             </div>
@@ -463,6 +463,46 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Approval & Process Tracking Card -->
+                    <div class="detail-section">
+                        <div class="section-header">
+                            <i class="ph-duotone ph-path"></i>
+                            Approval & Process Tracking
+                        </div>
+                        <div class="card view-modal-card">
+                            <div class="card-body p-4">
+                                <div class="d-flex align-items-center mb-4">
+                                    <span class="fw-bold me-3">Current Status:</span>
+                                    <div id="detail_status_badge"></div>
+                                </div>
+                                <div class="tracker-container" id="complain-approval-tracker-container">
+                                    <div class="tracker-line"><div class="tracker-line-progress" id="complain-tracker-progress"></div></div>
+                                    <div class="tracker-step" data-step-name="Submitted"><div class="tracker-icon"><i class="ph-bold ph-file-arrow-up fs-6"></i></div><div class="tracker-label">Submitted</div><div class="tracker-details"></div></div>
+                                    <div class="tracker-step" data-step-name="Manager Approval"><div class="tracker-icon"><i class="ph-bold ph-user-plus fs-6"></i></div><div class="tracker-label">Manager</div><div class="tracker-details"></div></div>
+                                    <div class="tracker-step" data-step-name="Business Controller Approval"><div class="tracker-icon"><i class="ph-bold ph-briefcase fs-6"></i></div><div class="tracker-label">Business Controller</div><div class="tracker-details"></div></div>
+                                    <div class="tracker-step" data-step-name="Warehouse Processing"><div class="tracker-icon"><i class="ph-bold ph-package fs-6"></i></div><div class="tracker-label">Warehouse</div><div class="tracker-details"></div></div>
+                                    <div class="tracker-step" data-step-name="Ready for Dispatch"><div class="tracker-icon"><i class="ph-bold ph-truck fs-6"></i></div><div class="tracker-label">Dispatch</div><div class="tracker-details"></div></div>
+                                    <div class="tracker-step" data-step-name="Completed"><div class="tracker-icon"><i class="ph-bold ph-check-circle fs-6"></i></div><div class="tracker-label">Completed</div><div class="tracker-details"></div></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Requisition History Card -->
+                    <div class="detail-section">
+                        <div class="section-header">
+                            <i class="ph-duotone ph-clock-counter-clockwise"></i>
+                            Requisition History
+                        </div>
+                        <div class="card view-modal-card">
+                            <div class="card-body p-4">
+                                <ul class="list-group list-group-flush" id="complain-history-log-container">
+                                    <!-- History akan diisi oleh JavaScript di sini -->
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="modal-footer">
@@ -694,18 +734,35 @@
                         data: 'status',
                         name: 'status',
                         render: function (data, type, row) {
-                            if (data == 'Pending') {
-                                return '<span class="badge status-badge-lg bg-warning text-dark">Pending</span>';
-                            } else if (data == 'In Progress') {
-                                return '<span class="badge status-badge-lg bg-info text-white">In Progress</span>';
-                            } else if (data == 'Completed' || data == 'Success') {
-                                return '<span class="badge status-badge-lg bg-success">Completed</span>';
-                            } else if (data == 'Rejected' || data == 'Failed') {
-                                return '<span class="badge status-badge-lg bg-danger">Rejected</span>';
-                            } else if (data == 'payment proof') {
-                                return '<span class="badge status-badge-lg bg-danger text-white">Need Payment Proof</span>';
-                            } else {
-                                return '<span class="badge status-badge-lg bg-secondary">' + data + '</span>';
+                            // Normalize status untuk comparison
+                            const status = (data || '').toLowerCase().trim();
+                            
+                            switch(status) {
+                                case 'pending':
+                                    return '<span class="badge status-badge-lg status-pending">Pending</span>';
+                                
+                                case 'approved':
+                                    return '<span class="badge status-badge-lg status-approved">Approved</span>';
+                                
+                                case 'rejected':
+                                case 'failed':
+                                    return '<span class="badge status-badge-lg status-rejected">Rejected</span>';
+                                
+                                case 'in progress':
+                                    return '<span class="badge status-badge-lg status-in-progress">In Progress</span>';
+                                
+                                case 'completed':
+                                case 'success':
+                                    return '<span class="badge status-badge-lg status-completed">Completed</span>';
+                                
+                                case 'cancelled':
+                                    return '<span class="badge status-badge-lg status-cancelled">Cancelled</span>';
+                                
+                                case 'payment proof':
+                                    return '<span class="badge status-badge-lg status-payment-proof">Payment Proof</span>';
+                                
+                                default:
+                                    return '<span class="badge status-badge-lg bg-secondary">' + data + '</span>';
                             }
                         }
                     },
@@ -996,6 +1053,12 @@
 
                         // Populate Status & Approval History
                         populateStatusAndHistory(data);
+
+                        // Populate Approval Tracker
+                        populateApprovalTracker(data);
+
+                        // Populate History Log
+                        populateHistoryLog(data);
 
                         // Check if payment proof exists and add to detail - filter by complain ID
                         if (data.payments && data.payments.length > 0) {
@@ -1309,30 +1372,47 @@
                 const statusContainer = $('#current_status_display');
                 const status = data.status || 'Unknown';
 
-                // Map status to CSS classes and display text
+                // Map status to CSS classes and display text dengan teks bilingual
                 let statusClass = 'status-badge-progress';
                 let statusText = status;
 
-                switch(status.toLowerCase()) {
+                switch(status.toLowerCase().trim()) {
                     case 'pending':
-                        statusClass = 'status-badge-pending';
-                        statusText = 'Pending Review';
+                        statusClass = 'status-pending';
+                        statusText = 'Pending';
                         break;
                     case 'approved':
-                        statusClass = 'status-badge-approved';
+                        statusClass = 'status-approved';
                         statusText = 'Approved';
                         break;
                     case 'rejected':
-                        statusClass = 'status-badge-rejected';
+                    case 'failed':
+                        statusClass = 'status-rejected';
                         statusText = 'Rejected';
                         break;
                     case 'in progress':
-                        statusClass = 'status-badge-progress';
+                        statusClass = 'status-in-progress';
                         statusText = 'In Progress';
                         break;
+                    case 'completed':
+                    case 'success':
+                        statusClass = 'status-completed';
+                        statusText = 'Completed - Selesai';
+                        break;
+                    case 'cancelled':
+                        statusClass = 'status-cancelled';
+                        statusText = 'Cancelled';
+                        break;
+                    case 'payment proof':
+                        statusClass = 'status-payment-proof';
+                        statusText = 'Payment Proof';
+                        break;
+                    default:
+                        statusClass = 'bg-secondary';
+                        statusText = status;
                 }
 
-                statusContainer.html(`<div class="current-status-badge ${statusClass}">${statusText}</div>`);
+                statusContainer.html(`<div class="current-status-badge status-badge-lg ${statusClass}">${statusText}</div>`);
 
                 // Populate approval history
                 const historyContainer = $('#approval_history_list');
@@ -1435,6 +1515,190 @@
                     `;
                     container.append(imageHtml);
                 });
+            }
+
+            // Populate Approval Tracker Function
+            function populateApprovalTracker(data) {
+                const trackerContainer = $('#complain-approval-tracker-container');
+                const progressBar = $('#complain-tracker-progress');
+                const steps = trackerContainer.find('.tracker-step');
+                
+                // Reset all steps
+                steps.removeClass('active completed rejected');
+                
+                // Set status badge using the same logic as current status display
+                const status = data.status || 'Unknown';
+                let statusClass = 'status-badge-progress';
+                let statusText = status;
+
+                switch(status.toLowerCase().trim()) {
+                    case 'pending':
+                        statusClass = 'status-pending';
+                        statusText = 'Pending';
+                        break;
+                    case 'approved':
+                        statusClass = 'status-approved';
+                        statusText = 'Approved';
+                        break;
+                    case 'rejected':
+                    case 'failed':
+                        statusClass = 'status-rejected';
+                        statusText = 'Rejected';
+                        break;
+                    case 'in progress':
+                        statusClass = 'status-in-progress';
+                        statusText = 'In Progress';
+                        break;
+                    case 'completed':
+                    case 'success':
+                        statusClass = 'status-completed';
+                        statusText = 'Completed - Selesai';
+                        break;
+                    case 'cancelled':
+                        statusClass = 'status-cancelled';
+                        statusText = 'Cancelled';
+                        break;
+                    case 'payment proof':
+                        statusClass = 'status-payment-proof';
+                        statusText = 'Payment Proof';
+                        break;
+                    default:
+                        statusClass = 'bg-secondary';
+                        statusText = status;
+                }
+
+                $('#detail_status_badge').html(`<div class="current-status-badge status-badge-lg ${statusClass}">${statusText}</div>`);
+                
+                let progressPercent = 0;
+                
+                // Always mark submitted as completed
+                steps.filter('[data-step-name="Submitted"]').addClass('completed');
+                progressPercent = 16.66; // 1/6 of progress
+                
+                // Check approval logs - using token null as indicator for completion
+                const approvalLogs = data.approval_logs || [];
+                let managerApproved = false;
+                let bcApproved = false;
+                let allApprovalsComplete = false;
+                
+                // Check for manager approval (level 1)
+                const managerLog = approvalLogs.find(log => log.level === 1);
+                if (managerLog && managerLog.token === null) {
+                    if (managerLog.status === 'Approved') {
+                        steps.filter('[data-step-name="Manager Approval"]').addClass('completed');
+                        managerApproved = true;
+                        progressPercent = 33.33; // 2/6 of progress
+                    } else if (managerLog.status === 'Rejected') {
+                        steps.filter('[data-step-name="Manager Approval"]').addClass('rejected');
+                        progressBar.css('width', '33.33%');
+                        return; // Stop here if rejected
+                    }
+                } else if (managerLog && managerLog.status === 'Pending') {
+                    steps.filter('[data-step-name="Manager Approval"]').addClass('active');
+                }
+                
+                // Check for business controller approval (level 2)
+                const bcLog = approvalLogs.find(log => log.level === 2);
+                if (bcLog && bcLog.token === null && managerApproved) {
+                    if (bcLog.status === 'Approved') {
+                        steps.filter('[data-step-name="Business Controller Approval"]').addClass('completed');
+                        bcApproved = true;
+                        progressPercent = 50; // 3/6 of progress
+                        allApprovalsComplete = true;
+                    } else if (bcLog.status === 'Rejected') {
+                        steps.filter('[data-step-name="Business Controller Approval"]').addClass('rejected');
+                        progressBar.css('width', '50%');
+                        return; // Stop here if rejected
+                    }
+                } else if (bcLog && bcLog.status === 'Pending' && managerApproved) {
+                    steps.filter('[data-step-name="Business Controller Approval"]').addClass('active');
+                }
+                
+                // Check warehouse tracking - using token null as indicator for completion
+                const trackings = data.trackings || [];
+                let warehouseComplete = false;
+                let dispatchComplete = false;
+                
+                if (allApprovalsComplete && trackings.length > 0) {
+                    // Count completed warehouse steps (where token is null)
+                    const completedTrackings = trackings.filter(tracking => tracking.token === null);
+                    
+                    if (completedTrackings.length > 0) {
+                        steps.filter('[data-step-name="Warehouse Processing"]').addClass('completed');
+                        warehouseComplete = true;
+                        progressPercent = 66.66; // 4/6 of progress
+                    } else {
+                        // Check if any warehouse step is active (has token but not completed)
+                        const activeTracking = trackings.find(tracking => tracking.token !== null);
+                        if (activeTracking) {
+                            steps.filter('[data-step-name="Warehouse Processing"]').addClass('active');
+                        }
+                    }
+                    
+                    // Check if all warehouse steps are complete for dispatch
+                    if (completedTrackings.length === trackings.length && trackings.length > 0) {
+                        steps.filter('[data-step-name="Ready for Dispatch"]').addClass('completed');
+                        dispatchComplete = true;
+                        progressPercent = 83.33; // 5/6 of progress
+                    } else if (warehouseComplete) {
+                        steps.filter('[data-step-name="Ready for Dispatch"]').addClass('active');
+                    }
+                }
+                
+                // Final completion check
+                if (data.status === 'Completed' || data.status === 'completed') {
+                    steps.filter('[data-step-name="Completed"]').addClass('completed');
+                    progressPercent = 100;
+                } else if (dispatchComplete) {
+                    steps.filter('[data-step-name="Completed"]').addClass('active');
+                }
+                
+                // Set progress bar
+                progressBar.css('width', progressPercent + '%');
+            }
+
+            // Populate History Log Function
+            function populateHistoryLog(data) {
+                const historyContainer = $('#complain-history-log-container');
+                const history = data.history || [];
+                
+                if (history.length === 0) {
+                    historyContainer.html(`
+                        <li class="list-group-item text-center py-4">
+                            <i class="ph-duotone ph-clock-clockwise fs-2 text-muted mb-2 d-block"></i>
+                            <div class="fw-medium text-muted">No history available</div>
+                            <small class="text-muted">History will appear here as the requisition progresses</small>
+                        </li>
+                    `);
+                    return;
+                }
+                
+                let historyHtml = '';
+                
+                history.forEach((item, index) => {
+                    const timestamp = new Date(item.timestamp).toLocaleDateString('en-GB', {
+                        day: '2-digit',
+                        month: 'short',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                    
+                    historyHtml += `
+                        <li class="list-group-item d-flex align-items-start">
+                            <div class="history-item-icon ${item.color}">
+                                <i class="ph-duotone ${item.icon}"></i>
+                            </div>
+                            <div class="history-item-content">
+                                <div class="history-item-title">${item.title}</div>
+                                <div class="history-item-description">${item.description}</div>
+                                <div class="history-item-timestamp">${timestamp}</div>
+                            </div>
+                        </li>
+                    `;
+                });
+                
+                historyContainer.html(historyHtml);
             }
 
             // === Modal Create ===
@@ -1981,7 +2245,7 @@
 
             // Add enhanced search placeholder
             $('#complainTable_filter input').attr({
-                'placeholder': '🔍 Search complaints...',
+                'placeholder': 'Search complaints...',
                 'class': 'form-control'
             });
 

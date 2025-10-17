@@ -41,52 +41,52 @@
                 </ul>
             </li>
 
-            <li class="menu-title"><span>Requisition Slip Form</span></li>
-            <li>
-                <a aria-expanded="false" class="" data-bs-toggle="collapse" href="#requisition-slip">
-                    <i class="iconoir-google-docs"></i> Requisition Slip Form
-                </a>
-                <ul class="collapse" id="requisition-slip">
-                    <li><a href="{{ route('sample-form.index') }}">Sample Form</a></li>
-                    <li><a href="{{ route('complain-form.index') }}">Complain Form</a></li>
-                    <li><a href="{{ route('free-goods.index') }}">Free Goods</a></li>
-                </ul>
-            </li>
-            <li class="menu-title"><span>Requisition Slip Report</span></li>
-            <li>
-                <a aria-expanded="false" class="" data-bs-toggle="collapse" href="#requisition-slip-report">
-                    <i class="iconoir-stats-report"></i> Requisition Slip Report
-                </a>
-                <ul class="collapse" id="requisition-slip-report">
-                    <li><a href="{{ route('sample-form.reports') }}">Sample Reports</a></li>
-                    <li><a href="{{ route('complain-form.reports') }}">Complain Reports</a></li>
-                    <li><a href="{{ route('free-goods.reports') }}">Free Goods Reports</a></li>
-                </ul>
-            </li>
-            <li class="menu-title"><span>Requisition Slip Approval</span></li>
-            <li>
-                <a aria-expanded="false" class="" data-bs-toggle="collapse" href="#requisition-slip-approval">
-                    <i class="iconoir-stats-report"></i> Requisition Slip Approval
-                </a>
-                <ul class="collapse" id="requisition-slip-approval">
-                    <li><a href="{{ route('sample-form.approval') }}">Sample Approval</a></li>
-                    <li><a href="{{ route('approval.index')}}">Complain Approval</a></li>
-                    <li><a href="{{ route('free-goods.approval') }}">Free Goods Approval</a></li>
-                </ul>
-            </li>
-            <li class="menu-title"><span>Requisition Slip Approval</span></li>
-            <li>
-                <a aria-expanded="false" class="" data-bs-toggle="collapse" href="#requisition-slip-log">
-                    <i class="iconoir-stats-report"></i> Requisition Slip Log
-                </a>
-                <ul class="collapse" id="requisition-slip-log">
-                    <li><a href="{{ route('sample-form.log') }}">Sample Log</a></li>
-                    <li><a href="{{ route('complain-form.log') }}">Complain Log</a></li>
-                    <li><a href="{{ route('free-goods.log') }}">Free Goods Log</a></li>
-                </ul>
-            </li>
-        </ul>
-    </div>
+             <li class="menu-title"><span>Requisition Slip Form</span></li>
+             <li>
+                 <a aria-expanded="false" class="" data-bs-toggle="collapse" href="#requisition-slip">
+                     <i class="iconoir-google-docs"></i> Requisition Slip Form
+                 </a>
+                 <ul class="collapse" id="requisition-slip">
+                     <li><a href="{{ route('sample-form.index') }}">Sample Form</a></li>
+                     <li><a href="{{ route('complain-form.index') }}">Complain Form</a></li>
+                     <li><a href="{{ route('free-goods.index') }}">Free Goods</a></li>
+                 </ul>
+             </li>
+             <li class="menu-title"><span>Requisition Slip Report</span></li>
+             <li>
+                 <a aria-expanded="false" class="" data-bs-toggle="collapse" href="#requisition-slip-report">
+                     <i class="iconoir-stats-report"></i> Requisition Slip Report
+                 </a>
+                 <ul class="collapse" id="requisition-slip-report">
+                     <li><a href="{{ route('sample-form.reports') }}">Sample Reports</a></li>
+                     <li><a href="{{ route('complain-form.reports') }}">Complain Reports</a></li>
+                     <li><a href="{{ route('free-goods.reports') }}">Free Goods Reports</a></li>
+                 </ul>
+             </li>
+             <li class="menu-title"><span>Requisition Slip Approval</span></li>
+             <li>
+                 <a aria-expanded="false" class="" data-bs-toggle="collapse" href="#requisition-slip-approval">
+                     <i class="iconoir-stats-report"></i> Requisition Slip Approval
+                 </a>
+                 <ul class="collapse" id="requisition-slip-approval">
+                     <li><a href="{{ route('sample-form.approval') }}">Sample Approval</a></li>
+                     <li><a href="{{ route('approval.index') }}">Complain Approval</a></li>
+                     <li><a href="{{ route('free-goods.approval') }}">Free Goods Approval</a></li>
+                 </ul>
+             </li>
+             <li class="menu-title"><span>Requisition Slip Approval</span></li>
+             <li>
+                 <a aria-expanded="false" class="" data-bs-toggle="collapse" href="#requisition-slip-log">
+                     <i class="iconoir-stats-report"></i> Requisition Slip Log
+                 </a>
+                 <ul class="collapse" id="requisition-slip-log">
+                     <li><a href="{{ route('sample-form.log') }}">Sample Log</a></li>
+                     <li><a href="{{ route('complain.log.index') }}">Complain Log</a></li>
+                     <li><a href="{{ route('free-goods.log') }}">Free Goods Log</a></li>
+                 </ul>
+             </li>
+         </ul>
+     </div>
 
 
     <div class="menu-navs">
