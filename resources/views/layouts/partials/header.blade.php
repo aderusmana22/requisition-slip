@@ -43,116 +43,34 @@
 
                     <li class="header-notification">
                         <a aria-controls="notificationcanvasRight" class="d-block head-icon position-relative"
-                            data-bs-target="#notificationcanvasRight" data-bs-toggle="offcanvas" href="#"
-                            role="button">
+                            data-bs-target="#notificationcanvasRight" data-bs-toggle="offcanvas" href="#" role="button" id="notification-bell">
                             <i class="iconoir-bell"></i>
-                            <span
-                                class="position-absolute translate-middle p-1 bg-success border border-light rounded-circle animate__animated animate__fadeIn animate__infinite animate__slower"></span>
+                            <span id="notification-badge" class="position-absolute top-0 start-90 translate-middle badge rounded-pill bg-success border border-light" style="display: none; font-size: 0.55em; padding: 0.35em 0.6em;"></span>
                         </a>
                         <div aria-labelledby="notificationcanvasRightLabel"
                             class="offcanvas offcanvas-end header-notification-canvas" id="notificationcanvasRight"
                             tabindex="-1">
                             <div class="offcanvas-header">
-                                <h5 class="offcanvas-title" id="notificationcanvasRightLabel">
-                                    Notification</h5>
-                                <button aria-label="Close" class="btn-close" data-bs-dismiss="offcanvas"
-                                    type="button"></button>
+                                <h5 class="offcanvas-title">Notifications (<span id="notification-count">0</span>)</h5>
+                                <button aria-label="Close" class="btn-close" data-bs-dismiss="offcanvas" type="button"></button>
                             </div>
                             <div class="offcanvas-body notification-offcanvas-body app-scroll p-0">
-                                <div class="head-container notification-head-container">
-                                    <div class="notification-message head-box">
-                                        <div class="message-images">
-                                            <span class="bg-secondary h-35 w-35 d-flex-center b-r-10 position-relative">
-                                                <i class="iconoir-document"></i>
-                                            </span>
-                                        </div>
-                                        <div class="message-content-box flex-grow-1 ps-2">
-                                            <a class="f-s-15 text-secondary mb-0" href="#" target="_blank">
-                                                <span class="f-w-500 text-secondary">Your requisition slip #RS-1023</span> has been <span class="text-success">approved</span> by <span class="f-w-500 text-secondary">Manager John</span>.
-                                            </a>
-                                            <span class="badge text-light-success mt-2"> 5 min ago </span>
-                                        </div>
-                                        <div class="align-self-start text-end">
-                                            <i class="iconoir-xmark close-btn"></i>
-                                        </div>
-                                    </div>
-                                    <div class="notification-message head-box">
-                                        <div class="message-images">
-                                            <span class="bg-warning h-35 w-35 d-flex-center b-r-10 position-relative">
-                                                <i class="iconoir-clock"></i>
-                                            </span>
-                                        </div>
-                                        <div class="message-content-box flex-grow-1 ps-2">
-                                            <a class="f-s-15 text-secondary mb-0" href="#" target="_blank">
-                                                <span class="f-w-500 text-secondary">Requisition slip #RS-1024</span> is <span class="text-warning">waiting for your approval</span>.
-                                            </a>
-                                            <div>
-                                                <a class="d-inline-block f-w-500 text-success me-1" href="#">Approve</a>
-                                                <a class="d-inline-block f-w-500 text-danger" href="#">Reject</a>
-                                            </div>
-                                            <span class="badge text-light-warning mt-2"> 10 min ago </span>
-                                        </div>
-                                        <div class="align-self-start text-end">
-                                            <i class="iconoir-xmark close-btn"></i>
-                                        </div>
-                                    </div>
-                                    <div class="notification-message head-box">
-                                        <div class="message-images">
-                                            <span class="bg-danger h-35 w-35 d-flex-center b-r-10 position-relative">
-                                                <i class="iconoir-cancel"></i>
-                                            </span>
-                                        </div>
-                                        <div class="message-content-box flex-grow-1 ps-2">
-                                            <a class="f-s-15 text-secondary mb-0" href="#" target="_blank">
-                                                <span class="f-w-500 text-secondary">Requisition slip #RS-1022</span> has been <span class="text-danger">rejected</span> by <span class="f-w-500 text-secondary">Manager Lisa</span>.
-                                            </a>
-                                            <span class="badge text-light-danger mt-2"> 30 min ago </span>
-                                        </div>
-                                        <div class="align-self-start text-end">
-                                            <i class="iconoir-xmark close-btn"></i>
-                                        </div>
-                                    </div>
-                                    <div class="notification-message head-box">
-                                        <div class="message-images">
-                                            <span class="bg-info h-35 w-35 d-flex-center b-r-10 position-relative">
-                                                <i class="iconoir-truck"></i>
-                                            </span>
-                                        </div>
-                                        <div class="message-content-box flex-grow-1 ps-2">
-                                            <a class="f-s-15 text-secondary mb-0" href="#" target="_blank">
-                                                <span class="f-w-500 text-secondary">Tracking update:</span> Your requisition slip #RS-1023 is <span class="text-info">being processed</span>.
-                                            </a>
-                                            <span class="badge text-light-info mt-2"> 1 hour ago </span>
-                                        </div>
-                                        <div class="align-self-start text-end">
-                                            <i class="iconoir-xmark close-btn"></i>
-                                        </div>
-                                    </div>
-                                    <div class="notification-message head-box">
-                                        <div class="message-images">
-                                            <span class="bg-primary h-35 w-35 d-flex-center b-r-10 position-relative">
-                                                <i class="iconoir-plus"></i>
-                                            </span>
-                                        </div>
-                                        <div class="message-content-box flex-grow-1 ps-2">
-                                            <a class="f-s-15 text-secondary mb-0" href="#" target="_blank">
-                                                <span class="f-w-500 text-secondary">You have created a new requisition slip</span> #RS-1025.
-                                            </a>
-                                            <span class="badge text-light-primary mt-2"> just now </span>
-                                        </div>
-                                        <div class="align-self-start text-end">
-                                            <i class="iconoir-xmark close-btn"></i>
-                                        </div>
-                                    </div>
-                                    <div class="hidden-massage py-4 px-3">
-                                        <img alt="" class="w-50 h-50 mb-3 mt-2"
-                                            src="../assets/images/icons/bell.png">
-                                        <div>
-                                            <h6 class="mb-0">No Notifications</h6>
-                                            <p class="text-secondary">When you have any requisition slip notifications, they will appear here.</p>
-                                        </div>
+                                <div id="notification-list-container" class="head-container notification-head-container">
+                                    {{-- Notifikasi akan diisi oleh JavaScript --}}
+                                </div>
+                                {{-- Template Loading & Empty State --}}
+                                <div id="notification-loading" class="text-center py-5">
+                                    <div class="spinner-border text-primary" role="status"></div>
+                                </div>
+                                <div id="notification-empty" class="hidden-massage py-4 px-3" style="display: none;">
+                                    <img alt="" class="w-50 h-50 mb-3 mt-2" src="{{ asset('assets/images/icons/bell.png') }}">
+                                    <div>
+                                        <h6 class="mb-0">No New Notifications</h6>
                                     </div>
                                 </div>
+                            </div>
+                            <div class="offcanvas-footer p-3 border-top">
+                                <button class="btn btn-primary w-100" id="mark-all-read-btn">Mark all as read</button>
                             </div>
                         </div>
                     </li>
@@ -213,4 +131,94 @@
             </div>
         </div>
     </div>
+
+    @push('scripts')
+    <script>
+        $(document).ready(function() {
+            const listContainer = $('#notification-list-container');
+            const loadingEl = $('#notification-loading');
+            const emptyEl = $('#notification-empty');
+            const badgeEl = $('#notification-badge');
+            const countEl = $('#notification-count');
+            const markAllReadBtn = $('#mark-all-read-btn');
+
+            function fetchNotifications() {
+                loadingEl.show();
+                listContainer.hide().empty();
+                emptyEl.hide();
+                markAllReadBtn.hide();
+
+                $.getJSON("{{ route('notifications.fetch') }}", function(response) {
+                    const notifications = response.notifications;
+                    countEl.text(notifications.length);
+
+                    if (notifications.length > 0) {
+                        badgeEl.text(notifications.length > 9 ? '9+' : notifications.length).show();
+                        markAllReadBtn.show();
+
+                        notifications.forEach(function(notif) {
+                            // Ini adalah template notifikasi baru yang lebih sederhana
+                            const notifHtml = `
+                                <div class="notification-message head-box mark-as-read" data-id="${notif.id}" data-url="${notif.url}" style="cursor: pointer;">
+                                    <div class="message-images">
+                                        <span class="${notif.color} h-35 w-35 d-flex-center b-r-10">
+                                            <i class="${notif.icon}"></i>
+                                        </span>
+                                    </div>
+                                    <div class="message-content-box flex-grow-1 ps-2">
+                                        <p class="f-s-14 mb-0">${notif.text}</p>
+                                        <span class="f-s-12 text-muted">${notif.time}</span>
+                                    </div>
+                                </div>`;
+                            listContainer.append(notifHtml);
+                        });
+                        listContainer.show();
+                    } else {
+                        badgeEl.hide();
+                        emptyEl.show();
+                    }
+                }).fail(function() {
+                    emptyEl.show().find('h6').text('Failed to load notifications.');
+                }).always(function() {
+                    loadingEl.hide();
+                });
+            }
+
+            // Panggil saat ikon lonceng diklik
+            $('#notification-bell').on('click', fetchNotifications);
+
+            // Tandai satu notifikasi sebagai dibaca saat diklik
+            $(document).on('click', '.mark-as-read', function() {
+                const notifEl = $(this);
+                const id = notifEl.data('id');
+                const url = notifEl.data('url');
+
+                $.post("{{ route('notifications.read') }}", { id: id, _token: "{{ csrf_token() }}" }, function(res) {
+                    if(res.success) {
+                        if (url && url !== '#') {
+                            window.location.href = url;
+                        } else {
+                            notifEl.fadeOut(300, () => {
+                                notifEl.remove();
+                                fetchNotifications(); // Muat ulang notifikasi
+                            });
+                        }
+                    }
+                });
+            });
+
+            // Tandai semua sebagai dibaca
+            markAllReadBtn.on('click', function() {
+                $.post("{{ route('notifications.read.all') }}", { _token: "{{ csrf_token() }}" }, function(res) {
+                    if(res.success) {
+                        fetchNotifications(); // Cukup muat ulang, nanti akan otomatis kosong
+                    }
+                });
+            });
+
+            // (Opsional) Periksa notifikasi baru setiap 1 menit
+            // setInterval(fetchNotifications, 60000); 
+        });
+    </script>
+    @endpush
 </header>

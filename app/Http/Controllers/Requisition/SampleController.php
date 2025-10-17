@@ -26,6 +26,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Yajra\DataTables\Facades\DataTables;
 use App\Traits\ApprovalTrait;
 use Spatie\Activitylog\Models\Activity;
+use App\Notifications\RequisitionNotification;
 
 class SampleController extends Controller
 {
@@ -126,7 +127,7 @@ class SampleController extends Controller
                     </div>
                 ';
             })
-            ->editColumn('request_date', fn($req) => Carbon::parse($req->request_date)->format('d M Y'))
+            ->editColumn('request_date', fn($req) => Carbon::parse($req->request_date)->format('d F Y'))
             ->editColumn('sub_category', function ($requisition) {
                 $subCategory = $requisition->sub_category;
                 $badgeClass = 'bg-dark'; // Warna default
@@ -285,6 +286,15 @@ class SampleController extends Controller
             if ($firstLog && $firstApprover = User::where('nik', $firstLog->approver_nik)->first()) {
                 $requisition->update(['route_to' => $firstApprover->name]);
                 sendSample::dispatch($requisition, $firstApprover, $firstLog->token)->delay(now()->addSeconds(3));
+                
+                $notificationData = [
+                    'requisition_id' => $requisition->id,
+                    'srs_number'     => $requisition->no_srs,
+                    'message'        => "Requisition #{$requisition->no_srs} dari {$user->name} menunggu approval Anda.",
+                    'url'            => route('sample-form.approval'), // Arahkan ke halaman approval
+                ];
+                $firstApprover->notify(new RequisitionNotification($notificationData, $user));
+            
             } else {
                 $requisition->update(['status' => 'Completed', 'route_to' => 'Finished (No Path)']);
                 Log::warning("Tidak ada alur approval. Auto-complete Requisition ID {$requisition->id}.");
@@ -601,12 +611,21 @@ class SampleController extends Controller
 
             if ($action === 'reject') {
                 $requisition->update(['status' => 'Rejected', 'route_to' => 'Finished (Rejected)']);
-                if ($requisition->requester) {
+                if ($requester = $requisition->requester) {
                     dispatch(new sendSample($requisition, $requisition->requester, null, [
                         'mail_type' => 'rejection_notification',
                         'approver_name' => $approverName,
                         'rejection_notes' => $notes
-                    ]))->delay(now()->addSeconds(3));;
+                    ]))->delay(now()->addSeconds(3));
+
+                    $notificationData = [
+                        'requisition_id' => $requisition->id,
+                        'srs_number'     => $requisition->no_srs,
+                        'message'        => "Requisition #{$requisition->no_srs} Anda telah di-reject oleh {$approverName}.",
+                        'url'            => route('sample-form.index'),
+                    ];
+                    $causer = $approvalLog->approver; // User yang melakukan reject
+                    $requester->notify(new RequisitionNotification($notificationData, $causer));
                 }
                 $newStatus = 'Rejected';
                 $title = 'Requisition Rejected'; // Judul baru
@@ -623,10 +642,18 @@ class SampleController extends Controller
                 $nextApprovalLog = ApprovalLog::where('requisition_id', $requisition->id)
                                                 ->where('level', '>', $approvalLog->level)
                                                 ->orderBy('level', 'asc')->first();
-                if ($nextApprovalLog && $nextApprovalLog->approver) {
+                if ($nextApprovalLog && $nextApprover = $nextApprovalLog->approver) {
                     $requisition->update(['status' => 'In Progress', 'route_to' => $nextApprovalLog->approver->name]);
                     dispatch(new sendSample($requisition, $nextApprovalLog->approver, $nextApprovalLog->token))->delay(now()->addSeconds(3));
                     $newStatus = 'In Progress';
+                    $notificationData = [
+                        'requisition_id' => $requisition->id,
+                        'srs_number'     => $requisition->no_srs,
+                        'message'        => "Requisition #{$requisition->no_srs} menunggu approval Anda.",
+                        'url'            => route('sample-form.approval'),
+                    ];
+                    $causer = $approvalLog->approver; // User yang baru saja approve
+                    $nextApprover->notify(new RequisitionNotification($notificationData, $causer));
                 } else {
                     $requisition->update(['status' => 'Approved']);
                     $newStatus = $this->handlePostApprovalFlow($requisition);
@@ -1045,7 +1072,7 @@ class SampleController extends Controller
         return $pdf->stream('RS Sample - ' . $requisition->no_srs . '.pdf');
     }
 
-    public function printReports(Request $request)
+    public function printMultipleReports(Request $request)
     {
         // 1. Validate that we received an array of IDs.
         $validated = $request->validate([
@@ -1081,7 +1108,9 @@ class SampleController extends Controller
             'requisitions' => $requisitions,
         ];
 
-        $pdf = Pdf::loadView('page.sample.report', $data)->setPaper('a4', 'landscape');
+        Log::info('IDs diterima: ', $request->requisition_ids);
+
+        $pdf = Pdf::loadView('page.sample.report.print', $data)->setPaper('a4', 'landscape');
         return $pdf->stream('Batch RS Sample - ' . now()->format('Y-m-d') . '.pdf');
     }
 

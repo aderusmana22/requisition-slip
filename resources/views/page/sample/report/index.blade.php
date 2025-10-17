@@ -48,7 +48,7 @@
                         <p class="table-subtitle">Select requisitions to print in a batch.</p>
                     </div>
                     <div>
-                        <form id="print-form" action="{{ route('report_sample.print.batch') }}" method="POST" target="_blank">
+                        <form id="print-form" action="{{ route('report_sample.print') }}" method="POST" target="_blank">
                             @csrf
                             <div id="hidden-ids-container"></div>
                             <button type="submit" id="print-selected-btn" class="btn btn-success" disabled>
@@ -150,20 +150,21 @@
                 function updateSelectedCount() {
                     const selectedCheckboxes = $('.requisition-checkbox:checked');
                     const selectedCount = selectedCheckboxes.length;
+                    console.log("Selected:", selectedCount); // 👈 tambahkan ini
                     $('#selected-count').text(selectedCount);
                     $('#print-selected-btn').prop('disabled', selectedCount === 0);
                     $('#hidden-ids-container').empty();
                     selectedCheckboxes.each(function() {
-                        $('#hidden-ids-container').append(`<input type="hidden" name="ids[]" value="${$(this).val()}">`);
+                        $('#hidden-ids-container').append(`<input type="hidden" name="requisition_ids[]" value="${$(this).val()}">`);
                     });
                 }
+
                 $('#select-all-checkbox').on('click', function() {
                     $('.requisition-checkbox').prop('checked', this.checked);
                     updateSelectedCount();
                 });
 
-                // [MODIFIKASI] Event listener disesuaikan dengan ID tabel yang benar
-                $('#sampleTable tbody').on('change', '.requisition-checkbox', function() {
+                $(document).on('change click', '.requisition-checkbox', function() {
                     updateSelectedCount();
                     if (!this.checked) {
                         $('#select-all-checkbox').prop('checked', false);
@@ -174,6 +175,8 @@
                     $('#select-all-checkbox').prop('checked', false);
                     updateSelectedCount();
                 });
+
+                $('.requisition-checkbox').length
             });
         </script>
     @endpush

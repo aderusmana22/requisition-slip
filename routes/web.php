@@ -46,7 +46,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/sample-form/reports', [SampleController::class, 'reportsPage'])->name('sample-form.reports');
     Route::get('/sample-reports/data', [SampleController::class, 'getReportsData'])->name('sample.reports.data');
-    Route::get('/sample-report/print-batch', [SampleController::class, 'printReports'])->name('report_sample.print.batch');
+    Route::get('/sample-print/pdf', [SampleController::class, 'printMultipleReports'])->name('report_sample.print');
     Route::get('/sample-report/{id}', [SampleController::class, 'printReport'])->name('sample.report');
 
     Route::get('/sample-form/log', [SampleController::class, 'logPage'])->name('sample-form.log');
@@ -90,12 +90,9 @@ Route::middleware('auth')->group(function () {
     });
     // ===== terakhir dari complain ====
 
-    Route::get('/sample-form/reports', [SampleController::class, 'reports'])->name('sample-form.reports');
     Route::get('/complain-form/reports', [ComplainController::class, 'reports'])->name('complain-form.reports');
     Route::get('/free-goods/reports', [FreeGoodsController::class, 'reports'])->name('free-goods.reports');
 
-    Route::get('/sample-form/approval', [SampleController::class, 'approval'])->name('sample-form.approval');
->>>>>>> 927f65dd3ff7678a02a8efbb77a5511085ceb539
     Route::get('/free-goods/approval', [FreeGoodsController::class, 'approval'])->name('free-goods.approval');
 
     Route::get('/complain-form/log', [ComplainController::class, 'log'])->name('complain-form.log');
@@ -103,6 +100,13 @@ Route::middleware('auth')->group(function () {
 
     //! pindahkan ke midddleware approver
     Route::get('/getapproverlist', [RequisitionPath::class, 'approverList'])->name('get.approverlist');
+
+    Route::prefix('notifications')->name('notifications.')->group(function () {
+        Route::get('/', [App\Http\Controllers\NotificationController::class, 'fetch'])->name('fetch');
+        Route::get('/count', [App\Http\Controllers\NotificationController::class, 'count'])->name('count');
+        Route::post('/read', [App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('read');
+        Route::post('/read-all', [App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('read.all');
+    });
 });
 
 
