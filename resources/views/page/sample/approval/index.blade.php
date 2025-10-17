@@ -28,7 +28,7 @@
                             <tr>
                                 <th>No.</th>
                                 <th>SRS No.</th>
-                                <th>Approver NIK</th>
+                                <th>Requester</th>
                                 <th>Request Date</th>
                                 <th>Sub Category</th>
                                 <th>Level</th>
@@ -193,7 +193,7 @@
                     columns: [
                         { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false, width: '20px', className: 'text-center' },
                         { data: 'no_srs', name: 'requisition.no_srs' },
-                        { data: 'approver_nik', name: 'approver_nik' },
+                        { data: 'requester', name: 'requisition.requester.name' },
                         { data: 'request_date', name: 'requisition.request_date' },
                         { data: 'sub_category', name: 'requisition.sub_category', className: 'text-center' },
                         { data: 'level', name: 'level', className: 'text-center' },

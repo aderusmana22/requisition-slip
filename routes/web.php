@@ -96,10 +96,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/complain-form/reports', [ComplainController::class, 'reports'])->name('complain-form.reports');
     Route::get('/free-goods/reports', [FreeGoodsController::class, 'reports'])->name('free-goods.reports');
 
-    Route::get('/sample-form/approval', [SampleController::class, 'approval'])->name('sample-form.approval');
+    // Route::get('/sample-form/approval', [SampleController::class, 'approval'])->name('sample-form.approval');
     Route::get('/free-goods/approval', [FreeGoodsController::class, 'approval'])->name('free-goods.approval');
 
-     Route::get('/sample-form/log', [SampleController::class, 'log'])->name('sample-form.log');
+    // Route::get('/sample-form/log', [SampleController::class, 'log'])->name('sample-form.log');
     Route::get('/free-goods/log', [FreeGoodsController::class, 'log'])->name('free-goods.log');
 
     //! pindahkan ke midddleware approver

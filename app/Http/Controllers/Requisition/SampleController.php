@@ -27,6 +27,7 @@ use Yajra\DataTables\Facades\DataTables;
 use App\Traits\ApprovalTrait;
 use Spatie\Activitylog\Models\Activity;
 use App\Notifications\RequisitionNotification;
+use Illuminate\Notifications\Notification;
 
 class SampleController extends Controller
 {
@@ -88,7 +89,7 @@ class SampleController extends Controller
             ->select(
                 'requisitions.id', 'requisitions.requester_nik', 'requisitions.request_date',
                 'requisitions.sub_category', 'requisitions.route_to', 'requisitions.status',
-                'users.name as requester_name', 'users.avatar', 'customers.name as customer_name'
+                'users.name as requester_name', 'users.avatar', 'customers.name as customer_name', 'requisitions.created_at'
             );
 
         // [FIX] Mengubah total logika filter untuk non-admin
@@ -102,8 +103,8 @@ class SampleController extends Controller
                 if ($user->hasRole('head-QA')) {
                     $q->orWhere(function ($subQuery) {
                         $subQuery->where('requisitions.sub_category', 'Special Order')
-                                 ->where('requisitions.status', 'Approved')
-                                 ->where('requisitions.route_to', 'Waiting for QA/QM Form');
+                                ->where('requisitions.status', 'Approved')
+                                ->where('requisitions.route_to', 'Waiting for QA/QM Form');
                     });
                 }
             });
@@ -116,18 +117,17 @@ class SampleController extends Controller
             ->addColumn('requester_info', function ($requisition) {
                 $avatar = $requisition->avatar ? asset($requisition->avatar) : asset('assets/images/logo/sinarmeadow.png');
                 $nik = e($requisition->requester_nik);
+
                 return '
-                    <div class="d-flex align-items-center">
-                        <div class="h-30 w-30 d-flex-center b-r-50 overflow-hidden text-bg-dark me-2">
-                            <img src="' . $avatar . '" alt="avatar" class="img-fluid">
-                        </div>
-                        <div>
-                            <small class="text-muted">' . $nik . '</small>
+                    <div>
+                        <div class="status-badge-lg bg-dark d-flex align-items-center">
+                            <img src="' . $avatar . '" alt="av" class="img-fluid rounded-circle me-1" style="width: 20px; height: 20px; object-fit: cover;">
+                            <span>' . $nik . '</span>
                         </div>
                     </div>
                 ';
             })
-            ->editColumn('request_date', fn($req) => Carbon::parse($req->request_date)->format('d F Y'))
+            ->editColumn('request_date', fn($req) => Carbon::parse($req->created_at)->format('d M Y, H:i'))
             ->editColumn('sub_category', function ($requisition) {
                 $subCategory = $requisition->sub_category;
                 $badgeClass = 'bg-dark'; // Warna default
@@ -286,7 +286,7 @@ class SampleController extends Controller
             if ($firstLog && $firstApprover = User::where('nik', $firstLog->approver_nik)->first()) {
                 $requisition->update(['route_to' => $firstApprover->name]);
                 sendSample::dispatch($requisition, $firstApprover, $firstLog->token)->delay(now()->addSeconds(3));
-                
+
                 $notificationData = [
                     'requisition_id' => $requisition->id,
                     'srs_number'     => $requisition->no_srs,
@@ -294,7 +294,7 @@ class SampleController extends Controller
                     'url'            => route('sample-form.approval'), // Arahkan ke halaman approval
                 ];
                 $firstApprover->notify(new RequisitionNotification($notificationData, $user));
-            
+
             } else {
                 $requisition->update(['status' => 'Completed', 'route_to' => 'Finished (No Path)']);
                 Log::warning("Tidak ada alur approval. Auto-complete Requisition ID {$requisition->id}.");
@@ -524,6 +524,26 @@ class SampleController extends Controller
     //======================================================================
     // PRIVATE FUNCTIONS (Business Logic & Helpers)
     //======================================================================
+
+    private function notifyRelevantUsers(User $targetUser, Notification $notification)
+    {
+        // 1. Kirim notifikasi ke pengguna target utama.
+        $targetUser->notify($notification);
+
+        // 2. Ambil semua pengguna dengan role 'super-admin'.
+        $superAdmins = User::whereHas('roles', function ($query) {
+            $query->where('name', 'super-admin');
+        })->get();
+
+        // 3. Kirim notifikasi ke setiap superadmin.
+        foreach ($superAdmins as $admin) {
+            // Pastikan kita tidak mengirim notifikasi dua kali jika
+            // pengguna target utama juga seorang superadmin.
+            if ($admin->id !== $targetUser->id) {
+                $admin->notify($notification);
+            }
+        }
+    }
 
     /**
      * Menangani submit form QA/QM.
@@ -1137,21 +1157,26 @@ class SampleController extends Controller
                 // Kolom checkbox untuk memilih baris
                 return '<input type="checkbox" class="form-check-input requisition-checkbox" value="'.$row->id.'">';
             })
-            ->addColumn('no_srs', fn($req) => $req->no_srs)
+            ->addColumn('no_srs', function($req) {
+                $no = $req->no_srs ?? 'N/A';
+                return '<span class="srs-badge">' . e($no) . '</span>';
+            })
             ->addColumn('requester_info', function ($requisition) {
-                $avatar = $requisition->requester->avatar ? asset($requisition->requester->avatar) : asset('assets/images/logo/sinarmeadow.png');
+                $requester = $requisition->requester;
+                $avatar = $requester && $requester->avatar ? asset($requester->avatar) : asset('assets/images/logo/sinarmeadow.png');
+                $nik = e($requester->nik ?? '-');
+
                 return '
-                    <div class="d-flex align-items-center">
-                        <div class="h-30 w-30 d-flex-center b-r-50 overflow-hidden text-bg-dark me-2">
-                            <img src="' . $avatar . '" alt="avatar" class="img-fluid">
+                    <div>
+                        <div class="status-badge-lg bg-dark d-flex align-items-center">
+                            <img src="' . $avatar . '" alt="av" class="img-fluid rounded-circle me-1" style="width: 20px; height: 20px; object-fit: cover;">
+                            <span>' . $nik . '</span>
                         </div>
-                        <div>
-                            <small class="text-muted">' . e($requisition->requester->name) . '</small>
-                        </div>
-                    </div>';
+                    </div>
+                ';
             })
             ->addColumn('customer_name', fn($req) => $req->customer->name ?? 'N/A')
-            ->editColumn('request_date', fn($req) => Carbon::parse($req->request_date)->format('d M Y'))
+            ->editColumn('request_date', fn($req) => Carbon::parse($req->created_at)->format('d M Y, H:i'))
             ->editColumn('sub_category', function ($requisition) {
                 $subCategory = $requisition->sub_category;
                 $badgeClass = 'bg-dark'; // Warna default
@@ -1176,14 +1201,37 @@ class SampleController extends Controller
             })
             ->editColumn('status', function ($requisition) {
                 $status = $requisition->status;
-                $badgeClass = 'bg-primary text-white';
-                if (in_array($status, ['Submitted', 'Pending'])) $badgeClass = 'bg-primary';
-                elseif (in_array($status, ['Approved', 'Completed'])) $badgeClass = 'bg-success';
-                elseif (in_array($status, ['Rejected', 'Cancelled'])) $badgeClass = 'bg-danger';
-                elseif ($status == 'In Progress') $badgeClass = 'bg-info';
-                return '<span class="status-badge-lg ' . $badgeClass . '">' . e($status) . '</span>';
+                $badgeClass = 'bg-secondary'; // Warna default
+                $icon = 'ph-question';       // Ikon default
+
+                switch ($status) {
+                    case 'Pending':
+                    case 'Submitted':
+                        $badgeClass = 'bg-primary';
+                        $icon = 'ph-paper-plane-tilt';
+                        break;
+                    case 'In Progress':
+                        $badgeClass = 'bg-info';
+                        $icon = 'ph-arrows-clockwise';
+                        break;
+                    case 'Approved':
+                    case 'Completed':
+                        $badgeClass = 'bg-success';
+                        $icon = 'ph-check-circle';
+                        break;
+                    case 'Rejected':
+                        $badgeClass = 'bg-danger';
+                        $icon = 'ph-x-circle';
+                        break;
+                    case 'Cancelled':
+                        $badgeClass = 'bg-secondary';
+                        $icon = 'ph-ban';
+                        break;
+                }
+
+                return '<span class="status-badge-lg ' . $badgeClass . '"><i class="ph-bold ' . $icon . ' me-1"></i>' . e($status) . '</span>';
             })
-            ->rawColumns(['checkbox', 'requester_info', 'sub_category', 'status'])
+            ->rawColumns(['checkbox', 'no_srs', 'requester_info', 'sub_category', 'status'])
             ->make(true);
     }
 
@@ -1242,7 +1290,7 @@ class SampleController extends Controller
                             break;
                     }
                 }
-                
+
                 return '<span class="status-badge-lg ' . $badgeClass . '"><i class="ph-bold ' . $icon . ' me-1"></i>' . e($logName) . '</span>';
             })
             ->addColumn('subject_info', function ($log) {
@@ -1323,7 +1371,8 @@ class SampleController extends Controller
         $currentUser = Auth::user();
 
         $query = ApprovalLog::with([
-            'requisition:id,no_srs,sub_category,status,request_date'
+            'requisition.requester:nik,name,avatar', 
+            'requisition:id,no_srs,sub_category,status,requester_nik' // Pastikan requester_nik ada
         ])
         ->join('requisitions', 'approval_logs.requisition_id', '=', 'requisitions.id');
 
@@ -1332,23 +1381,11 @@ class SampleController extends Controller
         // =================================================================
 
         if ($currentUser->hasRole('super-admin')) {
-            // **LOGIKA UNTUK SUPER ADMIN**
-            // Super admin bisa melihat semua log (pending, approved, rejected) dari semua user.
-            // Tidak ada filter status, tidak ada filter NIK, dan tidak ada logika berjenjang.
-            // Mereka melihat semuanya secara langsung.
 
         } else {
-            // **LOGIKA UNTUK APPROVER BIASA**
-            // 1. Hanya tampilkan tugas milik user yang sedang login.
             $query->where('approval_logs.approver_nik', $currentUser->nik);
-
-            // 2. Hanya tampilkan tugas yang statusnya masih 'Pending'. Ini yang membuat data hilang setelah diproses.
             $query->where('approval_logs.status', 'Pending');
-
-            // 3. Hanya tampilkan tugas dari requisition yang masih aktif.
             $query->whereIn('requisitions.status', ['Pending', 'In Progress', 'Approved']);
-
-            // 4. Terapkan logika berjenjang agar hanya tugas yang sudah gilirannya yang tampil.
             $query->where(function ($q) {
                 $q->where('approval_logs.level', 1)
                 ->orWhereExists(function ($subQuery) {
@@ -1366,8 +1403,21 @@ class SampleController extends Controller
         return DataTables::of($query)
             ->addIndexColumn()
             ->addColumn('no_srs', fn($log) => '<span class="srs-badge">' . e($log->requisition->no_srs ?? 'N/A') . '</span>')
-            ->addColumn('approver_nik', fn($log) => $log->approver_nik) // Kolom ini dikembalikan
-            ->addColumn('request_date', fn($log) => Carbon::parse($log->requisition->request_date)->format('d M Y'))
+            ->addColumn('requester', function($log) {
+                $requester = optional($log->requisition)->requester;
+                $avatar = $requester && $requester->avatar ? asset($requester->avatar) : asset('assets/images/logo/sinarmeadow.png');
+                $nik = e($requester->nik ?? '-');
+
+                return '
+                    <div>
+                        <div class="status-badge-lg bg-dark d-flex align-items-center">
+                            <img src="' . $avatar . '" alt="av" class="img-fluid rounded-circle me-1" style="width: 20px; height: 20px; object-fit: cover;">
+                            <span>' . $nik . '</span>
+                        </div>
+                    </div>
+                ';
+            })
+            ->addColumn('request_date', fn($log) => Carbon::parse($log->created_at)->format('d M Y, H:i'))
             ->addColumn('sub_category', function ($log) {
                 $subCategory = $log->requisition->sub_category ?? 'N/A';
                 $badgeClass = 'bg-secondary';
@@ -1442,7 +1492,7 @@ class SampleController extends Controller
                 }
                 return '<div class="action-icon-container" data-bs-toggle="tooltip" title="No Action Required"><i class="ph-bold ph-minus-circle text-muted fs-4"></i></div>';
             })
-            ->rawColumns(['no_srs', 'sub_category', 'level', 'status', 'action'])
+            ->rawColumns(['requester', 'no_srs', 'sub_category', 'level', 'status', 'action'])
             ->make(true);
     }
 

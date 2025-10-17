@@ -30,8 +30,6 @@
                         </div>
                     </li>
 
-
-
                     <li class="header-dark">
                         <div class="sun-logo head-icon">
                             <i class="iconoir-sun-light"></i>
@@ -63,7 +61,7 @@
                                     <div class="spinner-border text-primary" role="status"></div>
                                 </div>
                                 <div id="notification-empty" class="hidden-massage py-4 px-3" style="display: none;">
-                                    <img alt="" class="w-50 h-50 mb-3 mt-2" src="{{ asset('assets/images/icons/bell.png') }}">
+                                    <img alt="" class="w-25 h25 mb-3 mt-2" src="{{ asset('assets/images/icons/bell.png') }}">
                                     <div>
                                         <h6 class="mb-0">No New Notifications</h6>
                                     </div>
@@ -135,6 +133,7 @@
     @push('scripts')
     <script>
         $(document).ready(function() {
+            // === BAGIAN YANG DIGUNAKAN ===
             const listContainer = $('#notification-list-container');
             const loadingEl = $('#notification-loading');
             const emptyEl = $('#notification-empty');
@@ -142,22 +141,40 @@
             const countEl = $('#notification-count');
             const markAllReadBtn = $('#mark-all-read-btn');
 
-            function fetchNotifications() {
+            // =================================================================
+            // [BARU] FUNGSI UNTUK MEMERIKSA JUMLAH NOTIFIKASI SAAT PAGE LOAD
+            // =================================================================
+            function checkNotificationCount() {
+                $.getJSON("{{ route('notifications.count') }}", function(response) {
+                    const count = response.count;
+                    countEl.text(count); // Update angka di dalam dropdown
+
+                    if (count > 0) {
+                        // Tampilkan badge jika ada notifikasi
+                        badgeEl.text(count > 9 ? '9+' : count).show();
+                        markAllReadBtn.show();
+                    } else {
+                        // Sembunyikan badge jika tidak ada
+                        badgeEl.hide();
+                        markAllReadBtn.hide();
+                    }
+                }).fail(function() {
+                    console.error('Failed to check notification count.');
+                });
+            }
+
+            // === FUNGSI LAMA (TETAP DIPERLUKAN) ===
+            // Fungsi ini sekarang HANYA untuk mengambil dan menampilkan list detail
+            function fetchNotificationList() {
                 loadingEl.show();
                 listContainer.hide().empty();
                 emptyEl.hide();
-                markAllReadBtn.hide();
 
                 $.getJSON("{{ route('notifications.fetch') }}", function(response) {
                     const notifications = response.notifications;
-                    countEl.text(notifications.length);
 
                     if (notifications.length > 0) {
-                        badgeEl.text(notifications.length > 9 ? '9+' : notifications.length).show();
-                        markAllReadBtn.show();
-
                         notifications.forEach(function(notif) {
-                            // Ini adalah template notifikasi baru yang lebih sederhana
                             const notifHtml = `
                                 <div class="notification-message head-box mark-as-read" data-id="${notif.id}" data-url="${notif.url}" style="cursor: pointer;">
                                     <div class="message-images">
@@ -174,7 +191,6 @@
                         });
                         listContainer.show();
                     } else {
-                        badgeEl.hide();
                         emptyEl.show();
                     }
                 }).fail(function() {
@@ -184,40 +200,47 @@
                 });
             }
 
-            // Panggil saat ikon lonceng diklik
-            $('#notification-bell').on('click', fetchNotifications);
+            // === PANGGILAN FUNGSI & EVENT LISTENERS ===
 
-            // Tandai satu notifikasi sebagai dibaca saat diklik
+            // [MODIFIKASI] Panggil fungsi count saat dokumen siap (page load)
+            checkNotificationCount();
+
+            // [MODIFIKASI] Saat lonceng diklik, panggil kedua fungsi
+            $('#notification-bell').on('click', function() {
+                checkNotificationCount();    // Perbarui count untuk jaga-jaga
+                fetchNotificationList();     // Ambil list detailnya
+            });
+
+            // Tandai satu notifikasi sebagai dibaca saat diklik (TIDAK ADA PERUBAHAN)
             $(document).on('click', '.mark-as-read', function() {
                 const notifEl = $(this);
                 const id = notifEl.data('id');
                 const url = notifEl.data('url');
 
-                $.post("{{ route('notifications.read') }}", { id: id, _token: "{{ csrf_token() }}" }, function(res) {
+                $.post("{{ route('notifications.read') }}", { id: id, _token: "{{ csrf_token() }}" })
+                .done(function(res) {
                     if(res.success) {
                         if (url && url !== '#') {
                             window.location.href = url;
                         } else {
-                            notifEl.fadeOut(300, () => {
-                                notifEl.remove();
-                                fetchNotifications(); // Muat ulang notifikasi
-                            });
+                            checkNotificationCount(); // Muat ulang count
+                            fetchNotificationList();  // Muat ulang list
                         }
                     }
+                }).fail(function() {
+                    alert('Failed to mark as read. Please try again.');
                 });
             });
 
-            // Tandai semua sebagai dibaca
+            // Tandai semua sebagai dibaca (TIDAK ADA PERUBAHAN)
             markAllReadBtn.on('click', function() {
                 $.post("{{ route('notifications.read.all') }}", { _token: "{{ csrf_token() }}" }, function(res) {
                     if(res.success) {
-                        fetchNotifications(); // Cukup muat ulang, nanti akan otomatis kosong
+                        checkNotificationCount(); // Muat ulang count
+                        fetchNotificationList();  // Muat ulang list
                     }
                 });
             });
-
-            // (Opsional) Periksa notifikasi baru setiap 1 menit
-            // setInterval(fetchNotifications, 60000); 
         });
     </script>
     @endpush

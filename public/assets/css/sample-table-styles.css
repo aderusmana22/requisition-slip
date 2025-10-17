@@ -1144,7 +1144,7 @@ STYLES MOVED FROM index.blade.php
     padding: 6px 12px;
     font-weight: 700;
     color: #ffffff; /* Warna teks lebih gelap */
-    background-color: #a76718; /* Warna latar abu-abu muda */
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%) !important;
     border-radius: 8px;
     font-size: 0.85em;
 }
