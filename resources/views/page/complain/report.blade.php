@@ -3,13 +3,37 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>RS SAMPLE {{ $requisition->sub_category }} - {{ $requisition->no_srs }}</title>
+    <title>
+        @php
+            $reportCount = isset($requisitions) ? count($requisitions) : 1;
+            $firstReport = isset($requisitions) ? $requisitions->first() : $requisition;
+        @endphp
+        @if($reportCount > 1)
+            Bulk RS Complain Reports - {{ $reportCount }} Reports
+        @else
+            RS SAMPLE {{ $firstReport->sub_category }} - {{ $firstReport->no_srs }}
+        @endif
+    </title>
     <style>
         @page { margin: 0.5cm; }
         /* [DIUBAH] Ukuran font dasar dikecilkan lagi */
         body { font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif; font-size: 10pt; margin: 0; }
         .page { width: 93%; padding: 1cm; }
         .page-break { page-break-before: always; }
+        
+        /* CSS khusus untuk bulk report */
+        .bulk-page-break {
+            page-break-before: always;
+        }
+        
+        /* Pastikan setiap report dimulai di halaman baru */
+        .report-section {
+            page-break-after: always;
+        }
+        
+        .report-section:last-child {
+            page-break-after: auto;
+        }
         table { width: 100%; border-collapse: collapse; table-layout: fixed; }
         th {
             /* [DIUBAH] Padding dikecilkan lagi */
@@ -191,11 +215,47 @@
 </head>
 
 <body>
-    {{-- ======================================================= --}}
-    {{-- ========= HALAMAN 1: TEMPLATE UTAMA (SEMUA TIPE) ========= --}}
-    {{-- ======================================================= --}}
+    @php
+        $reports = isset($requisitions) ? $requisitions : [$requisition];
+    @endphp
 
-    <div class="page">
+    @foreach($reports as $index => $currentRequisition)
+        @if($index > 0)
+            <div style="page-break-before: always;"></div>
+        @endif
+
+        @php
+            $approvals = $currentRequisition->approvalLogs->map(function ($log) {
+                $statusText = 'NOT REVIEWED';
+                if ($log->status === 'Approved' && !empty($log->notes) && $log->notes !== 'Approved by ' . ($log->approver ? $log->approver->name : '')) {
+                    $statusText = 'APPROVED WITH REVIEW';
+                } elseif ($log->status === 'Approved') {
+                    $statusText = 'APPROVED NOT REVIEW';
+                } elseif ($log->status === 'Rejected') {
+                    $statusText = 'NOT APPROVED';
+                }
+                
+                // Get role display
+                $roleNames = $log->approver && $log->approver->roles ? $log->approver->roles->pluck('name')->toArray() : [];
+                $roleDisplay = !empty($roleNames) ? implode(', ', $roleNames) : ($log->level ? $log->level : 'Unknown');
+                
+                return (object) [
+                    'name' => $log->approver ? $log->approver->name : 'Unknown',
+                    'position' => $roleDisplay,
+                    'status' => $statusText,
+                    'approved_at' => $log->updated_at,
+                    'notes' => $log->notes
+                ];
+            });
+            
+            $requester = $currentRequisition->requester ? $currentRequisition->requester : (object) ['name' => 'Unknown', 'department' => (object) ['name' => 'Unknown']];
+        @endphp
+
+        {{-- ======================================================= --}}
+        {{-- ========= HALAMAN 1: TEMPLATE UTAMA (SEMUA TIPE) ========= --}}
+        {{-- ======================================================= --}}
+
+        <div class="page">
         <table class="bordered">
             <tr>
                 <td style="padding: 10px;">
@@ -242,12 +302,12 @@
                                 <table class="no-border">
                                     <tr>
                                         <td style="text-align: left; padding-right: 5px;"><strong>CUSTOMER NAME</strong></td>
-                                        <td style="vertical-align: top; white-space: nowrap;">: {{ $requisition->customer->name ?? '-' }}</td>
+                                        <td style="vertical-align: top; white-space: nowrap;">: {{ $currentRequisition->customer->name ?? '-' }}</td>
                                     </tr>
                                     <br>
                                     <tr>
                                         <td style="vertical-align: top; text-align: left; padding-right: 5px;"><strong>ADDRESS</strong></td>
-                                        <td style="vertical-align: top; white-space: nowrap; width: 100%;">: {{ $requisition->customer->address ?? '-' }}</td>
+                                        <td style="vertical-align: top; white-space: nowrap; width: 100%;">: {{ $currentRequisition->customer->address ?? '-' }}</td>
                                     </tr>
                                 </table>
                             </td>
@@ -256,20 +316,20 @@
                                 <table class="no-border">
                                     <tr>
                                         <td style="text-align: right; padding-right: 5px;"><strong>Account</strong></td>
-                                        <td>: {{ $requisition->account ?? '-' }}</td>
+                                        <td>: {{ $currentRequisition->account ?? '-' }}</td>
                                     </tr>
                                     <tr>
                                         <td style="text-align: right; padding-right: 5px;"><strong>Cost Center</strong></td>
-                                        <td>: {{ $requisition->cost_center ?? '-' }}</td>
+                                        <td>: {{ $currentRequisition->cost_center ?? '-' }}</td>
                                     </tr>
                                     <tr>
                                         <td style="text-align: right; padding-right: 5px;"><strong>Tanggal</strong></td>
-                                        <td>: {{ \Carbon\Carbon::parse($requisition->request_date)->format('d F Y') }}</td>
+                                        <td>: {{ \Carbon\Carbon::parse($currentRequisition->approved_at)->format('d F Y') }}</td>
                                     </tr>
                                     <br>
                                     <tr>
                                         <td style="text-align: right; padding-right: 5px;"><strong>Nomor RS</strong></td>
-                                        <td>: <strong style="font-size: 14pt;">{{ $requisition->no_srs }}</strong></td>
+                                        <td>: <strong style="font-size: 14pt;">{{ $currentRequisition->no_srs }}</strong></td>
                                     </tr>
                                 </table>
                             </td>
@@ -281,7 +341,7 @@
                         <thead>
                             <tr>
                                 {{-- [BARU] Tampilkan kolom Material Type jika sub category adalah Packaging --}}
-                                @if($requisition->sub_category == 'Packaging')
+                                @if($currentRequisition->sub_category == 'Packaging')
                                     <th style="width: 12%;">MATERIAL TYPE</th>
                                     <th style="width: 12%;">PRODUCT CODE</th>
                                 @else
@@ -293,7 +353,7 @@
                                 <th style="width: 8%;">QTY ISSUED</th>
                                 <th style="width: 15%;">OBJECTIVES</th>
 
-                                @if($requisition->category == 'Complain')
+                                @if($currentRequisition->category == 'Complain')
                                 <th style="width: 15%;">Remarks <br> (Batch Code)</th>
                                 @else
                                 <th style="width: 15%;">Estimasi Potensi (Remarks in Carton)</th>
@@ -304,15 +364,15 @@
 
                         <tbody>
                             @php
-                                $itemCount = $requisition->requisitionItems->count();
+                                $itemCount = $currentRequisition->requisitionItems->count();
                                 $minRows = 15;
                                 $totalRows = max($itemCount, $minRows);
                             @endphp
 
-                            @foreach($requisition->requisitionItems as $item)
+                            @foreach($currentRequisition->requisitionItems as $item)
                             <tr>
                                 {{-- [MODIFIKASI] Logika untuk menampilkan data berdasarkan sub_category --}}
-                                @if($requisition->sub_category == 'Packaging')
+                                @if($currentRequisition->sub_category == 'Packaging')
                                     <td class="text-center">{{ $item->material_type ?? '-' }}</td>
                                     <td class="text-center">{{ $item->itemDetail->item_detail_code ?? '-' }}</td>
                                     <td class="text-center">{{ $item->itemDetail->item_detail_name ?? '-' }}</td>
@@ -329,16 +389,16 @@
 
                                 {{-- Kolom Objectives dan Estimasi tetap sama, digabung dengan rowspan --}}
                                 @if($loop->first)
-                                    <td class="notes-column text-center" rowspan="{{ $totalRows }}">{{ $requisition->objectives }}</td>
+                                    <td class="notes-column text-center" rowspan="{{ $totalRows }}">{{ $currentRequisition->objectives }}</td>
                                 @endif
-                                <td class="text-center">{{ strtoupper($item->batch_number?->format('d M y')) ?? '-' }} . {{ $item->remarks ?? '-'}}</td>
+                                <td class="text-center">{{ $item->batch_number ? strtoupper($item->batch_number->format('d M y')) : '-' }} . {{ $item->remarks ?? '-'}}</td>
                             </tr>
                             @endforeach
 
                             {{-- Logika untuk baris kosong tetap sama --}}
                             @for ($i = $itemCount; $i < $minRows; $i++)
                             <tr>
-                                @if($requisition->sub_category == 'Packaging')
+                                @if($currentRequisition->sub_category == 'Packaging')
                                     <td>&nbsp;</td> {{-- Kolom ekstra untuk Material Type --}}
                                     <td>&nbsp;</td>
                                     <td>&nbsp;</td>
@@ -355,7 +415,7 @@
 
                                 {{-- Pastikan kolom rowspan hanya dirender sekali jika tidak ada item sama sekali --}}
                                 @if($itemCount == 0 && $i == 0)
-                                    <td class="notes-column text-center" rowspan="{{ $totalRows }}">{{ $requisition->objectives }}</td>
+                                    <td class="notes-column text-center" rowspan="{{ $totalRows }}">{{ $currentRequisition->objectives }}</td>
                                 @endif
                                 <td>&nbsp;</td>
                             </tr>
@@ -366,172 +426,6 @@
             </tr>
         </table>
     </div>
-
-    {{-- =================================================================== --}}
-    {{-- ========= HALAMAN 2: KHUSUS JIKA TIPE SPECIAL ORDER ========= --}}
-    {{-- =================================================================== --}}
-
-    @if($requisition->sub_category === 'Special Order' && $requisition->requisitionSpecial)
-        @php
-            $special = $requisition->requisitionSpecial;
-
-            // Blok logika terpusat
-            $weight_options = ['25 Kg', '15 Kg', '250 gr', '500g', '1 Kg', '500 ml', '1 lt', '5 lt'];
-            $packaging_options = ['Tub', 'Karton', 'Botol', 'Jerrycan'];
-            $shipment_options = ['Sales', 'Delivery (DHL)', 'Container', 'Kurir'];
-            $source_options = ['WH', 'Reference Sample', 'Batch Refinery', 'Packing Room'];
-            $preparation_options = ['Tidak berubah', 'Rework Karton', 'Rework Stencill', 'Rework Label'];
-            $notes_options = ['Tempel sticker'];
-
-            $is_other_weight = $special->weight_selection && !in_array($special->weight_selection, $weight_options);
-            $is_other_packaging = $special->packaging_selection && !in_array($special->packaging_selection, $packaging_options);
-            $is_other_shipment = $special->shipment_method && !in_array($special->shipment_method, $shipment_options);
-            $is_other_source = $special->source && !in_array($special->source, $source_options);
-            $is_other_preparation = $special->preparation_method && !in_array($special->preparation_method, $preparation_options);
-            $is_other_notes = $special->sample_notes && !in_array($special->sample_notes, $notes_options);
-
-            $batch_no = '........';
-            $pallet_no = '........';
-            $wb_deo_tank_no = '........';
-            if ($special->description) {
-                if (str_contains($special->description, 'P')) {
-                    $parts = explode('P', $special->description);
-                    $batch_no = "<b><u>" . e($parts[0] ?: 'N/A') . "</u></b>";
-                    $pallet_no = "<b><u>" . e($parts[1] ?: 'N/A') . "</u></b>";
-                } else {
-                    $wb_deo_tank_no = "<b><u>" . e($special->description) . "</u></b>";
-                }
-            }
-        @endphp
-        <div class="page page-break">
-            <table class="outer">
-                {{-- HEADER --}}
-                <tr>
-                    <td colspan="6" style="text-align: center; font-weight: bold; font-size: 14px; padding: 4px 8px;">
-                        PT. Sinar Meadow International Indonesia
-                    </td>
-                    <td rowspan="2" style="width: 25%; padding: 0;">
-                        <table style="width: 100%; font-size: 10px;">
-                            <tr><td style="border: none; padding: 3px 8px;">No</td><td style="border: none; padding: 3px 8px;">: F/F 08-01</td></tr>
-                            <tr><td style="border: none; padding: 3px 8px;">Revision</td><td style="border: none; padding: 3px 8px;">: 0</td></tr>
-                            <tr><td style="border: none; padding: 3px 8px;">Date</td><td style="border: none; padding: 3px 8px;">: 23 Jan 20</td></tr>
-                            <tr><td style="border: none; padding: 3px 8px;">Page</td><td style="border: none; padding: 3px 8px;">: 1 of 1</td></tr>
-                        </table>
-                    </td>
-                </tr>
-                <tr style="background-color: #e4e4e4ff;"><td colspan="6" class="text-center" style="font-weight: bold; font-size: 16px;">PERMINTAAN SAMPLE</td></tr>
-
-                {{-- BAGIAN PERMINTAAN SAMPLE (MARKETING) --}}
-                <tr class="section-header"><td colspan="7" class="text-center" style="font-style: italic; font-weight: bold;">Diisi oleh Marketing</td></tr>
-                <tr>
-                    {{-- [MODIFIKASI] Tambahkan border-right dan padding --}}
-                    <td style="width: 20%; white-space: nowrap; border: none; border-right: 1px solid #333; padding-right: 8px;">Tgl Permintaan</td>
-                    <td style="white-space: nowrap; border: none; padding-left: 8px;" colspan="5">: {{ \Carbon\Carbon::parse($requisition->request_date)->locale('id_ID')->isoFormat('D MMMM YYYY') }}</td>
-                    <td style="white-space: nowrap; border: none;">No. SRS : <strong style="font-size: 14px;">{{ $requisition->no_srs }}</strong></td>
-                </tr>
-                <tr>
-                    <td style="width: 20%; white-space: nowrap; border: none; border-right: 1px solid #333; padding-right: 8px;">Tgl Selesai Sample</td>
-                    <td style="white-space: nowrap; border: none; padding-left: 8px;" colspan="6">: {{ \Carbon\Carbon::parse($special->end_date)->locale('id_ID')->isoFormat('D MMMM YYYY') }}</td>
-                </tr>
-                <tr>
-                    <td style="width: 20%; white-space: nowrap; border: none; border-right: 1px solid #333; padding-right: 8px;">Produk</td>
-                    <td style="white-space: nowrap; border: none; padding-left: 8px;" colspan="6">: <strong>{{ $special->products }}</strong></td>
-                </tr>
-                <tr>
-                    <td style="width: 20%; white-space: nowrap; border: none; border-right: 1px solid #333; padding-right: 8px;">Berat sample</td>
-                    <td style="white-space: nowrap; border: none; padding-left: 8px;" colspan="6">
-                        :
-                        @foreach(['a. 25 Kg', 'b. 15 Kg', 'c. 250 gr', 'd. 500 gr', 'e. 1 Kg', 'f. 500 ml', 'g. 1 lt', 'h. 5 lt'] as $option)
-                            @if(str_contains($option, $special->weight_selection) && !$is_other_weight)<b><u>{{ $option }}</u></b>@else{{ $option }}@endif
-                        @endforeach
-                        i. Lainnya: @if($is_other_weight)<b><u>{{ $special->weight_selection }}</u></b>@else.............@endif
-                    </td>
-                </tr>
-                <tr>
-                    <td style="width: 20%; white-space: nowrap; border: none; border-right: 1px solid #333; padding-right: 8px;">Kemasan sample</td>
-                    <td style="white-space: nowrap; border: none; padding-left: 8px;" colspan="6">
-                        :
-                        @foreach(['a. Tub', 'b. Karton', 'c. Botol', 'd. Jerrycan'] as $option)
-                            @if(str_contains($option, $special->packaging_selection) && !$is_other_packaging)<b><u>{{ $option }}</u></b>@else{{ $option }}@endif
-                        @endforeach
-                        e. Lainnya: @if($is_other_packaging)<b><u>{{ $special->packaging_selection }}</u></b>@else.............@endif
-                    </td>
-                </tr>
-                <tr>
-                    <td style="width: 20%; white-space: nowrap; border: none; border-right: 1px solid #333; padding-right: 8px;">Jumlah sample</td>
-                    <td style="white-space: nowrap; border: none; padding-left: 8px;" colspan="6">: <strong>{{ $special->sample_count }}</strong></td>
-                </tr>
-                <tr>
-                    <td style="width: 20%; white-space: nowrap; border: none; border-right: 1px solid #333; padding-right: 8px;">Tujuan sample</td>
-                    <td style="white-space: nowrap; border: none; padding-left: 8px;" colspan="6">: <strong>{{ $special->purpose }}</strong></td>
-                </tr>
-                <tr>
-                    <td style="width: 20%; white-space: nowrap; border: none; border-right: 1px solid #333; padding-right: 8px;">Certificate of Analysis</td>
-                    <td style="white-space: nowrap; border: none; padding-left: 8px;" colspan="6">
-                        :
-                        @if($special->coa_required)<b><u>a. Ya</u></b>@else a. Ya @endif
-                        @if(!$special->coa_required)<b><u>b. Tidak</u></b>@else b. Tidak @endif
-                    </td>
-                </tr>
-                <tr>
-                    <td style="width: 20%; white-space: nowrap; border: none; border-right: 1px solid #333; padding-right: 8px;">Dikirim melalui</td>
-                    <td style="white-space: nowrap; border: none; padding-left: 8px;" colspan="6">
-                        :
-                        @foreach(['a. Sales', 'b. Delivery (DHL)', 'c. Container', 'd. Kurir'] as $option)
-                            @if(str_contains($option, $special->shipment_method) && !$is_other_shipment)<b><u>{{ $option }}</u></b>@else{{ $option }}@endif
-                        @endforeach
-                        e. Lainnya: @if($is_other_shipment)<b><u>{{ $special->shipment_method }}</u></b>@else.............@endif
-                    </td>
-                </tr>
-
-                {{-- BAGIAN QA/QM --}}
-                <tr class="section-header"><td colspan="7" class="text-center" style="font-style: italic; font-weight: bold;">Diisi oleh QA</td></tr>
-                <tr>
-                    <td style="width: 20%; white-space: nowrap; border: none; border-right: 1px solid #333; padding-right: 8px;">Asal sample</td>
-                    <td style="white-space: nowrap; border: none; padding-left: 8px;" colspan="6">
-                        :
-                        @if($special->source == 'WH')<b><u>a. WH</u></b>@else a. WH @endif
-                        @if($special->source == 'Reference Sample')<b><u>b. Reference Sample</u></b>@else b. Reference Sample @endif
-                        @if($special->source == 'Batch Refinery')<b><u>c. Batch Refinery</u></b>@else c. Batch Refinery @endif
-                        @if($special->source == 'Packing Room')<b><u>d. Packing Room</u></b>@else d. Packing Room @endif
-                        e. Lainnya: @if($is_other_source)<b><u>{{ $special->source }}</u></b>@else.............@endif
-                    </td>
-                </tr>
-                <tr>
-                    <td style="width: 20%; white-space: nowrap; border: none; border-right: 1px solid #333; padding-right: 8px;">Keterangan sample</td>
-                    <td style="white-space: nowrap; border: none; padding-left: 8px;" colspan="6">
-                        : a. Batch / Pallet No: {!! $batch_no !!} P {!! $pallet_no !!} &nbsp;&nbsp; b. WB/DEO No / c. Tank No: {!! $wb_deo_tank_no !!}
-                    </td>
-                </tr>
-                <tr>
-                    <td style="width: 20%; white-space: nowrap; border: none; border-right: 1px solid #333; padding-right: 8px;">Tgl Produksi</td>
-                    <td style="white-space: nowrap; border: none; padding-left: 8px;" colspan="6">
-                        :
-                        {{ $special->production_date ? \Carbon\Carbon::parse($special->production_date)->locale('id_ID')->isoFormat('D MMMM YYYY') : '...........................' }}
-                    </td>
-                </tr>
-                <tr>
-                    <td style="width: 20%; white-space: nowrap; border: none; border-right: 1px solid #333; padding-right: 8px;">Persiapan sample</td>
-                    <td style="white-space: nowrap; border: none; padding-left: 8px;" colspan="6">
-                        :
-                        @if($special->preparation_method == 'Tidak berubah')<b><u>a. Tidak berubah</u></b>@else a. Tidak berubah @endif
-                        @if($special->preparation_method == 'Rework Karton')<b><u>b. Rework Karton</u></b>@else b. Rework Karton @endif
-                        @if($special->preparation_method == 'Rework Stencill')<b><u>c. Rework Stencil</u></b>@else c. Rework Stencil @endif
-                        @if($special->preparation_method == 'Rework Label')<b><u>d. Rework Label</u></b>@else d. Rework Label @endif
-                        e. Lainnya: @if($is_other_preparation)<b><u>{{ $special->preparation_method }}</u></b>@else.............@endif
-                    </td>
-                </tr>
-                <tr>
-                    <td style="width: 20%; white-space: nowrap; border: none; border-right: 1px solid #333; padding-right: 8px;">Keterangan</td>
-                    <td style="white-space: nowrap; border: none; padding-left: 8px;" colspan="6">
-                        :
-                        @if($special->sample_notes == 'Tempel sticker')<b><u>a. Tempel sticker</u></b>@else a. Tempel sticker @endif
-                        b. Lainnya: @if($is_other_notes)<b><u>{{ $special->sample_notes }}</u></b>@else.............@endif
-                    </td>
-                </tr>
-            </table>
-        </div>
-    @endif
 
     {{-- ======================================================= --}}
     {{-- ============== HALAMAN 3: APPROVAL STATUS ============= --}}
@@ -552,7 +446,7 @@
                             </td>
                             <td style="width: 60%;" class="text-center">
                                 <div class="font-bold main-title" style="margin-bottom: 4px;">REQUISITION SLIP STATUS</div>
-                                <div class="sub-title">SAMPLE PRODUCT: <strong>{{ $requisition->no_srs }}</strong></div>
+                                <div class="sub-title">SAMPLE PRODUCT: <strong>{{ $currentRequisition->no_srs }}</strong></div>
                             </td>
                             <td style="width: 25%;">
                                 <table class="no-border" style="table-layout: auto; width: auto;">
@@ -564,12 +458,12 @@
                                         <td style="width: 5px;">:</td>
 
                                         {{-- KOLOM ISI --}}
-                                        <td>{{ $requester->name }}</td>
+                                        <td>{{ $requester->name ?? 'Unknown' }}</td>
                                     </tr>
                                     <tr>
                                         <td style="white-space: nowrap; padding-right: 3px;"><strong>Dept</strong></td>
                                         <td style="width: 5px;">:</td>
-                                        <td>{{ $requester->department->name }}</td>
+                                        <td>{{ $requester->department->name ?? 'Unknown' }}</td>
                                     </tr>
                                 </table>
                             </td>
@@ -606,7 +500,7 @@
                                     </td>
                                     <td class="text-center">
                                         @if($approval->approved_at)
-                                            {{ \Carbon\Carbon::parse($approval->approved_at)->format('d M Y H:i') }}
+                                            {{ \Carbon\Carbon::parse($approval->approved_at)->format('d M Y') }}
                                         @else
                                             -
                                         @endif
@@ -626,6 +520,8 @@
             </tr>
         </table>
     </div>
+
+    @endforeach
 </body>
 
 </html>
