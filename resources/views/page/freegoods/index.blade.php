@@ -4,7 +4,7 @@
     @endsection
 
     
-    @include('components.sample-table-styles') 
+    @include('components.freegoods-table-styles') 
 
     @push('css')
         <link rel="stylesheet" href="{{ asset('assets/vendor/select/select2.min.css') }}">

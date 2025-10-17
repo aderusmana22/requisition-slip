@@ -239,16 +239,17 @@
                         {{-- Logika Approval Normal --}}
                         <div class="mb-3">
                             <label class="form-label"><strong>Decision:</strong></label>
-                            <div class="radio-group-horizontal d-flex flex-wrap">
-                                <div class="form-check me-3 mb-1">
+                            <div>
+                                <div class="form-check mb-2">
                                     <input class="form-check-input" type="radio" name="action" id="action_review"
-                                        value="review" @if($action ==='review' || $action === 'approve' ) checked @endif>
+                                        value="review" @if($action === 'review' && $originalAction !== 'reject') checked @endif> {{-- Modifikasi di sini --}}
                                     <label class="form-check-label text-primary" for="action_review"><strong>
-                                        Approve</strong></label>
+                                        Approve with Review</strong></label>
                                 </div>
                                 <div class="form-check me-3 mb-1">
+                                    {{-- Tambahkan kondisi checked di sini berdasarkan $originalAction --}}
                                     <input class="form-check-input" type="radio" name="action" id="action_reject"
-                                        value="reject" @if($action ==='reject' ) checked @endif>
+                                        value="reject" @if($originalAction === 'reject') checked @endif>
                                     <label class="form-check-label text-danger"
                                         for="action_reject"><strong>Reject</strong></label>
                                 </div>

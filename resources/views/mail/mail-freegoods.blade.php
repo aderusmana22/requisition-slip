@@ -57,18 +57,6 @@
     </style>
 </head>
 <body>
-    @php
-        $mailType = $data['mail_type'] ?? 'approval';
-        $token = $data['token'] ?? null;
-        $processStep = $data['process_step'] ?? 'N/A';
-        
-        // Asumsi URL routing untuk Free Goods
-        $approveUrl = route('fg.approval.process', ['token' => $token, 'action' => 'approve']);
-        $rejectUrl = route('fg.approval.process', ['token' => $token, 'action' => 'reject']);
-        $reviewUrl = route('fg.approval.response', ['token' => $token, 'action' => 'review']);
-
-    @endphp
-
     <div class="email-container">
         <div class="email-header">
             <div class="header-content">
@@ -81,10 +69,12 @@
         <div class="email-content">
             <div class="greeting">
                 <strong>Hello {{ $recipient->name }},</strong><br>
-                @if($mailType === 'completed_notification')
+                {{-- [FIXED] Menggunakan snake_case --}}
+                @if($mail_type === 'completed_notification')
                     Requisition <strong>{{ $requisition->no_srs }}</strong> has been fully processed and is now **Completed**. The goods are ready for dispatch/pickup.
-                @elseif($mailType === 'warehouse_process')
-                    Requisition <strong>{{ $requisition->no_srs }}</strong> has been fully approved and now requires your action for the process: <strong>{{ $processStep }}</strong>.
+                @elseif($mail_type === 'warehouse_process')
+                    {{-- [FIXED] Menggunakan snake_case --}}
+                    Requisition <strong>{{ $requisition->no_srs }}</strong> has been fully approved and now requires your action for the process: <strong>{{ $process_step }}</strong>.
                 @else
                     A new Free Goods requisition requires your review and approval. Please check the details and choose an action.
                 @endif
@@ -194,16 +184,18 @@
             @endif
 
             <div class="action-section">
-                @if($mailType === 'completed_notification')
+                {{-- [FIXED] Menggunakan snake_case agar cocok dengan key data --}}
+                @if($mail_type === 'completed_notification') 
                     <h3 class="action-title">📦 Requisition Completed</h3>
                     <p class="action-subtitle">No further action is required from you for this request.</p>
-                @elseif($mailType === 'warehouse_process')
+                @elseif($mail_type === 'warehouse_process')
                     <h3 class="action-title">📦 Warehouse Action Required</h3>
-                    <p class="action-subtitle">Process step: <strong>{{ $processStep }}</strong>. Please click the button below to proceed/add notes.</p>
+                    {{-- [FIXED] Menggunakan snake_case agar cocok dengan key data --}}
+                    <p class="action-subtitle">Process step: <strong>{{ $process_step }}</strong>. Please click the button below to proceed/add notes.</p> 
                     <div class="button-group">
                         <table><tr>
-                            {{-- Menggunakan $reviewUrl untuk form notes WH --}}
-                            <td><a href="{{ $reviewUrl }}" class="btn btn-process">✅ Submit Process/Notes</a></td> 
+                            {{-- URL untuk warehouse process sebaiknya menggunakan variabel yang lebih spesifik, misal $submitUrl --}}
+                            <td><a href="{{ $submit_url ?? $review_url }}" class="btn btn-process">✅ Submit Process/Notes</a></td> 
                         </tr></table>
                     </div>
                 @else
@@ -212,9 +204,9 @@
                     <p class="action-subtitle">Please review the request above and choose your action below</p>
                     <div class="button-group">
                         <table><tr>
-                            <td><a href="{{ $approveUrl }}" class="btn btn-approve">✅ Quick Approve</a></td>
-                            <td><a href="{{ $reviewUrl }}" class="btn btn-review">📝 Review with Notes</a></td>
-                            <td><a href="{{ $rejectUrl }}" class="btn btn-reject">❌ Quick Reject</a></td>
+                            <td><a href="{{ $approve_url }}" class="btn btn-approve">✅ Quick Approve</a></td>
+                            <td><a href="{{ $review_url }}" class="btn btn-review">📝 Review with Notes</a></td>
+                            <td><a href="{{ $reject_url }}" class="btn btn-reject">❌ Quick Reject</a></td>
                         </tr></table>
                     </div>
                 @endif

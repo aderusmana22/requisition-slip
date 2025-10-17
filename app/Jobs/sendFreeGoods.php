@@ -11,35 +11,50 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 
 class sendFreeGoods implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public $requisition;
-    public $recipient;
-    public $token;
-    public $data;
+    // [MODIFIKASI] Simpan ID, bukan model lengkap
+    protected $requisitionId;
+    protected $recipient;
+    protected $token;
+    protected $mailData;
 
-    public function __construct(Requisition $requisition, User $recipient, $token = null, array $data = [])
+    public function __construct($requisition, User $recipient, ?string $token, array $mailData = [])
     {
-        $this->requisition = $requisition;
+        // [MODIFIKASI] Ambil ID dari model
+        $this->requisitionId = $requisition->id;
         $this->recipient = $recipient;
         $this->token = $token;
-        $this->data = $data;
+        $this->mailData = $mailData;
     }
 
     public function handle()
-{
-    $this->requisition->load([
-        'customer',                  
-        'requester',                
-        'requisitionItems.itemMaster'
-    ]); 
+    {
+        try {
+            $requisition = Requisition::with('requester')->findOrFail($this->requisitionId);
 
-    $this->data['token'] = $this->token;
-    
-    Mail::to($this->recipient->email)
-        ->send(new MailFreeGoods($this->requisition, $this->recipient, $this->data));
-}
+            $mailType = $this->mailData['mail_type'] ?? 'approval';
+            $dataForMail = $this->mailData;
+
+            if ($mailType === 'approval') {
+                $dataForMail['approve_url'] = route('fg.approval.response', ['token' => $this->token, 'action' => 'approve']);
+                $dataForMail['review_url']  = route('fg.approval.response', ['token' => $this->token, 'action' => 'review']);
+                $dataForMail['reject_url']  = route('fg.approval.response', ['token' => $this->token, 'action' => 'reject']);
+            } elseif ($mailType === 'warehouse_process') {
+                $dataForMail['submit_url'] = route('fg.approval.response', ['token' => $this->token, 'action' => 'submit']);
+                $dataForMail['review_url'] = route('fg.approval.response', ['token' => $this->token, 'action' => 'review']);
+            }
+
+            Mail::to($this->recipient->email)->send(new mailFreeGoods($requisition, $this->recipient, $dataForMail));
+
+            Log::info("Email (Tipe: {$mailType}) untuk Requisition #{$requisition->id} berhasil dikirim ke {$this->recipient->email}.");
+
+        } catch (\Exception $e) {
+            Log::error("Gagal mengirim email untuk Requisition #{$requisition->id}. Error: " . $e->getMessage() . " on line " . $e->getLine());
+        }
+    }
 }

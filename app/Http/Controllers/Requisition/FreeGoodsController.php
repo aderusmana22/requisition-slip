@@ -10,11 +10,11 @@ use App\Mail\MailRejectFreeGoods;
 use App\Models\Master\Customer;
 use App\Models\Master\ItemMaster;
 use App\Models\Requisition\Requisition;
-use App\Models\Requisition\RequisitionItem; // <== PASTIKAN INI ADA
+use App\Models\Requisition\RequisitionItem; 
 use App\Models\Requisition\Tracking;
 use App\Models\User;
 use App\Models\Requisition\ApprovalLog;
-use App\Models\Requisition\ApprovalPath; // <== KRITIS: BARIS INI DITAMBAHKAN
+use App\Models\Requisition\ApprovalPath; 
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -214,7 +214,7 @@ class FreeGoodsController extends Controller
                 $firstApprover = User::where('nik', $firstLog->approver_nik)->first();
                 if ($firstApprover) {
                     $requisition->update(['route_to' => $firstApprover->name]);
-                    sendFreeGoods::dispatch($requisition, $firstApprover, $firstLog->token); 
+                    sendFreeGoods::dispatch($requisition, $firstApprover, $firstLog->token, ['mail_type' => 'approval']); 
                 } else {
                     $requisition->update(['status' => 'Error', 'route_to' => 'Error: First Approver Not Found']);
                     Log::error("Approver pertama dengan NIK {$firstLog->approver_nik} tidak ditemukan.");
@@ -289,6 +289,7 @@ class FreeGoodsController extends Controller
     public function showResponseForm(Request $request, $token)
     {
         $action = $request->query('action');
+        $originalAction = $action;
         $validActions = ['approve', 'review', 'reject', 'submit'];
 
         if (!in_array($action, $validActions)) {
@@ -327,6 +328,7 @@ class FreeGoodsController extends Controller
             'requisition' => $requisition,
             'pageTitle' => $pageTitle,
             'isWarehouseProcess' => $isWarehouseProcess,
+            'originalAction' => $originalAction,
         ];
 
         return view('page.freegoods.response-form', $viewData);

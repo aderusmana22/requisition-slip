@@ -24,19 +24,36 @@ class MailFreeGoods extends Mailable
         $this->requisition = $requisition;
         $this->recipient = $recipient;
         $this->data = $data;
+
+        // Menambahkan recipient ke dalam data agar bisa diakses di view
         $this->data['recipient'] = $recipient;
     }
 
+    /**
+     * Get the message envelope.
+     */
     public function envelope()
     {
-        $subject = 'Action Required: Free Goods Requisition ' . $this->requisition->no_srs;
-        $mailType = $this->data['mail_type'] ?? 'approval';
+        // Default subject
+        $subject = 'Request Requisition Free Goods: ' . $this->requisition->no_srs;
 
-        if ($mailType === 'warehouse_process') {
-            $step = $this->data['process_step'] ?? 'Warehouse Process';
-            $subject = "Warehouse Process: {$step} for FG: {$this->requisition->no_srs}";
-        } elseif ($mailType === 'completed_notification') {
-            $subject = 'Completed: Your Free Goods Requisition ' . $this->requisition->no_srs . ' is Ready';
+        // Mengubah subject berdasarkan tipe email dari data
+        if (isset($this->data['mail_type'])) {
+            switch ($this->data['mail_type']) {
+                case 'warehouse_process':
+                    $step = $this->data['process_step'] ?? 'Warehouse Process';
+                    $subject = "{$step} for SRS: {$this->requisition->no_srs}";
+                    break;
+                case 'completed_notification':
+                    $subject = 'Completed: Your Free Goods Requisition ' . $this->requisition->no_srs . ' is Ready';
+                    break;
+                case 'rejection_notification':
+                    $subject = 'Rejected: Your Free Goods Requisition ' . $this->requisition->no_srs;
+                    break;
+                case 'cancellation_notification':
+                    $subject = 'Cancelled: Free Goods Requisition ' . $this->requisition->no_srs . ' has been cancelled';
+                    break;
+            }
         }
 
         return new Envelope(
@@ -48,8 +65,8 @@ class MailFreeGoods extends Mailable
     public function content()
     {
         return new Content(
-            // View email yang akan dibuat
-            view: 'mail.mail-freegoods', 
+            view: 'mail.mail-freegoods',
+            // Kita tetap meneruskan $data agar variabel lain seperti URL tetap ada
             with: $this->data
         );
     }

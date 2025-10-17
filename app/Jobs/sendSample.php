@@ -41,12 +41,12 @@ class sendSample implements ShouldQueue
             $dataForMail = $this->mailData;
 
             if ($mailType === 'approval') {
-                $dataForMail['approve_url'] = route('fg.approval.response', ['token' => $this->token, 'action' => 'approve']);
-                $dataForMail['review_url']  = route('fg.approval.response', ['token' => $this->token, 'action' => 'review']);
-                $dataForMail['reject_url']  = route('fg.approval.response', ['token' => $this->token, 'action' => 'reject']);
+                $dataForMail['approve_url'] = route('approval.response', ['token' => $this->token, 'action' => 'approve']);
+                $dataForMail['review_url']  = route('approval.response', ['token' => $this->token, 'action' => 'review']);
+                $dataForMail['reject_url']  = route('approval.response', ['token' => $this->token, 'action' => 'reject']);
             } elseif ($mailType === 'warehouse_process') {
-                $dataForMail['submit_url'] = route('fg.approval.response', ['token' => $this->token, 'action' => 'submit']);
-                $dataForMail['review_url'] = route('fg.approval.response', ['token' => $this->token, 'action' => 'review']);
+                $dataForMail['submit_url'] = route('approval.response', ['token' => $this->token, 'action' => 'submit']);
+                $dataForMail['review_url'] = route('approval.response', ['token' => $this->token, 'action' => 'review']);
             }
 
             Mail::to($this->recipient->email)->send(new mailSample($requisition, $this->recipient, $dataForMail));
