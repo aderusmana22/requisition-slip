@@ -129,7 +129,7 @@
             </div>
             @if(session('action_text') && session('approver_name'))
             <div class="detail-item">
-                <span class="detail-label">Action Taken:</span>
+                <span class="detail-label">Approver:</span>
                 <span class="detail-value">{{ session('action_text') }} by {{ session('approver_name') }}</span>
             </div>
             @endif

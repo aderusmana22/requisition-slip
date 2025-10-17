@@ -576,11 +576,11 @@
 
                                 <div class="col-md-3">
                                     <small class="view-label">Objectives</small>
-                                    <p class="view-data fst-italic fw-normal" id="view_objectives">-</p>
+                                    <p class="view-data" id="view_objectives">-</p>
                                 </div>
                                 <div class="col-md-3">
                                     <small class="view-label">Estimated Potential</small>
-                                    <p class="view-data fst-italic fw-normal" id="view_estimated_potential">-</p>
+                                    <p class="view-data" id="view_estimated_potential">-</p>
                                 </div>
                             </div>
                         </div>
@@ -613,16 +613,46 @@
                     {{-- CARD 3: SPECIAL ORDER DETAILS (Conditional) --}}
                     <div class="card view-modal-card" id="view-special-order-section" style="display: none;">
                         <div class="card-header">
-                           <h5 class="fw-bold text-primary mb-0">Special Order Details (Marketing)</h5>
+                           <h5 class="fw-bold text-primary mb-3">Special Order Details (Marketing)</h5>
                         </div>
                         <div class="card-body">
                              <div class="row g-4">
                                 <div class="col-md-4"><label class="text-muted">Sample Completion Date</label><p class="fs-6 fw-semibold" id="view_requested_date">-</p></div>
-                                <div class="col-md-8"><label class="text-muted">Sample Weight</label><p class="fs-6 fw-semibold" id="view_weight_selection">-</p></div>
+                                <div class="col-md-4"><label class="text-muted">Sample Weight</label><p class="fs-6 fw-semibold" id="view_weight_selection">-</p></div>
                                 <div class="col-md-4"><label class="text-muted">Sample Packaging</label><p class="fs-6 fw-semibold" id="view_packaging_selection">-</p></div>
                                 <div class="col-md-4"><label class="text-muted">Number of Samples</label><p class="fs-6 fw-semibold" id="view_sample_count">-</p></div>
                                 <div class="col-md-4"><label class="text-muted">COA Required?</label><p class="fs-6 fw-semibold" id="view_coa_required">-</p></div>
-                                <div class="col-md-12"><label class="text-muted">Shipment Method</label><p class="fs-6 fw-semibold" id="view_shipment_method">-</p></div>
+                                <div class="col-md-4"><label class="text-muted">Shipment Method</label><p class="fs-6 fw-semibold" id="view_shipment_method">-</p></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card view-modal-card" id="view-qa-section" style="display: none;">
+                        <div class="card-header view-modal-card-header">
+                           <h5 class="fw-bold text-primary mb-3"><i class="ph-bold ph-test-tube me-2"></i> QA/QM Details</h5>
+                        </div>
+                        <div class="card-body p-4">
+                             <div class="row g-4">
+                                <div class="col-md-4">
+                                    <small class="view-label">Asal Sample</small>
+                                    <p class="view-data" id="view_source">-</p>
+                                </div>
+                                <div class="col-md-4">
+                                    <small class="view-label">Tanggal Produksi</small>
+                                    <p class="view-data" id="view_production_date">-</p>
+                                </div>
+                                <div class="col-md-4">
+                                    <small class="view-label">Persiapan Sample</small>
+                                    <p class="view-data" id="view_preparation_method">-</p>
+                                </div>
+                                <div class="col-md-4">
+                                    <small class="view-label">Keterangan Sample</small>
+                                    <p class="view-data" id="view_description">-</p>
+                                </div>
+                                <div class="col-md-4">
+                                    <small class="view-label">Keterangan Tambahan</small>
+                                    <p class="view-data fst-italic" id="view_sample_notes">-</p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1293,9 +1323,13 @@
                 const val2 = keteranganInput2.val();
                 let finalValue = '';
 
-                if (selectedType === 'batch') finalValue = `${val1}P${val2}`;
-                else if (selectedType === 'wb') finalValue = val1;
-                else if (selectedType === 'tank') finalValue = val1;
+                if (selectedType === 'batch') {
+                    finalValue = `${val1}P${val2}`;
+                } else if (selectedType === 'wb') {
+                    finalValue = `WB No ${val1}`; // <-- Tambahkan prefiks di sini
+                } else if (selectedType === 'tank') {
+                    finalValue = `Tank No ${val1}`; // <-- Tambahkan prefiks di sini
+                }
 
                 finalDescriptionInput.val(finalValue);
             });
@@ -1435,32 +1469,38 @@
                 // === Mengisi Form Special Order ===
                 if (isSpecialOrder && data.requisition_special) {
                     const specialData = data.requisition_special;
-                    $('#special_request_date').val(specialData.requested_date);
+
+                    // Helper function untuk mengisi radio button yang punya opsi "Lainnya"
+                    const populateRadioWithOptions = (baseName, value) => {
+                        if (!value) return; // Jangan lakukan apa-apa jika nilainya kosong
+
+                        // Set nilai di hidden input
+                        $(`#${baseName}`).val(value);
+
+                        // Cari radio button standar yang cocok
+                        const standardRadio = $(`input[name="${baseName}_option"][value="${value}"]`);
+
+                        if (standardRadio.length > 0) {
+                            // Jika ditemukan, centang radio tsb dan sembunyikan input "Lainnya"
+                            standardRadio.prop('checked', true);
+                            $(`#${baseName}_other_input`).hide().val('');
+                        } else {
+                            // Jika tidak, ini pasti opsi "Lainnya"
+                            $(`#${baseName}_other_radio`).prop('checked', true);
+                            $(`#${baseName}_other_input`).val(value).show();
+                        }
+                    };
+
+                    // --- Mengisi data Marketing ---
                     $('input[name="end_date"]').val(specialData.end_date);
                     $('textarea[name="purpose"]').val(specialData.purpose);
-                    $('input[name="packaging_selection"]').val(specialData.packaging_selection);
                     $('input[name="sample_count"]').val(specialData.sample_count);
-                    $('input[name="shipment_method"]').val(specialData.shipment_method);
                     $('input[name=coa_required][value="' + specialData.coa_required + '"]').prop('checked', true);
 
-                    const weight = data.requisition_special.weight_selection || '';
-                    $('#weight_selection').val(weight);
-
-                    const standardRadio = $(`input[name="weight_selection_option"][value="${weight}"]`);
-
-                    if (standardRadio.length > 0) {
-                        // Jika ditemukan (bukan 'Lainnya'), centang dan sembunyikan input teks
-                        standardRadio.prop('checked', true);
-                        $('#weight_other_input').hide().val('');
-                    } else if (weight) {
-                        // Jika tidak ditemukan, berarti ini nilai custom 'Lainnya'
-                        $('#weight_other_radio').prop('checked', true);
-                        $('#weight_other_input').show().val(weight);
-                    } else {
-                        // Jika tidak ada nilai, reset
-                        $('input[name="weight_selection_option"]').prop('checked', false);
-                        $('#weight_other_input').hide().val('');
-                    }
+                    // [FIX] Gunakan helper untuk mengisi data radio button marketing
+                    populateRadioWithOptions('weight_selection', specialData.weight_selection);
+                    populateRadioWithOptions('packaging_selection', specialData.packaging_selection);
+                    populateRadioWithOptions('shipment_method', specialData.shipment_method);
                 }
 
                 if (data.requisition_special) {
@@ -1527,6 +1567,7 @@
             }
 
             function populateViewForm(data) {
+                // --- (Bagian atas fungsi yang mengisi detail tidak berubah) ---
                 $('#view_sub_category').text(data.sub_category || '-');
                 $('#view_customer_name').text(data.customer ? data.customer.name : '-');
                 $('#view_customer_address').text(data.customer ? data.customer.address : '-');
@@ -1540,15 +1581,11 @@
                 const viewItemTbody = $('#view-items-tbody');
                 const viewTable = viewItemTbody.closest('table');
                 viewItemTbody.empty();
-
                 const isPackaging = data.sub_category === 'Packaging';
                 viewTable.find('th.material-type-column').toggle(isPackaging);
-
                 if (data.requisition_items && data.requisition_items.length > 0) {
                     data.requisition_items.forEach(item => {
                         let itemCode = 'N/A', itemName = 'N/A', unit = 'N/A';
-                        let materialType = item.material_type || data.sub_category;
-
                         if (item.item_detail) {
                             itemCode = item.item_detail.item_detail_code;
                             itemName = item.item_detail.item_detail_name;
@@ -1558,28 +1595,16 @@
                             itemName = item.item_master.item_master_name;
                             unit = item.item_master.unit;
                         }
-
-                        const materialTypeCell = isPackaging
-                            ? `<td class="material-type-column">${item.material_type}</td>`
-                            : '';
-
-                        const newRow = `
-                        <tr>
-                            ${materialTypeCell}
-                            <td>${itemCode}</td>
-                            <td>${itemName}</td>
-                            <td>${unit}</td>
-                            <td class="text-center">${item.quantity_required}</td>
-                            <td class="text-center">${item.quantity_issued || '-'}</td>
-                        </tr>`;
+                        const materialTypeCell = isPackaging ? `<td class="material-type-column">${item.material_type}</td>` : '';
+                        const newRow = `<tr>${materialTypeCell}<td>${itemCode}</td><td>${itemName}</td><td>${unit}</td><td class="text-center">${item.quantity_required}</td><td class="text-center">${item.quantity_issued || '-'}</td></tr>`;
                         viewItemTbody.append(newRow);
                     });
                 } else {
                     const colspan = isPackaging ? 6 : 5;
                     viewItemTbody.html(`<tr><td colspan="${colspan}" class="text-center">No items have been added.</td></tr>`);
                 }
-
                 const specialOrderSection = $('#view-special-order-section');
+                const qaSection = $('#view-qa-section');
                 if (data.sub_category === 'Special Order' && data.requisition_special) {
                     const special = data.requisition_special;
                     $('#view_requested_date').text(special.requested_date ? new Date(special.requested_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : '-');
@@ -1588,53 +1613,50 @@
                     $('#view_sample_count').text(special.sample_count || '-');
                     $('#view_shipment_method').text(special.shipment_method || '-');
                     $('#view_coa_required').text(special.coa_required == 1 ? 'Yes' : 'No');
-                    $('#view_products_summary').text(data.requisition_special.products || '-');
                     specialOrderSection.show();
+                    if (special.source) {
+                        $('#view_source').text(special.source || '-');
+                        $('#view_description').text(special.description || '-');
+                        $('#view_production_date').text(special.production_date ? new Date(special.production_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : '-');
+                        $('#view_preparation_method').text(special.preparation_method || '-');
+                        $('#view_sample_notes').text(special.sample_notes || '-');
+                        qaSection.show();
+                    } else {
+                        qaSection.hide();
+                    }
                 } else {
                     specialOrderSection.hide();
+                    qaSection.hide();
                 }
-
                 const status = data.status;
                 let badgeClass = 'bg-secondary';
                 if (['Submitted', 'Pending'].includes(status)) badgeClass = 'bg-primary';
                 else if (status.includes('Approved') || status === 'Completed') badgeClass = 'bg-success';
                 else if (['Rejected', 'Cancelled'].includes(status)) badgeClass = 'bg-danger';
                 else if (status === 'Processing' || status === 'In Progress') badgeClass = 'bg-warning text-dark';
-
                 $('#view_status_badge').html(`<span class="badge fs-6 rounded-pill ${badgeClass}">${status}</span>`);
 
                 const trackerContainer = $('#approval-tracker-container');
                 trackerContainer.empty();
 
-                // 1. Definisikan langkah-langkah
-                let steps = [
-                    { id: 'submitted', label: 'Request Submit', icon: 'ph-file-arrow-up' }
-                ];
+                let steps = [{ id: 'submitted', label: 'Request Submit', icon: 'ph-file-arrow-up' }];
 
-                const approvalLogs = data.approval_logs ? data.approval_logs.filter(log => log.level <= 100) : [];
-                const approvalLogsCount = approvalLogs.length;
-
-                if (approvalLogs.length > 0) {
-                    approvalLogs.forEach((log, index) => {
-                        let stepTitle = 'Atasan Dept';
-                        if (index === approvalLogs.length - 1) { stepTitle = 'Bisnis Controller'; }
-                        const approverName = log.approver ? log.approver.name : `Level ${log.level}`;
-                        const finalLabel = `${stepTitle}<br><small class="text-muted fw-normal">${approverName}</small>`;
-                        steps.push({
-                            id: 'approver_' + log.level,
-                            label: finalLabel,
-                            icon: 'ph-user' // Ikon sudah diperbaiki
-                        });
+                if (data.sequence_approvers) {
+                    data.sequence_approvers.forEach((role, index) => {
+                        const level = index + 1;
+                        const stepTitle = (role === 'atasan') ? 'Atasan Dept' : 'Bisnis Controller';
+                        steps.push({ id: `approver_${level}`, label: stepTitle, icon: 'ph-user' });
                     });
                 }
-                if (status !== 'Rejected' && status !== 'Cancelled') {
+
+                if (data.status !== 'Rejected' && data.status !== 'Cancelled') {
                     if (data.sub_category === 'Packaging') {
-                        if (data.print_batch) {
+                        if (data.print_batch == 1) {
                             steps.push({ id: 'inward_initial', label: 'Inward (Initial)', icon: 'ph-package' });
                             steps.push({ id: 'material', label: 'Material Support', icon: 'ph-printer' });
                             steps.push({ id: 'inward_final', label: 'Inward (Final)', icon: 'ph-package' });
                         } else {
-                            steps.push({ id: 'inward_single', label: 'Inward Check', icon: 'ph-package' });
+                            steps.push({ id: 'inward_final', label: 'Inward Check', icon: 'ph-package' });
                         }
                     } else if (data.sub_category === 'Finished Goods') {
                         steps.push({ id: 'outward', label: 'Outward', icon: 'ph-truck' });
@@ -1644,181 +1666,117 @@
                     steps.push({ id: 'completed', label: 'Completed', icon: 'ph-check-circle' });
                 }
 
-
-                // 2. Render HTML dasar untuk tracker (tetap sama)
                 let trackerHtml = '<div class="tracker-line"><div class="tracker-line-progress" id="tracker-progress"></div></div>';
                 steps.forEach(step => {
-                    trackerHtml += `
-                        <div class="tracker-step" data-step-id="${step.id}">
-                            <div class="tracker-icon"><i class="ph-bold ${step.icon} fs-6"></i></div>
-                            <div class="tracker-label">${step.label}</div>
-                            <div class="tracker-details"></div>
-                        </div>`;
+                    trackerHtml += `<div class="tracker-step" data-step-id="${step.id}"><div class="tracker-icon"><i class="ph-bold ${step.icon} fs-6"></i></div><div class="tracker-label">${step.label}</div><div class="tracker-details"></div></div>`;
                 });
                 trackerContainer.html(trackerHtml);
 
-                // 4. Update status visual tracker
                 let lastCompletedIndex = -1;
-                let isRejected = ['Rejected', 'Cancelled'].includes(status);
+                const isRejected = ['Rejected', 'Cancelled'].includes(data.status);
 
-                // [MODIFIKASI] Tandai 'Request Submit' dan tambahkan detail requester
                 if (data.requester && data.created_at) {
                     const submittedStep = $(`.tracker-step[data-step-id="submitted"]`);
-                    submittedStep.addClass('completed');
-
-                    const requesterName = data.requester.name;
-                    // Format tanggal dan waktu menjadi lebih mudah dibaca
-                    const creationDate = new Date(data.created_at).toLocaleString('en-GB', {
-                        day: 'numeric',
-                        month: 'short',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                    }).replace(',', ''); // Hapus koma
-
-                    submittedStep.find('.tracker-details').html(
-                        `<div class="tracker-user text-primary">${requesterName}</div>
-                        <div class="tracker-date text-dark">${creationDate}</div>`
-                    );
+                    const creationDate = new Date(data.created_at).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).replace(',', '');
+                    submittedStep.addClass('completed').find('.tracker-details').html(`<div class="tracker-user text-primary">${data.requester.name}</div><div class="tracker-date text-dark">${creationDate}</div>`);
                     lastCompletedIndex = 0;
                 }
 
-                approvalLogs.forEach(log => {
-                    const stepId = 'approver_' + log.level;
-                    const stepIndex = steps.findIndex(s => s.id === stepId);
-                    if (stepIndex > -1 && log.status === 'Approved') {
-                        const stepElement = $(`.tracker-step[data-step-id="${stepId}"]`);
-                        stepElement.addClass('completed');
-                        const approvalDate = new Date(log.updated_at).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).replace(',', '');
-                        stepElement.find('.tracker-details').html(
-                            `<div class="tracker-user text-primary">${log.approver.name}</div>
-                            <div class="tracker-date text-dark">${approvalDate}</div>`
-                        );
-                        lastCompletedIndex = Math.max(lastCompletedIndex, stepIndex);
-                    }
-                });
+                if (data.approval_logs) {
+                    data.approval_logs.forEach(log => {
+                        const stepElement = $(`.tracker-step[data-step-id="approver_${log.level}"]`);
+                        if (stepElement.length > 0) {
+                            if (log.status === 'Approved') {
+                                const approvalDate = new Date(log.updated_at).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).replace(',', '');
+                                stepElement.addClass('completed').find('.tracker-details').html(`<div class="tracker-user text-primary">${log.approver.name}</div><div class="tracker-date text-dark">${approvalDate}</div>`);
+                                const stepIndex = steps.findIndex(s => s.id === `approver_${log.level}`);
+                                lastCompletedIndex = Math.max(lastCompletedIndex, stepIndex);
+                            } else if (log.status === 'Rejected') {
+                                const rejectionDate = new Date(log.updated_at).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).replace(',', '');
+                                stepElement.addClass('rejected').find('.tracker-details').html(`<div class="tracker-user text-danger">${log.approver.name}</div><div class="tracker-date text-dark">${rejectionDate}</div>`);
+                            }
+                        }
+                    });
+                }
 
                 if (data.trackings && data.trackings.length > 0) {
                     const positionToStepId = {
                         'Inward WH Supervisor (Initial Check)': 'inward_initial',
                         'Material Support Supervisor': 'material',
                         'Inward WH Supervisor (Final Check)': 'inward_final',
-                        'Inward WH Supervisor': 'inward_single',
                         'Outward WH Supervisor': 'outward',
                         'Waiting for QA/QM Form': 'qa_form'
                     };
-
                     data.trackings.forEach(tracking => {
-                        const stepId = positionToStepId[tracking.current_position];
-                        if (stepId && tracking.last_updated) {
-                            const stepIndex = steps.findIndex(s => s.id === stepId);
-                            const stepElement = $(`.tracker-step[data-step-id="${stepId}"]`);
-                            stepElement.addClass('completed');
-
-                            // [FIX] Gunakan teks statis untuk QA, dan nama posisi untuk WH
-                            const userName = (stepId === 'qa_form') ? 'QA/QM HSE Team' : tracking.current_position;
-                            const completionDate = new Date(tracking.last_updated).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).replace(',', '');
-
-                            stepElement.find('.tracker-details').html(
-                                `<div class="tracker-user text-primary">${userName}</div>
-                                <div class="tracker-date text-dark">${completionDate}</div>`
-                            );
-                            lastCompletedIndex = Math.max(lastCompletedIndex, stepIndex);
+                        // [FIX 1] Hanya proses tracking jika tanggalnya valid (bukan 1970)
+                        if (tracking.last_updated && new Date(tracking.last_updated).getFullYear() > 1970) {
+                            const stepId = positionToStepId[tracking.current_position];
+                            if (stepId) {
+                                const stepElement = $(`.tracker-step[data-step-id="${stepId}"]`);
+                                const userName = (stepId === 'qa_form') ? 'QA/QM HSE Team' : tracking.current_position;
+                                const completionDate = new Date(tracking.last_updated).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).replace(',', '');
+                                stepElement.addClass('completed').find('.tracker-details').html(`<div class="tracker-user text-primary">${userName}</div><div class="tracker-date text-dark">${completionDate}</div>`);
+                                const stepIndex = steps.findIndex(s => s.id === stepId);
+                                lastCompletedIndex = Math.max(lastCompletedIndex, stepIndex);
+                            }
                         }
                     });
                 }
 
                 if (data.status === 'Completed') {
-                    $('.tracker-step').addClass('completed');
                     const completedStep = $(`.tracker-step[data-step-id="completed"]`);
-
-                    // Selalu isi detail untuk step 'Completed' dengan nama requester
-                    const requesterName = data.requester ? data.requester.name : 'Requester';
                     const completionDate = new Date(data.updated_at).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).replace(',', '');
-
-                    completedStep.find('.tracker-details').html(
-                        `<div class="tracker-user text-primary">${requesterName}</div>
-                        <div class="tracker-date text-dark">${completionDate}</div>`
-                    );
-
+                    completedStep.find('.tracker-details').html(`<div class="tracker-user text-primary">${data.requester.name}</div><div class="tracker-date text-dark">${completionDate}</div>`);
+                    $('.tracker-step').addClass('completed');
                     lastCompletedIndex = steps.length - 1;
+                } else if (data.status === 'Cancelled') {
+                    const submittedStep = $(`.tracker-step[data-step-id="submitted"]`);
+                    const cancelDate = new Date(data.updated_at).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).replace(',', '');
+                    submittedStep.addClass('rejected').find('.tracker-details').html(`<div class="tracker-user text-danger">${data.requester.name}</div><div class="tracker-date text-dark">${cancelDate}</div>`);
+                } else if (!isRejected) {
+                    const nextStepIndex = lastCompletedIndex + 1;
+                    if (nextStepIndex < steps.length) {
+                        const activeStepElement = trackerContainer.find('.tracker-step').eq(nextStepIndex);
+                        activeStepElement.addClass('active');
 
-                } else if (isRejected) {
-                    if (data.status === 'Cancelled') {
-                        const submittedStep = $(`.tracker-step[data-step-id="submitted"]`);
-                        submittedStep.addClass('rejected'); // Beri style 'rejected'
-                        const cancelDate = new Date(data.updated_at).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).replace(',', '');
-                        submittedStep.find('.tracker-details').html(
-                            `<div class="tracker-user text-danger">${data.requester.name}</div>
-                            <div class="tracker-date text-dark">${cancelDate}</div>`
-                        );
-                    } else { // Status 'Rejected'
-                        const rejectedLog = data.approval_logs.find(log => log.status === 'Rejected');
-                        if (rejectedLog) {
-                            const stepId = 'approver_' + rejectedLog.level;
-                            const stepElement = $(`.tracker-step[data-step-id="${stepId}"]`);
-                            stepElement.addClass('rejected');
-                            const rejectionDate = new Date(rejectedLog.updated_at).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).replace(',', '');
-                            stepElement.find('.tracker-details').html(
-                                `<div class="tracker-user text-danger">${rejectedLog.approver.name}</div>
-                                <div class="tracker-date text-dark">${rejectionDate}</div>`
+                        // [FIX 2] Mengubah teks pada langkah aktif agar lebih informatif
+                        if (data.route_to) {
+                            activeStepElement.find('.tracker-details').html(
+                                `<div class="tracker-user" style="color: #ffc107; font-weight: 500;">
+                                    <i class="ph-bold ph-arrow-circle-right me-1"></i>Processed by
+                                </div>
+                                <div class="tracker-date text-dark">${data.route_to}</div>`
                             );
                         }
                     }
-                } else if (status === 'Pending' || status === 'In Progress' || status === 'Processing') {
-                    const nextStepIndex = lastCompletedIndex + 1;
-                    if (nextStepIndex < steps.length) {
-                        $(`.tracker-step`).eq(nextStepIndex).addClass('active');
-                    }
                 }
 
-                // Update progress bar
                 if (lastCompletedIndex >= 0 && !isRejected) {
                     let progressPercentage = (lastCompletedIndex / (steps.length - 1)) * 100;
                     $('#tracker-progress').css('width', progressPercentage + '%');
                 }
 
+                // --- (Bagian history log tidak berubah) ---
                 const historyContainer = $('#history-log-container');
                 historyContainer.empty();
-
                 if (data.history && data.history.length > 0) {
                     data.history.forEach(log => {
-                        let badgeClass = 'badge-created';
-                        let avatarClass = 'avatar-created';
-
+                        let badgeClass = 'badge-created', avatarClass = 'avatar-created';
                         const action = log.action.toLowerCase();
                         if (action.includes('approved not review')) { badgeClass = 'badge-approved'; avatarClass = 'avatar-approved'; }
                         else if (action.includes('approved with review')) { badgeClass = 'badge-review'; avatarClass = 'avatar-review'; }
                         else if (action.includes('rejected') || action.includes('cancelled')) { badgeClass = 'badge-rejected'; avatarClass = 'avatar-rejected'; }
                         else if (action.includes('completed step')) { badgeClass = 'badge-process'; avatarClass = 'avatar-process'; }
-
-                        // [MODIFIKASI] Logika untuk menampilkan avatar atau inisial
-                        let avatarHtml = '';
-                        const actorInitial = log.actor ? log.actor.charAt(0).toUpperCase() : '?';
-
+                        let avatarHtml = '', actorInitial = log.actor ? log.actor.charAt(0).toUpperCase() : '?';
                         if (log.avatar) {
-                            avatarClass += ' has-image'; // Tambah kelas untuk styling
+                            avatarClass += ' has-image';
                             avatarHtml = `<img src="${log.avatar}" alt="${actorInitial}">`;
                         } else {
                             avatarHtml = actorInitial;
                         }
-
                         const notesHtml = log.notes ? `<div class="history-notes">"${log.notes}"</div>` : '';
                         const logDate = new Date(log.timestamp).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-
-                        const historyItem = `
-                            <li class="list-group-item history-item">
-                                <div class="history-avatar ${avatarClass}">${avatarHtml}</div>
-                                <div class="history-content">
-                                    <div class="history-actor">${log.actor}</div>
-                                    ${notesHtml}
-                                </div>
-                                <div class="history-meta">
-                                    <div class="history-badge ${badgeClass}">${log.action}</div>
-                                    <div class="history-timestamp">${logDate}</div>
-                                </div>
-                            </li>
-                        `;
+                        const historyItem = `<li class="list-group-item history-item"><div class="history-avatar ${avatarClass}">${avatarHtml}</div><div class="history-content"><div class="history-actor">${log.actor}</div>${notesHtml}</div><div class="history-meta"><div class="history-badge ${badgeClass}">${log.action}</div><div class="history-timestamp">${logDate}</div></div></li>`;
                         historyContainer.append(historyItem);
                     });
                 } else {
