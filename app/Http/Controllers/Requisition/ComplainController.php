@@ -1330,12 +1330,10 @@ class ComplainController extends Controller
             'requisitionItems.itemMaster',
             'requisitionItems.itemDetail',
             'requisitionSpecial',
-            // Ambil semua approval logs, tidak hanya yang 'Approved'
             'approvalLogs' => fn($q) => $q->orderBy('level', 'asc'),
             'approvalLogs.approver.roles'
         ])->findOrFail($id);
 
-        // Siapkan data approver untuk view
         $approvals = $requisition->approvalLogs->map(function ($log) {
             $statusText = 'NOT REVIEWED';
             if ($log->status === 'Approved' && !empty($log->notes) && $log->notes !== 'Approved by ' . ($log->approver->name ?? '')) {
@@ -1346,7 +1344,6 @@ class ComplainController extends Controller
                 $statusText = 'NOT APPROVED';
             }
 
-            // Ambil role pertama (atau gabungkan jika multi-role)
             $roleNames = $log->approver?->roles->pluck('name')->toArray() ?? [];
             $roleDisplay = !empty($roleNames) ? implode(', ', $roleNames) : 'N/A';
 
@@ -1359,20 +1356,49 @@ class ComplainController extends Controller
             ];
         });
 
-        // Kirim semua data yang dibutuhkan ke view
         $data = [
             'requisition' => $requisition,
             'requester' => $requisition->requester,
-            'approvals' => $approvals, // <-- VARIABEL APPROVALS DITAMBAHKAN DI SINI
-            // Variabel approver lama untuk tanda tangan (jika masih diperlukan)
+            'approvals' => $approvals,
             'firstApprover' => $requisition->approvalLogs->first()->approver ?? null,
             'lastApprover' => $requisition->approvalLogs->last()->approver ?? null,
         ];
 
-        // return response()->json($data); // Untuk debugging, kembalikan data sebagai JSON
+        // return response()->json($data);
         $pdf = Pdf::loadView('page.complain.report', $data)->setPaper('a4', 'landscape');
         return $pdf->stream('RS Complain - ' . $requisition->no_srs . '.pdf');
     }
 
-    
+    public function printBulkReport(Request $request)
+    {
+        $request->validate([
+            'selected_ids'   => 'required|array',
+            'selected_ids.*' => 'integer|exists:requisitions,id' // Pastikan semua ID valid
+        ]);
+
+        $requisitions = Requisition::with([
+            'customer',
+            'requester.department',
+            'requisitionItems.itemMaster',
+            'requisitionItems.itemDetail',
+            'requisitionSpecial',
+            'approvalLogs' => fn($q) => $q->orderBy('level', 'asc'),
+            'approvalLogs.approver.roles'
+        ])->whereIn('id', $request->selected_ids)->get();
+
+        if ($requisitions->isEmpty()) {
+            return redirect()->back()->with('error', 'Tidak ada data yang dipilih untuk dicetak.');
+        }
+
+        $pdf = Pdf::loadView('page.complain.report', [
+            'requisitions' => $requisitions
+        ])->setPaper('a4', 'landscape');
+
+        return $pdf->stream('Bulk-RS-Complain-' . now()->format('Y-m-d') . '.pdf');
+    }
+
+    public function reports()
+    {
+        return view('page.approval_report.report');
+    }
 }
