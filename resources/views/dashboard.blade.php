@@ -170,11 +170,12 @@
                     <div class="card h-100 ticket-card bg-light-danger">
                         <div class="card-body">
                             <div class="d-flex-center bg-white mb-2" style="width: 45px; height: 45px; border-radius: 12px;">
-                                <i class="ti ti-x fs-3 text-danger"></i>
+                                <i class="ti ti-ban fs-3 text-danger"></i>
                             </div>
-                            <p class="fs-6 text-muted mb-0">Rejected</p>
-                            <small class="text-muted d-block mb-2" style="font-size: 0.75rem;">Ditolak oleh salah satu approver.</small>
-                            <h3 class="text-danger-dark mb-0" id="summaryRejected">0</h3>
+                            {{-- [MODIFIKASI] Judul, deskripsi, dan ID diubah --}}
+                            <p class="fs-6 text-muted mb-0">Rejected / Cancelled</p>
+                            <small class="text-muted d-block mb-2" style="font-size: 0.75rem;">Ditolak approver atau dibatalkan requester.</small>
+                            <h3 class="text-danger-dark mb-0" id="summaryRejectedCancelled">0</h3>
                         </div>
                     </div>
                 </div>
@@ -749,12 +750,12 @@
                         { name: 'Approved',    type: 'line', data: data.approved,    color: '#198754' },
                         { name: 'In Progress', type: 'line', data: data.in_progress, color: '#0dcaf0' },
                         { name: 'Pending',     type: 'line', data: data.pending,     color: '#ffc107' },
-                        { name: 'Rejected',    type: 'line', data: data.rejected,    color: '#dc3545' },
+                        { name: 'Rejected / Cancelled', type: 'line', data: data.rejected_cancelled, color: '#dc3545' },
                         { name: 'Completed',   type: 'line', data: data.completed,   color: '#212529' }
                     ],
-                    // [MODIFIKASI] Chart height dihapus dari sini, akan diatur oleh JS
                     chart: { type: 'line', stacked: false, toolbar: { show: true, tools: { download: true, selection: false, zoom: false, zoomin: false, zoomout: false, pan: false, reset: false }}},
-                    stroke: { width: [3, 3, 3, 3, 3, 3], curve: 'smooth', dashArray: [0, 0, 0, 5, 5, 0] },
+                    // [MODIFIKASI] Kurangi jumlah array agar sesuai (menjadi 6)
+                    stroke: { width: [3, 3, 3, 3, 3, 3], curve: 'smooth', dashArray: [0, 0, 0, 5, 0, 5] }, // DashArray disesuaikan
                     xaxis: { categories: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'] },
                     yaxis: { title: { text: 'Jumlah Requisition', style: { fontWeight: 500 }}},
                     tooltip: { shared: true, intersect: false },
@@ -803,18 +804,21 @@
                     } else if (chartElement) {
                         currentChart = new ApexCharts(chartElement, getChartOptions(data));
                         currentChart.render().then(() => {
-                            // Adjust height after the initial render
-                            setTimeout(adjustChartHeight, 100); // Small delay to ensure layout is final
+                            setTimeout(adjustChartHeight, 100);
                         });
                     }
 
                     const sum = arr => arr.reduce((acc, val) => acc + val, 0);
+                    
                     document.getElementById('summaryCreated').textContent = sum(data.created).toLocaleString('id-ID');
                     document.getElementById('summaryApproved').textContent = sum(data.approved).toLocaleString('id-ID');
                     document.getElementById('summaryInProgress').textContent = sum(data.in_progress).toLocaleString('id-ID');
                     document.getElementById('summaryPending').textContent = sum(data.pending).toLocaleString('id-ID');
-                    document.getElementById('summaryRejected').textContent = sum(data.rejected).toLocaleString('id-ID');
                     document.getElementById('summaryCompleted').textContent = sum(data.completed).toLocaleString('id-ID');
+
+                    // [MODIFIKASI] Gunakan data gabungan yang baru untuk total di kartu ringkasan
+                    const totalRejectedCancelled = sum(data.rejected_cancelled || []);
+                    document.getElementById('summaryRejectedCancelled').textContent = totalRejectedCancelled.toLocaleString('id-ID');
                 };
 
                 const yearFilterElement = document.getElementById('yearFilterSelect');
