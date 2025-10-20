@@ -862,9 +862,9 @@
                         const row = `
                             <tr>
                                 <td><a href="#" class="fw-bold text-dark">#${activity.srs_number || 'N/A'}</a></td>
-                                <td>${activity.requester_name}</td>
-                                <td>${activity.category}</td>
-                                <td><span class="badge bg-light-info text-info rounded-pill">${activity.status}</span></td>
+                                <td><span class="badge bg-dark text-light rounded-pill">${activity.requester_name}</span></td>
+                                <td><span class="badge bg-primary text-light rounded-pill">${activity.category}</span></td>
+                                <td><span class="badge bg-info text-light rounded-pill">${activity.status}</span></td>
                                 <td>${activity.timestamp}</td>
                             </tr>`;
                         tableBody.insertAdjacentHTML('beforeend', row);

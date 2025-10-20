@@ -789,56 +789,36 @@ class SampleController extends Controller
     /**
      * Menangani alur kerja SETELAH semua approval manajerial selesai.
      */
-    /**
-     * Menangani alur kerja SETELAH semua approval manajerial selesai.
-     */
     private function handlePostApprovalFlow(Requisition $requisition)
     {
         Log::info("Approval path selesai untuk Requisition #{$requisition->id}. Memulai alur proses.");
 
-        // [PERBAIKAN] Muat relasi requester dan department untuk pengecekan
         $requisition->load('requester.department');
         $requesterDepartment = optional($requisition->requester)->department->name ?? null;
 
         switch ($requisition->sub_category) {
-
-            // [PERBAIKAN] Logika untuk Packaging dipisahkan dan diberi kondisi
             case 'Packaging':
                 $steps = [];
-                // JIKA REQUESTER DARI R&D: Alur kerja sederhana dan langsung.
                 if ($requesterDepartment === 'R&D') {
                     $steps = ['Inward WH Supervisor (Final Check)'];
                     Log::info("Requisition #{$requisition->id} dari R&D, alur langsung ke Final Check.");
-                }
-                // JIKA DARI DEPT LAIN (misal: SnM): Gunakan logika print_batch yang sudah ada.
-                else {
+                } else {
                     $steps = $requisition->print_batch
                         ? ['Inward WH Supervisor (Initial Check)', 'Material Support Supervisor', 'Inward WH Supervisor (Final Check)']
                         : ['Inward WH Supervisor (Final Check)'];
                     Log::info("Requisition #{$requisition->id} dari {$requesterDepartment}, alur berdasarkan print_batch.");
                 }
-
                 if (empty($steps)) return $this->notifyRequesterAsCompleted($requisition);
-
                 foreach ($steps as $stepName) {
-                    Tracking::create([
-                        'requisition_id'   => $requisition->id,
-                        'current_position' => $stepName,
-                        'token'            => Str::uuid()->toString(),
-                    ]);
+                    Tracking::create(['requisition_id' => $requisition->id, 'current_position' => $stepName, 'token' => Str::uuid()->toString()]);
                 }
-                return $this->advanceWarehouseStep($requisition); // Langsung panggil untuk memulai langkah pertama
+                return $this->advanceWarehouseStep($requisition);
 
             case 'Finished Goods':
                 $steps = ['Outward WH Supervisor'];
                 if (empty($steps)) return $this->notifyRequesterAsCompleted($requisition);
-
                 foreach ($steps as $stepName) {
-                    Tracking::create([
-                        'requisition_id'   => $requisition->id,
-                        'current_position' => $stepName,
-                        'token'            => Str::uuid()->toString(),
-                    ]);
+                    Tracking::create(['requisition_id' => $requisition->id, 'current_position' => $stepName, 'token' => Str::uuid()->toString()]);
                 }
                 return $this->advanceWarehouseStep($requisition);
 
@@ -850,18 +830,26 @@ class SampleController extends Controller
                 if ($headQaUser) {
                     $stepName = 'Waiting for QA/QM Form';
                     $token = Str::uuid()->toString();
-
                     Tracking::create([
                         'requisition_id'   => $requisition->id,
                         'current_position' => $stepName,
                         'notes'            => "Waiting for form to be filled by {$headQaUser->name}",
                         'token'            => $token,
                     ]);
-
                     $requisition->update(['status' => 'Approved', 'route_to' => $stepName]);
 
+                    // [BARU] Logika untuk mengirim notifikasi DI DALAM SISTEM
+                    $notificationData = [
+                        'requisition_id' => $requisition->id,
+                        'srs_number'     => $requisition->no_srs,
+                        'message'        => "Form QA/QM untuk Requisition #{$requisition->no_srs} perlu dilengkapi.",
+                        'url'            => route('sample-form.index', ['open_form' => $requisition->id]),
+                    ];
+                    // Mengirim notifikasi ke Head QA, dengan info "From" dari requester asli
+                    $headQaUser->notify(new RequisitionNotification($notificationData, $requisition->requester));
+                    
+                    // Logika email (yang sudah ada sebelumnya) tetap dijalankan
                     $formUrl = route('approval.response', ['token' => $token, 'action' => 'qa_form']);
-
                     dispatch(new sendSample($requisition, $headQaUser, $token, [
                         'mail_type' => 'qa_form_notification',
                         'form_url'  => $formUrl
@@ -870,7 +858,6 @@ class SampleController extends Controller
                     return $stepName;
                 }
                 Log::warning("Head of Department QA/QM tidak ditemukan untuk Requisition #{$requisition->id}.");
-                // Fallthrough untuk auto-complete jika user QA tidak ditemukan
 
             default:
                 Log::warning("Tidak ada alur proses untuk sub-category: {$requisition->sub_category}. Menyelesaikan requisition.");
@@ -1293,7 +1280,7 @@ class SampleController extends Controller
                         break;
                     case 'cancel':
                         $badgeClass = 'bg-danger';
-                        $icon = 'ph-ban';
+                        $icon = 'ph-prohibit';
                         break;
                     case 'tracking':
                         $badgeClass = 'bg-info';
@@ -1415,7 +1402,7 @@ class SampleController extends Controller
                         break;
                     case 'Cancelled':
                         $badgeClass = 'bg-secondary';
-                        $icon = 'ph-ban';
+                        $icon = 'ph-prohibit';
                         break;
                 }
                 return '<span class="status-badge-lg ' . $badgeClass . '"><i class="ph-bold ' . $icon . ' me-1"></i>' . e($status) . '</span>';
@@ -1445,7 +1432,7 @@ class SampleController extends Controller
                 if ($logStatus === 'Pending') {
                     $requisitionStatus = $log->requisition->status;
                     if (in_array($requisitionStatus, ['Rejected', 'Cancelled'])) {
-                        $icon = $requisitionStatus === 'Rejected' ? 'ph-x-circle text-danger' : 'ph-ban text-secondary';
+                        $icon = $requisitionStatus === 'Rejected' ? 'ph-x-circle text-danger' : 'ph-prohibit text-secondary';
                         $title = 'Requisition ' . $requisitionStatus;
                         return '<div class="action-icon-container" data-bs-toggle="tooltip" title="' . $title . '"><i class="ph-bold ' . $icon . ' fs-4"></i></div>';
                     }
