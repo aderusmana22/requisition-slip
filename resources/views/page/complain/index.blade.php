@@ -144,7 +144,7 @@
                         <!-- Objectives Row -->
                         <div class="row mb-4">
                             <div class="col-12">
-                                <label for="objectives" class="form-label"><strong>reason for replacement :</strong></label>
+                                <label for="objectives" class="form-label"><strong>Reason for Replacement :</strong></label>
                                 <textarea name="objectives" id="objectives" class="form-control" rows="3"></textarea>
                                 <div data-error-for="objectives" class="text-danger mt-1 error-message"></div>
                             </div>
@@ -397,7 +397,7 @@
                             <div class="col-md-7">
                                 <h6 class="mb-3 fw-bold text-muted">
                                     <i class="ph-duotone ph-target me-2"></i>
-                                    Reason for Complain
+                                    Reason for Replacement :
                                 </h6>
                                 <div class="objectives-container">
                                     <div class="objectives-text" id="detail_objectives">
@@ -1008,7 +1008,7 @@
                             $('#detail_date').text('-');
                         }
 
-                        $('#detail_objectives').text(data.objectives || 'No reason specified');
+                        $('#detail_objectives').text(data.reason_for_replacement || 'No reason specified');
 
                         // Enhanced product list with better styling
                         const selectedProductsDiv = $('#requisition_product_list');

@@ -101,10 +101,11 @@
                 <div class="card-header d-flex justify-content-between align-items-center bg-white border-0 py-3">
                     <h5 class="mb-0 card-title">Requisition Statistics per Month</h5>
                     <div class="d-flex align-items-center">
+                        {{-- Year filter - menggunakan data tahun dari database requisition --}}
                         <select class="form-select form-select-sm" id="yearFilterSelect" style="width: auto;">
-                            <option value="{{ now()->year }}" selected>Tahun {{ now()->year }}</option>
-                            <option value="{{ now()->year - 1 }}">Tahun {{ now()->year - 1 }}</option>
-                            <option value="{{ now()->year - 2 }}">Tahun {{ now()->year - 2 }}</option>
+                            @foreach($availableYears as $year)
+                                <option value="{{ $year }}" {{ $year == now()->year ? 'selected' : '' }}>Tahun {{ $year }}</option>
+                            @endforeach
                         </select>
                     </div>
                 </div>
@@ -214,9 +215,11 @@
                                     <option value="{{ $month }}">{{ \Carbon\Carbon::create()->month($month)->format('F') }}</option>
                                 @endforeach
                             </select>
+                            {{-- Year filter - menggunakan data tahun dari database requisition --}}
                             <select class="form-select form-select-sm top-filter" style="width: auto;" id="topItemYearFilter">
-                               <option value="{{ now()->year }}" selected>Tahun {{ now()->year }}</option>
-                               <option value="{{ now()->year - 1 }}">Tahun {{ now()->year - 1 }}</option>
+                                @foreach($availableYears as $year)
+                                    <option value="{{ $year }}" {{ $year == now()->year ? 'selected' : '' }}>Tahun {{ $year }}</option>
+                                @endforeach
                             </select>
                         </div>
                     </div>
@@ -247,9 +250,11 @@
                                     <option value="{{ $month }}">{{ \Carbon\Carbon::create()->month($month)->format('F') }}</option>
                                 @endforeach
                             </select>
+                            {{-- Year filter - menggunakan data tahun dari database requisition --}}
                             <select class="form-select form-select-sm top-filter" style="width: auto;" id="topCustomerYearFilter">
-                               <option value="{{ now()->year }}" selected>Tahun {{ now()->year }}</option>
-                               <option value="{{ now()->year - 1 }}">Tahun {{ now()->year - 1 }}</option>
+                                @foreach($availableYears as $year)
+                                    <option value="{{ $year }}" {{ $year == now()->year ? 'selected' : '' }}>Tahun {{ $year }}</option>
+                                @endforeach
                             </select>
                         </div>
                     </div>
@@ -678,7 +683,7 @@
                 window.requestAnimationFrame(step);
             }
 
-            document.addEventListener("DOMContentLoaded", function() {
+            document.addEventListener("DOMContentLoaded", async function() {
 
                 // Helper untuk fetch data dengan error handling
                 async function fetchData(url) {
@@ -704,6 +709,37 @@
                     animateCount(document.getElementById('metric_sample_so'), data.sample_so || 0);
                     animateCount(document.getElementById('metric_complain'), data.complain || 0);
                     animateCount(document.getElementById('metric_free_goods'), data.free_goods || 0);
+                }
+
+                // === YEAR OPTIONS DYNAMIC LOADING ===
+                async function loadAvailableYears() {
+                    try {
+                        const years = await fetchData("{{ route('dashboard.data.available-years') }}");
+                        if (!years || !Array.isArray(years)) return;
+
+                        const currentYear = new Date().getFullYear();
+                        
+                        // Update semua year filter selects
+                        const yearSelects = ['yearFilterSelect', 'topItemYearFilter', 'topCustomerYearFilter'];
+                        
+                        yearSelects.forEach(selectId => {
+                            const selectElement = document.getElementById(selectId);
+                            if (selectElement) {
+                                const currentValue = selectElement.value;
+                                selectElement.innerHTML = '';
+                                
+                                years.forEach(year => {
+                                    const option = document.createElement('option');
+                                    option.value = year;
+                                    option.textContent = `Tahun ${year}`;
+                                    option.selected = (year == currentYear || year == currentValue);
+                                    selectElement.appendChild(option);
+                                });
+                            }
+                        });
+                    } catch (error) {
+                        console.error('Failed to load available years:', error);
+                    }
                 }
 
                 // === 2. CHART INITIALIZATION ===
@@ -897,6 +933,9 @@
 
 
                 // === INITIAL DATA LOAD ===
+                // Load available years first, then load other data
+                await loadAvailableYears();
+                
                 loadMetricCounts();
                 updateDashboardChart(yearFilterElement.value);
                 updateTop5List('Items', getTopFilters('topItem'));

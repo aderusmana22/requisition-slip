@@ -646,7 +646,6 @@ class ComplainController extends Controller
                     
                     $this->mailOtherLevel($approvalLog->requisition_id, $approvalLog->level, $requisition->print_batch);
                 } else {
-                
                     // Jika direject, langsung set status requisition ke Rejected
                     if (!$requisition) {
                         throw new \Exception('Requisition not found.');
@@ -674,6 +673,18 @@ class ComplainController extends Controller
                             $requester->notify(new RequisitionNotification($notificationData, $rejectedBy));
                         }
                     } else {
+                        // token approval log setelah user melakukan reject jadi null
+                        $getApproverAfters = ApprovalLog::where('requisition_id', $requisition->id)
+                            ->where('level', '>', $approvalLog->level)
+                            ->where('status', 'Pending')
+                            ->get();
+
+                        foreach ($getApproverAfters as $approverAfter) {
+                            $approverAfter->token = null;
+                            $approverAfter->status = 'Cancelled';
+                            $approverAfter->save();
+                        }
+                    
                         // Send rejection notification to requester
                         if ($rejectedBy) {
                             sendRejectionNotification::dispatch(
@@ -683,7 +694,7 @@ class ComplainController extends Controller
                                 'approval',
                                 now()
                             );
-                            
+                        
                             // Kirim notifikasi rejection ke requester
                             if ($requester) {
                                 $notificationData = [
@@ -842,6 +853,19 @@ class ComplainController extends Controller
                             $requester->notify(new RequisitionNotification($notificationData, $rejectedBy));
                         }
                     } else {
+                        // token approval log setelah user melakukan reject jadi null
+                        $getApproverAfters = ApprovalLog::where('requisition_id', $requisition->id)
+                            ->where('level', '>', $approvalLog->level)
+                            ->where('status', 'Pending')
+                            ->get();
+                        
+                        foreach ($getApproverAfters as $approverAfter) {
+                            // Set token null untuk membatalkan approval selanjutnya
+                            $approverAfter->token = null;
+                            $approverAfter->status = 'Cancelled';
+                            $approverAfter->save();
+                        }
+                    
                         // Send rejection notification to requester
                         if ($rejectedBy) {
                             sendRejectionNotification::dispatch(
