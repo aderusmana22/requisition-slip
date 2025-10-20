@@ -24,7 +24,7 @@
         
         /* Header */
         .email-header {
-            background: linear-gradient(135deg, #6f42c1 0%, #495057 100%);
+            background: linear-gradient(135deg, #cc982f 0%, #b8871a 100%);
             color: white;
             padding: 30px 40px;
             text-align: center;
@@ -49,20 +49,15 @@
             width: auto;
             margin-bottom: 15px;
         }
-        .header-title {
+        .email-title {
             font-size: 28px;
             font-weight: 700;
             margin: 0;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
-        .header-subtitle {
+        .email-subtitle {
             font-size: 16px;
             margin: 10px 0 0 0;
-            opacity: 0.9;
-        }
-        .warehouse-icon {
-            font-size: 48px;
-            margin-bottom: 15px;
             opacity: 0.9;
         }
         
@@ -71,69 +66,68 @@
             padding: 40px;
         }
         
-        /* Greeting */
         .greeting {
-            margin-bottom: 30px;
-        }
-        .greeting h2 {
-            color: #6f42c1;
-            font-size: 24px;
-            margin: 0 0 10px 0;
-            font-weight: 600;
-        }
-        .greeting p {
-            margin: 0;
-            font-size: 16px;
-            color: #666;
+            font-size: 18px;
+            color: #2c3e50;
+            margin-bottom: 25px;
+            padding: 20px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 8px;
+            border-left: 4px solid #cc982f;
         }
         
         /* Info Cards */
         .info-section {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            margin: 30px 0;
+            margin-bottom: 30px;
         }
-        .info-card {
-            flex: 1;
-            min-width: 280px;
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            border-radius: 10px;
-            padding: 25px;
-            border-left: 5px solid #6f42c1;
-        }
-        .info-card h3 {
-            color: #495057;
-            font-size: 18px;
+        .section-title {
+            background: linear-gradient(135deg, #cc982f 0%, #b8871a 100%);
+            color: white;
+            padding: 12px 20px;
             margin: 0 0 15px 0;
+            border-radius: 8px 8px 0 0;
             font-weight: 600;
+            font-size: 16px;
+        }
+        .info-grid {
+            width: 100%;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 0 0 8px 8px;
+            border: 1px solid #e9ecef;
+            border-top: none;
+        }
+        .info-grid table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .info-grid td {
+            width: 50%;
+            vertical-align: top;
+            padding: 7px;
         }
         .info-item {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 12px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-        }
-        .info-item:last-child {
-            margin-bottom: 0;
-            border-bottom: none;
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #e9ecef;
         }
         .info-label {
             font-weight: 600;
             color: #495057;
-            flex: 0 0 120px;
+            font-size: 14px;
+            margin-bottom: 5px;
         }
         .info-value {
-            color: #6c757d;
-            text-align: right;
-            flex: 1;
+            color: #2c3e50;
+            font-size: 15px;
+            word-break: break-word;
         }
         
         /* Level Badge */
         .level-badge {
             display: inline-block;
-            background: linear-gradient(45deg, #6f42c1, #e83e8c);
+            background: linear-gradient(45deg, #cc982f, #b8871a);
             color: white;
             padding: 8px 16px;
             border-radius: 20px;
@@ -145,11 +139,12 @@
         /* Print Batch Badge */
         .print-batch-badge {
             display: inline-block;
-            padding: 6px 12px;
-            border-radius: 15px;
+            padding: 8px 15px;
+            border-radius: 20px;
             font-weight: 600;
-            font-size: 12px;
+            font-size: 14px;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         .print-batch-yes {
             background: #d4edda;
@@ -162,178 +157,157 @@
             border: 1px solid #f5c6cb;
         }
         
-        /* Items Table */
-        .items-section {
-            margin: 30px 0;
-        }
-        .items-table {
+        /* Product Table */
+        .product-table {
             width: 100%;
             border-collapse: collapse;
-            background: white;
+            margin-top: 15px;
             border-radius: 8px;
             overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            overflow-x: scroll;
+            border: 1px solid #e9ecef;
         }
-        .items-table th {
-            background: linear-gradient(135deg, #6f42c1 0%, #495057 100%);
+        .product-table th {
+            background: linear-gradient(135deg, #cc982f 0%, #b8871a 100%);
             color: white;
-            padding: 15px 12px;
-            font-weight: 600;
-            text-align: left;
-            font-size: 14px;
-        }
-        .items-table td {
             padding: 12px;
-            border-bottom: 1px solid #dee2e6;
+            text-align: left;
+            font-weight: 600;
             font-size: 14px;
         }
-        .items-table tr:last-child td {
-            border-bottom: none;
+        .product-table td {
+            padding: 12px;
+            border-bottom: 1px solid #e9ecef;
+            font-size: 14px;
         }
-        .items-table tr:hover {
+        .product-table tr:nth-child(even) {
             background-color: #f8f9fa;
+        }
+        .product-table tr:hover {
+            background-color: #e9ecef;
         }
         
         /* Action Buttons */
         .action-section {
             background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 30px;
             border-radius: 12px;
-            padding: 35px;
-            margin: 30px 0;
             text-align: center;
-            border: 2px dashed #6f42c1;
+            margin: 30px 0;
+            border: 2px solid #cc982f;
         }
         .action-title {
-            color: #495057;
             font-size: 20px;
-            font-weight: 600;
-            margin: 0 0 10px 0;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 15px;
         }
         .action-subtitle {
             color: #6c757d;
-            margin: 0 0 25px 0;
-            font-size: 14px;
+            margin-bottom: 25px;
+            font-size: 16px;
         }
-        .action-buttons {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            flex-wrap: wrap;
+        .button-group {
+            text-align: center;
+        }
+        .button-group table {
+            margin: 0 auto;
+            border-collapse: collapse;
+        }
+        .button-group td {
+            padding: 7px;
         }
         .btn {
             display: inline-block;
-            padding: 15px 30px;
+            padding: 12px 24px;
             text-decoration: none;
             border-radius: 8px;
             font-weight: 600;
             font-size: 16px;
             text-align: center;
+            min-width: 140px;
             transition: all 0.3s ease;
-            min-width: 160px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
-        .btn-ok {
+        .btn-approve {
             background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
             color: white;
         }
-        .btn-ok:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+        .btn-reject {
+            background: linear-gradient(135deg, #dc3545 0%, #e74c3c 100%);
             color: white;
         }
         .btn-review {
-            background: linear-gradient(135deg, #17a2b8 0%, #6610f2 100%);
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
             color: white;
         }
-        .btn-review:hover {
+        .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(23, 162, 184, 0.4);
-            color: white;
-        }
-        
-        /* Urgent Notice */
-        .urgent-notice {
-            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
-            border: 1px solid #ffeaa7;
-            border-radius: 8px;
-            padding: 20px;
-            margin: 25px 0;
-            text-align: center;
-        }
-        .urgent-notice h4 {
-            color: #856404;
-            margin: 0 0 10px 0;
-            font-size: 16px;
-            font-weight: 600;
-        }
-        .urgent-notice p {
-            color: #856404;
-            margin: 0;
-            font-size: 14px;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
         }
         
         /* Footer */
         .email-footer {
-            background: #f8f9fa;
+            background: #2c3e50;
+            color: white;
             padding: 30px 40px;
             text-align: center;
-            border-top: 1px solid #dee2e6;
         }
-        .footer-text {
-            color: #6c757d;
-            font-size: 14px;
-            margin: 0 0 15px 0;
-        }
-        .footer-links {
-            margin: 15px 0;
-        }
-        .footer-links a {
-            color: #6f42c1;
-            text-decoration: none;
-            margin: 0 15px;
-            font-size: 14px;
-        }
-        .footer-links a:hover {
-            text-decoration: underline;
+        .footer-content {
+            max-width: 600px;
+            margin: 0 auto;
         }
         .company-info {
-            color: #adb5bd;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        .company-tagline {
+            font-size: 14px;
+            opacity: 0.8;
+            margin-bottom: 20px;
+        }
+        .contact-info {
+            font-size: 14px;
+            opacity: 0.9;
+            line-height: 1.8;
+        }
+        .footer-divider {
+            height: 1px;
+            background: rgba(255, 255, 255, 0.2);
+            margin: 20px 0;
+        }
+        .copyright {
             font-size: 12px;
-            margin-top: 20px;
-            line-height: 1.4;
+            opacity: 0.7;
+            margin-top: 15px;
         }
         
         /* Responsive */
-        @media (max-width: 600px) {
+        @media only screen and (max-width: 600px) {
             .email-container {
-                margin: 10px;
-                border-radius: 8px;
+                margin: 10px !important;
+                border-radius: 8px !important;
             }
-            .email-content,
-            .email-header,
-            .email-footer {
-                padding: 20px;
+            .email-content, .email-header, .email-footer {
+                padding: 20px !important;
             }
-            .info-section {
-                flex-direction: column;
+            .info-grid td {
+                width: 100% !important;
+                display: block !important;
             }
-            .info-card {
-                min-width: auto;
-            }
-            .action-buttons {
-                flex-direction: column;
-                align-items: center;
+            .button-group td {
+                display: block !important;
+                width: 100% !important;
             }
             .btn {
-                width: 100%;
-                max-width: 300px;
+                width: 100% !important;
             }
-            .items-table {
-                font-size: 12px;
+            .product-table {
+                font-size: 12px !important;
             }
-            .items-table th,
-            .items-table td {
-                padding: 8px 6px;
+            .product-table th, .product-table td {
+                padding: 8px !important;
             }
         }
     </style>
@@ -343,167 +317,219 @@
         <!-- Header -->
         <div class="email-header">
             <div class="header-content">
-                <div class="warehouse-icon">🏭</div>
-                <h1 class="header-title">Warehouse Approval Required</h1>
-                <p class="header-subtitle">{{ $tracking->current_position }} - Approval Needed</p>
+                <img src="{{ asset('storage/logo.png') }}" alt="{{ config('app.name') }}" class="company-logo">
+                <h1 class="email-title">Warehouse Approval Request</h1>
+                <p class="email-subtitle">{{ $tracking->current_position }} - Approval Needed</p>
             </div>
         </div>
-
+        
         <!-- Content -->
         <div class="email-content">
             <!-- Greeting -->
             <div class="greeting">
-                <h2>Hello, {{ $approver->name }}</h2>
-                <p>A requisition complain requires your warehouse approval. Please review the details below and take appropriate action.</p>
+                <strong>Hello {{ $approver->name }},</strong><br>
+                You have received a warehouse approval request. Please review the details below and provide your decision.
                 <div class="level-badge">
                     📦 {{ $tracking->current_position }}
                 </div>
             </div>
 
-            <!-- Requisition Information -->
+            <!-- Basic Information -->
             <div class="info-section">
-                <div class="info-card">
-                    <h3>📋 Requisition Details</h3>
-                    <div class="info-item">
-                        <span class="info-label">Number:</span>
-                        <span class="info-value"><strong>{{ $requisition->no_srs }}</strong></span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Customer:</span>
-                        <span class="info-value">{{ $requisition->customer->name ?? 'N/A' }}</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Requester:</span>
-                        <span class="info-value">{{ $requisition->requester->name ?? 'N/A' }}</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Request Date:</span>
-                        <span class="info-value">{{ \Carbon\Carbon::parse($requisition->request_date)->format('d M Y') }}</span>
-                    </div>
-                </div>
-
-                <div class="info-card">
-                    <h3>💼 Account Information</h3>
-                    <div class="info-item">
-                        <span class="info-label">Account:</span>
-                        <span class="info-value">{{ $requisition->account }}</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Cost Center:</span>
-                        <span class="info-value">{{ $requisition->cost_center }}</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Category:</span>
-                        <span class="info-value"><strong>{{ $requisition->category }}</strong></span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Print Batch:</span>
-                        <span class="info-value">
-                            @if($requisition->print_batch)
-                                <span class="print-batch-badge print-batch-yes">✓ Yes</span>
-                            @else
-                                <span class="print-batch-badge print-batch-no">✗ No</span>
-                            @endif
-                        </span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Current Level:</span>
-                        <span class="info-value">
-                            @if($tracking->current_position == 'WH Supervisor First')
-                                Warehouse - Initial Check
-                            @elseif($tracking->current_position == 'Material Supervisor')
-                                Material - Review Process
-                            @elseif($tracking->current_position == 'WH Supervisor Final')
-                                Warehouse - Final Approval
-                            @else
-                                {{ $tracking->current_position }}
-                            @endif
-                        </span>
-                    </div>
+                <h3 class="section-title">📄 Request Information</h3>
+                <div class="info-grid">
+                    <table>
+                        <tr>
+                            <td>
+                                <div class="info-item">
+                                    <div class="info-label">No. SRS</div>
+                                    <div class="info-value">{{ $requisition->no_srs }}</div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="info-item">
+                                    <div class="info-label">Category</div>
+                                    <div class="info-value">{{ $requisition->category }}</div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="info-item">
+                                    <div class="info-label">Position</div>
+                                    <div class="info-value">{{ $tracking->current_position }}</div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="info-item">
+                                    <div class="info-label">Request Date</div>
+                                    <div class="info-value">{{ \Carbon\Carbon::parse($requisition->request_date)->format('d M Y') }}</div>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
                 </div>
             </div>
-
-            @if($requisition->objectives)
-            <div class="info-card" style="margin-top: 20px;">
-                <h3>🎯 Objectives</h3>
-                <p style="margin: 0; color: #495057; line-height: 1.6;">{{ $requisition->objectives }}</p>
+            
+            <!-- Account Information -->
+            <div class="info-section">
+                <h3 class="section-title">💼 Account Information</h3>
+                <div class="info-grid">
+                    <table>
+                        <tr>
+                            <td>
+                                <div class="info-item">
+                                    <div class="info-label">Account</div>
+                                    <div class="info-value">{{ $requisition->account ?? 'N/A' }}</div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="info-item">
+                                    <div class="info-label">Requester</div>
+                                    <div class="info-value">{{ $requisition->requester->name ?? 'N/A' }}</div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="info-item">
+                                    <div class="info-label">Print Batch</div>
+                                    <div class="info-value">
+                                        @if($requisition->print_batch == 1)
+                                            <span class="print-batch-badge print-batch-yes">Yes</span>
+                                        @else
+                                            <span class="print-batch-badge print-batch-no">No</span>
+                                        @endif
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="info-item">
+                                    <div class="info-label">Current Position</div>
+                                    <div class="info-value">{{ $tracking->current_position }}</div>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Customer Information -->
+            @if($requisition->customer)
+            <div class="info-section">
+                <h3 class="section-title">👤 Customer Information</h3>
+                <div class="info-grid">
+                    <table>
+                        <tr>
+                            <td>
+                                <div class="info-item">
+                                    <div class="info-label">Customer Name</div>
+                                    <div class="info-value">{{ $requisition->customer->name ?? 'N/A' }}</div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="info-item">
+                                    <div class="info-label">Customer Address</div>
+                                    <div class="info-value">{{ $requisition->customer->address ?? 'N/A' }}</div>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
             </div>
             @endif
 
-            <!-- Requisition Items -->
+            <!-- Objectives -->
+            @if($requisition->reason_for_replacement)
+            <div class="info-section">
+                <h3 class="section-title">🎯 Objectives</h3>
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 0 0 8px 8px; border: 1px solid #e9ecef; border-top: none;">
+                    <p style="margin: 0; color: #2c3e50; line-height: 1.6;">{{ $requisition->reason_for_replacement }}</p>
+                </div>
+            </div>
+            @endif
+
+            <!-- Product Details -->
             @if($requisition->requisitionItems && $requisition->requisitionItems->count() > 0)
-            <div class="items-section">
-                <h3 style="color: #495057; margin-bottom: 15px;">📦 Requisition Items</h3>
-                <table class="items-table">
-                    <thead>
-                        <tr>
-                            <th>Item Name</th>
-                            <th>Item Code</th>
-                            <th>Qty Required</th>
-                            <th>Qty Issued</th>
-                            <th>Batch Number</th>
-                            <th>Remarks</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($requisition->requisitionItems as $item)
-                        <tr>
-                            <td><strong>{{ $item->itemMaster->item_master_name ?? 'N/A' }}</strong></td>
-                            <td>{{ $item->itemMaster->item_master_code ?? 'N/A' }}</td>
-                            <td style="text-align: center;"><span style="background: #e3f2fd; color: #1976d2; padding: 4px 8px; border-radius: 12px; font-weight: 600;">{{ $item->quantity_required ?? 0 }}</span></td>
-                            <td style="text-align: center;"><span style="background: #e8f5e8; color: #2e7d32; padding: 4px 8px; border-radius: 12px; font-weight: 600;">{{ $item->quantity_issued ?? 0 }}</span></td>
-                            <td>{{ date('j/n/y', strtotime($item->batch_number)) ?? 'N/A' }}</td>
-                            <td>{{ $item->remarks ?? '-' }}</td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+            <div class="info-section">
+                <h3 class="section-title">📦 Product Details</h3>
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 0 0 8px 8px; border: 1px solid #e9ecef; border-top: none;">
+                    <table class="product-table">
+                        <thead>
+                            <tr>
+                                <th>Item Name</th>
+                                <th>Item Code</th>
+                                <th>Qty Required</th>
+                                <th>Qty Issued</th>
+                                <th>Batch Number</th>
+                                <th>Remarks</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($requisition->requisitionItems as $item)
+                            <tr>
+                                <td>{{ $item->itemMaster->item_master_name ?? 'N/A' }}</td>
+                                <td>{{ $item->itemMaster->item_master_code ?? 'N/A' }}</td>
+                                <td>{{ $item->quantity_required ?? 0 }}</td>
+                                <td>{{ $item->quantity_issued ?? 0 }}</td>
+                                <td>{{ date('j/n/y', strtotime($item->batch_number)) ?? 'N/A' }}</td>
+                                <td>{{ $item->remarks ?? '-' }}</td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
             </div>
             @endif
-
-            <!-- Urgent Notice -->
-            <div class="urgent-notice">
-                <h4>⚡ Quick Action Required</h4>
-                <p>This warehouse approval is part of the requisition process. Your prompt action helps maintain operational efficiency.</p>
-            </div>
 
             <!-- Action Buttons -->
             <div class="action-section">
-                <h3 class="action-title">Take Action</h3>
-                <p class="action-subtitle">Choose your preferred approval method</p>
-                
-                <div class="action-buttons">
-                    <a href="{{ $quickOkLink }}" class="btn btn-ok">
-                        ✅ Quick OK
-                    </a>
-                    <a href="{{ $okWithReviewLink }}" class="btn btn-review">
-                        📝 OK with Review
-                    </a>
+                <h3 class="action-title">⚡ Take Action</h3>
+                <p class="action-subtitle">Please review the request above and choose your action below</p>
+                <div class="button-group">
+                    <table>
+                        <tr>
+                            <td>
+                                <a href="{{ $quickOkLink }}" class="btn btn-approve">
+                                    ✅ Quick OK
+                                </a>
+                            </td>
+                            <td>
+                                <a href="{{ $okWithReviewLink }}" class="btn btn-review">
+                                    📝 OK with Review
+                                </a>
+                            </td>
+                        </tr>
+                    </table>
                 </div>
-                
-                <p style="margin-top: 20px; font-size: 12px; color: #6c757d;">
-                    <strong>Quick OK:</strong> Approve immediately without additional notes<br>
-                    <strong>OK with Review:</strong> Review details and add notes before approval
-                </p>
+            </div>
+            
+            <!-- Important Note -->
+            <div style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 20px; margin: 20px 0;">
+                <h4 style="color: #856404; margin: 0 0 10px 0;">⚠️ Important Notice</h4>
+                <ul style="color: #856404; margin: 0; padding-left: 20px;">
+                    <li>This warehouse approval is part of the requisition process</li>
+                    <li>Quick OK will process the approval immediately</li>
+                    <li>Use "OK with Review" if you need to add comments</li>
+                    <li>Your prompt action helps maintain operational efficiency</li>
+                </ul>
             </div>
         </div>
 
         <!-- Footer -->
         <div class="email-footer">
-            <p class="footer-text">
-                This is an automated email from the Requisition Management System.<br>
-                Please do not reply to this email.
-            </p>
-            
-            <div class="footer-links">
-                <a href="#">Help Center</a>
-                <a href="#">Contact Support</a>
-                <a href="#">System Status</a>
-            </div>
-            
-            <div class="company-info">
-                © {{ date('Y') }} Your Company Name. All rights reserved.<br>
-                Requisition Management System | Warehouse Approval Module
+            <div class="footer-content">
+                <div class="company-info">{{ config('app.name') }}</div>
+                <div class="company-tagline">Warehouse Department</div>
+                <div class="footer-divider"></div>
+                <div class="contact-info">
+                    <strong>Need Help?</strong><br>
+                    Contact IT Support: <br>
+                </div>
+                <div class="copyright">
+                    © {{ date('Y') }} {{ config('app.name') }}. All rights reserved.<br>
+                    This is an automated message, please do not reply directly to this email.
+                </div>
             </div>
         </div>
     </div>

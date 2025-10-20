@@ -61,7 +61,7 @@ class ComplainController extends Controller
                 'requisition_id' => $requisitionId,
                 'current_position' => 'WH Supervisor First',
                 'last_updated' => null,
-                'notes' => 'Waiting for WH Supervisor initial approval',
+                'notes' => null,
                 'token' => bin2hex(random_bytes(16)),
             ]);
 
@@ -70,7 +70,7 @@ class ComplainController extends Controller
                 'requisition_id' => $requisitionId,
                 'current_position' => 'Material Supervisor',
                 'last_updated' => null,
-                'notes' => 'Waiting for Material Supervisor approval',
+                'notes' => null,
                 'token' => bin2hex(random_bytes(16)),
             ]);
 
@@ -79,7 +79,7 @@ class ComplainController extends Controller
                 'requisition_id' => $requisitionId,
                 'current_position' => 'WH Supervisor Final',
                 'last_updated' => null,
-                'notes' => 'Waiting for WH Supervisor final approval',
+                'notes' => null,
                 'token' => bin2hex(random_bytes(16)),
             ]);
 
@@ -430,15 +430,25 @@ class ComplainController extends Controller
                         'color' => 'success'
                     ];
                 } elseif ($log->status === 'Rejected') {
-                    $history[] = [
-                        'type' => 'rejected',
-                        'timestamp' => $log->approved_at ?? $log->updated_at,
-                        'title' => 'Rejected by ' . ($log->approver->name ?? 'Unknown'),
-                        'description' => 'Level ' . $log->level . ' approval rejected' . 
-                                       ($log->notes ? '. Reason: ' . $log->notes : ''),
-                        'icon' => 'ph-x-circle',
-                        'color' => 'danger'
-                    ];
+                    if($log->approver->hasRole('head-QA')){
+                        $history[] = [
+                            'type' => 'rejected_payment_proof',
+                            'timestamp' => $log->approved_at ?? $log->updated_at,
+                            'title' => 'Rejected by ' . ($log->approver->name ?? 'Unknown'),
+                            'description' => 'Level ' . $log->level . ' approval rejected, payment proof required' . ($log->notes ? '. Reason: ' . $log->notes : ''),
+                            'icon' => 'ph-x-circle',
+                            'color' => 'danger'
+                        ];
+                    }else {
+                        $history[] = [
+                            'type' => 'rejected',
+                            'timestamp' => $log->approved_at ?? $log->updated_at,
+                            'title' => 'Rejected by ' . ($log->approver->name ?? 'Unknown'),
+                            'description' => 'Level ' . $log->level . ' approval rejected' . ($log->notes ? '. Reason: ' . $log->notes : ''),
+                            'icon' => 'ph-x-circle',
+                            'color' => 'danger'
+                        ];
+                    }
                 }
             }
 

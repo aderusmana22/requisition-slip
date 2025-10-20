@@ -433,36 +433,36 @@
                     </div>
 
                     <!-- Status & Approval History Section -->
-                    <div class="detail-section">
-                        <div class="section-header">
-                            <i class="ph-duotone ph-clock-clockwise"></i>
-                            Status & Approval History
-                        </div>
-                        <div class="row">
-                            <div class="col-md-4">
-                                <div class="status-display-container">
-                                    <h6 class="mb-3 fw-bold text-muted">
-                                        <i class="ph-duotone ph-flag me-2"></i>
-                                        Current Status
-                                    </h6>
-                                    <div class="current-status-badge" id="current_status_display">
+                    <!-- <div class="detail-section"> -->
+                        <!-- <div class="section-header"> -->
+                            <!-- <i class="ph-duotone ph-clock-clockwise"></i> -->
+                            <!-- Status & Approval History -->
+                        <!-- </div> -->
+                        <!-- <div class="row"> -->
+                            <!-- <div class="col-md-4"> -->
+                                <!-- <div class="status-display-container"> -->
+                                    <!-- <h6 class="mb-3 fw-bold text-muted"> -->
+                                        <!-- <i class="ph-duotone ph-flag me-2"></i> -->
+                                        <!-- Current Status -->
+                                    <!-- </h6> -->
+                                    <!-- <div class="current-status-badge" id="current_status_display"> -->
                                         <!-- Current status will be populated here -->
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-8">
-                                <div class="approval-history-container">
-                                    <h6 class="mb-3 fw-bold text-muted">
-                                        <i class="ph-duotone ph-chat-teardrop-text me-2"></i>
-                                        Approval History & Notes
-                                    </h6>
-                                    <div class="approval-timeline" id="approval_history_list">
+                                    <!-- </div> -->
+                                <!-- </div> -->
+                            <!-- </div> -->
+                            <!-- <div class="col-md-8"> -->
+                                <!-- <div class="approval-history-container"> -->
+                                    <!-- <h6 class="mb-3 fw-bold text-muted"> -->
+                                        <!-- <i class="ph-duotone ph-chat-teardrop-text me-2"></i> -->
+                                        <!-- Approval History & Notes -->
+                                    <!-- </h6> -->
+                                    <!-- <div class="approval-timeline" id="approval_history_list"> -->
                                         <!-- Approval history will be populated here -->
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                                    <!-- </div> -->
+                                <!-- </div> -->
+                            <!-- </div> -->
+                        <!-- </div> -->
+                    <!-- </div> -->
 
                     <!-- Approval & Process Tracking Card -->
                     <div class="detail-section">
@@ -482,7 +482,6 @@
                                     <div class="tracker-step" data-step-name="Manager Approval"><div class="tracker-icon"><i class="ph-bold ph-user-plus fs-6"></i></div><div class="tracker-label">Manager</div><div class="tracker-details"></div></div>
                                     <div class="tracker-step" data-step-name="Business Controller Approval"><div class="tracker-icon"><i class="ph-bold ph-briefcase fs-6"></i></div><div class="tracker-label">Business Controller</div><div class="tracker-details"></div></div>
                                     <div class="tracker-step" data-step-name="Warehouse Processing"><div class="tracker-icon"><i class="ph-bold ph-package fs-6"></i></div><div class="tracker-label">Warehouse</div><div class="tracker-details"></div></div>
-                                    <div class="tracker-step" data-step-name="Ready for Dispatch"><div class="tracker-icon"><i class="ph-bold ph-truck fs-6"></i></div><div class="tracker-label">Dispatch</div><div class="tracker-details"></div></div>
                                     <div class="tracker-step" data-step-name="Completed"><div class="tracker-icon"><i class="ph-bold ph-check-circle fs-6"></i></div><div class="tracker-label">Completed</div><div class="tracker-details"></div></div>
                                 </div>
                             </div>
@@ -1060,6 +1059,9 @@
                         // Populate History Log
                         populateHistoryLog(data);
 
+                        renderDetailProductTable(data.requisition_items);
+                        renderComplainImages(data.complain_images);
+
                         // Check if payment proof exists and add to detail - filter by complain ID
                         if (data.payments && data.payments.length > 0) {
                             // Find payment proof that matches the current complain ID
@@ -1071,9 +1073,6 @@
                                 addPaymentProofSection(relevantPayment, complainId);
                             }
                         }
-
-                        renderDetailProductTable(data.requisition_items);
-                        renderComplainImages(data.complain_images);
                     },
                     error: function (xhr) {
                         errorMessage(xhr.responseJSON?.message || 'Failed to load complain details.');
@@ -1226,8 +1225,8 @@
                     </div>
                 `;
 
-                // Insert payment section before the last section (Status & Approval History)
-                $('.modal-body .detail-section').last().before(paymentSection);
+                // Insert payment section after complain images section
+                $('#complainImagesSection').after(paymentSection);
             }
 
             // Enhanced modal detail table
@@ -1545,6 +1544,10 @@
                         statusClass = 'status-rejected';
                         statusText = 'Rejected';
                         break;
+                    case 'payment proof':
+                        statusClass = 'status-payment-proof';
+                        statusText = 'Payment Proof';
+                        break;
                     case 'in progress':
                         statusClass = 'status-in-progress';
                         statusText = 'In Progress';
@@ -1558,10 +1561,6 @@
                         statusClass = 'status-cancelled';
                         statusText = 'Cancelled';
                         break;
-                    case 'payment proof':
-                        statusClass = 'status-payment-proof';
-                        statusText = 'Payment Proof';
-                        break;
                     default:
                         statusClass = 'bg-secondary';
                         statusText = status;
@@ -1573,13 +1572,13 @@
                 
                 // Always mark submitted as completed
                 steps.filter('[data-step-name="Submitted"]').addClass('completed');
-                progressPercent = 16.66; // 1/6 of progress
+                progressPercent = 20; // 1/5 of progress
                 
                 // Check approval logs - using token null as indicator for completion
                 const approvalLogs = data.approval_logs || [];
                 let managerApproved = false;
-                let bcApproved = false;
                 let allApprovalsComplete = false;
+                let hasPaymentProof = data.payments && data.payments.length > 0;
                 
                 // Check for manager approval (level 1)
                 const managerLog = approvalLogs.find(log => log.level === 1);
@@ -1587,60 +1586,105 @@
                     if (managerLog.status === 'Approved') {
                         steps.filter('[data-step-name="Manager Approval"]').addClass('completed');
                         managerApproved = true;
-                        progressPercent = 33.33; // 2/6 of progress
+                        progressPercent = 40; // 2/5 of progress
                     } else if (managerLog.status === 'Rejected') {
                         steps.filter('[data-step-name="Manager Approval"]').addClass('rejected');
-                        progressBar.css('width', '33.33%');
+                        progressBar.css('width', '40%');
                         return; // Stop here if rejected
                     }
                 } else if (managerLog && managerLog.status === 'Pending') {
                     steps.filter('[data-step-name="Manager Approval"]').addClass('active');
                 }
                 
-                // Check for business controller approval (level 2)
-                const bcLog = approvalLogs.find(log => log.level === 2);
-                if (bcLog && bcLog.token === null && managerApproved) {
-                    if (bcLog.status === 'Approved') {
-                        steps.filter('[data-step-name="Business Controller Approval"]').addClass('completed');
-                        bcApproved = true;
-                        progressPercent = 50; // 3/6 of progress
-                        allApprovalsComplete = true;
-                    } else if (bcLog.status === 'Rejected') {
-                        steps.filter('[data-step-name="Business Controller Approval"]').addClass('rejected');
-                        progressBar.css('width', '50%');
-                        return; // Stop here if rejected
-                    }
-                } else if (bcLog && bcLog.status === 'Pending' && managerApproved) {
-                    steps.filter('[data-step-name="Business Controller Approval"]').addClass('active');
-                }
+                // Check for business controller approval (level 2 and above)
+                const bcLogs = approvalLogs.filter(log => log.level >= 2);
+                let lastBcLevel = 0;
+                let bcComplete = false;
                 
-                // Check warehouse tracking - using token null as indicator for completion
-                const trackings = data.trackings || [];
-                let warehouseComplete = false;
-                let dispatchComplete = false;
-                
-                if (allApprovalsComplete && trackings.length > 0) {
-                    // Count completed warehouse steps (where token is null)
-                    const completedTrackings = trackings.filter(tracking => tracking.token === null);
+                if (managerApproved && bcLogs.length > 0) {
+                    // Find the highest level approval
+                    const maxLevel = Math.max(...bcLogs.map(log => log.level));
+                    let allBcApproved = true;
+                    let hasRejected = false;
+                    let hasPending = false;
                     
-                    if (completedTrackings.length > 0) {
-                        steps.filter('[data-step-name="Warehouse Processing"]').addClass('completed');
-                        warehouseComplete = true;
-                        progressPercent = 66.66; // 4/6 of progress
-                    } else {
-                        // Check if any warehouse step is active (has token but not completed)
-                        const activeTracking = trackings.find(tracking => tracking.token !== null);
-                        if (activeTracking) {
-                            steps.filter('[data-step-name="Warehouse Processing"]').addClass('active');
+                    // Check each level from 2 to maxLevel
+                    for (let level = 2; level <= maxLevel; level++) {
+                        const levelLog = bcLogs.find(log => log.level === level);
+                        if (levelLog && levelLog.token === null) {
+                            if (levelLog.status === 'Rejected') {
+                                hasRejected = true;
+                                lastBcLevel = level;
+                                break;
+                            } else if (levelLog.status !== 'Approved') {
+                                allBcApproved = false;
+                                break;
+                            }
+                        } else if (levelLog && levelLog.status === 'Pending') {
+                            hasPending = true;
+                            lastBcLevel = level;
+                            allBcApproved = false;
+                            break;
+                        } else {
+                            allBcApproved = false;
+                            break;
                         }
                     }
                     
-                    // Check if all warehouse steps are complete for dispatch
-                    if (completedTrackings.length === trackings.length && trackings.length > 0) {
+                    if (hasRejected) {
+                        // If rejected at any level, check if payment proof exists
+                        if (hasPaymentProof) {
+                            // With payment proof, show as completed (not warning)
+                            steps.filter('[data-step-name="Business Controller Approval"]').addClass('completed');
+                            bcComplete = true;
+                            progressPercent = 60; // 3/5 of progress
+                            allApprovalsComplete = true;
+                        } else {
+                            // Without payment proof, show as rejected
+                            steps.filter('[data-step-name="Business Controller Approval"]').addClass('rejected');
+                            progressBar.css('width', '60%');
+                            return; // Stop here if rejected without payment proof
+                        }
+                    } else if (allBcApproved) {
+                        steps.filter('[data-step-name="Business Controller Approval"]').addClass('completed');
+                        bcComplete = true;
+                        progressPercent = 60; // 3/5 of progress
+                        allApprovalsComplete = true;
+                    } else if (hasPending) {
+                        steps.filter('[data-step-name="Business Controller Approval"]').addClass('active');
+                    }
+                } else if (managerApproved) {
+                    // If manager approved but no BC logs yet, mark as active
+                    steps.filter('[data-step-name="Business Controller Approval"]').addClass('active');
+                }
+                
+                // Check warehouse tracking - consolidated warehouse process
+                const trackings = data.trackings || [];
+                let warehouseComplete = false;
+                
+                if (allApprovalsComplete && trackings.length > 0) {
+                    // Check if all warehouse tracking steps are completed
+                    const completedTrackings = trackings.filter(tracking => tracking.token === null);
+                    const totalTrackings = trackings.length;
+                    
+                    if (completedTrackings.length === totalTrackings && totalTrackings > 0) {
+                        // All warehouse steps completed
+                        warehouseComplete = true;
+                        steps.filter('[data-step-name="Warehouse Processing"]').addClass('completed');
+                        progressPercent = 80; // 4/5 of progress
+                    } else if (completedTrackings.length > 0) {
+                        // Some warehouse steps completed, but not all
+                        steps.filter('[data-step-name="Warehouse Processing"]').addClass('active');
+                    } else {
+                        // No warehouse steps completed yet, but warehouse process is active
+                        steps.filter('[data-step-name="Warehouse Processing"]').addClass('active');
+                    }
+                    
+                    // Check if ready for dispatch
+                    if (warehouseComplete) {
                         steps.filter('[data-step-name="Ready for Dispatch"]').addClass('completed');
-                        dispatchComplete = true;
-                        progressPercent = 83.33; // 5/6 of progress
-                    } else if (warehouseComplete) {
+                        progressPercent = 80; // 4/5 of progress
+                    } else if (completedTrackings.length > 0) {
                         steps.filter('[data-step-name="Ready for Dispatch"]').addClass('active');
                     }
                 }
@@ -1649,7 +1693,7 @@
                 if (data.status === 'Completed' || data.status === 'completed') {
                     steps.filter('[data-step-name="Completed"]').addClass('completed');
                     progressPercent = 100;
-                } else if (dispatchComplete) {
+                } else if (warehouseComplete) {
                     steps.filter('[data-step-name="Completed"]').addClass('active');
                 }
                 

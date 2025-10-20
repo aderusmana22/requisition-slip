@@ -1626,3 +1626,166 @@ body {
     color: #6c757d;
     font-size: 0.75rem;
 }
+
+/* ========================================
+   APPROVAL TRACKER STYLING
+   ======================================== */
+
+/* Tracker Container */
+.tracker-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 30px 0;
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+/* Tracker Line (Background Line) */
+.tracker-line {
+    position: absolute;
+    top: 50%;
+    left: 50px;
+    right: 50px;
+    height: 4px;
+    background: #e9ecef;
+    border-radius: 2px;
+    z-index: 1;
+    transform: translateY(-50%);
+}
+
+/* Tracker Progress Line */
+.tracker-line-progress {
+    height: 100%;
+    background: linear-gradient(90deg, rgb(192, 127, 0) 0%, rgb(160, 100, 0) 100%);
+    border-radius: 2px;
+    transition: width 0.6s ease-in-out;
+    width: 0%;
+}
+
+/* Tracker Step */
+.tracker-step {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    flex: 1;
+    transition: all 0.3s ease;
+}
+
+/* Tracker Icon */
+.tracker-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #e9ecef;
+    color: #6c757d;
+    border: 3px solid #e9ecef;
+    transition: all 0.3s ease;
+    margin-bottom: 8px;
+    font-size: 18px;
+    position: relative;
+    z-index: 3;
+}
+
+/* Tracker Label */
+.tracker-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #6c757d;
+    margin-top: 5px;
+    transition: color 0.3s ease;
+    white-space: nowrap;
+}
+
+/* Active State - Blue Theme */
+.tracker-step.active .tracker-icon {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+    animation: pulse-blue 2s infinite;
+}
+
+.tracker-step.active .tracker-label {
+    color: #3b82f6;
+    font-weight: 700;
+}
+
+@keyframes pulse-blue {
+    0% {
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+    }
+    50% {
+        box-shadow: 0 0 0 8px rgba(59, 130, 246, 0.1);
+    }
+    100% {
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+    }
+}
+
+/* Completed State - Gold Theme */
+.tracker-step.completed .tracker-icon {
+    background: linear-gradient(135deg, rgb(192, 127, 0) 0%, rgb(160, 100, 0) 100%);
+    color: white;
+    border-color: rgb(192, 127, 0);
+    box-shadow: 0 4px 12px rgba(192, 127, 0, 0.3);
+}
+
+.tracker-step.completed .tracker-label {
+    color: rgb(192, 127, 0);
+    font-weight: 700;
+}
+
+/* Rejected State - Red Theme */
+.tracker-step.rejected .tracker-icon {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    border-color: #ef4444;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.tracker-step.rejected .tracker-label {
+    color: #ef4444;
+    font-weight: 700;
+}
+
+/* Hover Effects */
+.tracker-step:hover .tracker-icon {
+    transform: scale(1.1);
+}
+
+.tracker-step.completed:hover .tracker-icon {
+    box-shadow: 0 6px 16px rgba(192, 127, 0, 0.4);
+}
+
+.tracker-step.active:hover .tracker-icon {
+    box-shadow: 0 0 0 8px rgba(59, 130, 246, 0.3);
+}
+
+.tracker-step.rejected:hover .tracker-icon {
+    box-shadow: 0 6px 16px rgba(239, 68, 68, 0.4);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .tracker-step {
+        min-width: 80px;
+    }
+    
+    .tracker-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+    }
+    
+    .tracker-label {
+        font-size: 10px;
+    }
+}
