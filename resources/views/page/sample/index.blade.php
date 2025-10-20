@@ -731,6 +731,7 @@
 
         $(document).ready(function () {
             const userDepartmentCode = "{{ $userAccount ?? '' }}";
+            const userDepartmentName = "{{ $userDepartmentName ?? '' }}";
 
             function initSelect2() {
                 function formatSubCategory(option) {
@@ -1233,7 +1234,7 @@
                         }
 
                         // Logika untuk print_batch (jika ada) dipindahkan ke sini juga
-                        if (currentSubCategory === 'Packaging' && mode === 'create') {
+                        if (currentSubCategory === 'Packaging' && mode === 'create' && userDepartmentName !== 'R&D') {
                             Swal.fire({
                                 title: 'Print Batch Number',
                                 text: "Apakah Anda ingin mencetak Batch Number untuk requisition ini?",
@@ -1252,9 +1253,10 @@
                                     formData.append('print_batch', '0');
                                     submitForm(formData);
                                 }
-                                // Jika user menutup pop-up, tidak terjadi apa-apa
                             });
                         } else {
+                            // Jika kondisi di atas tidak terpenuhi (misalnya user R&D atau sub-kategori lain),
+                            // form akan langsung disubmit.
                             let formData = new FormData(form);
                             submitForm(formData);
                         }

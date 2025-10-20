@@ -3,7 +3,17 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>RS SAMPLE {{ $requisition->sub_category }} - {{ $requisition->no_srs }}</title>
+    <title>
+        @php
+            $reportCount = isset($requisitions) ? count($requisitions) : 1;
+            $firstReport = isset($requisitions) ? $requisitions->first() : $requisition;
+        @endphp
+        @if($reportCount > 1)
+            RS Sample - {{ $reportCount }} Reports
+        @else
+            Bulk RS Complain Reports - {{ $reportCount }} Reports
+        @endif
+    </title>
     <style>
         @page { margin: 0.5cm; }
         /* [DIUBAH] Ukuran font dasar dikecilkan lagi */
@@ -194,7 +204,41 @@
     {{-- ======================================================= --}}
     {{-- ========= HALAMAN 1: TEMPLATE UTAMA (SEMUA TIPE) ========= --}}
     {{-- ======================================================= --}}
-    @foreach($requisitions as $requisition)
+    @php
+        $reports = isset($requisitions) ? $requisitions : [$requisition];
+    @endphp
+
+    @foreach($reports as $index => $requisitions)
+    @if($index > 0)
+        <div style="page-break-before: always;"></div>
+    @endif
+
+    @php
+        $approvals = $requisitions->approvalLogs->map(function ($log) {
+            $statusText = 'NOT REVIEWED';
+            if ($log->status === 'Approved' && !empty($log->notes) && $log->notes !== 'Approved by ' . ($log->approver ? $log->approver->name : '')) {
+                $statusText = 'APPROVED WITH REVIEW';
+            } elseif ($log->status === 'Approved') {
+                $statusText = 'APPROVED NOT REVIEW';
+            } elseif ($log->status === 'Rejected') {
+                $statusText = 'NOT APPROVED';
+            }
+
+            // Get role display
+            $roleNames = $log->approver && $log->approver->roles ? $log->approver->roles->pluck('name')->toArray() : [];
+            $roleDisplay = !empty($roleNames) ? implode(', ', $roleNames) : ($log->level ? $log->level : 'Unknown');
+
+            return (object) [
+                'name' => $log->approver ? $log->approver->name : 'Unknown',
+                'position' => $roleDisplay,
+                'status' => $statusText,
+                'updated_at' => $log->updated_at,
+                'notes' => $log->notes
+            ];
+        });
+
+        $requester = $requisitions->requester ? $requisitions->requester : (object) ['name' => 'Unknown', 'department' => (object) ['name' => 'Unknown']];
+    @endphp
     <div class="page">
         <table class="bordered">
             <tr>
@@ -242,12 +286,12 @@
                                 <table class="no-border">
                                     <tr>
                                         <td style="text-align: left; padding-right: 5px;"><strong>CUSTOMER NAME</strong></td>
-                                        <td style="vertical-align: top; white-space: nowrap;">: {{ $requisition->customer->name ?? '-' }}</td>
+                                        <td style="vertical-align: top; white-space: nowrap;">: {{ $requisitions->customer->name ?? '-' }}</td>
                                     </tr>
                                     <br>
                                     <tr>
                                         <td style="vertical-align: top; text-align: left; padding-right: 5px;"><strong>ADDRESS</strong></td>
-                                        <td style="vertical-align: top; white-space: nowrap; width: 100%;">: {{ $requisition->customer->address ?? '-' }}</td>
+                                        <td style="vertical-align: top; white-space: nowrap; width: 100%;">: {{ $requisitions->customer->address ?? '-' }}</td>
                                     </tr>
                                 </table>
                             </td>
@@ -256,20 +300,20 @@
                                 <table class="no-border">
                                     <tr>
                                         <td style="text-align: right; padding-right: 5px;"><strong>Account</strong></td>
-                                        <td>: {{ $requisition->account ?? '-' }}</td>
+                                        <td>: {{ $requisitions->account ?? '-' }}</td>
                                     </tr>
                                     <tr>
                                         <td style="text-align: right; padding-right: 5px;"><strong>Cost Center</strong></td>
-                                        <td>: {{ $requisition->cost_center ?? '-' }}</td>
+                                        <td>: {{ $requisitions->cost_center ?? '-' }}</td>
                                     </tr>
                                     <tr>
                                         <td style="text-align: right; padding-right: 5px;"><strong>Tanggal</strong></td>
-                                        <td>: {{ \Carbon\Carbon::parse($requisition->request_date)->format('d F Y') }}</td>
+                                        <td>: {{ \Carbon\Carbon::parse($requisitions->request_date)->format('d F Y') }}</td>
                                     </tr>
                                     <br>
                                     <tr>
                                         <td style="text-align: right; padding-right: 5px;"><strong>Nomor RS</strong></td>
-                                        <td>: <strong style="font-size: 14pt;">{{ $requisition->no_srs }}</strong></td>
+                                        <td>: <strong style="font-size: 14pt;">{{ $requisitions->no_srs }}</strong></td>
                                     </tr>
                                 </table>
                             </td>
@@ -281,7 +325,7 @@
                         <thead>
                             <tr>
                                 {{-- [BARU] Tampilkan kolom Material Type jika sub category adalah Packaging --}}
-                                @if($requisition->sub_category == 'Packaging')
+                                @if($requisitions->sub_category == 'Packaging')
                                     <th style="width: 12%;">MATERIAL TYPE</th>
                                     <th style="width: 12%;">PRODUCT CODE</th>
                                 @else
@@ -298,15 +342,15 @@
 
                         <tbody>
                             @php
-                                $itemCount = $requisition->requisitionItems->count();
+                                $itemCount = $requisitions->requisitionItems->count();
                                 $minRows = 15;
                                 $totalRows = max($itemCount, $minRows);
                             @endphp
 
-                            @foreach($requisition->requisitionItems as $item)
+                            @foreach($requisitions->requisitionItems as $item)
                             <tr>
                                 {{-- [MODIFIKASI] Logika untuk menampilkan data berdasarkan sub_category --}}
-                                @if($requisition->sub_category == 'Packaging')
+                                @if($requisitions->sub_category == 'Packaging')
                                     <td class="text-center">{{ $item->material_type ?? '-' }}</td>
                                     <td class="text-center">{{ $item->itemDetail->item_detail_code ?? '-' }}</td>
                                     <td class="text-center">{{ $item->itemDetail->item_detail_name ?? '-' }}</td>
@@ -323,8 +367,8 @@
 
                                 {{-- Kolom Objectives dan Estimasi tetap sama, digabung dengan rowspan --}}
                                 @if($loop->first)
-                                    <td class="notes-column text-center" rowspan="{{ $totalRows }}">{{ $requisition->objectives }}</td>
-                                    <td class="notes-column text-center" rowspan="{{ $totalRows }}">{{ $requisition->estimated_potential }}</td>
+                                    <td class="notes-column text-center" rowspan="{{ $totalRows }}">{{ $requisitions->objectives }}</td>
+                                    <td class="notes-column text-center" rowspan="{{ $totalRows }}">{{ $requisitions->estimated_potential }}</td>
                                 @endif
                             </tr>
                             @endforeach
@@ -332,15 +376,15 @@
                             {{-- Logika untuk baris kosong tetap sama --}}
                             @for ($i = $itemCount; $i < $minRows; $i++)
                             <tr>
-                                @if($requisition->sub_category == 'Packaging')
+                                @if($requisitions->sub_category == 'Packaging')
                                     <td>&nbsp;</td> {{-- Kolom ekstra untuk Material Type --}}
                                 @endif
                                 <td>&nbsp;</td> <td></td> <td></td> <td></td> <td></td>
 
                                 {{-- Pastikan kolom rowspan hanya dirender sekali jika tidak ada item sama sekali --}}
                                 @if($itemCount == 0 && $i == 0)
-                                    <td class="notes-column text-center" rowspan="{{ $totalRows }}">{{ $requisition->objectives }}</td>
-                                    <td class="notes-column text-center" rowspan="{{ $totalRows }}">{{ $requisition->estimated_potential }}</td>
+                                    <td class="notes-column text-center" rowspan="{{ $totalRows }}">{{ $requisitions->objectives }}</td>
+                                    <td class="notes-column text-center" rowspan="{{ $totalRows }}">{{ $requisitions->estimated_potential }}</td>
                                 @endif
                             </tr>
                             @endfor
@@ -355,9 +399,9 @@
     {{-- ========= HALAMAN 2: KHUSUS JIKA TIPE SPECIAL ORDER ========= --}}
     {{-- =================================================================== --}}
 
-    @if($requisition->sub_category === 'Special Order' && $requisition->requisitionSpecial)
+    @if($requisitions->sub_category === 'Special Order' && $requisitions->requisitionSpecial)
         @php
-            $special = $requisition->requisitionSpecial;
+            $special = $requisitions->requisitionSpecial;
 
             // Blok logika terpusat
             $weight_options = ['25Kg', '15Kg', '250gr', '500g', '1Kg', '500ml', '1lt', '5lt'];
@@ -410,8 +454,8 @@
                 <tr>
                     {{-- [MODIFIKASI] Tambahkan border-right dan padding --}}
                     <td style="width: 20%; white-space: nowrap; border: none; border-right: 1px solid #333; padding-right: 8px;">Tgl Permintaan</td>
-                    <td style="white-space: nowrap; border: none; padding-left: 8px;" colspan="5">: {{ \Carbon\Carbon::parse($requisition->request_date)->locale('id_ID')->isoFormat('D MMMM YYYY') }}</td>
-                    <td style="white-space: nowrap; border: none;">No. SRS : <strong style="font-size: 14px;">{{ $requisition->no_srs }}</strong></td>
+                    <td style="white-space: nowrap; border: none; padding-left: 8px;" colspan="5">: {{ \Carbon\Carbon::parse($requisitions->request_date)->locale('id_ID')->isoFormat('D MMMM YYYY') }}</td>
+                    <td style="white-space: nowrap; border: none;">No. SRS : <strong style="font-size: 14px;">{{ $requisitions->no_srs }}</strong></td>
                 </tr>
                 <tr>
                     <td style="width: 20%; white-space: nowrap; border: none; border-right: 1px solid #333; padding-right: 8px;">Tgl Selesai Sample</td>
@@ -540,7 +584,7 @@
                             </td>
                             <td style="width: 60%;" class="text-center">
                                 <div class="font-bold main-title" style="margin-bottom: 4px;">REQUISITION SLIP STATUS</div>
-                                <div class="sub-title">SAMPLE PRODUCT: <strong>{{ $requisition->no_srs }}</strong></div>
+                                <div class="sub-title">SAMPLE PRODUCT: <strong>{{ $requisitions->no_srs }}</strong></div>
                             </td>
                             <td style="width: 25%;">
                                 <table class="no-border" style="table-layout: auto; width: auto;">

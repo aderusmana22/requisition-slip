@@ -597,105 +597,131 @@ class SampleController extends Controller
     /**
      * Memproses satu langkah persetujuan (approve/reject).
      */
+
     private function processApprovalStep(Request $request, ApprovalLog $approvalLog, string $action, ?string $notes)
     {
         DB::beginTransaction();
         try {
-            $requisition = $approvalLog->requisition;
-            $approverName = $approvalLog->approver->name ?? 'Approver';
-            $finalNotes = $notes;
-            if (empty($notes)) {
-                $finalNotes = ($action === 'reject') ? 'Rejected without reason' : 'Approved by ' . $approverName;
-            }
+            $requisition = $approvalLog->requisition->load('requester', 'customer');
+            $approver = $approvalLog->approver;
+            $requester = $requisition->requester;
 
-            $statusUpdate = ($action === 'reject') ? 'Rejected' : 'Approved';
+            // Siapkan variabel untuk respons di akhir, agar tidak duplikat kode
+            $redirectData = [];
 
-            $approvalLog->update([
-                'status'       => ($action === 'reject') ? 'Rejected' : 'Approved',
-                'notes'        => $finalNotes,
-                'updated_at'   => now(), // <-- TAMBAHKAN BARIS INI
-                'token'        => null,
-            ]);
-
-            $eventName = ($action === 'reject') ? 'reject' : 'approve';
-            activity()
-                ->causedBy($approvalLog->approver)
-                ->performedOn($requisition)
-                ->useLog('sample - ' . strtolower($requisition->sub_category))
-                ->event($eventName)
-                ->withProperties(['level' => $approvalLog->level, 'notes' => $finalNotes])
-                ->log("{$approverName} {$statusUpdate} the requisition.");
-
-            $title = 'Action Submitted';
-            $actionText = 'Processed';
-
+            // --- BLOK UNTUK AKSI: REJECT ---
             if ($action === 'reject') {
                 $requisition->update(['status' => 'Rejected', 'route_to' => 'Finished (Rejected)']);
-                if ($requester = $requisition->requester) {
-                    dispatch(new sendSample($requisition, $requisition->requester, null, [
-                        'mail_type' => 'rejection_notification',
-                        'approver_name' => $approverName,
-                        'rejection_notes' => $notes
-                    ]))->delay(now()->addSeconds(3));
+                $approvalLog->update([
+                    'status'     => 'Rejected',
+                    'notes'      => $notes ?? 'Rejected without reason',
+                    'updated_at' => now(),
+                    'token'      => null,
+                ]);
 
-                    $notificationData = [
+                // Kirim notifikasi reject ke requester
+                if ($requester) {
+                    $requester->notify(new RequisitionNotification([
                         'requisition_id' => $requisition->id,
                         'srs_number'     => $requisition->no_srs,
-                        'message'        => "Requisition #{$requisition->no_srs} Anda telah di-reject oleh {$approverName}.",
+                        'message'        => "Requisition #{$requisition->no_srs} Anda telah di-reject oleh {$approver->name}.",
                         'url'            => route('sample-form.index'),
-                    ];
-                    $causer = $approvalLog->approver; // User yang melakukan reject
-                    $requester->notify(new RequisitionNotification($notificationData, $causer));
+                    ], $approver));
                 }
-                $newStatus = 'Rejected';
-                $title = 'Requisition Rejected'; // Judul baru
-                $actionText = 'Rejected';         // Teks aksi baru
-            } else { // Ini mencakup 'approve' dan 'review'
-                // Tentukan judul berdasarkan ada atau tidaknya 'notes'
-                if (!empty($notes)) {
-                    $title = 'Approved with Review';
-                    $actionText = 'Approved with Review';
-                } else {
-                    $title = 'Approved without Review';
-                    $actionText = 'Approved';
-                }
+
+                // Siapkan data untuk halaman sukses (tampilan reject)
+                $redirectData = [
+                    'card_class' => 'reject',
+                    'title'      => 'Requisition Rejected',
+                    'new_status' => 'Rejected',
+                ];
+            }
+
+            // --- BLOK UNTUK AKSI: APPROVE ---
+            else {
+                // Update log approval yang sedang diproses
+                $approvalLog->update([
+                    'status'     => 'Approved',
+                    'notes'      => $notes,
+                    'updated_at' => now(),
+                    'token'      => null,
+                ]);
+
+                // Cek apakah ada langkah approval selanjutnya
                 $nextApprovalLog = ApprovalLog::where('requisition_id', $requisition->id)
-                                                ->where('level', '>', $approvalLog->level)
-                                                ->orderBy('level', 'asc')->first();
+                                            ->where('level', '>', $approvalLog->level)
+                                            ->orderBy('level', 'asc')->first();
+
+                // KONDISI 1: JIKA MASIH ADA APPROVER SELANJUTNYA
                 if ($nextApprovalLog && $nextApprover = $nextApprovalLog->approver) {
-                    $requisition->update(['status' => 'In Progress', 'route_to' => $nextApprovalLog->approver->name]);
-                    dispatch(new sendSample($requisition, $nextApprovalLog->approver, $nextApprovalLog->token))->delay(now()->addSeconds(3));
-                    $newStatus = 'In Progress';
-                    $notificationData = [
+                    $requisition->update(['status' => 'In Progress', 'route_to' => $nextApprover->name]);
+
+                    // Kirim notifikasi ke approver selanjutnya
+                    sendSample::dispatch($requisition, $nextApprover, $nextApprovalLog->token);
+                    $nextApprover->notify(new RequisitionNotification([
                         'requisition_id' => $requisition->id,
                         'srs_number'     => $requisition->no_srs,
-                        'message'        => "Requisition #{$requisition->no_srs} menunggu approval Anda.",
+                        'message'        => "Requisition #{$requisition->no_srs} dari {$requester->name} menunggu approval Anda.",
                         'url'            => route('sample-form.approval'),
-                    ];
-                    $causer = $approvalLog->approver; // User yang baru saja approve
-                    $nextApprover->notify(new RequisitionNotification($notificationData, $causer));
-                } else {
+                    ], $requester));
+
+                    // Kirim notifikasi progres ke requester
+                    if ($requester) {
+                        $requester->notify(new RequisitionNotification([
+                            'requisition_id' => $requisition->id,
+                            'srs_number'     => $requisition->no_srs,
+                            'message'        => "Requisition #{$requisition->no_srs} telah di-approve oleh {$approver->name}.",
+                            'url'            => route('sample-form.index'),
+                        ], $approver));
+                    }
+
+                    $redirectData = [ 'new_status' => 'In Progress' ];
+                }
+
+                // KONDISI 2: JIKA INI ADALAH APPROVER TERAKHIR
+                else {
                     $requisition->update(['status' => 'Approved']);
                     $newStatus = $this->handlePostApprovalFlow($requisition);
+
+                    // HANYA kirim notifikasi "sepenuhnya di-approve" ke requester
+                    if ($requester) {
+                        $requester->notify(new RequisitionNotification([
+                            'requisition_id' => $requisition->id,
+                            'srs_number'     => $requisition->no_srs,
+                            'message'        => "Requisition #{$requisition->no_srs} Anda telah sepenuhnya di-approve.",
+                            'url'            => route('sample-form.index'),
+                        ], $approver));
+                    }
+
+                    $redirectData = [ 'new_status' => $newStatus ];
                 }
+
+                // Gabungkan data redirect untuk 'approve'
+                $redirectData = array_merge($redirectData, [
+                    'card_class' => 'success',
+                    'title'      => !empty($notes) ? 'Approved with Review' : 'Approved without Review',
+                ]);
             }
+
+            // Log aktivitas (berlaku untuk approve & reject)
+            activity()->causedBy($approver)->performedOn($requisition)->event($action)->log("{$approver->name} {$action}d the requisition.");
+
             DB::commit();
 
             if ($request->ajax()) {
                 return response()->json(['success' => true, 'message' => 'Decision has been recorded successfully.']);
             }
-            // Di dalam fungsi processApprovalStep()
-            $requisition->load('customer'); // Pastikan data customer sudah ter-load
 
-            return redirect()->route('approval.success')->with([
-                'card_class'    => $action === 'reject' ? 'reject' : 'success',
-                'title'         => $title, // <-- Menggunakan judul dinamis
-                'new_status'    => $newStatus,
+            // Siapkan data lengkap untuk halaman sukses
+            $finalRedirectData = array_merge($redirectData, [
                 'no_srs'        => $requisition->no_srs,
                 'customer_name' => $requisition->customer->name ?? 'N/A',
-                'action_text'   => $actionText, // <-- Variabel baru ditambahkan
-                'approver_name' => $approverName, // <-- Variabel baru ditambahkan
+                'action_text'   => $action === 'reject' ? 'Rejected' : (!empty($notes) ? 'Approved with Review' : 'Approved'),
+                'approver_name' => $approver->name,
             ]);
+
+            return redirect()->route('approval.success')->with($finalRedirectData);
+
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error("Gagal proses approval #{$approvalLog->id}: " . $e->getMessage());
@@ -763,20 +789,33 @@ class SampleController extends Controller
     /**
      * Menangani alur kerja SETELAH semua approval manajerial selesai.
      */
+    /**
+     * Menangani alur kerja SETELAH semua approval manajerial selesai.
+     */
     private function handlePostApprovalFlow(Requisition $requisition)
     {
         Log::info("Approval path selesai untuk Requisition #{$requisition->id}. Memulai alur proses.");
 
+        // [PERBAIKAN] Muat relasi requester dan department untuk pengecekan
+        $requisition->load('requester.department');
+        $requesterDepartment = optional($requisition->requester)->department->name ?? null;
+
         switch ($requisition->sub_category) {
+
+            // [PERBAIKAN] Logika untuk Packaging dipisahkan dan diberi kondisi
             case 'Packaging':
-            case 'Finished Goods':
                 $steps = [];
-                if ($requisition->sub_category === 'Packaging') {
+                // JIKA REQUESTER DARI R&D: Alur kerja sederhana dan langsung.
+                if ($requesterDepartment === 'R&D') {
+                    $steps = ['Inward WH Supervisor (Final Check)'];
+                    Log::info("Requisition #{$requisition->id} dari R&D, alur langsung ke Final Check.");
+                }
+                // JIKA DARI DEPT LAIN (misal: SnM): Gunakan logika print_batch yang sudah ada.
+                else {
                     $steps = $requisition->print_batch
                         ? ['Inward WH Supervisor (Initial Check)', 'Material Support Supervisor', 'Inward WH Supervisor (Final Check)']
                         : ['Inward WH Supervisor (Final Check)'];
-                } elseif ($requisition->sub_category === 'Finished Goods') {
-                    $steps = ['Outward WH Supervisor'];
+                    Log::info("Requisition #{$requisition->id} dari {$requesterDepartment}, alur berdasarkan print_batch.");
                 }
 
                 if (empty($steps)) return $this->notifyRequesterAsCompleted($requisition);
@@ -789,6 +828,19 @@ class SampleController extends Controller
                     ]);
                 }
                 return $this->advanceWarehouseStep($requisition); // Langsung panggil untuk memulai langkah pertama
+
+            case 'Finished Goods':
+                $steps = ['Outward WH Supervisor'];
+                if (empty($steps)) return $this->notifyRequesterAsCompleted($requisition);
+
+                foreach ($steps as $stepName) {
+                    Tracking::create([
+                        'requisition_id'   => $requisition->id,
+                        'current_position' => $stepName,
+                        'token'            => Str::uuid()->toString(),
+                    ]);
+                }
+                return $this->advanceWarehouseStep($requisition);
 
             case 'Special Order':
                 $headQaUser = User::whereHas('department', fn ($q) => $q->where('name', 'QM & HSE'))
@@ -808,12 +860,11 @@ class SampleController extends Controller
 
                     $requisition->update(['status' => 'Approved', 'route_to' => $stepName]);
 
-                    // [PERBAIKAN] Buat URL form dan kirimkan ke email job
                     $formUrl = route('approval.response', ['token' => $token, 'action' => 'qa_form']);
 
                     dispatch(new sendSample($requisition, $headQaUser, $token, [
                         'mail_type' => 'qa_form_notification',
-                        'form_url'  => $formUrl // <-- VARIABEL DITAMBAHKAN DI SINI
+                        'form_url'  => $formUrl
                     ]))->delay(now()->addSeconds(3));
 
                     return $stepName;
@@ -1092,147 +1143,58 @@ class SampleController extends Controller
         return $pdf->stream('RS Sample - ' . $requisition->no_srs . '.pdf');
     }
 
-    public function printMultipleReports(Request $request)
+    public function printMultipleReport(Request $request)
     {
-        // 1. Validate that we received an array of IDs.
-        $validated = $request->validate([
-            'requisition_ids'   => 'required|array',
-            'requisition_ids.*' => 'integer', // Ensure every item in the array is an integer
+        $request->validate([
+            'selected_ids'   => 'required|array',
+            'selected_ids.*' => 'integer|exists:requisitions,id'
         ]);
 
-        $requisitionIds = $validated['requisition_ids'];
-
-        // 2. Fetch all selected requisitions with their relations.
-        //    Ordering by ID ensures a consistent print order.
         $requisitions = Requisition::with([
             'customer',
             'requester.department',
             'requisitionItems.itemMaster',
             'requisitionItems.itemDetail',
             'requisitionSpecial',
-            'approvalLogs' => fn($q) => $q->with('approver.roles')->orderBy('level', 'asc'),
-        ])->whereIn('id', $requisitionIds)
-        ->orderBy('id', 'asc')
-        ->get();
+            'approvalLogs' => fn($q) => $q->orderBy('level', 'asc'),
+            'approvalLogs.approver.roles'
+        ])->whereIn('id', $request->selected_ids)->get();
 
-        // 3. Handle cases where no valid requisitions were found.
         if ($requisitions->isEmpty()) {
-            // You can redirect back with an error message.
-            return redirect()->back()->with('error', 'No printable requisitions found for the selected IDs.');
+            return redirect()->back()->with('error', 'Tidak ada data yang dipilih untuk dicetak.');
         }
 
-        // 4. Pass the entire collection of requisitions to the view.
-        //    The view file name should match what you use, e.g., 'page.sample.report' or 'page.sample.print'.
-        //    Based on your controller, it's 'page.sample.report'. I'll assume the content is in `print.blade.php`.
-        $data = [
-            'requisitions' => $requisitions,
-        ];
+        $pdf = Pdf::loadView('page.sample.report.print', [
+            'requisitions' => $requisitions
+        ])->setPaper('a4', 'landscape');
 
-        Log::info('IDs diterima: ', $request->requisition_ids);
-
-        $pdf = Pdf::loadView('page.sample.report.print', $data)->setPaper('a4', 'landscape');
-        return $pdf->stream('Batch RS Sample - ' . now()->format('Y-m-d') . '.pdf');
+        return $pdf->stream('Bulk-RS-Sample-' . now()->format('Y-m-d') . '.pdf');
     }
 
     public function getReportsData(Request $request)
     {
-        $query = Requisition::with(['requester', 'customer'])
+        $query = Requisition::with(['requester', 'customer']) // Eager load relationships
             ->where('category', 'SAMPLE')
             ->select('requisitions.*');
 
-        // Filter berdasarkan rentang tanggal jika ada input
+        // Filter based on date range if provided
         if ($request->filled('start_date') && $request->filled('end_date')) {
-            $startDate = Carbon::parse($request->start_date)->startOfDay();
-            $endDate = Carbon::parse($request->end_date)->endOfDay();
-            $query->whereBetween('request_date', [$startDate, $endDate]);
+            try {
+                $startDate = Carbon::createFromFormat('Y-m-d', $request->start_date)->startOfDay();
+                $endDate = Carbon::createFromFormat('Y-m-d', $request->end_date)->endOfDay();
+                $query->whereBetween('request_date', [$startDate, $endDate]);
+            } catch (\Exception $e) {
+                Log::error('Invalid date format for report filter: ' . $e->getMessage());
+            }
         }
 
+        // Filter by user if not a super-admin
         if (!Auth::user()->hasRole('super-admin')) {
             $query->where('requester_nik', Auth::user()->nik);
         }
 
-        return DataTables::of($query)
-            ->addIndexColumn()
-            ->addColumn('checkbox', function($row){
-                // Kolom checkbox untuk memilih baris
-                return '<input type="checkbox" class="form-check-input requisition-checkbox" value="'.$row->id.'">';
-            })
-            ->addColumn('no_srs', function($req) {
-                $no = $req->no_srs ?? 'N/A';
-                return '<span class="srs-badge">' . e($no) . '</span>';
-            })
-            ->addColumn('requester_info', function ($requisition) {
-                $requester = $requisition->requester;
-                $avatar = $requester && $requester->avatar ? asset($requester->avatar) : asset('assets/images/logo/sinarmeadow.png');
-                $nik = e($requester->nik ?? '-');
-
-                return '
-                    <div>
-                        <div class="status-badge-lg bg-dark d-flex align-items-center">
-                            <img src="' . $avatar . '" alt="av" class="img-fluid rounded-circle me-1" style="width: 20px; height: 20px; object-fit: cover;">
-                            <span>' . $nik . '</span>
-                        </div>
-                    </div>
-                ';
-            })
-            ->addColumn('customer_name', fn($req) => $req->customer->name ?? 'N/A')
-            ->editColumn('request_date', fn($req) => Carbon::parse($req->created_at)->format('d M Y, H:i'))
-            ->editColumn('sub_category', function ($requisition) {
-                $subCategory = $requisition->sub_category;
-                $badgeClass = 'bg-dark'; // Warna default
-                $icon = 'ph-tag';        // Ikon default
-
-                switch ($subCategory) {
-                    case 'Packaging':
-                        $badgeClass = 'bg-info';
-                        $icon = 'ph-package';
-                        break;
-                    case 'Finished Goods':
-                        $badgeClass = 'bg-primary';
-                        $icon = 'ph-cube';
-                        break;
-                    case 'Special Order':
-                        $badgeClass = 'bg-secondary';
-                        $icon = 'ph-star';
-                        break;
-                }
-
-                return '<span class="status-badge-lg ' . $badgeClass . '"><i class="ph-bold ' . $icon . ' me-1"></i>' . e($subCategory) . '</span>';
-            })
-            ->editColumn('status', function ($requisition) {
-                $status = $requisition->status;
-                $badgeClass = 'bg-secondary'; // Warna default
-                $icon = 'ph-question';       // Ikon default
-
-                switch ($status) {
-                    case 'Pending':
-                    case 'Submitted':
-                        $badgeClass = 'bg-primary';
-                        $icon = 'ph-paper-plane-tilt';
-                        break;
-                    case 'In Progress':
-                        $badgeClass = 'bg-info';
-                        $icon = 'ph-arrows-clockwise';
-                        break;
-                    case 'Approved':
-                    case 'Completed':
-                        $badgeClass = 'bg-success';
-                        $icon = 'ph-check-circle';
-                        break;
-                    case 'Rejected':
-                        $badgeClass = 'bg-danger';
-                        $icon = 'ph-x-circle';
-                        break;
-                    case 'Cancelled':
-                        $badgeClass = 'bg-secondary';
-                        $icon = 'ph-ban';
-                        break;
-                }
-
-                return '<span class="status-badge-lg ' . $badgeClass . '"><i class="ph-bold ' . $icon . ' me-1"></i>' . e($status) . '</span>';
-            })
-            ->rawColumns(['checkbox', 'no_srs', 'requester_info', 'sub_category', 'status'])
-            ->make(true);
+        // Return the DataTables response without column modifications
+        return DataTables::of($query)->make(true);
     }
 
     //======================================================================
@@ -1371,8 +1333,9 @@ class SampleController extends Controller
         $currentUser = Auth::user();
 
         $query = ApprovalLog::with([
-            'requisition.requester:nik,name,avatar', 
-            'requisition:id,no_srs,sub_category,status,requester_nik' // Pastikan requester_nik ada
+            'requisition.requester:nik,name,avatar',
+            'requisition:id,no_srs,sub_category,status,requester_nik',
+            'approver:nik,name,avatar'
         ])
         ->join('requisitions', 'approval_logs.requisition_id', '=', 'requisitions.id');
 
@@ -1457,10 +1420,26 @@ class SampleController extends Controller
                 }
                 return '<span class="status-badge-lg ' . $badgeClass . '"><i class="ph-bold ' . $icon . ' me-1"></i>' . e($status) . '</span>';
             })
-            ->addColumn('action', function ($log) {
-                // Logika di sini sudah cerdas dan tidak perlu diubah.
-                // Ia akan menampilkan tombol jika status 'Pending', dan ikon jika sudah selesai.
-                // Ini sudah cocok untuk kedua role (approver dan super-admin).
+            ->addColumn('approver', function($log) {
+                $approver = optional($log)->approver;
+                // Jika approver tidak ditemukan (misalnya NIK tidak valid), tampilkan NIK-nya saja
+                if (!$approver) {
+                    return e($log->approver_nik ?? 'N/A');
+                }
+
+                $avatar = $approver->avatar ? asset($approver->avatar) : asset('assets/images/logo/sinarmeadow.png');
+                $nik = e($approver->nik ?? '-');
+
+                return '
+                    <div>
+                        <div class="status-badge-lg bg-dark d-flex align-items-center">
+                            <img src="' . $avatar . '" alt="av" class="img-fluid rounded-circle me-1" style="width: 20px; height: 20px; object-fit: cover;">
+                            <span>' . $nik . '</span>
+                        </div>
+                    </div>
+                ';
+            })
+            ->addColumn('action', function ($log) use ($currentUser) {
                 $logStatus = $log->status;
 
                 if ($logStatus === 'Pending') {
@@ -1478,7 +1457,10 @@ class SampleController extends Controller
                     $approveNoReviewBtn = '<button type="button" class="btn btn-sm btn-success action-btn" data-token="' . $token . '" data-action="approve" data-srs="' . $srs . '" data-bs-toggle="tooltip" title="Approve (No Review)"><i class="ph-bold ph-thumbs-up text-white"></i></button>';
                     $approveWithReviewBtn = '<button type="button" class="btn btn-sm btn-primary action-btn-modal" data-id="' . $requisitionId . '" data-token="' . $token . '" data-action="review" data-srs="' . $srs . '" data-bs-toggle="tooltip" title="Approve with Review"><i class="ph-bold ph-note-pencil text-white"></i></button>';
                     $rejectBtn = '<button type="button" class="btn btn-sm btn-danger action-btn-modal" data-id="' . $requisitionId . '" data-token="' . $token . '" data-action="reject" data-srs="' . $srs . '" data-bs-toggle="tooltip" title="Reject"><i class="ph-bold ph-thumbs-down text-white"></i></button>';
-                    $resendBtn = '<button type="button" class="btn btn-sm btn-warning btn-resend-email" data-token="' . $log->token . '" data-bs-toggle="tooltip" title="Resend Email Notification"><i class="ph-bold ph-paper-plane-tilt text-dark"></i></button>';
+                    $resendBtn = ''; // Inisialisasi sebagai string kosong
+                    if ($currentUser->hasRole('super-admin')) {
+                        $resendBtn = '<button type="button" class="btn btn-sm btn-warning btn-resend-email" data-token="' . $log->token . '" data-bs-toggle="tooltip" title="Resend Email Notification"><i class="ph-bold ph-paper-plane-tilt text-dark"></i></button>';
+                    }
                     return "<div class='d-flex gap-1 justify-content-center'>{$approveNoReviewBtn} {$approveWithReviewBtn} {$rejectBtn} {$resendBtn}</div>";
 
                 } elseif ($logStatus === 'Approved') {
@@ -1492,7 +1474,7 @@ class SampleController extends Controller
                 }
                 return '<div class="action-icon-container" data-bs-toggle="tooltip" title="No Action Required"><i class="ph-bold ph-minus-circle text-muted fs-4"></i></div>';
             })
-            ->rawColumns(['requester', 'no_srs', 'sub_category', 'level', 'status', 'action'])
+            ->rawColumns(['requester', 'no_srs', 'sub_category', 'level', 'status', 'approver', 'action'])
             ->make(true);
     }
 

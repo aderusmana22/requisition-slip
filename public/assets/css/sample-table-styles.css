@@ -87,11 +87,13 @@
 .select2-container--bootstrap-5 .select2-selection--multiple:focus {
     border-color: #1e40af !important;
     box-shadow: 0 0 0 0.25rem rgba(#2563eb) !important;
+    padding: 4px 6px;
 }
 
 .select2-container--bootstrap-5 .select2-results__option--highlighted {
     background-color: rgba(#2563eb) !important;
     color: white !important;
+    padding: 4px 6px;
 }
 
 /* Table Headers with Gold Accent */
@@ -1179,6 +1181,14 @@ STYLES MOVED FROM index.blade.php
     width:75%; /* Lebar penuh sesuai kolomnya */
     display: inline-block;
     background-color: white;
+}
+
+.selected-row {
+    background-color: rgba(0, 123, 255, 0.1) !important;
+}
+#print-selected-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
 }
 
 #print-selected-btn {
