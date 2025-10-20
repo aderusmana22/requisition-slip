@@ -730,8 +730,8 @@
         }
 
         $(document).ready(function () {
+            const userDepartmentName = @json($userDepartmentName ?? '');
             const userDepartmentCode = "{{ $userAccount ?? '' }}";
-            const userDepartmentName = "{{ $userDepartmentName ?? '' }}";
 
             function initSelect2() {
                 function formatSubCategory(option) {
@@ -1234,7 +1234,7 @@
                         }
 
                         // Logika untuk print_batch (jika ada) dipindahkan ke sini juga
-                        if (currentSubCategory === 'Packaging' && mode === 'create' && userDepartmentName !== 'R&D') {
+                        if (currentSubCategory === 'Packaging' && mode === 'create') {
                             Swal.fire({
                                 title: 'Print Batch Number',
                                 text: "Apakah Anda ingin mencetak Batch Number untuk requisition ini?",
@@ -1245,18 +1245,48 @@
                                 confirmButtonColor: '#3085d6',
                                 denyButtonColor: '#6c757d',
                             }).then((batchResult) => {
-                                let formData = new FormData(form);
-                                if (batchResult.isConfirmed) {
-                                    formData.append('print_batch', '1');
-                                    submitForm(formData);
-                                } else if (batchResult.isDenied) {
+                                // [MODIFIKASI UTAMA] Logika baru ditambahkan di sini
+                                if (batchResult.isConfirmed) { // Jika user mengklik "Yes, Print"
+
+                                    // 1. Cek apakah user dari departemen R&D
+                                    if (userDepartmentName === 'R&D') {
+                                        // [MODIFIKASI UTAMA] Tampilkan pop-up peringatan yang lebih cerdas
+                                        Swal.fire({
+                                            icon: 'warning',
+                                            title: 'Aksi Tidak Diizinkan',
+                                            html: 'Departemen R&D tidak dapat melakukan print batch.<br><br><b>Lanjutkan proses tanpa print batch?</b>',
+                                            showCancelButton: true,
+                                            confirmButtonText: 'Ya, Lanjutkan',
+                                            cancelButtonText: 'Batal',
+                                            confirmButtonColor: '#28a745', // Tombol konfirmasi hijau
+                                        }).then((warningResult) => {
+                                            // Jika user setuju untuk melanjutkan tanpa print batch
+                                            if (warningResult.isConfirmed) {
+                                                // Langsung submit form dengan nilai yang sudah diperbaiki
+                                                let formData = new FormData(form);
+                                                formData.append('print_batch', '0'); // Paksa nilainya menjadi 0
+                                                submitForm(formData);
+                                            }
+                                            // Jika user klik 'Batal', maka semua pop-up tertutup dan kembali ke modal utama.
+                                        });
+                                        // Proses berhenti di sini untuk user R&D
+
+                                    } else {
+                                        // Logika untuk user non-R&D (tidak berubah)
+                                        let formData = new FormData(form);
+                                        formData.append('print_batch', '1');
+                                        submitForm(formData);
+                                    }
+
+                                } else if (batchResult.isDenied) { // Jika user mengklik "No, Don't Print"
+                                    // Logika ini benar untuk SEMUA user
+                                    let formData = new FormData(form);
                                     formData.append('print_batch', '0');
                                     submitForm(formData);
                                 }
                             });
                         } else {
-                            // Jika kondisi di atas tidak terpenuhi (misalnya user R&D atau sub-kategori lain),
-                            // form akan langsung disubmit.
+                            // Jika bukan 'Packaging' atau mode 'edit', langsung submit
                             let formData = new FormData(form);
                             submitForm(formData);
                         }

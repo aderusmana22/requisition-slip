@@ -132,7 +132,7 @@
 
 /* Badge Improvements */
 .badge.bg-warning {
-    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%) !important;
+    background: linear-gradient(135deg, #ff8a1c 0%, #e1931c 100%) !important;
     color: white !important;
 }
 
@@ -840,7 +840,7 @@ body {
 }
 
 .bg-warning.status-badge-lg {
-    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%) !important;
+    background: linear-gradient(135deg, #ff8a1c 0%, #e1931c 100%) !important;
     color: white !important;
     border-color: rgba(#2563eb) !important;
 }
