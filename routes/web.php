@@ -127,6 +127,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/top-customers', [DashboardController::class, 'getTopCustomers'])->name('top-customers');
         Route::get('/recent-activities', [DashboardController::class, 'getRecentActivities'])->name('recent-activities');
         Route::get('/my-actions', [DashboardController::class, 'getMyActions'])->name('my-actions');
+        Route::get('/available-years', [DashboardController::class, 'getAvailableYearsApi'])->name('available-years');
     });
 });
 

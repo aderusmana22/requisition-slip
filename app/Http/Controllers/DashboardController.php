@@ -16,7 +16,30 @@ class DashboardController extends Controller
      */
     public function index()
     {
-        return view('dashboard');
+        // Get available years from requisition table
+        $availableYears = $this->getAvailableYears();
+        
+        return view('dashboard', compact('availableYears'));
+    }
+
+    /**
+     * Mendapatkan daftar tahun yang tersedia dari data requisition.
+     */
+    public function getAvailableYears()
+    {
+        $years = Requisition::select(DB::raw('YEAR(request_date) as year'))
+            ->whereNotNull('request_date')
+            ->distinct()
+            ->orderBy('year', 'desc')
+            ->pluck('year')
+            ->toArray();
+
+        // Jika tidak ada data, minimal tampilkan tahun sekarang
+        if (empty($years)) {
+            $years = [now()->year];
+        }
+
+        return $years;
     }
 
     /**
@@ -217,5 +240,14 @@ class DashboardController extends Controller
             'count' => $user->unreadNotifications->count(),
             'notifications' => $notifications
         ]);
+    }
+
+    /**
+     * API endpoint untuk mendapatkan daftar tahun yang tersedia.
+     */
+    public function getAvailableYearsApi()
+    {
+        $years = $this->getAvailableYears();
+        return response()->json($years);
     }
 }

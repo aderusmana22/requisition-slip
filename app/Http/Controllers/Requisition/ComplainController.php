@@ -21,6 +21,7 @@ use App\Models\Requisition\Requisition;
 use App\Models\Requisition\RequisitionItem;
 use App\Models\Requisition\Tracking;
 use App\Models\User;
+use App\Notifications\RequisitionNotification;
 use App\Traits\approvalTrait;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
@@ -60,7 +61,7 @@ class ComplainController extends Controller
                 'requisition_id' => $requisitionId,
                 'current_position' => 'WH Supervisor First',
                 'last_updated' => null,
-                'notes' => 'Waiting for WH Supervisor initial approval',
+                'notes' => null,
                 'token' => bin2hex(random_bytes(16)),
             ]);
 
@@ -69,7 +70,7 @@ class ComplainController extends Controller
                 'requisition_id' => $requisitionId,
                 'current_position' => 'Material Supervisor',
                 'last_updated' => null,
-                'notes' => 'Waiting for Material Supervisor approval',
+                'notes' => null,
                 'token' => bin2hex(random_bytes(16)),
             ]);
 
@@ -78,7 +79,7 @@ class ComplainController extends Controller
                 'requisition_id' => $requisitionId,
                 'current_position' => 'WH Supervisor Final',
                 'last_updated' => null,
-                'notes' => 'Waiting for WH Supervisor final approval',
+                'notes' => null,
                 'token' => bin2hex(random_bytes(16)),
             ]);
 
@@ -258,6 +259,21 @@ class ComplainController extends Controller
                 $firstApprover['approval_log']
             );
 
+            // Kirim notifikasi ke approver
+            $approveWithReviewLink = route('approval.index');
+
+            $notificationData = [
+                'requisition_id' => $firstApprover['requisition']->id,
+                'srs_number' => $firstApprover['requisition']->no_srs,
+                'message' => "Requisition {$firstApprover['requisition']->no_srs} menunggu approval Anda",
+                'url' => $approveWithReviewLink
+            ];
+
+            $causer = User::where('nik', $firstApprover['requisition']->requester_nik)->first();
+            if ($causer) {
+                $firstApprover['approver']->notify(new RequisitionNotification($notificationData, $causer));
+            }
+
             return response()->json(['message' => 'Form Requisition complain berhasil dibuat.'], 201);
         } catch (\Exception $e) {
             $errorMessage = $e->getMessage();
@@ -414,15 +430,25 @@ class ComplainController extends Controller
                         'color' => 'success'
                     ];
                 } elseif ($log->status === 'Rejected') {
-                    $history[] = [
-                        'type' => 'rejected',
-                        'timestamp' => $log->approved_at ?? $log->updated_at,
-                        'title' => 'Rejected by ' . ($log->approver->name ?? 'Unknown'),
-                        'description' => 'Level ' . $log->level . ' approval rejected' . 
-                                       ($log->notes ? '. Reason: ' . $log->notes : ''),
-                        'icon' => 'ph-x-circle',
-                        'color' => 'danger'
-                    ];
+                    if($log->approver->hasRole('head-QA')){
+                        $history[] = [
+                            'type' => 'rejected_payment_proof',
+                            'timestamp' => $log->approved_at ?? $log->updated_at,
+                            'title' => 'Rejected by ' . ($log->approver->name ?? 'Unknown'),
+                            'description' => 'Level ' . $log->level . ' approval rejected, payment proof required' . ($log->notes ? '. Reason: ' . $log->notes : ''),
+                            'icon' => 'ph-x-circle',
+                            'color' => 'danger'
+                        ];
+                    }else {
+                        $history[] = [
+                            'type' => 'rejected',
+                            'timestamp' => $log->approved_at ?? $log->updated_at,
+                            'title' => 'Rejected by ' . ($log->approver->name ?? 'Unknown'),
+                            'description' => 'Level ' . $log->level . ' approval rejected' . ($log->notes ? '. Reason: ' . $log->notes : ''),
+                            'icon' => 'ph-x-circle',
+                            'color' => 'danger'
+                        ];
+                    }
                 }
             }
 
@@ -604,9 +630,22 @@ class ComplainController extends Controller
                     // simpan perubahan status requisition karna diapprove
                     $requisition->status = 'In Progress';
                     $requisition->save();
+                    
+                    // Kirim notifikasi approval ke requester
+                    $approver = User::where('nik', $approvalLog->approver_nik)->first();
+                    $requester = User::where('nik', $requisition->requester_nik)->first();
+                    if ($approver && $requester) {
+                        $notificationData = [
+                            'requisition_id' => $requisition->id,
+                            'srs_number' => $requisition->no_srs,
+                            'message' => "Requisition {$requisition->no_srs} telah di-approve oleh {$approver->name}",
+                            'url' => route('complain-form.show', $requisition->id)
+                        ];
+                        $requester->notify(new RequisitionNotification($notificationData, $approver));
+                    }
+                    
                     $this->mailOtherLevel($approvalLog->requisition_id, $approvalLog->level, $requisition->print_batch);
                 } else {
-                
                     // Jika direject, langsung set status requisition ke Rejected
                     if (!$requisition) {
                         throw new \Exception('Requisition not found.');
@@ -615,13 +654,38 @@ class ComplainController extends Controller
                     $requisition->status = 'Rejected';
                     $requisition->save();
 
+                    $rejectedBy = User::where('nik', $approvalLog->approver_nik)->first();
+                    $requester = User::where('nik', $requisition->requester_nik)->first();
+                    
                     if ($approvalLog->approver->hasRole('head-QA')) {
                         $requisition->status = 'payment proof';
                         $requisition->save();
                         sendPaymentProofer::dispatch($requisition, null, 'rejection_warning');
+                        
+                        // Kirim notifikasi payment proof required ke requester
+                        if ($rejectedBy && $requester) {
+                            $notificationData = [
+                                'requisition_id' => $requisition->id,
+                                'srs_number' => $requisition->no_srs,
+                                'message' => "Requisition {$requisition->no_srs} memerlukan bukti pembayaran untuk proses ulang",
+                                'url' => route('complain-form.show', $requisition->id)
+                            ];
+                            $requester->notify(new RequisitionNotification($notificationData, $rejectedBy));
+                        }
                     } else {
+                        // token approval log setelah user melakukan reject jadi null
+                        $getApproverAfters = ApprovalLog::where('requisition_id', $requisition->id)
+                            ->where('level', '>', $approvalLog->level)
+                            ->where('status', 'Pending')
+                            ->get();
+
+                        foreach ($getApproverAfters as $approverAfter) {
+                            $approverAfter->token = null;
+                            $approverAfter->status = 'Cancelled';
+                            $approverAfter->save();
+                        }
+                    
                         // Send rejection notification to requester
-                        $rejectedBy = User::where('nik', $approvalLog->approver_nik)->first();
                         if ($rejectedBy) {
                             sendRejectionNotification::dispatch(
                                 $requisition,
@@ -630,6 +694,17 @@ class ComplainController extends Controller
                                 'approval',
                                 now()
                             );
+                        
+                            // Kirim notifikasi rejection ke requester
+                            if ($requester) {
+                                $notificationData = [
+                                    'requisition_id' => $requisition->id,
+                                    'srs_number' => $requisition->no_srs,
+                                    'message' => "Requisition {$requisition->no_srs} telah di-reject oleh {$rejectedBy->name}",
+                                    'url' => route('complain-form.show', $requisition->id)
+                                ];
+                                $requester->notify(new RequisitionNotification($notificationData, $rejectedBy));
+                            }
                         }
                     }
                 }
@@ -734,6 +809,20 @@ class ComplainController extends Controller
                     // simpan perubahan status requisition karna diapprove
                     $requisition->status = 'In Progress';
                     $requisition->save();
+                    
+                    // Kirim notifikasi approval ke requester
+                    $approver = User::where('nik', $approvalLog->approver_nik)->first();
+                    $requester = User::where('nik', $requisition->requester_nik)->first();
+                    if ($approver && $requester) {
+                        $notificationData = [
+                            'requisition_id' => $requisition->id,
+                            'srs_number' => $requisition->no_srs,
+                            'message' => "Requisition {$requisition->no_srs} telah di-approve oleh {$approver->name}",
+                            'url' => route('complain-form.show', $requisition->id)
+                        ];
+                        $requester->notify(new RequisitionNotification($notificationData, $approver));
+                    }
+                    
                     $this->mailOtherLevel($approvalLog->requisition_id, $approvalLog->level, $requisition->print_batch);
                 } else {
                 
@@ -745,13 +834,39 @@ class ComplainController extends Controller
                     $requisition->status = 'Rejected';
                     $requisition->save();
 
+                    $rejectedBy = User::where('nik', $approvalLog->approver_nik)->first();
+                    $requester = User::where('nik', $requisition->requester_nik)->first();
+
                     if ($approvalLog->approver->hasRole('head-QA')) {
                         $requisition->status = 'payment proof';
                         $requisition->save();
                         sendPaymentProofer::dispatch($requisition, null, 'rejection_warning');
+                        
+                        // Kirim notifikasi payment proof required ke requester
+                        if ($rejectedBy && $requester) {
+                            $notificationData = [
+                                'requisition_id' => $requisition->id,
+                                'srs_number' => $requisition->no_srs,
+                                'message' => "Requisition {$requisition->no_srs} memerlukan bukti pembayaran untuk proses ulang",
+                                'url' => route('complain-form.show', $requisition->id)
+                            ];
+                            $requester->notify(new RequisitionNotification($notificationData, $rejectedBy));
+                        }
                     } else {
+                        // token approval log setelah user melakukan reject jadi null
+                        $getApproverAfters = ApprovalLog::where('requisition_id', $requisition->id)
+                            ->where('level', '>', $approvalLog->level)
+                            ->where('status', 'Pending')
+                            ->get();
+                        
+                        foreach ($getApproverAfters as $approverAfter) {
+                            // Set token null untuk membatalkan approval selanjutnya
+                            $approverAfter->token = null;
+                            $approverAfter->status = 'Cancelled';
+                            $approverAfter->save();
+                        }
+                    
                         // Send rejection notification to requester
-                        $rejectedBy = User::where('nik', $approvalLog->approver_nik)->first();
                         if ($rejectedBy) {
                             sendRejectionNotification::dispatch(
                                 $requisition, 
@@ -760,6 +875,17 @@ class ComplainController extends Controller
                                 'approval',
                                 now()
                             );
+                            
+                            // Kirim notifikasi rejection ke requester
+                            if ($requester) {
+                                $notificationData = [
+                                    'requisition_id' => $requisition->id,
+                                    'srs_number' => $requisition->no_srs,
+                                    'message' => "Requisition {$requisition->no_srs} telah di-reject oleh {$rejectedBy->name}",
+                                    'url' => route('complain-form.show', $requisition->id)
+                                ];
+                                $requester->notify(new RequisitionNotification($notificationData, $rejectedBy));
+                            }
                         }
                     }
                 }
@@ -877,6 +1003,22 @@ class ComplainController extends Controller
                         $requisition->save();
                         
                         sendMailComplain::dispatch($approver, $requisition, $nextApprovalLog);
+                        
+                        // Kirim notifikasi ke approver level berikutnya
+                        $approveWithReviewLink = route('approval.index');
+
+                        $notificationData = [
+                            'requisition_id' => $requisition->id,
+                            'srs_number' => $requisition->no_srs,
+                            'message' => "Requisition {$requisition->no_srs} menunggu approval Anda",
+                            'url' => $approveWithReviewLink
+                        ];
+
+                        $causer = User::where('nik', $requisition->requester_nik)->first();
+                        if ($causer) {
+                            $approver->notify(new RequisitionNotification($notificationData, $causer));
+                        }
+                        
                         Log::info("Email approval dikirim ke level {$nextApprovalLog->level} - {$approver->name}");
                         return true;
                     }
@@ -1097,6 +1239,18 @@ class ComplainController extends Controller
                         $completedBy,
                         now()
                     );
+                    
+                    // Kirim notifikasi completion ke requester
+                    $requester = User::where('nik', $requisition->requester_nik)->first();
+                    if ($requester) {
+                        $notificationData = [
+                            'requisition_id' => $requisition->id,
+                            'srs_number' => $requisition->no_srs,
+                            'message' => "Requisition {$requisition->no_srs} telah selesai diproses - Status: Completed",
+                            'url' => route('complain-form.show', $requisition->id)
+                        ];
+                        $requester->notify(new RequisitionNotification($notificationData, $completedBy));
+                    }
                 }
 
                 Log::info("All warehouse tracking completed for requisition {$tracking->requisition_id}");
@@ -1177,6 +1331,18 @@ class ComplainController extends Controller
                         $completedBy,
                         now()
                     );
+                    
+                    // Kirim notifikasi completion ke requester
+                    $requester = User::where('nik', $requisition->requester_nik)->first();
+                    if ($requester) {
+                        $notificationData = [
+                            'requisition_id' => $requisition->id,
+                            'srs_number' => $requisition->no_srs,
+                            'message' => "Requisition {$requisition->no_srs} telah selesai diproses - Status: Completed",
+                            'url' => route('complain-form.show', $requisition->id)
+                        ];
+                        $requester->notify(new RequisitionNotification($notificationData, $completedBy));
+                    }
                 }
             }
 
@@ -1301,6 +1467,18 @@ class ComplainController extends Controller
 
                 // Send payment confirmation email with attachment
                 $this->mailOtherLevel($validated['complain_id'], 1, false);
+                
+                // Kirim notifikasi payment proof uploaded
+                $requester = User::where('nik', $requisition->requester_nik)->first();
+                if ($user && $requester) {
+                    $notificationData = [
+                        'requisition_id' => $requisition->id,
+                        'srs_number' => $requisition->no_srs,
+                        'message' => "Bukti pembayaran untuk requisition {$requisition->no_srs} telah berhasil diupload",
+                        'url' => route('complain-form.show', $requisition->id)
+                    ];
+                    $requester->notify(new RequisitionNotification($notificationData, $user));
+                }
             });
 
             return response()->json([

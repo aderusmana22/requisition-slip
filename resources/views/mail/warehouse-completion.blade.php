@@ -6,164 +6,210 @@
     <title>Warehouse Approval Completed</title>
     <style>
         body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 0;
             background-color: #f8f9fa;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
             color: #333;
+            line-height: 1.6;
         }
         .email-container {
-            max-width: 600px;
+            max-width: 800px;
             margin: 20px auto;
-            background-color: #ffffff;
-            border-radius: 8px;
+            background: white;
+            border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
         }
+        
+        /* Header */
         .email-header {
-            background: linear-gradient(135deg, #28a745, #20c997);
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
             color: white;
-            padding: 30px 20px;
+            padding: 30px 40px;
             text-align: center;
+            position: relative;
         }
-        .email-header h1 {
+        .email-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 20"><defs><pattern id="dots" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="1.5" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="20" fill="url(%23dots)"/></svg>');
+            opacity: 0.3;
+        }
+        .header-content {
+            position: relative;
+            z-index: 1;
+        }
+        .company-logo {
+            max-height: 50px;
+            width: auto;
+            margin-bottom: 15px;
+        }
+        .email-title {
+            font-size: 28px;
+            font-weight: 700;
             margin: 0;
-            font-size: 24px;
-            font-weight: 600;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
-        .email-header .icon {
-            font-size: 48px;
-            margin-bottom: 10px;
-            display: block;
+        .email-subtitle {
+            font-size: 16px;
+            margin: 10px 0 0 0;
+            opacity: 0.9;
         }
-        .email-body {
-            padding: 30px 20px;
+        
+        /* Content */
+        .email-content {
+            padding: 40px;
         }
+        
         .greeting {
-            font-size: 16px;
-            margin-bottom: 20px;
-            color: #333;
-        }
-        .message {
-            background-color: #d4edda;
-            border: 1px solid #c3e6cb;
-            border-left: 4px solid #28a745;
-            padding: 15px;
-            margin-bottom: 25px;
-            border-radius: 4px;
-        }
-        .message h3 {
-            margin: 0 0 10px 0;
-            color: #155724;
             font-size: 18px;
-        }
-        .message p {
-            margin: 0;
-            color: #155724;
-        }
-        .info-section {
-            background-color: #f8f9fa;
-            border-radius: 6px;
+            color: #2c3e50;
+            margin-bottom: 25px;
             padding: 20px;
-            margin-bottom: 20px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 8px;
+            border-left: 4px solid #28a745;
         }
-        .info-section h4 {
+        
+        /* Info Cards */
+        .info-section {
+            margin-bottom: 30px;
+        }
+        .section-title {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 12px 20px;
             margin: 0 0 15px 0;
-            color: #495057;
+            border-radius: 8px 8px 0 0;
+            font-weight: 600;
             font-size: 16px;
-            border-bottom: 2px solid #dee2e6;
-            padding-bottom: 8px;
         }
-        .info-row {
-            display: flex;
-            margin-bottom: 10px;
+        .info-grid {
+            width: 100%;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 0 0 8px 8px;
+            border: 1px solid #e9ecef;
+            border-top: none;
         }
-        .info-row:last-child {
-            margin-bottom: 0;
+        .info-grid table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .info-grid td {
+            width: 50%;
+            vertical-align: top;
+            padding: 7px;
+        }
+        .info-item {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #e9ecef;
         }
         .info-label {
             font-weight: 600;
             color: #495057;
-            min-width: 140px;
-            flex-shrink: 0;
+            font-size: 14px;
+            margin-bottom: 5px;
         }
         .info-value {
-            color: #212529;
-            flex-grow: 1;
+            color: #2c3e50;
+            font-size: 15px;
+            word-break: break-word;
         }
-        .completion-details {
-            background-color: #d1ecf1;
-            border: 1px solid #bee5eb;
-            border-left: 4px solid #17a2b8;
-            padding: 15px;
-            margin-bottom: 20px;
-            border-radius: 4px;
-        }
-        .completion-details h4 {
-            margin: 0 0 10px 0;
-            color: #0c5460;
-            font-size: 16px;
-        }
-        .footer {
-            background-color: #f8f9fa;
-            padding: 20px;
-            text-align: center;
-            border-top: 1px solid #dee2e6;
-            color: #6c757d;
-            font-size: 14px;
-        }
-        .footer p {
-            margin: 5px 0;
-        }
+        
+        /* Status Badge */
         .status-badge {
             display: inline-block;
-            padding: 4px 12px;
+            padding: 8px 15px;
             border-radius: 20px;
-            font-size: 12px;
             font-weight: 600;
+            font-size: 14px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
         .status-approved {
-            background-color: #28a745;
-            color: white;
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
         }
-        .highlight-box {
-            background: linear-gradient(45deg, #e8f5e8, #d4edda);
-            border-radius: 8px;
-            padding: 20px;
-            margin: 20px 0;
+        
+        /* Success Alert */
+        .success-alert {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            padding: 30px;
+            border-radius: 12px;
             text-align: center;
+            margin: 30px 0;
             border: 2px solid #28a745;
         }
-        .highlight-box h3 {
-            margin: 0 0 10px 0;
-            color: #155724;
+        .success-title {
             font-size: 20px;
-        }
-        .highlight-box p {
-            margin: 0;
+            font-weight: 700;
             color: #155724;
+            margin-bottom: 15px;
+        }
+        .success-subtitle {
+            color: #155724;
+            margin-bottom: 25px;
             font-size: 16px;
         }
-        @media (max-width: 600px) {
+        
+        /* Footer */
+        .email-footer {
+            background: #2c3e50;
+            color: white;
+            padding: 30px 40px;
+            text-align: center;
+        }
+        .footer-content {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .company-info {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        .company-tagline {
+            font-size: 14px;
+            opacity: 0.8;
+            margin-bottom: 20px;
+        }
+        .contact-info {
+            font-size: 14px;
+            opacity: 0.9;
+            line-height: 1.8;
+        }
+        .footer-divider {
+            height: 1px;
+            background: rgba(255, 255, 255, 0.2);
+            margin: 20px 0;
+        }
+        .copyright {
+            font-size: 12px;
+            opacity: 0.7;
+            margin-top: 15px;
+        }
+        
+        /* Responsive */
+        @media only screen and (max-width: 600px) {
             .email-container {
-                margin: 10px;
-                border-radius: 0;
+                margin: 10px !important;
+                border-radius: 8px !important;
             }
-            .email-body {
-                padding: 20px 15px;
+            .email-content, .email-header, .email-footer {
+                padding: 20px !important;
             }
-            .info-section {
-                padding: 15px;
-            }
-            .info-row {
-                flex-direction: column;
-            }
-            .info-label {
-                min-width: auto;
-                margin-bottom: 5px;
+            .info-grid td {
+                width: 100% !important;
+                display: block !important;
             }
         }
     </style>
@@ -172,123 +218,217 @@
     <div class="email-container">
         <!-- Header -->
         <div class="email-header">
-            <span class="icon">✅</span>
-            <h1>Warehouse Approval Completed</h1>
-            <p>All approval processes have been successfully completed</p>
+            <div class="header-content">
+                <img src="{{ asset('storage/logo.png') }}" alt="{{ config('app.name') }}" class="company-logo">
+                <h1 class="email-title">Warehouse Approval Completed</h1>
+                <p class="email-subtitle">Warehouse Department - Approval Successfully Completed</p>
+            </div>
         </div>
-
-        <!-- Body -->
-        <div class="email-body">
+        
+        <!-- Content -->
+        <div class="email-content">
             <!-- Greeting -->
             <div class="greeting">
-                <p>Dear {{ $requester->name ?? 'User' }},</p>
+                <strong>Hello {{ $requester->name ?? 'User' }},</strong><br>
+                Great news! Your requisition approval has been successfully completed. Please review the details below.
             </div>
 
-            <!-- Main Message -->
-            <div class="message">
-                <h3>Great news! Your requisition has been fully approved</h3>
-                <p>Your requisition <strong>{{ $requisition->no_srs }}</strong> has successfully completed all warehouse approval processes and is now fully approved.</p>
+            <!-- Success Alert -->
+            <div class="success-alert">
+                <h3 class="success-title">🎉 Approval Process Complete!</h3>
+                <p class="success-subtitle">Your requisition <strong>{{ $requisition->no_srs }}</strong> has successfully completed all warehouse approval processes and is now fully approved.</p>
             </div>
-
-            <!-- Highlight Success -->
-            <div class="highlight-box">
-                <h3>🎉 Approval Process Complete!</h3>
-                <p>Your requisition is now ready for processing and fulfillment.</p>
-            </div>
-
-            <!-- Requisition Information -->
+            
+            <!-- Basic Information -->
             <div class="info-section">
-                <h4>📋 Requisition Details</h4>
-                <div class="info-row">
-                    <span class="info-label">No. SRS:</span>
-                    <span class="info-value">{{ $requisition->no_srs }}</span>
+                <h3 class="section-title">📄 Request Information</h3>
+                <div class="info-grid">
+                    <table>
+                        <tr>
+                            <td>
+                                <div class="info-item">
+                                    <div class="info-label">No. SRS</div>
+                                    <div class="info-value">{{ $requisition->no_srs }}</div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="info-item">
+                                    <div class="info-label">Category</div>
+                                    <div class="info-value">{{ $requisition->category }}</div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="info-item">
+                                    <div class="info-label">Final Status</div>
+                                    <div class="info-value">
+                                        <span class="status-badge status-approved">Approved</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="info-item">
+                                    <div class="info-label">Request Date</div>
+                                    <div class="info-value">
+                                        {{ \Carbon\Carbon::parse($requisition->request_date)->format('d M Y') }}
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
                 </div>
-                <div class="info-row">
-                    <span class="info-label">Customer:</span>
-                    <span class="info-value">{{ $requisition->customer->name ?? 'N/A' }}</span>
+            </div>
+            
+            <!-- Customer Information -->
+            @if($requisition->customer)
+            <div class="info-section">
+                <h3 class="section-title">👤 Customer Information</h3>
+                <div class="info-grid">
+                    <table>
+                        <tr>
+                            <td>
+                                <div class="info-item">
+                                    <div class="info-label">Customer Name</div>
+                                    <div class="info-value">{{ $requisition->customer->name ?? 'N/A' }}</div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="info-item">
+                                    <div class="info-label">Customer Address</div>
+                                    <div class="info-value">{{ $requisition->customer->address ?? 'N/A' }}</div>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
                 </div>
-                <div class="info-row">
-                    <span class="info-label">Category:</span>
-                    <span class="info-value">{{ $requisition->category }}</span>
+            </div>
+            @endif
+
+            <!-- Objectives -->
+            @if($requisition->reason_for_replacement)
+            <div class="info-section">
+                <h3 class="section-title">🎯 Reason for Replacement</h3>
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 0 0 8px 8px; border: 1px solid #e9ecef; border-top: none;">
+                    <p style="margin: 0; color: #2c3e50; line-height: 1.6;">{{ $requisition->reason_for_replacement }}</p>
                 </div>
-                <div class="info-row">
-                    <span class="info-label">Final Status:</span>
-                    <span class="info-value">
-                        <span class="status-badge status-approved">Approved</span>
-                    </span>
+            </div>
+            @endif
+            
+            <!-- Completion Details -->
+            <div class="info-section">
+                <h3 class="section-title">✅ Completion Information</h3>
+                <div class="info-grid">
+                    <table>
+                        <tr>
+                            <td>
+                                <div class="info-item">
+                                    <div class="info-label">Completed Date</div>
+                                    <div class="info-value">{{ $formattedCompletionDate }}</div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="info-item">
+                                    <div class="info-label">Process Type</div>
+                                    <div class="info-value">Warehouse Approval Process</div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            @if($completedBy)
+                            <td>
+                                <div class="info-item">
+                                    <div class="info-label">Final Approver</div>
+                                    <div class="info-value">{{ $completedBy->name }}</div>
+                                </div>
+                            </td>
+                            @endif
+                            <td>
+                                <div class="info-item">
+                                    <div class="info-label">Current Route</div>
+                                    <div class="info-value">{{ $requisition->route_to ?? 'Completed' }}</div>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
                 </div>
-                @if($requisition->objectives)
-                <div class="info-row">
-                    <span class="info-label">Objectives:</span>
-                    <span class="info-value">{{ $requisition->objectives }}</span>
-                </div>
-                @endif
             </div>
 
-            <!-- Completion Details -->
-            <div class="completion-details">
-                <h4>✅ Completion Information</h4>
-                <div class="info-row">
-                    <span class="info-label">Completed Date:</span>
-                    <span class="info-value">{{ $formattedCompletionDate }}</span>
-                </div>
-                @if($completedBy)
-                <div class="info-row">
-                    <span class="info-label">Final Approver:</span>
-                    <span class="info-value">{{ $completedBy->name }}</span>
-                </div>
-                @endif
-                <div class="info-row">
-                    <span class="info-label">Process Type:</span>
-                    <span class="info-value">Warehouse Approval Process</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Current Route:</span>
-                    <span class="info-value">{{ $requisition->route_to ?? 'Completed' }}</span>
+            <!-- Timeline Summary -->
+            <div class="info-section">
+                <h3 class="section-title">⏱️ Process Summary</h3>
+                <div class="info-grid">
+                    <table>
+                        <tr>
+                            <td>
+                                <div class="info-item">
+                                    <div class="info-label">Request Date</div>
+                                    <div class="info-value">{{ \Carbon\Carbon::parse($requisition->request_date)->format('d M Y') }}</div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="info-item">
+                                    <div class="info-label">Completion Date</div>
+                                    <div class="info-value">{{ \Carbon\Carbon::parse($completionDate)->format('d M Y') }}</div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+                                <div class="info-item">
+                                    <div class="info-label">Total Process Time</div>
+                                    <div class="info-value">
+                                        {{ \Carbon\Carbon::parse($requisition->request_date)->diffInDays(\Carbon\Carbon::parse($completionDate)) }} days
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
                 </div>
             </div>
 
             <!-- Next Steps -->
             <div class="info-section">
-                <h4>📢 What happens next?</h4>
-                <p style="margin: 0; color: #495057;">
-                    Your requisition has been fully approved and will now proceed to the fulfillment stage. 
-                    The relevant departments will begin processing your request according to the specified requirements. 
-                    You will be notified of any further updates or if additional information is required.
-                </p>
-                <br>
-                <p style="margin: 0; color: #495057; font-weight: 600;">
-                    Thank you for using our requisition system!
-                </p>
+                <h3 class="section-title">📢 What happens next?</h3>
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 0 0 8px 8px; border: 1px solid #e9ecef; border-top: none;">
+                    <p style="margin: 0 0 15px 0; color: #2c3e50; line-height: 1.6;">
+                        Your requisition has been fully approved and will now proceed to the fulfillment stage. 
+                        The relevant departments will begin processing your request according to the specified requirements. 
+                        You will be notified of any further updates or if additional information is required.
+                    </p>
+                    <p style="margin: 0; color: #2c3e50; line-height: 1.6; font-weight: 600;">
+                        Thank you for using our requisition system!
+                    </p>
+                </div>
             </div>
 
-            <!-- Timeline Summary -->
-            <div class="completion-details">
-                <h4>⏱️ Process Summary</h4>
-                <div class="info-row">
-                    <span class="info-label">Request Date:</span>
-                    <span class="info-value">{{ \Carbon\Carbon::parse($requisition->request_date)->format('d M Y') }}</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Completion Date:</span>
-                    <span class="info-value">{{ \Carbon\Carbon::parse($completionDate)->format('d M Y') }}</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Total Process Time:</span>
-                    <span class="info-value">
-                        {{ \Carbon\Carbon::parse($requisition->request_date)->diffInDays(\Carbon\Carbon::parse($completionDate)) }} days
-                    </span>
-                </div>
+            <!-- Important Note -->
+            <div style="background: #d4edda; border: 1px solid #c3e6cb; border-radius: 8px; padding: 20px; margin: 20px 0;">
+                <h4 style="color: #155724; margin: 0 0 10px 0;">✅ Success Notice</h4>
+                <ul style="color: #155724; margin: 0; padding-left: 20px;">
+                    <li>Your requisition has been successfully approved</li>
+                    <li>Processing will begin immediately according to schedule</li>
+                    <li>You will receive updates on fulfillment progress</li>
+                    <li>Contact warehouse directly if you have any questions</li>
+                </ul>
             </div>
         </div>
-
+        
         <!-- Footer -->
-        <div class="footer">
-            <p><strong>{{ config('app.name') }}</strong> - Requisition Management System</p>
-            <p>This is an automated email notification. Please do not reply to this email.</p>
-            <p style="font-size: 12px; color: #999;">
-                Email sent on {{ now()->setTimezone('Asia/Jakarta')->format('d M Y, H:i:s') }} WIB
-            </p>
+        <div class="email-footer">
+            <div class="footer-content">
+                <div class="company-info">{{ config('app.name') }}</div>
+                <div class="company-tagline">Warehouse Department</div>
+                <div class="footer-divider"></div>
+                <div class="contact-info">
+                    <strong>Need Help?</strong><br>
+                    Contact IT Support:<br>
+                </div>
+                <div class="copyright">
+                    © {{ date('Y') }} {{ config('app.name') }}. All rights reserved.<br>
+                    This is an automated message, please do not reply directly to this email.
+                </div>
+            </div>
         </div>
     </div>
 </body>

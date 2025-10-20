@@ -210,8 +210,8 @@
                         <tr>
                             <td>
                                 <div class="info-item">
-                                    <div class="info-label">Objectives</div>
-                                    <div class="info-value">{{ $requisition->objectives }}</div>
+                                    <div class="info-label">Reason for Replacement</div>
+                                    <div class="info-value">{{ $requisition->reason_for_replacement }}</div>
                                 </div>
                             </td>
                             <td>
