@@ -14,6 +14,8 @@ use App\Http\Controllers\Requisition\FreeGoodsController;
 use App\Http\Controllers\Requisition\RequisitionPath;
 use App\Http\Controllers\Requisition\SampleController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\NotificationController;
 
 Route::get('/', [AuthenticatedSessionController::class, 'create'])->name('login');
 
@@ -59,7 +61,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/sample-form/reports', [SampleController::class, 'reportsPage'])->name('sample-form.reports');
     Route::get('/sample-reports/data', [SampleController::class, 'getReportsData'])->name('sample.reports.data');
-    Route::get('/sample-print/pdf', [SampleController::class, 'printMultipleReports'])->name('report_sample.print');
+    Route::post('/sample-print/pdf', [SampleController::class, 'printMultipleReport'])->name('report_sample.print');
     Route::get('/sample-report/{id}', [SampleController::class, 'printReport'])->name('sample.report');
 
     Route::get('/sample-form/log', [SampleController::class, 'logPage'])->name('sample-form.log');
@@ -98,7 +100,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/report/print-bulk', [ComplainController::class, 'printBulkReport'])->name('report.print.bulk');
     //*  ===== terakhir dari complain ====
 
-    Route::get('/sample-form/reports', [SampleController::class, 'reports'])->name('sample-form.reports');
+    // Route::get('/sample-form/reports', [SampleController::class, 'reports'])->name('sample-form.reports');
     Route::get('/free-goods/reports', [FreeGoodsController::class, 'reports'])->name('free-goods.reports');
 
     // Route::get('/sample-form/approval', [SampleController::class, 'approval'])->name('sample-form.approval');
@@ -111,10 +113,20 @@ Route::middleware('auth')->group(function () {
     Route::get('/getapproverlist', [RequisitionPath::class, 'approverList'])->name('get.approverlist');
 
     Route::prefix('notifications')->name('notifications.')->group(function () {
-        Route::get('/', [App\Http\Controllers\NotificationController::class, 'fetch'])->name('fetch');
-        Route::get('/count', [App\Http\Controllers\NotificationController::class, 'count'])->name('count');
-        Route::post('/read', [App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('read');
-        Route::post('/read-all', [App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('read.all');
+        Route::get('/', [NotificationController::class, 'fetch'])->name('fetch');
+        Route::get('/count', [NotificationController::class, 'count'])->name('count');
+        Route::post('/read', [NotificationController::class, 'markAsRead'])->name('read');
+        Route::post('/read-all', [NotificationController::class, 'markAllAsRead'])->name('read.all');
+    });
+
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::prefix('dashboard-data')->name('dashboard.data.')->group(function () {
+        Route::get('/metric-counts', [DashboardController::class, 'getMetricCounts'])->name('metric-counts');
+        Route::get('/monthly-stats', [DashboardController::class, 'getMonthlyStats'])->name('monthly-stats');
+        Route::get('/top-items', [DashboardController::class, 'getTopItems'])->name('top-items');
+        Route::get('/top-customers', [DashboardController::class, 'getTopCustomers'])->name('top-customers');
+        Route::get('/recent-activities', [DashboardController::class, 'getRecentActivities'])->name('recent-activities');
+        Route::get('/my-actions', [DashboardController::class, 'getMyActions'])->name('my-actions');
     });
 });
 

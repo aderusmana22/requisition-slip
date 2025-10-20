@@ -31,8 +31,9 @@
                                 <th>Requester</th>
                                 <th>Request Date</th>
                                 <th>Sub Category</th>
-                                <th>Level</th>
                                 <th>Status</th>
+                                <th>Approver</th>
+                                <th>Level</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
@@ -196,8 +197,9 @@
                         { data: 'requester', name: 'requisition.requester.name' },
                         { data: 'request_date', name: 'requisition.request_date' },
                         { data: 'sub_category', name: 'requisition.sub_category', className: 'text-center' },
-                        { data: 'level', name: 'level', className: 'text-center' },
                         { data: 'status', name: 'requisition.status', className: 'text-center' },
+                        { data: 'approver', name: 'approval_logs.approver_nik' },
+                        { data: 'level', name: 'level', className: 'text-center' },
                         { data: 'action', name: 'action', orderable: false, searchable: false, className: 'text-center', width: '120px' }
                     ],
                     drawCallback: function () {

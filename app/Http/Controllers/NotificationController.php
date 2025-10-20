@@ -106,8 +106,34 @@ class NotificationController extends Controller
      */
     public function count()
     {
+        $user = Auth::user();
+
+        // Jika super-admin, cukup hitung semua yang belum dibaca karena mereka melihat semuanya.
+        if ($user->hasRole('super-admin')) {
+            return response()->json([
+                'count' => $user->unreadNotifications->count()
+            ]);
+        }
+
+        // [FIX] Terapkan logika filter yang sama seperti di fetch() untuk user biasa
+        $userRequisitionIds = Requisition::where('requester_nik', $user->nik)->pluck('id');
+        $pendingApprovalIds = ApprovalLog::where('approver_nik', $user->nik)
+                                        ->where('status', 'Pending')
+                                        ->pluck('requisition_id');
+
+        $count = $user->unreadNotifications()
+            ->where(function ($query) use ($userRequisitionIds, $pendingApprovalIds) {
+                $query->where(function ($q) use ($userRequisitionIds, $pendingApprovalIds) {
+                    // Notifikasi terkait request yang dia buat
+                    $q->whereIn('data->requisition_id', $userRequisitionIds);
+                    // ATAU notifikasi terkait tugas approval untuknya
+                    $q->orWhereIn('data->requisition_id', $pendingApprovalIds);
+                });
+            })
+            ->count(); // Gunakan ->count() untuk efisiensi
+
         return response()->json([
-            'count' => Auth::user()->unreadNotifications->count()
+            'count' => $count
         ]);
     }
 }
