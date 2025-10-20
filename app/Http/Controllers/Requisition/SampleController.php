@@ -135,7 +135,7 @@ class SampleController extends Controller
 
                 switch ($subCategory) {
                     case 'Packaging':
-                        $badgeClass = 'bg-info';
+                        $badgeClass = 'bg-warning';
                         $icon = 'ph-package';
                         break;
                     case 'Finished Goods':
@@ -150,7 +150,7 @@ class SampleController extends Controller
 
                 return '<span class="status-badge-lg ' . $badgeClass . '"><i class="ph-bold ' . $icon . ' me-1"></i>' . e($subCategory) . '</span>';
             })
-            ->editColumn('route_to', fn($req) => '<span class="status-badge-lg bg-warning text-dark"><i class="ph-bold ph-user-switch me-1"></i>' . e($req->route_to) . '</span>')
+            ->editColumn('route_to', fn($req) => '<span class="status-badge-lg bg-primary"><i class="ph-bold ph-user-switch me-1"></i>' . e($req->route_to) . '</span>')
             ->editColumn('status', function ($requisition) {
                 $status = $requisition->status;
                 $badgeClass = 'bg-secondary'; // Warna default
@@ -159,11 +159,11 @@ class SampleController extends Controller
                 switch ($status) {
                     case 'Pending':
                     case 'Submitted':
-                        $badgeClass = 'bg-primary';
+                        $badgeClass = 'bg-info';
                         $icon = 'ph-paper-plane-tilt';
                         break;
                     case 'In Progress':
-                        $badgeClass = 'bg-info';
+                        $badgeClass = 'bg-warning';
                         $icon = 'ph-arrows-clockwise';
                         break;
                     case 'Approved':
@@ -177,7 +177,7 @@ class SampleController extends Controller
                         break;
                     case 'Cancelled':
                         $badgeClass = 'bg-secondary';
-                        $icon = 'ph-ban';
+                        $icon = 'ph-prohibit';
                         break;
                 }
 
