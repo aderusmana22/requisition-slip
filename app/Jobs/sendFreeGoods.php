@@ -2,7 +2,7 @@
 
 namespace App\Jobs;
 
-use App\Mail\MailFreeGoods; // Akan dibuat
+use App\Mail\MailFreeGoods; 
 use App\Models\Requisition\Requisition;
 use App\Models\User;
 use Illuminate\Bus\Queueable;

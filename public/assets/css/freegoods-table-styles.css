@@ -1,27 +1,23 @@
 /* ==========================================================
-   FREEGOODS MANAGEMENT TABLE STYLES
-   (REVISED: Golden Brown, Aesthetic Green, Black Theme)
+   FREEGOODS MANAGEMENT TABLE STYLES - AESTHETIC GREEN THEME
    ========================================================== */
 
 :root {
-    /* Main Palette: Golden Brown, Aesthetic Green, Black */
-    --fg-primary: #c0954a;      /* A rich, warm gold for primary actions */
-    --fg-secondary: #a07c3a;     /* A darker gold for gradients and headers */
-    --fg-green-primary: #4a7c59; /* Muted, sophisticated green for success/info */
-    --fg-green-secondary: #3a6347;/* Darker green for gradients */
-    --fg-danger: #a94442;         /* Muted red for danger/rejection states */
-    --fg-black: #1f1f1f;          /* Soft black for text and dark elements */
-    --fg-dark-bg: #2d2d2d;        /* Dark charcoal for dark backgrounds */
-    --fg-dark-text: var(--fg-black); /* Main text color */
-    --fg-light-bg: #fdfaf5;      /* A very light cream for backgrounds */
-    --fg-grey: #6c757d;           /* Standard grey for secondary text */
+    --fg-primary: #3A6B35;
+    --fg-secondary: #2E532E;
+    --fg-primary-light: #6a994e; /* Warna hijau muda untuk highlight */
+    --fg-danger: #a94442;
+    --fg-black: #1f1f1f;
+    --fg-dark-bg: #2d2d2d;
+    --fg-dark-text: var(--fg-black);
+    --fg-light-bg: #f7f9f8;
+    --fg-grey: #6c757d;
 }
 
 /* ========================================
    MODAL, CARD & GENERAL ELEMENTS
    ======================================== */
 
-/* Modal & Card Headers (Golden Brown) */
 .modal-header,
 .card-header,
 .table-header-enhanced,
@@ -30,7 +26,7 @@
 .modal-header-enhanced {
     background: linear-gradient(135deg, var(--fg-primary) 0%, var(--fg-secondary) 100%);
     color: white;
-    border-bottom: 2px solid rgba(160, 124, 58, 0.5);
+    border-bottom: 2px solid rgba(46, 83, 46, 0.5);
 }
 
 .modal-footer {
@@ -44,10 +40,9 @@
 }
 
 .app-line-breadcrumbs li.active a {
-    color: var(--fg-secondary) !important;
+    color: var(--fg-primary) !important;
 }
 
-/* Tweak text-warning agar konsisten */
 .text-warning {
     color: var(--fg-primary) !important;
 }
@@ -56,22 +51,20 @@
    BUTTONS
    ======================================== */
 
-/* Primary Button (Golden Brown) */
-.btn-primary-theme, .new-sample-btn, .new-freegoods-btn {
+.btn-primary-theme, .new-sample-btn, .new-freegoods-btn, .modal-footer .btn-secondary {
     background: linear-gradient(135deg, var(--fg-primary) 0%, var(--fg-secondary) 100%) !important;
     border: none !important;
     color: white !important;
-    box-shadow: 0 2px 8px rgba(192, 149, 74, 0.3);
+    box-shadow: 0 2px 8px rgba(58, 107, 53, 0.3);
     transition: all 0.3s ease;
 }
-.btn-primary-theme:hover, .new-sample-btn:hover, .new-freegoods-btn:hover {
-    background: linear-gradient(135deg, #d4b06a 0%, var(--fg-primary) 100%) !important;
+.btn-primary-theme:hover, .new-sample-btn:hover, .new-freegoods-btn:hover, .modal-footer .btn-secondary:hover {
+    background: linear-gradient(135deg, #4a8b45 0%, var(--fg-primary) 100%) !important;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(192, 149, 74, 0.4);
+    box-shadow: 0 4px 12px rgba(58, 107, 53, 0.4);
     color: white !important;
 }
 
-/* Secondary Button (Black/Dark) */
 .btn-secondary {
     background: linear-gradient(135deg, var(--fg-dark-bg) 0%, var(--fg-black) 100%) !important;
     border: none !important;
@@ -82,20 +75,18 @@
     color: white !important;
 }
 
-/* Light/Close Button */
-.btn-light-secondary {
-    background-color: #f0f2f5;
-    border: 1px solid #dcdcdc;
-    color: #495057;
-    font-weight: 600;
+.btn-light-secondary, .modal-footer .btn-danger {
+    background-color: #f0f2f5 !important;
+    border: 1px solid #dcdcdc !important;
+    color: #495057 !important;
+    font-weight: 600 !important;
 }
-.btn-light-secondary:hover {
-    background-color: #e9ecef;
-    border-color: #c8c8c8;
-    color: #212529;
+.btn-light-secondary:hover, .modal-footer .btn-danger:hover {
+    background-color: #e9ecef !important;
+    border-color: #c8c8c8 !important;
+    color: #212529 !important;
 }
 
-/* Danger Button */
 .btn-danger {
     background: var(--fg-danger) !important;
     border-color: var(--fg-danger) !important;
@@ -105,6 +96,7 @@
     border-color: #8b3634 !important;
 }
 
+
 /* ========================================
    FORMS & INPUTS
    ======================================== */
@@ -112,23 +104,24 @@
 .form-control:focus, .form-select:focus,
 .select2-container--bootstrap-5 .select2-selection--single:focus,
 .select2-container--bootstrap-5 .select2-selection--multiple:focus {
-    border-color: var(--fg-secondary) !important;
-    box-shadow: 0 0 0 0.25rem rgba(192, 149, 74, 0.25) !important;
+    border-color: var(--fg-primary) !important;
+    box-shadow: 0 0 0 0.25rem rgba(58, 107, 53, 0.25) !important;
 }
 
+/* [INI PERBAIKANNYA] Aturan untuk warna highlight dropdown Select2 */
 .select2-container--bootstrap-5 .select2-results__option--highlighted {
-    background-color: var(--fg-primary) !important;
+    background-color: var(--fg-primary-light) !important; 
     color: white !important;
 }
 
 .form-check-input:checked {
-    background-color: var(--fg-secondary) !important;
-    border-color: var(--fg-secondary) !important;
+    background-color: var(--fg-primary) !important;
+    border-color: var(--fg-primary) !important;
 }
 
 .input-group-text {
-    background-color: rgba(192, 149, 74, 0.1);
-    border-color: rgba(192, 149, 74, 0.4);
+    background-color: rgba(58, 107, 53, 0.1);
+    border-color: rgba(58, 107, 53, 0.4);
     color: var(--fg-dark-text);
 }
 
@@ -140,7 +133,7 @@
     background: white;
     border-radius: 16px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
-    border: 1px solid rgba(192, 149, 74, 0.3);
+    border: 1px solid rgba(58, 107, 53, 0.3);
     overflow: hidden;
 }
 
@@ -152,9 +145,9 @@
 }
 
 .dataTables_filter input {
-    border: 2px solid rgba(192, 149, 74, 0.4) !important;
+    border: 2px solid rgba(58, 107, 53, 0.4) !important;
     border-radius: 10px !important;
-    background: rgba(192, 149, 74, 0.05) !important;
+    background: rgba(58, 107, 53, 0.05) !important;
 }
 .dataTables_filter input:focus {
     background: white !important;
@@ -164,7 +157,6 @@
     color: var(--fg-dark-text);
 }
 
-/* Table Head (Golden Brown) */
 #fgTable thead th, .thead-dark th, .detail-table thead th,
 .main-table-container .table-responsive table.dataTable thead tr th {
     background: linear-gradient(135deg, var(--fg-primary) 0%, var(--fg-secondary) 100%) !important;
@@ -178,10 +170,9 @@
     text-align: left;
 }
 
-/* Table Body */
 #fgTable tbody td {
     padding: 18px 15px !important;
-    border-bottom: 1px solid rgba(192, 149, 74, 0.2) !important;
+    border-bottom: 1px solid rgba(58, 107, 53, 0.2) !important;
     vertical-align: middle !important;
     font-size: 15px !important;
     font-weight: 500 !important;
@@ -193,9 +184,9 @@
 }
 
 #fgTable tbody tr:hover {
-    background: linear-gradient(90deg, rgba(212, 175, 71, 0.15) 0%, rgba(212, 175, 71, 0.05) 100%) !important;
+    background: linear-gradient(90deg, rgba(58, 107, 53, 0.15) 0%, rgba(58, 107, 53, 0.05) 100%) !important;
     transform: scale(1.01);
-    box-shadow: 0 6px 20px rgba(184, 134, 27, 0.1) !important;
+    box-shadow: 0 6px 20px rgba(58, 107, 53, 0.1) !important;
     position: relative;
     z-index: 10;
 }
@@ -205,7 +196,7 @@
    ======================================== */
 
 .page-link, .dataTables_paginate .paginate_button {
-    color: var(--fg-secondary) !important;
+    color: var(--fg-primary) !important;
 }
 
 .page-item.active .page-link, .dataTables_paginate .paginate_button.current {
@@ -216,35 +207,25 @@
 
 .page-link:hover, .dataTables_paginate .paginate_button:hover {
     color: var(--fg-primary) !important;
-    background-color: rgba(192, 149, 74, 0.1) !important;
-    border-color: rgba(192, 149, 74, 0.2) !important;
+    background-color: rgba(58, 107, 53, 0.1) !important;
+    border-color: rgba(58, 107, 53, 0.2) !important;
 }
 
 /* ========================================
    ACTION BUTTONS & BADGES
    ======================================== */
 
-/* Detail Button (Aesthetic Green) */
-.action-btn-group .btn-info {
-    background: linear-gradient(135deg, var(--fg-green-primary) 0%, var(--fg-green-secondary) 100%);
-    box-shadow: 0 2px 8px rgba(74, 124, 89, 0.3);
-}
-.action-btn-group .btn-info:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(74, 124, 89, 0.4);
-}
-
-/* Edit Button (Golden Brown) */
+.action-btn-group .btn-info,
 .action-btn-group .btn-secondary {
-    background: linear-gradient(135deg, var(--fg-primary) 0%, var(--fg-secondary) 100%) !important;
-    box-shadow: 0 2px 8px rgba(192, 149, 74, 0.3) !important;
+    background: linear-gradient(135deg, var(--fg-dark-bg) 0%, var(--fg-black) 100%) !important;
+    box-shadow: 0 2px 8px rgba(45, 45, 45, 0.3) !important;
 }
+.action-btn-group .btn-info:hover,
 .action-btn-group .btn-secondary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(192, 149, 74, 0.4) !important;
+    box-shadow: 0 4px 12px rgba(45, 45, 45, 0.4) !important;
 }
 
-/* Delete Button (Muted Red) */
 .action-btn-group .btn-danger {
     background: linear-gradient(135deg, #a94442 0%, #8b3634 100%) !important;
     box-shadow: 0 2px 8px rgba(169, 68, 66, 0.3) !important;
@@ -254,7 +235,6 @@
     box-shadow: 0 4px 12px rgba(169, 68, 66, 0.4) !important;
 }
 
-/* Status Badges */
 .status-badge-lg {
     font-size: 0.8em !important;
     padding: 4px 8px !important;
@@ -262,25 +242,17 @@
     text-transform: uppercase !important;
     border: 2px solid transparent !important;
 }
-/* Pending (Golden Brown) */
-.bg-warning.status-badge-lg {
-    background: linear-gradient(135deg, var(--fg-primary) 0%, var(--fg-secondary) 100%) !important;
+.bg-warning.status-badge-lg, .bg-info.status-badge-lg { /* Pending & Processing -> Hitam */
+    background: linear-gradient(135deg, var(--fg-dark-bg) 0%, var(--fg-black) 100%) !important;
     color: white !important;
     border-color: rgba(255, 255, 255, 0.3) !important;
 }
-/* Approved (Aesthetic Green) */
-.bg-success.status-badge-lg {
-    background: linear-gradient(135deg, var(--fg-green-primary) 0%, var(--fg-green-secondary) 100%) !important;
+.bg-success.status-badge-lg { /* Approved -> Hijau */
+    background: linear-gradient(135deg, var(--fg-primary) 0%, var(--fg-secondary) 100%) !important;
     border-color: rgba(255, 255, 255, 0.3) !important;
 }
-/* Rejected (Muted Red) */
-.bg-danger.status-badge-lg {
+.bg-danger.status-badge-lg { /* Rejected -> Merah */
     background: linear-gradient(135deg, var(--fg-danger) 0%, #8b3634 100%) !important;
-    border-color: rgba(255, 255, 255, 0.3) !important;
-}
-/* Processing (Dark/Black) */
-.bg-info.status-badge-lg {
-    background: linear-gradient(135deg, var(--fg-dark-bg) 0%, var(--fg-black) 100%) !important;
     border-color: rgba(255, 255, 255, 0.3) !important;
 }
 
@@ -289,7 +261,11 @@
    ======================================== */
 
 .view-modal-card { border: none; border-radius: .75rem; box-shadow: 0 4px 12px rgba(0,0,0, .08); margin-bottom: 1.5rem !important; }
-.view-modal-card-header h5 { color: var(--fg-secondary); font-weight: 600; margin-bottom: 0; }
+.view-modal-card-header h5 { color: var(--fg-primary); font-weight: 600; margin-bottom: 0; }
+
+.view-modal-card .card-header h5 {
+    color: #d8e468 !important; 
+}
 
 .tracker-line-progress {
     background: linear-gradient(135deg, var(--fg-primary) 0%, var(--fg-secondary) 100%);
@@ -299,23 +275,20 @@
     border-color: var(--fg-secondary);
 }
 .tracker-step.active .tracker-icon {
-    background-color: var(--fg-green-primary);
-    border-color: var(--fg-green-primary);
+    background-color: var(--fg-primary);
+    border-color: var(--fg-primary);
 }
 .tracker-step.rejected .tracker-icon {
     background-color: var(--fg-danger);
     border-color: var(--fg-danger);
 }
 
-/* History Badges */
-.avatar-created { background-color: var(--fg-primary); }
-.avatar-approved { background-color: var(--fg-green-primary); }
+.avatar-created, .avatar-approved { background-color: var(--fg-primary); }
 .avatar-review { background-color: #ffc107; }
 .avatar-rejected { background-color: var(--fg-danger); }
 .avatar-process { background-color: var(--fg-grey); }
 
-.badge-created { background-color: #fef8e9; color: var(--fg-dark); border-color: #fbeecb; }
-.badge-approved { background-color: #e8f3ee; color: var(--fg-green-secondary); border-color: #b3ffcf; }
+.badge-created, .badge-approved { background-color: #e8f3ee; color: var(--fg-secondary); border-color: #b3ffcf; }
 .badge-review { background-color: #fff9e7; color: #b98b00; border-color: #ffe6b3; }
 .badge-rejected, .badge-cancelled { background-color: #fdeded; color: var(--fg-danger); border-color: #ffb3b3; }
 .badge-process { background-color: #e7f9fc; color: #0ca5c3; border-color: #b3f0ff; }
@@ -323,38 +296,34 @@
 .causer-info i { color: var(--fg-primary); }
 
 #print-selected-btn {
-    background-color: var(--fg-green-primary);
-    border-color: var(--fg-green-primary);
+    background-color: var(--fg-primary);
+    border-color: var(--fg-primary);
 }
 #print-selected-btn:hover {
-    background-color: var(--fg-green-secondary);
-    border-color: var(--fg-green-secondary);
+    background-color: var(--fg-secondary);
+    border-color: var(--fg-secondary);
 }
-
 
 /* ========================================
    UNCHANGED STYLES & ANIMATIONS
    ======================================== */
 
-/* Loading State Animation */
 .dataTables_processing {
     background: rgba(255, 255, 255, 0.9) !important;
-    color: var(--fg-secondary) !important;
+    color: var(--fg-primary) !important;
     font-weight: 600 !important;
     border-radius: 12px !important;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1) !important;
-    border: 2px solid rgba(192, 149, 74, 0.4) !important;
+    border: 2px solid rgba(58, 107, 53, 0.4) !important;
     animation: pulse 1.5s infinite;
 }
 @keyframes pulse { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }
 
-/* Action Buttons Base */
 .action-btn-group { display: flex; gap: 6px; justify-content: center; align-items: center; }
 .action-btn-group .btn { padding: 8px 10px; border-radius: 8px; font-size: 0.85em; font-weight: 600; transition: all 0.3s ease; border: none; position: relative; overflow: hidden; }
 .action-btn-group .btn::before { content: ''; position: absolute; top: 50%; left: 50%; width: 0; height: 0; background: rgba(255, 255, 255, 0.3); border-radius: 50%; transition: all 0.3s ease; transform: translate(-50%, -50%); }
 .action-btn-group .btn:hover::before { width: 100px; height: 100px; }
 
-/* Modal & Page Animations */
 @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
 body { transition: opacity 0.3s ease-in-out; }
@@ -363,7 +332,6 @@ body { transition: opacity 0.3s ease-in-out; }
 .modal.show .modal-dialog { transform: translate(0, 0) scale(1); }
 @media (prefers-reduced-motion: no-preference) { .detail-section { animation: fadeInUp 0.6s ease-out forwards; } .detail-section:nth-child(2) { animation-delay: 0.1s; opacity: 0; animation-fill-mode: forwards; } .detail-section:nth-child(3) { animation-delay: 0.2s; opacity: 0; animation-fill-mode: forwards; } .detail-section:nth-child(4) { animation-delay: 0.3s; opacity: 0; animation-fill-mode: forwards; } }
 
-/* Custom Tooltip (Black) */
 .action-tooltip {
     position: absolute;
     background: linear-gradient(135deg, var(--fg-dark-bg) 0%, var(--fg-black) 100%);
@@ -378,7 +346,7 @@ body { transition: opacity 0.3s ease-in-out; }
     transition: opacity 0.2s ease-in-out;
     white-space: nowrap;
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
-    border: 1px solid rgba(192, 149, 74, 0.5);
+    border: 1px solid rgba(58, 107, 53, 0.5);
 }
 .action-tooltip::after {
     content: '';
@@ -391,7 +359,6 @@ body { transition: opacity 0.3s ease-in-out; }
 }
 .action-tooltip.show { opacity: 1; }
 
-/* Styles from old blade file for completeness */
 .modal-xl { max-width: 80vw !important; }
 .modal-body { max-height: calc(100vh - 210px); overflow-y: auto; }
 .view-label { color: #6c757d; font-size: 0.85rem; margin-bottom: .25rem; display: block; }
@@ -400,9 +367,34 @@ body { transition: opacity 0.3s ease-in-out; }
 .tracker-line { position: absolute; top: 16px; left: 5%; right: 5%; height: 3px; background-color: #e9ecef; z-index: 1; }
 .tracker-step { position: relative; z-index: 3; text-align: center; width: 16%; }
 .tracker-icon { width: 30px; height: 30px; border-radius: 50%; background-color: #ced4da; color: #fff; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; border: 2px solid #ced4da; transition: all 0.3s ease; }
-.tracker-label { font-size: 0.8rem; font-weight: 600; color: #6c757d; }
-.tracker-step.completed .tracker-label, .tracker-step.active .tracker-label { color: #212529; }
-.tracker-details { font-size: 0.75rem; margin-top: 5px; min-height: 30px; }
-.tracker-user { font-weight: 500; color: #495057; }
-.tracker-date { color: #6c757d; }
-.loading-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(255, 255, 255, 0.85); z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: .75rem; color: var(--fg-secondary); }
+
+.tracker-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #495057; 
+}
+.tracker-step.completed .tracker-label, .tracker-step.active .tracker-label {
+    color: #212529;
+}
+.tracker-details {
+    font-size: 0.75rem;
+    margin-top: 5px;
+    min-height: 30px;
+}
+.tracker-user {
+    font-weight: 500;
+    color: #495057;
+}
+.tracker-date {
+    color: #6c757d;
+}
+.loading-overlay {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background-color: rgba(255, 255, 255, 0.85);
+    z-index: 10;
+    display: flex; flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: .75rem;
+    color: var(--fg-primary);
+}

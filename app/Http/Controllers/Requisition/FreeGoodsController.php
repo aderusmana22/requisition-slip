@@ -303,14 +303,10 @@ class FreeGoodsController extends Controller
             return view('page.freegoods.invalid', ['message' => 'This request is invalid or has been processed.']);
         }
 
-        // ===================================================================
-        // [SOLUSI FINAL NOT FOUND PADA QUICK APPROVE]
-        // ===================================================================
         if ($action === 'approve' && !$tracking) { 
             $request->merge(['token' => $token, 'action' => 'approve', 'notes' => 'Approved via quick action link.']);
             return $this->processApproval($request);
         }
-        // ===================================================================
 
         $requisition = $approvalLog ? $approvalLog->requisition : $tracking->requisition;
         $requisition->load('requester.department', 'customer', 'requisitionItems.itemMaster', 'approvalLogs.approver');
@@ -319,7 +315,7 @@ class FreeGoodsController extends Controller
         $pageTitle = $isWarehouseProcess ? ($tracking->current_position ?? 'Warehouse Process') : 'Approval Action';
 
         if ($action === 'reject') {
-            $action = 'review'; // Force reject to review form to add notes
+            $action = 'review'; 
         }
 
         $viewData = [

@@ -42,22 +42,22 @@
             color: #fff;
         }
 
+        /* [DIKEMBALIKAN] Warna Coklat Emas untuk Success */
         .response-card.success {
-            /* WARNA SUCCESS BORDER: Coklat Emas */
             border-color: #cc982f;
         }
 
         .response-card.success .icon-circle {
-            /* WARNA SUCCESS ICON: Coklat Emas */
             background-color: #cc982f;
         }
 
+        /* Warna Merah untuk Reject (tetap) */
         .response-card.reject {
-            border-color: #dc3545; /* Tetap merah */
+            border-color: #dc3545;
         }
 
         .response-card.reject .icon-circle {
-            background-color: #dc3545; /* Tetap merah */
+            background-color: #dc3545;
         }
 
         h3 {
@@ -104,12 +104,22 @@
             color: #6c757d;
             margin-top: 25px;
         }
+        
+        /* [DIKEMBALIKAN] Style untuk Tombol Close agar konsisten */
+        .btn-primary {
+            background-color: #cc982f;
+            border-color: #cc982f;
+        }
+
+        .btn-primary:hover {
+            background-color: #b8871a;
+            border-color: #b8871a;
+        }
 
     </style>
 </head>
 
 <body>
-    {{-- [DIPERBAIKI] Tentukan class berdasarkan data sesi --}}
     <div class="response-card {{ session('card_class', 'success') }}">
         <div class="icon-circle">
             <i class="fas {{ session('card_class') === 'reject' ? 'fa-times-circle' : 'fa-check-circle' }}"></i>
@@ -118,7 +128,6 @@
         <h3>{{ session('title', 'Action Submitted') }}</h3>
         <p class="message">{{ session('message', 'Your response has been recorded.') }}</p>
 
-        {{-- [DIPERBAIKI] Hanya tampilkan box jika ada datanya --}}
         @if(session('no_srs'))
         <div class="details-box">
             <div class="detail-item">
@@ -145,11 +154,12 @@
         @endif
 
         <a href="javascript:window.close();" class="btn btn-primary">Close</a>
-        <p class="countdown-text">This page will close automatically in <span id="countdown">10</span> seconds.</p>
+        <p class="countdown-text">This page will close automatically in <span id="countdown">5</span> seconds.</p>
     </div>
 
     <script>
-        let seconds = 10;
+        // Hitung mundur tetap 5 detik
+        let seconds = 5;
         const countdownElement = document.getElementById('countdown');
         const interval = setInterval(() => {
             seconds--;
@@ -159,7 +169,6 @@
                 window.close();
             }
         }, 1000);
-
     </script>
 </body>
 

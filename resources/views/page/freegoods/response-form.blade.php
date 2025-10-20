@@ -19,18 +19,18 @@
             box-shadow: 0 8px 30px rgba(0, 0, 0, .05);
         }
 
+        /* [DIKEMBALIKAN] Warna Coklat Emas untuk Header */
         .card-header.main-header {
-            /* WARNA UTAMA SAMPLE */
             background: linear-gradient(135deg, #cc982f 0%, #b8871a 100%);
             color: white;
             padding: 20px 30px;
             border-radius: 16px 16px 0 0 !important;
         }
 
+        /* [DIKEMBALIKAN] Warna Coklat Emas untuk Judul Section */
         .section-title {
             font-size: 1.1rem;
             font-weight: 700;
-            /* WARNA SEKUNDER SAMPLE */
             color: #b8871a;
             margin-bottom: 20px;
             padding-bottom: 10px;
@@ -76,14 +76,13 @@
             background-color: #e9ecef;
             opacity: 1;
         }
-
+        
+        /* [DIKEMBALIKAN] Palet Warna Coklat Emas */
         .text-primary {
-            /* WARNA PRIMARY TEXT */
             color: #b8871a !important;
         }
 
         .btn-primary {
-            /* WARNA PRIMARY BUTTON */
             background-color: #cc982f;
             border-color: #cc982f;
         }
@@ -94,11 +93,9 @@
         }
 
         .processing-overlay .spinner-border {
-            /* WARNA SPINNER */
             color: #cc982f !important;
         }
 
-        /* [DIUBAH] Layout Grid 2 Kolom yang konsisten */
         .main-container {
             display: grid;
             grid-template-columns: 2.5fr 1fr;
@@ -117,12 +114,8 @@
             margin-bottom: 30px;
         }
 
-        /* Memberi jarak antar card di kolom kiri */
-
-        /* [BARU] Style untuk radio button menyamping */
         .radio-group-horizontal .form-check {
             margin-right: 15px;
-            /* Jarak antar radio button */
         }
 
         @media (max-width:1024px) {
@@ -130,7 +123,6 @@
                 grid-template-columns: 1fr;
             }
         }
-
     </style>
 
 <body>
@@ -138,12 +130,10 @@
         <div class="left-column">
             <div class="card">
                 <div class="card-header main-header">
-                    {{-- Judul disesuaikan --}}
                     <h4 class="mb-0">Free Goods Requisition Approval</h4>
                     <p class="mb-0 opacity-75">FG No: {{ $requisition->no_srs }}</p>
                 </div>
                 <div class="card-body p-4 p-md-5">
-                    {{-- BAGIAN 1: DETAIL REQUISITION --}}
                     <h5 class="section-title"><i class="fas fa-file-invoice"></i> Requisition Details</h5>
                     <div class="row g-4">
                         <div class="col-md-4">
@@ -181,7 +171,6 @@
                         </div>
                     </div>
 
-                    {{-- BAGIAN 2: DETAIL ITEM (Disimplifikasi untuk Free Goods) --}}
                     @if($requisition->requisitionItems->count() > 0)
                     <h5 class="section-title mt-5"><i class="fas fa-cubes"></i> Requested Item List</h5>
                     <div class="table-responsive">
@@ -213,19 +202,16 @@
             </div>
         </div>
 
-        {{-- Kolom Kanan: Form Aksi --}}
         <div class="right-column">
             <div class="card action-card">
                 <div class="card-body p-4">
                     <h5 class="section-title"><i class="fas fa-edit"></i> {{ $pageTitle }}</h5>
-                    {{-- Ubah action ke route Free Goods --}}
                     <form id="responseForm" action="{{ route('fg.approval.process') }}" method="POST">
                         @csrf
                         <input type="hidden" name="token" value="{{ $token }}">
                         
                         @if($isWarehouseProcess)
                             <input type="hidden" name="action" value="submit"> 
-                            
                             <p>Please provide notes for this warehouse step. Notes are required to proceed.</p>
                             <div class="mb-3">
                                 <label for="notes" class="form-label"><strong>Notes/Reason: <span class="text-danger">*</span></strong></label>
@@ -236,18 +222,16 @@
                             </div>
 
                         @else
-                        {{-- Logika Approval Normal --}}
                         <div class="mb-3">
                             <label class="form-label"><strong>Decision:</strong></label>
                             <div>
                                 <div class="form-check mb-2">
                                     <input class="form-check-input" type="radio" name="action" id="action_review"
-                                        value="review" @if($action === 'review' && $originalAction !== 'reject') checked @endif> {{-- Modifikasi di sini --}}
+                                        value="review" @if($action === 'review' && $originalAction !== 'reject') checked @endif>
                                     <label class="form-check-label text-primary" for="action_review"><strong>
                                         Approve with Review</strong></label>
                                 </div>
                                 <div class="form-check me-3 mb-1">
-                                    {{-- Tambahkan kondisi checked di sini berdasarkan $originalAction --}}
                                     <input class="form-check-input" type="radio" name="action" id="action_reject"
                                         value="reject" @if($originalAction === 'reject') checked @endif>
                                     <label class="form-check-label text-danger"
@@ -279,32 +263,38 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // Logika validasi dan fungsionalitas lain tetap dipertahankan
         document.addEventListener('DOMContentLoaded', function () {
             const form = document.getElementById('responseForm');
             const overlay = document.getElementById('processingOverlay');
             
-            // Variabel action yang masuk dari URL
             const actionFromUrl = '{{ $action }}'; 
             const isWarehouseProcess = {{ $isWarehouseProcess ? 'true' : 'false' }};
 
-            // --- FUNGSI UNTUK VALIDASI & SUBMIT ---
             const handleFormSubmit = () => {
                 let validationPassed = true;
 
-                // Cek validasi Notes
                 if (!isWarehouseProcess) {
-                    const rejectRadio = document.getElementById('action_reject');
+                    const selectedAction = document.querySelector('input[name="action"]:checked');
                     const notesTextarea = document.getElementById('notes');
                     
-                    // Notes required jika Reject dipilih, atau jika Review dipilih (manual review)
-                    if (rejectRadio.checked || actionFromUrl === 'review') {
-                        if (!(/[a-zA-Z]/.test(notesTextarea.value.trim()))) {
-                            Swal.fire({ icon: 'warning', title: 'Alasan Diperlukan', text: 'Mohon berikan alasan yang valid.' });
-                            validationPassed = false;
+                    if (selectedAction) {
+                        const actionValue = selectedAction.value;
+                        if (actionValue === 'review' || actionValue === 'reject') {
+                            const notesValue = notesTextarea.value.trim();
+                            const hasAlphanumeric = /[a-zA-Z0-9]/.test(notesValue);
+
+                            if (notesValue.length < 10 || !hasAlphanumeric) {
+                                Swal.fire({
+                                    icon: 'warning',
+                                    title: 'Alasan Diperlukan',
+                                    text: 'Mohon berikan alasan yang valid. Alasan wajib diisi, minimal 10 karakter, dan harus berisi huruf atau angka (tidak boleh hanya spasi atau simbol).'
+                                });
+                                validationPassed = false;
+                            }
                         }
                     }
                 } else if (isWarehouseProcess && actionFromUrl !== 'approve') {
-                     // Untuk proses WH, notes wajib kecuali dari quick approve (walau WH biasanya butuh notes)
                     const notesTextarea = document.getElementById('notes');
                     if (!(/[a-zA-Z]/.test(notesTextarea.value.trim()))) {
                         Swal.fire({ icon: 'warning', title: 'Catatan Diperlukan', text: 'Mohon berikan catatan yang valid.' });
@@ -313,7 +303,6 @@
                 }
 
                 if (validationPassed) {
-                    // PENTING: Jika Quick Approve, set value radio button ke 'approve' sebelum submit
                     if (actionFromUrl === 'approve') {
                         document.getElementById('action_review').value = 'approve';
                     }
@@ -323,32 +312,16 @@
                 }
             };
 
-            // --- LOGIKA AUTO-SUBMIT (SOLUSI NOT FOUND) ---
-            // Jika action yang masuk adalah 'approve' (dari Quick Approve link), 
-            // kita panggil submit langsung tanpa konfirmasi Swal dan tanpa menampilkan form.
             if (actionFromUrl === 'approve' && !isWarehouseProcess) {
-                // Di sini kita tidak menampilkan form karena action='approve'
-                // Kita bypass konfirmasi dan langsung panggil handler submit.
-                // Logika ini bergantung pada Controller yang mengirimkan action='approve' ke blade
-                
-                // Pastikan nilai form action adalah 'approve'
                 document.getElementById('action_review').value = 'approve'; 
-                
-                // Langsung kirim form
                 handleFormSubmit();
-                
-                // Hentikan eksekusi script agar user tidak melihat form
                 document.body.style.display = 'none'; 
                 return;
             }
-            // --- END LOGIKA AUTO-SUBMIT ---
 
-
-            // --- LOGIKA MANUAL SUBMIT (Jika form ditampilkan) ---
             form.addEventListener('submit', function (event) {
                 event.preventDefault();
                 
-                // Jika tombol yang ditekan adalah Reject, atau Review, minta konfirmasi
                 Swal.fire({
                     title: 'Konfirmasi Pengiriman',
                     text: "Apakah Anda yakin ingin melanjutkan?",
@@ -360,13 +333,11 @@
                     cancelButtonText: 'Batal'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        // Jika manual submit, action diambil dari radio button yang ter-check
                         handleFormSubmit();
                     }
                 });
             });
 
-            // --- BLOK LOGIKA UNTUK FORM APPROVAL (Update Tombol) ---
             if (!isWarehouseProcess) {
                 const reviewRadio = document.getElementById('action_review');
                 const rejectRadio = document.getElementById('action_reject');

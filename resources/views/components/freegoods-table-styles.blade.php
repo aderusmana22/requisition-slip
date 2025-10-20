@@ -1,6 +1,6 @@
 {{--
 ==========================================================
-FREEGOODS TABLE STYLES COMPONENT
+FREEGOODS TABLE STYLES COMPONENT - AESTHETIC GREEN THEME
 ==========================================================
 Include this component to apply consistent Free Goods table styling.
 Usage: @include('components.freegoods-table-styles')
@@ -10,35 +10,36 @@ CSS CLASSES REFERENCE & USAGE GUIDE
 ==========================================================
 
 🎨 MODAL STYLING:
-• .modal-header                  → Standard modal header dengan golden brown gradient
-• .modal-header-enhanced         → Enhanced modal header dengan pattern texture
+• .modal-header                  → Standard modal header dengan aesthetic green gradient
+• .modal-header-enhanced         → Enhanced modal header
 • .modal-title-enhanced          → Title dengan icon dan styling
 • .modal-body-enhanced           → Body dengan gradient background
 • .modal-footer                  → Footer dengan light gray background
 
 📋 TABLE CONTAINER:
 • .main-table-container          → Container utama tabel dengan shadow dan rounded corners
-• .table-header-enhanced         → Header tabel dengan golden brown gradient dan pattern
+• .table-header-enhanced         → Header tabel dengan aesthetic green gradient
 • .table-title                   → Title tabel dengan icon
 • .table-subtitle                → Subtitle tabel dengan opacity
 
 🔘 BUTTON STYLING:
-• .new-freegoods-btn             → Button "New Free Goods" (sudah di-style via CSS utama)
-• .btn-primary-theme             → Button dengan golden brown gradient theme
-• .btn-secondary                 → Button abu-abu (override Bootstrap)
+• .new-freegoods-btn             → Button "New Free Goods" (di-style dengan green gradient)
+• .btn-primary-theme             → Button dengan aesthetic green gradient theme
+• .btn-secondary                 → Button hitam/gelap (override Bootstrap)
 • .btn-danger                    → Button merah dengan dark theme
 • .action-btn-group              → Container untuk action buttons di tabel
 • .action-btn-hover              → Button dengan custom hover tooltip (membutuhkan atribut data-tooltip)
 
 🏷️ STATUS BADGES:
 • .status-badge-lg               → Badge status dengan enhanced styling
-• .bg-warning.status-badge-lg    → Badge kuning untuk "Pending" dengan golden brown gradient
+• .bg-warning.status-badge-lg    → Badge hitam untuk "Pending"
 • .bg-success.status-badge-lg    → Badge hijau untuk "Approved" dengan aesthetic green gradient
 • .bg-danger.status-badge-lg     → Badge merah untuk "Rejected" dengan gradient
+• .bg-info.status-badge-lg       → Badge hitam untuk "Processing"
 
 📄 DETAIL MODAL SECTIONS:
 • .detail-section                → Container section untuk detail modal
-• .section-header                → Header section dengan golden brown gradient
+• .section-header                → Header section dengan aesthetic green gradient
 • .info-card                     → Card untuk informasi dengan left border
 • .info-row                      → Row informasi dengan label dan value
 • .info-label                    → Label informasi dengan icon
@@ -55,22 +56,22 @@ CSS CLASSES REFERENCE & USAGE GUIDE
 • .detail-table                  → Tabel detail dengan enhanced styling
 
 🎯 DATATABLES ENHANCEMENTS:
-• #fgTable                       → Main table dengan golden brown & green theme
+• #fgTable                       → Main table dengan aesthetic green theme
 • .dataTables_wrapper            → Wrapper dengan padding dan animations
-• .dataTables_filter input       → Search input dengan golden brown focus
+• .dataTables_filter input       → Search input dengan green focus
 • .dataTables_length select      → Length selector dengan theme
-• .dataTables_paginate           → Pagination dengan golden brown buttons
+• .dataTables_paginate           → Pagination dengan green buttons
 • .dataTables_info               → Info text dengan dark color
 
 💡 TOOLTIP SYSTEM:
-• .action-tooltip                → Custom tooltip untuk action buttons
+• .action-tooltip                → Custom tooltip hitam untuk action buttons
 • .action-tooltip.show           → Tooltip dalam state visible
 • .action-btn-hover              → Element yang akan menampilkan tooltip
 
 🎨 COLOR THEME PALETTE:
-• Primary Gold: #c0954a
-• Secondary Gold: #a07c3a
-• Aesthetic Green: #4a7c59
+• Primary Green: #3A6B35
+• Secondary Green (Darker): #2E532E
+• Dark/Black: #1f1f1f
 • Dark Red: #a94442
 • Dark Text: #2d2d2d
 
@@ -124,12 +125,7 @@ JAVASCRIPT REQUIREMENTS:
 // ==========================================================
 // SCRIPT UNTUK CUSTOM TOOLTIP PADA ACTION BUTTONS
 // ==========================================================
-// Script ini akan otomatis mencari elemen dengan class .action-btn-hover
-// dan atribut data-tooltip="Isi tooltip Anda" untuk menampilkan
-// tooltip kustom saat di-hover.
-// ==========================================================
 document.addEventListener('DOMContentLoaded', function () {
-    // Cek apakah tooltip sudah ada untuk menghindari duplikasi
     if (!document.querySelector('.action-tooltip')) {
         const tooltip = document.createElement('div');
         tooltip.className = 'action-tooltip';
@@ -145,20 +141,18 @@ document.addEventListener('DOMContentLoaded', function () {
                     const rect = button.getBoundingClientRect();
                     const tooltipRect = tooltip.getBoundingClientRect();
 
-                    // Posisikan tooltip di atas tombol
-                    let top = rect.top - tooltipRect.height - 8; // 8px spasi
+                    let top = rect.top - tooltipRect.height - 8; 
                     let left = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
-
-                    // Cek jika tooltip keluar dari viewport atas
+                    
                     if (top < 0) {
-                        top = rect.bottom + 8; // Pindahkan ke bawah jika tidak cukup ruang
+                        top = rect.bottom + 8; 
                     }
 
                     tooltip.style.left = `${left}px`;
-                    tooltip.style.top = `${top + window.scrollY}px`; // Tambahkan scrollY untuk posisi absolut
+                    tooltip.style.top = `${top + window.scrollY}px`; 
                 }
             }
-        }, true); // Gunakan event capturing
+        }, true); 
 
         document.body.addEventListener('mouseleave', function(event) {
             if (event.target.matches('.action-btn-hover')) {
@@ -167,7 +161,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     tooltip.classList.remove('show');
                  }
             }
-        }, true); // Gunakan event capturing
+        }, true);
     }
 });
 </script>

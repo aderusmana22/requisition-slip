@@ -82,7 +82,7 @@
         <div class="content">
             <p>Hello <strong>{{ $requisition->requester->name }}</strong>,</p>
             <p>
-                We regret to inform you that your **Free Goods Requisition** with the number
+                We regret to inform you that your Free Goods Requisition with the number
                 <strong>{{ $requisition->no_srs }}</strong> has been rejected.
             </p>
 

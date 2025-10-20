@@ -9,11 +9,12 @@
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #f8f9fa; color: #333; line-height: 1.6; }
         .email-container { max-width: 800px; margin: 20px auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1); }
         /* WARNA HEADER: COKLAT/EMAS */
-        .email-header { background: linear-gradient(135deg, #cc982f 0%, #b8871a 100%); color: white; padding: 25px 40px; display: flex; align-items: center; }
+        .email-header { background: linear-gradient(135deg, #cc982f 0%, #b8871a 100%); color: white; padding: 25px 40px; }
         .logo-container { padding-right: 20px; }
         .company-logo { max-height: 50px; width: auto; }
         .header-text .company-name { font-size: 20px; font-weight: 700; margin: 0; }
-        .header-text .email-title { font-size: 24px; font-weight: 600; margin: 0; }
+        .header-content .email-title { font-size: 24px; font-weight: 600; margin: 0 0 5px 0; }
+        .header-content .email-subtitle { font-size: 16px; font-weight: 400; margin: 0; opacity: 0.9; }
         .email-content { padding: 40px; }
         /* WARNA GREETING BOX: KREM MUDA */
         .greeting { font-size: 18px; color: #2c3e50; margin-bottom: 25px; padding: 20px; background: #fef8e7; border-radius: 8px; border-left: 4px solid #cc982f; }
@@ -60,20 +61,19 @@
     <div class="email-container">
         <div class="email-header">
             <div class="header-content">
-                {{-- Ganti Judul menjadi Free Goods --}}
                 <h1 class="email-title">Free Goods Approval Request</h1>
-                <p class="email-subtitle">General Request</p>
-            </div>
+                
+                {{-- [INI PERBAIKANNYA] Mengambil data dinamis dari controller --}}
+                <p class="email-subtitle">{{ $requisition->sub_category }}</p>         
+           </div>
         </div>
 
         <div class="email-content">
             <div class="greeting">
                 <strong>Hello {{ $recipient->name }},</strong><br>
-                {{-- [FIXED] Menggunakan snake_case --}}
                 @if($mail_type === 'completed_notification')
                     Requisition <strong>{{ $requisition->no_srs }}</strong> has been fully processed and is now **Completed**. The goods are ready for dispatch/pickup.
                 @elseif($mail_type === 'warehouse_process')
-                    {{-- [FIXED] Menggunakan snake_case --}}
                     Requisition <strong>{{ $requisition->no_srs }}</strong> has been fully approved and now requires your action for the process: <strong>{{ $process_step }}</strong>.
                 @else
                     A new Free Goods requisition requires your review and approval. Please check the details and choose an action.
@@ -184,17 +184,14 @@
             @endif
 
             <div class="action-section">
-                {{-- [FIXED] Menggunakan snake_case agar cocok dengan key data --}}
                 @if($mail_type === 'completed_notification') 
                     <h3 class="action-title">📦 Requisition Completed</h3>
                     <p class="action-subtitle">No further action is required from you for this request.</p>
                 @elseif($mail_type === 'warehouse_process')
                     <h3 class="action-title">📦 Warehouse Action Required</h3>
-                    {{-- [FIXED] Menggunakan snake_case agar cocok dengan key data --}}
                     <p class="action-subtitle">Process step: <strong>{{ $process_step }}</strong>. Please click the button below to proceed/add notes.</p> 
                     <div class="button-group">
                         <table><tr>
-                            {{-- URL untuk warehouse process sebaiknya menggunakan variabel yang lebih spesifik, misal $submitUrl --}}
                             <td><a href="{{ $submit_url ?? $review_url }}" class="btn btn-process">✅ Submit Process/Notes</a></td> 
                         </tr></table>
                     </div>
