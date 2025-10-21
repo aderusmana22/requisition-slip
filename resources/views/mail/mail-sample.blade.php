@@ -271,18 +271,22 @@
                 @if(isset($mail_type) && $mail_type == 'qa_form_notification')
                     <h3 class="action-title">📝 Complete QA Form</h3>
                     <p class="action-subtitle">Please click the button below to open the form and complete the required fields.</p>
-                    <div class="button-group">
+                    <div>
                         <tr><td><a href="{{ $form_url }}" class="btn btn-qa-form">Open QA Form</a></td></tr>
                     </div>
                 @elseif(isset($mail_type) && $mail_type == 'warehouse_process')
                     <h3 class="action-title">📦 Warehouse Action Required</h3>
                     <p class="action-subtitle">Process step: <strong>{{ $process_step ?? 'N/A' }}</strong>. Please choose an action.</p>
-                    <div class="button-group">
+                    <table class="button-group" role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
                         <tr>
-                            <td class="button-cell"><a href="{{ $submit_url }}" class="btn btn-approve">✅ Submit Process</a></td>
-                            <td class="button-cell"><a href="{{ $review_url }}" class="btn btn-review">📝 Submit with Notes</a></td>
+                            <td class="button-cell">
+                                <a href="{{ $submit_url }}" class="btn btn-approve">✅ Submit Process</a>
+                            </td>
+                            <td class="button-cell">
+                                <a href="{{ $review_url }}" class="btn btn-review">📝 Submit with Notes</a>
+                            </td>
                         </tr>
-                    </div>
+                    </table>
                 @elseif(isset($mail_type) && $mail_type === 'completed_notification')
                     <h3 class="action-title" style="color: #28a745;">✅ Process Completed</h3>
                     <p class="action-subtitle">Tidak ada tindakan lebih lanjut yang diperlukan dari Anda untuk email ini. Terima kasih.</p>

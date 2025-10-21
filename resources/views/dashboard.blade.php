@@ -26,20 +26,7 @@
 
     {{-- Kartu Metrik Dinamis --}}
     <div class="row row-cols-1 row-cols-md-3 row-cols-lg-5 g-3 mb-4">
-        {{-- Kolom 1: Sample Finished Goods --}}
-        <div class="col">
-            <div class="card h-100 hover-effect b-t-4-primary animate__animated animate__fadeInUp">
-                <div class="card-body d-flex align-items-center">
-                    <div class="metric-icon bg-light-primary text-primary"><i class="ti ti-box"></i></div>
-                    <div class="ms-3 flex-grow-1">
-                        <div class="text-muted small mb-1">Sample Finished Goods</div>
-                        <div class="metric-value" id="metric_sample_fg">0</div>
-                        <div class="metric-change text-muted small">Total outstanding requests</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        {{-- Kolom 2: Sample Packaging --}}
+        {{-- Kolom 1: Sample Packaging --}}
         <div class="col">
             <div class="card h-100 hover-effect b-t-4-info animate__animated animate__fadeInUp" style="animation-delay: 0.1s;">
                 <div class="card-body d-flex align-items-center">
@@ -47,6 +34,19 @@
                     <div class="ms-3 flex-grow-1">
                         <div class="text-muted small mb-1">Sample Packaging</div>
                         <div class="metric-value" id="metric_sample_pkg">0</div>
+                        <div class="metric-change text-muted small">Total outstanding requests</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {{-- Kolom 2: Sample Finished Goods --}}
+        <div class="col">
+            <div class="card h-100 hover-effect b-t-4-primary animate__animated animate__fadeInUp">
+                <div class="card-body d-flex align-items-center">
+                    <div class="metric-icon bg-light-primary text-primary"><i class="ti ti-box"></i></div>
+                    <div class="ms-3 flex-grow-1">
+                        <div class="text-muted small mb-1">Sample Finished Goods</div>
+                        <div class="metric-value" id="metric_sample_fg">0</div>
                         <div class="metric-change text-muted small">Total outstanding requests</div>
                     </div>
                 </div>

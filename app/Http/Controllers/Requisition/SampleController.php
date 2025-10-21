@@ -79,7 +79,7 @@ class SampleController extends Controller
      * Menyediakan data untuk DataTables.
      */
 
-    public function getData()
+    public function getData(Request $request)
     {
         $user = Auth::user();
         $query = DB::table('requisitions')
@@ -87,10 +87,18 @@ class SampleController extends Controller
             ->leftJoin('customers', 'requisitions.customer_id', '=', 'customers.id')
             ->where('requisitions.category', 'SAMPLE')
             ->select(
-                'requisitions.id', 'requisitions.requester_nik', 'requisitions.request_date',
+                'requisitions.id', 'requisitions.no_srs', 'requisitions.requester_nik', 'requisitions.request_date',
                 'requisitions.sub_category', 'requisitions.route_to', 'requisitions.status',
                 'users.name as requester_name', 'users.avatar', 'customers.name as customer_name', 'requisitions.created_at'
             );
+
+        if ($request->filled('sub_category') && $request->sub_category != 'all') {
+            $query->where('requisitions.sub_category', $request->sub_category);
+        }
+
+        if ($request->filled('status') && $request->status != 'all') {
+            $query->where('requisitions.status', $request->status);
+        }
 
         // [FIX] Mengubah total logika filter untuk non-admin
         if (!$user->hasRole('super-admin')) {
@@ -114,6 +122,7 @@ class SampleController extends Controller
 
         return DataTables::of($query)
             ->addIndexColumn()
+            ->addColumn('no_srs', fn($req) => '<span class="srs-badge"><i class="ph-bold ph-hash me-1"></i>' . e($req->no_srs ?? 'N/A') . '</span>')
             ->addColumn('requester_info', function ($requisition) {
                 $avatar = $requisition->avatar ? asset($requisition->avatar) : asset('assets/images/logo/sinarmeadow.png');
                 $nik = e($requisition->requester_nik);
@@ -135,7 +144,7 @@ class SampleController extends Controller
 
                 switch ($subCategory) {
                     case 'Packaging':
-                        $badgeClass = 'bg-warning';
+                        $badgeClass = 'bg-info';
                         $icon = 'ph-package';
                         break;
                     case 'Finished Goods':
@@ -150,7 +159,7 @@ class SampleController extends Controller
 
                 return '<span class="status-badge-lg ' . $badgeClass . '"><i class="ph-bold ' . $icon . ' me-1"></i>' . e($subCategory) . '</span>';
             })
-            ->editColumn('route_to', fn($req) => '<span class="status-badge-lg bg-primary"><i class="ph-bold ph-user-switch me-1"></i>' . e($req->route_to) . '</span>')
+            ->editColumn('route_to', fn($req) => '<span class="route-to-badge-lg bg-info"><i class="ph-bold ph-user-switch me-1"></i>' . e($req->route_to) . '</span>')
             ->editColumn('status', function ($requisition) {
                 $status = $requisition->status;
                 $badgeClass = 'bg-secondary'; // Warna default
@@ -159,11 +168,11 @@ class SampleController extends Controller
                 switch ($status) {
                     case 'Pending':
                     case 'Submitted':
-                        $badgeClass = 'bg-info';
+                        $badgeClass = 'bg-warning';
                         $icon = 'ph-paper-plane-tilt';
                         break;
                     case 'In Progress':
-                        $badgeClass = 'bg-warning';
+                        $badgeClass = 'bg-info';
                         $icon = 'ph-arrows-clockwise';
                         break;
                     case 'Approved':
@@ -205,7 +214,7 @@ class SampleController extends Controller
 
                 return "<div class='d-flex gap-1'>{$viewBtn} {$qaFillBtn} {$cancelBtn} {$printBtn}</div>";
             })
-            ->rawColumns(['requester_info', 'sub_category', 'route_to', 'status', 'action'])
+            ->rawColumns(['no_srs', 'requester_info', 'sub_category', 'route_to', 'status', 'action'])
             ->make(true);
     }
 
@@ -800,12 +809,12 @@ class SampleController extends Controller
             case 'Packaging':
                 $steps = [];
                 if ($requesterDepartment === 'R&D') {
-                    $steps = ['Inward WH Supervisor (Final Check)'];
+                    $steps = ['Inward (Final Check)'];
                     Log::info("Requisition #{$requisition->id} dari R&D, alur langsung ke Final Check.");
                 } else {
                     $steps = $requisition->print_batch
-                        ? ['Inward WH Supervisor (Initial Check)', 'Material Support Supervisor', 'Inward WH Supervisor (Final Check)']
-                        : ['Inward WH Supervisor (Final Check)'];
+                        ? ['Inward (Initial Check)', 'Material Support Supervisor', 'Inward (Final Check)']
+                        : ['Inward (Final Check)'];
                     Log::info("Requisition #{$requisition->id} dari {$requesterDepartment}, alur berdasarkan print_batch.");
                 }
                 if (empty($steps)) return $this->notifyRequesterAsCompleted($requisition);
@@ -815,7 +824,7 @@ class SampleController extends Controller
                 return $this->advanceWarehouseStep($requisition);
 
             case 'Finished Goods':
-                $steps = ['Outward WH Supervisor'];
+                $steps = ['Outward'];
                 if (empty($steps)) return $this->notifyRequesterAsCompleted($requisition);
                 foreach ($steps as $stepName) {
                     Tracking::create(['requisition_id' => $requisition->id, 'current_position' => $stepName, 'token' => Str::uuid()->toString()]);
@@ -847,7 +856,7 @@ class SampleController extends Controller
                     ];
                     // Mengirim notifikasi ke Head QA, dengan info "From" dari requester asli
                     $headQaUser->notify(new RequisitionNotification($notificationData, $requisition->requester));
-                    
+
                     // Logika email (yang sudah ada sebelumnya) tetap dijalankan
                     $formUrl = route('approval.response', ['token' => $token, 'action' => 'qa_form']);
                     dispatch(new sendSample($requisition, $headQaUser, $token, [
@@ -929,9 +938,9 @@ class SampleController extends Controller
      */
     private function findUserForStep(string $stepName)
     {
-        if (str_contains($stepName, 'Inward'))    return $this->findWarehouseUser('Inward WH Supervisor', 'WH0001');
+        if (str_contains($stepName, 'Inward'))    return $this->findWarehouseUser('Inward', 'WH0001');
         if (str_contains($stepName, 'Material'))  return $this->findWarehouseUser('Material Support Supervisor', 'MS0001');
-        if (str_contains($stepName, 'Outward'))   return $this->findWarehouseUser('Outward WH Supervisor', 'WH0002');
+        if (str_contains($stepName, 'Outward'))   return $this->findWarehouseUser('Outward', 'WH0002');
         return null;
     }
 
@@ -1467,14 +1476,14 @@ class SampleController extends Controller
 
     public function resendApprovalEmail(Request $request, $token)
     {
-        // Cari log approval yang masih pending berdasarkan token
+        // Cari log approval yang masih pending berdasarkan token LAMA
         $approvalLog = ApprovalLog::where('token', $token)->where('status', 'Pending')->first();
 
         if (!$approvalLog) {
             return response()->json(['success' => false, 'message' => 'This approval task is no longer valid or has been processed.'], 404);
         }
 
-        // Ambil data yang diperlukan untuk mengirim email
+        // Ambil data yang diperlukan
         $requisition = $approvalLog->requisition;
         $approver = $approvalLog->approver;
 
@@ -1483,8 +1492,12 @@ class SampleController extends Controller
         }
 
         try {
-            // Kirim ulang email dengan men-dispatch job yang sama
-            sendSample::dispatch($requisition, $approver, $approvalLog->token);
+            // Buat token baru dan update ke database
+            $newToken = Str::uuid()->toString();
+            $approvalLog->update(['token' => $newToken]);
+
+            // Kirim ulang email dengan men-dispatch job menggunakan TOKEN BARU
+            sendSample::dispatch($requisition, $approver, $newToken);
 
             activity()
                 ->causedBy(Auth::user())
@@ -1492,7 +1505,7 @@ class SampleController extends Controller
                 ->useLog('sample - ' . strtolower($requisition->sub_category))
                 ->event('resend')
                 ->withProperties(['recipient' => $approver->name, 'level' => $approvalLog->level])
-                ->log('Resent approval email to ' . $approver->name . '.');
+                ->log('Resent approval email to ' . $approver->name . ' with a new token.');
 
             return response()->json(['success' => true, 'message' => 'Approval email has been successfully resent to ' . $approver->name . '.']);
 

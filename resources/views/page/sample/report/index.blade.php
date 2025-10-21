@@ -35,7 +35,7 @@
             <div class="filter-container">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <div class="d-flex align-items-center gap-2">
-                        <label class="mb-0 text-muted flex-shrink-0">Filter by date:</label>
+                        <label class="text-muted flex-shrink-0 fw-bold">Filter by date:</label>
 
                         <select id="dateFilter" class="form-select select2-styled" style="width:200px;">
                             <option value="all">All time</option>
@@ -47,7 +47,9 @@
                         <input type="hidden" id="startDate" name="startDate" />
                         <input type="hidden" id="endDate" name="endDate" />
 
-                        <button type="button" id="resetDateFilter" class="btn btn-sm btn-secondary border">Reset</button>
+                        <button id="resetDateFilter" class="btn btn-secondary border" data-bs-toggle="tooltip" title="Reset Filters">
+                            <i class="ph-bold ph-arrow-counter-clockwise"></i>
+                        </button>
                     </div>
                     <div>
                         <button class="btn btn-success" type="button" onclick="printSelectedReports()" id="printSelectedBtn" disabled>
@@ -61,14 +63,12 @@
             <!-- Enhanced Table Container -->
             <div class="main-table-container">
                 <!-- Table Header -->
-                <div class="table-header-enhanced">
-                    <div class="table-header-enhanced d-flex justify-content-between align-items-center">
-                        <div>
-                            <h4 class="table-title"><i class="ph-duotone ph-list-checks"></i> Requisition List for Printing</h4>
-                            <p class="table-subtitle">Select requisitions to print in a batch.</p>
-                        </div>
-
-                    </div>
+                 <div class="table-header-enhanced">
+                    <h4 class="table-title">
+                        <i class="ph-duotone ph-list-checks"></i></i>
+                        Requisition List for Printing
+                    </h4>
+                    <p class="table-subtitle">Select requisitions to print in a batch.</p>
                 </div>
 
                 <!-- Table Content -->
@@ -451,16 +451,10 @@
 
         $(document).ready(function () {
             $('#dateFilter').select2({
-                theme: 'bootstrap-5',
-                minimumResultsForSearch: Infinity,
-                width: 'style'
+                width: 'style',
+                placeholder: 'Select Filter',
+                allowClear: true,
             });
-
-            $('#dateFilter').select2({
-                    width: 'style',
-                    placeholder: 'Select Filter',
-                    allowClear: true,
-                });
 
             // Insert date inputs inside Select2 dropdown when 'custom' is selected
             function renderCustomDateControls() {

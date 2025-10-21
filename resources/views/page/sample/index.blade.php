@@ -29,15 +29,39 @@
     <div class="row">
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                {{-- Div kosong ini membantu mendorong tombol ke kanan --}}
-                <div></div>
+                {{-- Grup Filter di Kiri --}}
+                <div class="d-flex align-items-center gap-2">
+                    {{-- [PERBAIKAN] Tambahkan judul/label yang jelas --}}
+                    <span class="text-muted fw-bold">Filter by:</span>
 
-                {{-- Tombol dengan style dan struktur yang sudah benar --}}
+                    <select id="subCategoryFilter" class="form-select select2" style="width: 220px;">
+                        <option value="all">All Sub Categories</option>
+                        <option value="Packaging">Packaging</option>
+                        <option value="Finished Goods">Finished Goods</option>
+                        <option value="Special Order">Special Order</option>
+                    </select>
+
+                    <select id="statusFilter" class="form-select select2" style="width: 200px;">
+                        <option value="all">All Statuses</option>
+                        <option value="Pending">Pending</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Approved">Approved</option>
+                        <option value="Completed">Completed</option>
+                        <option value="Rejected">Rejected</option>
+                        <option value="Cancelled">Cancelled</option>
+                    </select>
+
+                    <button id="resetFilters" class="btn btn-secondary border" data-bs-toggle="tooltip" title="Reset Filters">
+                        <i class="ph-bold ph-arrow-counter-clockwise"></i>
+                    </button>
+                </div>
+
+                {{-- Tombol Create di Kanan --}}
                 <div>
                     <button class="btn new-sample-btn" type="button" data-bs-toggle="modal"
                         data-bs-target="#sampleModal" id="btn-create-sample">
                         <i class="ph-bold ph-plus"></i>
-                        <span>New Sample</span> {{-- Teks diubah agar sesuai --}}
+                        <span>New Sample</span>
                     </button>
                 </div>
             </div>
@@ -59,6 +83,7 @@
                         <thead>
                             <tr>
                                 <th>No.</th>
+                                <th>No Srs</th>
                                 <th>Requester</th>
                                 <th>Customer</th>
                                 <th>Request Date</th>
@@ -787,10 +812,21 @@
             }
             initSelect2();
 
+            $('#subCategoryFilter, #statusFilter').select2({
+                theme: 'bootstrap-5',
+                minimumResultsForSearch: Infinity // Sembunyikan kotak pencarian
+            });
+
             const table = $('#sampleTable').DataTable({
                 processing: true,
                 serverSide: true,
-                ajax: "{{ route('sample.data') }}",
+                ajax: {
+                    url: "{{ route('sample.data') }}",
+                    data: function (d) {
+                        d.sub_category = $('#subCategoryFilter').val();
+                        d.status = $('#statusFilter').val();
+                    }
+                },
                 columns: [{
                         data: 'DT_RowIndex',
                         name: 'DT_RowIndex',
@@ -798,6 +834,10 @@
                         searchable: false,
                         width: '20px',
                         className: 'text-center'
+                    },
+                    {
+                        data: 'no_srs',
+                        name: 'requisitions.no_srs'
                     },
                     {
                         data: 'requester_info',
@@ -830,6 +870,17 @@
                         searchable: false
                     }
                 ]
+            });
+
+            $('#subCategoryFilter, #statusFilter').on('change', function () {
+                table.ajax.reload(); // Muat ulang data tabel
+            });
+
+            // [BARU] Event listener untuk tombol reset
+            $('#resetFilters').on('click', function() {
+                $('#subCategoryFilter').val('all').trigger('change');
+                $('#statusFilter').val('all').trigger('change');
+                // Cukup trigger satu kali karena keduanya akan memuat ulang tabel
             });
 
             let searchInput = $('#sampleTable_filter input');
@@ -1664,8 +1715,9 @@
                 let badgeClass = 'bg-secondary';
                 if (['Submitted', 'Pending'].includes(status)) badgeClass = 'bg-primary';
                 else if (status.includes('Approved') || status === 'Completed') badgeClass = 'bg-success';
-                else if (['Rejected', 'Cancelled'].includes(status)) badgeClass = 'bg-danger';
-                else if (status === 'Processing' || status === 'In Progress') badgeClass = 'bg-warning text-dark';
+                else if (['Rejected'].includes(status)) badgeClass = 'bg-danger';
+                else if (['Cancelled'].includes(status)) badgeClass = 'bg-secondary';
+                else if (status === 'Processing' || status === 'In Progress') badgeClass = 'bg-info';
                 $('#view_status_badge').html(`<span class="badge fs-6 rounded-pill ${badgeClass}">${status}</span>`);
 
                 const trackerContainer = $('#approval-tracker-container');
