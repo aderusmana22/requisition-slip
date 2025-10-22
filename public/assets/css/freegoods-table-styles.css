@@ -1,11 +1,11 @@
 /* ==========================================================
-   FREEGOODS MANAGEMENT TABLE STYLES - AESTHETIC GREEN THEME
+   FREEGOODS MANAGEMENT TABLE STYLLES - AESTHETIC GREEN THEME
    ========================================================== */
 
 :root {
     --fg-primary: #3A6B35;
     --fg-secondary: #2E532E;
-    --fg-primary-light: #6a994e; /* Warna hijau muda untuk highlight */
+    --fg-primary-light: #6a994e;
     --fg-danger: #a94442;
     --fg-black: #1f1f1f;
     --fg-dark-bg: #2d2d2d;
@@ -27,6 +27,7 @@
     background: linear-gradient(135deg, var(--fg-primary) 0%, var(--fg-secondary) 100%);
     color: white;
     border-bottom: 2px solid rgba(46, 83, 46, 0.5);
+    padding: 1rem 1.5rem;
 }
 
 .modal-footer {
@@ -108,21 +109,14 @@
     box-shadow: 0 0 0 0.25rem rgba(58, 107, 53, 0.25) !important;
 }
 
-/* [INI PERBAIKANNYA] Aturan untuk warna highlight dropdown Select2 */
 .select2-container--bootstrap-5 .select2-results__option--highlighted {
-    background-color: var(--fg-primary-light) !important; 
+    background-color: var(--fg-primary-light) !important;
     color: white !important;
 }
 
 .form-check-input:checked {
     background-color: var(--fg-primary) !important;
     border-color: var(--fg-primary) !important;
-}
-
-.input-group-text {
-    background-color: rgba(58, 107, 53, 0.1);
-    border-color: rgba(58, 107, 53, 0.4);
-    color: var(--fg-dark-text);
 }
 
 /* ========================================
@@ -137,20 +131,42 @@
     overflow: hidden;
 }
 
+.main-table-container .table-responsive {
+    padding: 1.5rem;
+}
+
 .table-title {
     color: white;
+    display: flex;
+    align-items: center;
+    font-size: 1.5rem;
+}
+.table-title .ph-list {
+    margin-right: 12px;
+    font-size: 1.1em;
 }
 .table-subtitle {
-    color: rgba(255, 255, 255, 0.8);
+    color: rgba(255, 255, 255, 0.85);
+    margin-top: 4px;
+}
+
+/* [FIX] Added margin-bottom for spacing */
+.dataTables_filter {
+    margin-bottom: 1.5rem !important;
 }
 
 .dataTables_filter input {
     border: 2px solid rgba(58, 107, 53, 0.4) !important;
     border-radius: 10px !important;
-    background: rgba(58, 107, 53, 0.05) !important;
+    background-color: rgba(58, 107, 53, 0.05) !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%233A6B35' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: left 12px center;
+    padding-left: 40px !important;
+    height: 44px;
 }
 .dataTables_filter input:focus {
-    background: white !important;
+    background-color: white !important;
 }
 .dataTables_filter label, .dataTables_length label, .dataTables_info {
     font-weight: 600;
@@ -185,35 +201,60 @@
 
 #fgTable tbody tr:hover {
     background: linear-gradient(90deg, rgba(58, 107, 53, 0.15) 0%, rgba(58, 107, 53, 0.05) 100%) !important;
-    transform: scale(1.01);
-    box-shadow: 0 6px 20px rgba(58, 107, 53, 0.1) !important;
-    position: relative;
-    z-index: 10;
 }
 
 /* ========================================
    PAGINATION
    ======================================== */
 
-.page-link, .dataTables_paginate .paginate_button {
+.page-link,
+.dataTables_paginate .paginate_button {
     color: var(--fg-primary) !important;
+    background-color: white !important;
+    border-radius: 8px !important;
+    margin: 0 3px !important;
+    border: 1px solid rgba(58, 107, 53, 0.3) !important;
+    transition: all 0.2s ease-in-out;
 }
 
-.page-item.active .page-link, .dataTables_paginate .paginate_button.current {
+.dataTables_paginate .paginate_button {
+    padding: 0.5em 1em;
+}
+
+/* [FIX FINAL] Aturan ini SANGAT SPESIFIK untuk memastikan teks berwarna PUTIH */
+#fgTable_paginate .page-item.active .page-link,
+#fgTable_paginate .paginate_button.current,
+#fgTable_paginate .paginate_button.current:hover {
     background: linear-gradient(135deg, var(--fg-primary) 0%, var(--fg-secondary) 100%) !important;
     border-color: var(--fg-secondary) !important;
-    color: white !important;
+    color: white !important; /* Fix final untuk warna teks */
+    box-shadow: 0 2px 8px rgba(58, 107, 53, 0.4);
 }
 
-.page-link:hover, .dataTables_paginate .paginate_button:hover {
+.page-link:hover,
+.dataTables_paginate .paginate_button:not(.disabled):not(.current):hover {
     color: var(--fg-primary) !important;
     background-color: rgba(58, 107, 53, 0.1) !important;
-    border-color: rgba(58, 107, 53, 0.2) !important;
+    border-color: rgba(58, 107, 53, 0.4) !important;
 }
 
+.dataTables_paginate .paginate_button.disabled,
+.dataTables_paginate .paginate_button.disabled:hover {
+    color: #999 !important;
+    opacity: 0.7;
+    cursor: not-allowed;
+    background-color: #f7f7f7 !important;
+}
 /* ========================================
    ACTION BUTTONS & BADGES
    ======================================== */
+
+.action-btn-group {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    align-items: center;
+}
 
 .action-btn-group .btn-info,
 .action-btn-group .btn-secondary {
@@ -242,16 +283,16 @@
     text-transform: uppercase !important;
     border: 2px solid transparent !important;
 }
-.bg-warning.status-badge-lg, .bg-info.status-badge-lg { /* Pending & Processing -> Hitam */
+.bg-warning.status-badge-lg, .bg-info.status-badge-lg {
     background: linear-gradient(135deg, var(--fg-dark-bg) 0%, var(--fg-black) 100%) !important;
     color: white !important;
     border-color: rgba(255, 255, 255, 0.3) !important;
 }
-.bg-success.status-badge-lg { /* Approved -> Hijau */
+.bg-success.status-badge-lg {
     background: linear-gradient(135deg, var(--fg-primary) 0%, var(--fg-secondary) 100%) !important;
     border-color: rgba(255, 255, 255, 0.3) !important;
 }
-.bg-danger.status-badge-lg { /* Rejected -> Merah */
+.bg-danger.status-badge-lg {
     background: linear-gradient(135deg, var(--fg-danger) 0%, #8b3634 100%) !important;
     border-color: rgba(255, 255, 255, 0.3) !important;
 }
@@ -264,7 +305,7 @@
 .view-modal-card-header h5 { color: var(--fg-primary); font-weight: 600; margin-bottom: 0; }
 
 .view-modal-card .card-header h5 {
-    color: #d8e468 !important; 
+    color: #d8e468 !important;
 }
 
 .tracker-line-progress {
@@ -283,29 +324,8 @@
     border-color: var(--fg-danger);
 }
 
-.avatar-created, .avatar-approved { background-color: var(--fg-primary); }
-.avatar-review { background-color: #ffc107; }
-.avatar-rejected { background-color: var(--fg-danger); }
-.avatar-process { background-color: var(--fg-grey); }
-
-.badge-created, .badge-approved { background-color: #e8f3ee; color: var(--fg-secondary); border-color: #b3ffcf; }
-.badge-review { background-color: #fff9e7; color: #b98b00; border-color: #ffe6b3; }
-.badge-rejected, .badge-cancelled { background-color: #fdeded; color: var(--fg-danger); border-color: #ffb3b3; }
-.badge-process { background-color: #e7f9fc; color: #0ca5c3; border-color: #b3f0ff; }
-
-.causer-info i { color: var(--fg-primary); }
-
-#print-selected-btn {
-    background-color: var(--fg-primary);
-    border-color: var(--fg-primary);
-}
-#print-selected-btn:hover {
-    background-color: var(--fg-secondary);
-    border-color: var(--fg-secondary);
-}
-
 /* ========================================
-   UNCHANGED STYLES & ANIMATIONS
+   UTILITIES & ANIMATIONS
    ======================================== */
 
 .dataTables_processing {
@@ -319,18 +339,15 @@
 }
 @keyframes pulse { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }
 
-.action-btn-group { display: flex; gap: 6px; justify-content: center; align-items: center; }
 .action-btn-group .btn { padding: 8px 10px; border-radius: 8px; font-size: 0.85em; font-weight: 600; transition: all 0.3s ease; border: none; position: relative; overflow: hidden; }
 .action-btn-group .btn::before { content: ''; position: absolute; top: 50%; left: 50%; width: 0; height: 0; background: rgba(255, 255, 255, 0.3); border-radius: 50%; transition: all 0.3s ease; transform: translate(-50%, -50%); }
 .action-btn-group .btn:hover::before { width: 100px; height: 100px; }
 
 @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
-body { transition: opacity 0.3s ease-in-out; }
 .main-table-container, .dataTables_wrapper, .d-flex.justify-content-between.align-items-center.mb-4 { animation: fadeInUp 0.8s ease-out forwards; opacity: 0; animation-fill-mode: forwards; }
+
 .modal.fade .modal-dialog { transition: transform 0.4s ease-out, opacity 0.4s ease-out; transform: translate(0, -50px) scale(0.95); }
 .modal.show .modal-dialog { transform: translate(0, 0) scale(1); }
-@media (prefers-reduced-motion: no-preference) { .detail-section { animation: fadeInUp 0.6s ease-out forwards; } .detail-section:nth-child(2) { animation-delay: 0.1s; opacity: 0; animation-fill-mode: forwards; } .detail-section:nth-child(3) { animation-delay: 0.2s; opacity: 0; animation-fill-mode: forwards; } .detail-section:nth-child(4) { animation-delay: 0.3s; opacity: 0; animation-fill-mode: forwards; } }
 
 .action-tooltip {
     position: absolute;
@@ -371,7 +388,7 @@ body { transition: opacity 0.3s ease-in-out; }
 .tracker-label {
     font-size: 0.8rem;
     font-weight: 600;
-    color: #495057; 
+    color: #495057;
 }
 .tracker-step.completed .tracker-label, .tracker-step.active .tracker-label {
     color: #212529;
@@ -380,13 +397,6 @@ body { transition: opacity 0.3s ease-in-out; }
     font-size: 0.75rem;
     margin-top: 5px;
     min-height: 30px;
-}
-.tracker-user {
-    font-weight: 500;
-    color: #495057;
-}
-.tracker-date {
-    color: #6c757d;
 }
 .loading-overlay {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%;

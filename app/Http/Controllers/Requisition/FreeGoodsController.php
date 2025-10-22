@@ -128,7 +128,7 @@ class FreeGoodsController extends Controller
             ->editColumn('status', function ($requisition) {
                 $status = $requisition->status;
                 $badgeClass = 'bg-primary text-white';
-                if (in_array($status, ['Submitted', 'Pending'])) $badgeClass = 'bg-primary';
+                if (in_array($status, ['Submitted', 'Pending'])) $badgeClass = 'bg-warning';
                 elseif (in_array($status, ['Approved', 'Completed'])) $badgeClass = 'bg-success';
                 elseif (in_array($status, ['Rejected', 'Cancelled'])) $badgeClass = 'bg-danger';
                 elseif ($status == 'In Progress') $badgeClass = 'bg-info';
@@ -163,8 +163,6 @@ class FreeGoodsController extends Controller
             $user = User::with('atasan', 'department')->find(Auth::id());
             $userAccount = $user->department->code ?? null;
             
-
-           
             if ($userAccount === '5300') {
                 $pathSubCategory = 'SNM_PATH'; 
                 $subCategoryLabel = 'SnM Request'; 
@@ -393,6 +391,67 @@ class FreeGoodsController extends Controller
         }
 
         return redirect()->route('fg.approval.success')->with('card_class', 'reject')->with('title', 'Invalid Request')->withMessage('This approval request is invalid or has already been processed.');
+    }
+
+    /**
+     * [METHOD BARU] Menampilkan halaman approval untuk Free Goods.
+     * Method ini dipanggil oleh route 'freegoods.approval.index'.
+     */
+    public function approvalPage()
+    {
+        return view('page.freegoods.approval.index');
+    }
+
+    /**
+     * [METHOD BARU] Menyediakan data untuk DataTables di halaman approval.
+     * Method ini dipanggil oleh route 'freegoods.approval.data'.
+     */
+    public function getApprovalData(Request $request)
+    {
+        if ($request->ajax()) {
+            $user = Auth::user();
+            $query = ApprovalLog::where('approver_nik', $user->nik)
+                ->where('category', 'FREE GOODS')
+                ->where('status', 'Pending') // Hanya tampilkan yang butuh aksi
+                ->with(['requisition' => function ($q) {
+                    $q->select('id', 'no_srs', 'request_date', 'sub_category', 'status');
+                }])
+                ->select('approval_logs.*');
+
+            return DataTables::of($query)
+                ->addIndexColumn()
+                ->addColumn('no_srs', fn($row) => $row->requisition->no_srs ?? 'N/A')
+                ->addColumn('request_date', fn($row) => Carbon::parse($row->requisition->request_date)->format('d M Y'))
+                ->addColumn('sub_category', fn($row) => '<span class="badge bg-info">' . e($row->requisition->sub_category) . '</span>')
+                ->addColumn('status', function ($row) {
+                    $status = $row->requisition->status;
+                    $badgeClass = 'bg-warning'; // Default untuk 'In Progress' atau 'Pending'
+                    if ($status === 'Rejected' || $status === 'Cancelled') $badgeClass = 'bg-danger';
+                    if ($status === 'Completed') $badgeClass = 'bg-success';
+                    return '<span class="badge ' . $badgeClass . '">' . e($status) . '</span>';
+                })
+                ->addColumn('action', function ($row) {
+                    $token = $row->token;
+                    $srs = $row->requisition->no_srs;
+                    $id = $row->requisition->id;
+                    
+                    // Tombol Quick Approve
+                    $approveBtn = '<button class="btn btn-success btn-sm action-btn" data-token="'.$token.'" data-srs="'.$srs.'" data-tooltip="Quick Approve"><i class="ph-bold ph-check-circle"></i></button>';
+                    
+                    // Tombol Review
+                    $reviewBtn = '<button class="btn btn-info btn-sm action-btn-modal" data-id="'.$id.'" data-token="'.$token.'" data-srs="'.$srs.'" data-action="review" data-tooltip="Review & Approve"><i class="ph-bold ph-pencil-simple"></i></button>';
+                    
+                    // Tombol Reject
+                    $rejectBtn = '<button class="btn btn-danger btn-sm action-btn-modal" data-id="'.$id.'" data-token="'.$token.'" data-srs="'.$srs.'" data-action="reject" data-tooltip="Reject"><i class="ph-bold ph-x-circle"></i></button>';
+                    
+                    // Tombol Resend Email
+                    $resendBtn = '<button class="btn btn-secondary btn-sm btn-resend-email" data-token="'.$token.'" data-tooltip="Resend Email"><i class="ph-bold ph-paper-plane-tilt"></i></button>';
+                    
+                    return '<div class="action-btn-group">' . $approveBtn . $reviewBtn . $rejectBtn . $resendBtn . '</div>';
+                })
+                ->rawColumns(['action', 'status', 'sub_category'])
+                ->make(true);
+        }
     }
     
     //======================================================================

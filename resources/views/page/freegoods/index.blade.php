@@ -3,16 +3,38 @@
     Free Goods Requisition
     @endsection
 
-    
-    {{-- Komponen gaya tetap disertakan --}}
-    @include('components.freegoods-table-styles') 
+    {{-- Memuat file CSS Hijau Anda dari komponen --}}
+    @include('components.freegoods-table-styles')
 
-    {{-- [INI PERBAIKANNYA] Menambahkan container utama untuk memberikan padding di sekeliling halaman --}}
+    {{-- [PERBAIKAN TATA LETAK]
+        Menambahkan beberapa style minor untuk memberikan "ruang napas"
+        pada form dan modal agar tidak terkesan terlalu padat.
+    --}}
+    @push('css')
+    <style>
+        .modal-body hr {
+            margin-top: 1.75rem;
+            margin-bottom: 1.75rem;
+        }
+        .modal-body h5.fw-bold {
+            margin-bottom: 1.25rem !important;
+        }
+        .table-responsive h6.fw-bold {
+             margin-bottom: 1rem;
+        }
+        .view-modal-card .row > [class^="col-"] {
+            margin-bottom: 1rem;
+        }
+    </style>
+    @endpush
+
+
     <div class="container-fluid py-4">
 
         <div class="card shadow-sm">
             <div class="card-body p-4">
 
+                {{-- Bagian Header Halaman (Judul & Breadcrumbs) --}}
                 <div>
                     <h4 class="main-title">Free Goods Requisition List</h4>
                     <ul class="app-line-breadcrumbs mb-0">
@@ -29,10 +51,11 @@
 
                 <hr class="my-4">
         
+                {{-- Bagian Konten Utama (Tombol dan Tabel) --}}
                 <div class="row">
                     <div class="col-12">
                         <div class="d-flex justify-content-between align-items-center mb-4">
-                            <div></div>
+                            <div></div> {{-- Spacer Kiri --}}
             
                             <div>
                                 <button class="btn new-freegoods-btn" type="button" data-bs-toggle="modal"
@@ -72,14 +95,14 @@
                     </div>
                 </div>
 
-            </div> {{-- Penutup card-body --}}
-        </div> {{-- Penutup card --}}
+            </div> {{-- Penutup .card-body --}}
+        </div> {{-- Penutup .card --}}
 
-    </div> {{-- Penutup container-fluid --}}
+    </div> {{-- Penutup .container-fluid --}}
 
 
     {{-- ========================================================== --}}
-    {{-- KODE MODAL DAN SCRIPT DI BAWAH INI TIDAK ADA PERUBAHAN --}}
+    {{-- MODAL & SCRIPT --}}
     {{-- ========================================================== --}}
     <div class="modal fade" id="fgModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static"
         data-bs-keyboard="false">
@@ -99,7 +122,8 @@
                 <form id="fgForm" enctype="multipart/form-data">
                     @csrf
                     <div class="modal-body">
-                        <div class="row g-3 mb-3">
+                        {{-- Bagian Atas Form --}}
+                        <div class="row g-3">
                             <div class="col-md-6">
                                 <label for="category" class="form-label fw-bold">1. Category</label>
                                 <input type="text" class="form-control" value="FREE GOODS" readonly>
@@ -113,13 +137,13 @@
                         <div id="requisition-form-details">
                             <div id="main-requisition-data">
                                 <hr>
-                                <h5 class="fw-bold text-warning mb-3">Requisition Details</h5> 
-                                <div class="row g-3">
+                                <h5 class="fw-bold text-warning">Requisition Details</h5>
+                                
+                                {{-- Baris 1: Informasi Customer --}}
+                                <div class="row g-3 mb-3">
                                     <div class="col-md-6">
-                                        <label for="customer_id" class="form-label">Customer Name<i
-                                                class="text-danger">*</i></label>
-                                        <select class="form-select select2-styled" id="customer_id" name="customer_id"
-                                            style="width: 100%;">
+                                        <label for="customer_id" class="form-label">Customer Name<i class="text-danger">*</i></label>
+                                        <select class="form-select select2-styled" id="customer_id" name="customer_id" style="width: 100%;">
                                             <option></option>
                                             @foreach ($customers as $customer)
                                             <option value="{{ $customer->id }}" data-address="{{ $customer->address }}">
@@ -132,54 +156,49 @@
                                         <label for="customer_address" class="form-label">Address</label>
                                         <textarea class="form-control" id="customer_address" rows="2" readonly></textarea>
                                     </div>
+                                </div>
+
+                                {{-- Baris 2: Detail Nomor, Akun, dan Tanggal --}}
+                                <div class="row g-3 mb-3">
                                     <div class="col-md-3">
                                         <label for="no_srs" class="form-label">FG No.<i class="text-danger">*</i></label>
-                                        <input type="text" class="form-control" id="no_fg" name="no_fg"
-                                            value="{{ $generatedFg }}" readonly>
+                                        <input type="text" class="form-control" id="no_fg" name="no_fg" value="{{ $generatedFg }}" readonly>
                                     </div>
                                     <div class="col-md-3">
                                         <label for="account" class="form-label">Account<i class="text-danger">*</i></label>
-                                        <input type="text" class="form-control" id="account" name="account"
-                                            value="5300" readonly>
+                                        <input type="text" class="form-control" id="account" name="account" value="5300" readonly>
                                     </div>
                                     <div class="col-md-3">
-                                        <label for="request_date" class="form-label">Request Date<i
-                                                class="text-danger">*</i></label>
-                                        <input type="date" class="form-control" id="request_date" name="request_date"
-                                            value="{{ date('Y-m-d') }}">
+                                        <label for="request_date" class="form-label">Request Date<i class="text-danger">*</i></label>
+                                        <input type="date" class="form-control" id="request_date" name="request_date" value="{{ date('Y-m-d') }}">
                                     </div>
                                     <div class="col-md-3">
                                         <label for="cost_center" class="form-label">Cost Center</label>
-                                        <input type="text" class="form-control" id="cost_center" name="cost_center"
-                                        placeholder="e.g: CC1001, CC2002">
+                                        <input type="text" class="form-control" id="cost_center" name="cost_center" placeholder="e.g: CC1001, CC2002">
                                     </div>
+                                </div>
+
+                                {{-- Baris 3: Tujuan dan Potensi --}}
+                                <div class="row g-3">
                                     <div class="col-md-6">
-                                        <label for="objectives" class="form-label">Objectives<i
-                                                class="text-danger">*</i></label>
-                                        <textarea class="form-control" id="objectives" name="objectives"
-                                            placeholder="e.g: Promotional Items, Internal Use, etc."
-                                            rows="2"></textarea>
+                                        <label for="objectives" class="form-label">Objectives<i class="text-danger">*</i></label>
+                                        <textarea class="form-control" id="objectives" name="objectives" placeholder="e.g: Promotional Items, Internal Use, etc." rows="2"></textarea>
                                         <div class="invalid-feedback" id="objectives_error"></div>
                                     </div>
                                     <div class="col-md-6">
-                                        <label for="estimated_potential" class="form-label">Estimated Potential<i
-                                                class="text-danger">*</i></label>
-                                        <textarea class="form-control" id="estimated_potential" name="estimated_potential"
-                                            placeholder="e.g.: High, Medium, Low, Others: Specify Here"
-                                            rows="2"></textarea>
+                                        <label for="estimated_potential" class="form-label">Estimated Potential<i class="text-danger">*</i></label>
+                                        <textarea class="form-control" id="estimated_potential" name="estimated_potential" placeholder="e.g.: High, Medium, Low, Others: Specify Here" rows="2"></textarea>
                                         <div class="invalid-feedback" id="estimated_potential_error"></div>
                                     </div>
                                 </div>
 
-                                <hr class="mt-4">
+                                <hr>
 
-                                <h5 class="fw-bold text-warning mb-2">Product Details</h5>
+                                <h5 class="fw-bold text-warning">Product Details</h5>
                                 
                                 <div class="mb-3" id="product-selection-container-fg">
-                                    <label for="product_select_fg" class="form-label fw-bold">2. Select Product Name<i
-                                            class="text-danger">*</i></label>
-                                    <select class="form-select select2-styled" id="product_select_fg" multiple="multiple"
-                                        style="width: 100%;"></select>
+                                    <label for="product_select_fg" class="form-label fw-bold">2. Select Product Name<i class="text-danger">*</i></label>
+                                    <select class="form-select select2-styled" id="product_select_fg" multiple="multiple" style="width: 100%;"></select>
                                     <button type="button" class="btn btn-success btn-sm mt-2" id="btn-add-items-master">
                                         <i class="ph-bold ph-plus"></i> Add Item to List
                                     </button>
@@ -229,9 +248,9 @@
 
                     <div class="card view-modal-card">
                         <div class="card-header view-modal-card-header">
-                            <h5 class="fw-bold text-warning mb-3"><i class="ph-bold ph-identification-card me-2"></i> Requisition Details</h5> 
+                            <h5 class="fw-bold mb-0"><i class="ph-bold ph-identification-card me-2"></i> Requisition Details</h5> 
                         </div>
-                        <div class="card-body p-">
+                        <div class="card-body p-4">
                             <div class="row g-4">
                                 <div class="col-md-6">
                                     <small class="view-label">Category</small>
@@ -279,7 +298,7 @@
 
                     <div class="card view-modal-card">
                          <div class="card-header">
-                            <h5 class="fw-bold text-warning mb-3"><i class="ph-bold  ph-list me-2"></i>Requested Item List</h5> 
+                            <h5 class="fw-bold mb-0"><i class="ph-bold ph-list me-2"></i>Requested Item List</h5> 
                         </div>
                         <div class="card-body p-1">
                             <div class="table-responsive">
@@ -301,7 +320,7 @@
 
                     <div class="card view-modal-card">
                         <div class="card-header view-modal-card-header">
-                            <h5 class="fw-bold text-warning mb-3"><i class="ph-bold ph-path me-2"></i> Approval & Process Tracking</h5> 
+                            <h5 class="fw-bold mb-0"><i class="ph-bold ph-path me-2"></i> Approval & Process Tracking</h5> 
                         </div>
                         <div class="card-body p-4">
                             <div class="d-flex align-items-center mb-4">
@@ -325,7 +344,6 @@
     <script src="{{ asset('assets/vendor/select/select2.min.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        // --- SCRIPT LENGKAP TANPA PERUBAHAN FUNGSIONALITAS ---
         let nextFgNumber = "{{ $generatedFg }}"; 
 
         function successMessage(message) {
@@ -409,30 +427,12 @@
                         width: '20px',
                         className: 'text-center'
                     },
-                    {
-                        data: 'requester_info',
-                        name: 'users.name'
-                    },
-                    {
-                        data: 'customer_name',
-                        name: 'customers.name'
-                    },
-                    {
-                        data: 'request_date',
-                        name: 'requisitions.request_date'
-                    },
-                    {
-                        data: 'sub_category',
-                        name: 'requisitions.sub_category'
-                    },
-                    {
-                        data: 'route_to',
-                        name: 'requisitions.route_to'
-                    },
-                    {
-                        data: 'status',
-                        name: 'requisitions.status'
-                    },
+                    { data: 'requester_info', name: 'users.name' },
+                    { data: 'customer_name', name: 'customers.name' },
+                    { data: 'request_date', name: 'requisitions.request_date' },
+                    { data: 'sub_category', name: 'requisitions.sub_category' },
+                    { data: 'route_to', name: 'requisitions.route_to' },
+                    { data: 'status', name: 'requisitions.status' },
                     {
                         data: 'action',
                         name: 'action',
@@ -453,8 +453,9 @@
                 }, 500);
             });
 
+            // [FIX] Removed emoji from placeholder
             $('#fgTable_filter input').attr({ 
-                'placeholder': '🔍 Search Free Goods...',
+                'placeholder': 'Search Free Goods...',
                 'class': 'form-control'
             });
 

@@ -84,20 +84,15 @@ Route::middleware('auth')->group(function () {
     // --- Complain Requisition Routes ---
     Route::resource('complain-form', ComplainController::class);
 
-    // --- FREE GOODS REQUISITION ROUTES (Fokus perbaikan) ---
-    // 1. Route untuk tampilan utama (index page)
+    // --- FREE GOODS REQUISITION ROUTES (
     Route::get('/freegoods-requisition', [FreeGoodsController::class, 'index'])->name('freegoods.index');
-    // 2. Route Resource (store, show, update, destroy)
     Route::resource('freegoods-form', FreeGoodsController::class)->parameters(['freegoods-form' => 'id']);
-    // 3. Route untuk DataTables (THE MISSING ROUTE)
     Route::get('/freegoods-data', [FreeGoodsController::class, 'getData'])->name('freegoods.data'); 
-    // 4. Route untuk mengisi Product Select2
     Route::get('/get-all-item-masters-fg', [FreeGoodsController::class, 'getAllItemMasters'])->name('freegoods.getAllItemMasters');
 
     // --- Reports, Approval, Log Routes ---
     Route::get('/complain-form/reports', [ComplainController::class, 'reports'])->name('complain-form.reports');
-    Route::get('/free-goods/reports', [FreeGoodsController::class, 'reports'])->name('free-goods.reports');
-
+    Route::get('/freegoods-form/reports', [FreeGoodsController::class, 'reports'])->name('freegoods-form.reports');
     Route::get('/complain-form/approval', [ComplainController::class, 'approval'])->name('complain-form.approval');
 
     // route complain
@@ -112,13 +107,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/complain/test-warehouse/{id}', [ComplainController::class, 'testWarehouseTracking'])->name('complain.test.warehouse');
 
     Route::prefix('requisition')->group(function () {
-        Route::get('/getComplainData', [ComplainController::class, 'getData'])->name('get.complain.data');
-        Route::get('/getCostumerList', [ComplainController::class, 'getCustomerList'])->name('customers.list');
-        Route::get('/getSerial', [ComplainController::class, 'getSerial'])->name('get.serial');
-        Route::get('/getProductList', [ComplainController::class, 'getProductList'])->name('get.product.list');
-        Route::get('/getformdetail/{id}', [ComplainController::class, 'getFormDetail'])->name('get.form.detail');
-        Route::get('/complain-report/{id}', [ComplainController::class, 'printReport'])->name('complain.report');
-        Route::post('/upload-payment-proof', [ComplainController::class, 'uploadPaymentProof'])->name('upload.payment.proof');
+    Route::get('/getComplainData', [ComplainController::class, 'getData'])->name('get.complain.data');
+    Route::get('/getCostumerList', [ComplainController::class, 'getCustomerList'])->name('customers.list');
+    Route::get('/getSerial', [ComplainController::class, 'getSerial'])->name('get.serial');
+    Route::get('/getProductList', [ComplainController::class, 'getProductList'])->name('get.product.list');
+    Route::get('/getformdetail/{id}', [ComplainController::class, 'getFormDetail'])->name('get.form.detail');
+    Route::get('/complain-report/{id}', [ComplainController::class, 'printReport'])->name('complain.report');
+    Route::post('/upload-payment-proof', [ComplainController::class, 'uploadPaymentProof'])->name('upload.payment.proof');
     });
     // ===== terakhir dari complain ====
 
@@ -131,7 +126,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/freegoods-form/approval', [FreeGoodsController::class, 'approval'])->name('freegoods-form.approval');
 
     Route::get('/sample-form/log', [SampleController::class, 'log'])->name('sample-form.log');
-    Route::get('/free-goods/approval', [FreeGoodsController::class, 'approval'])->name('free-goods.approval');
+    Route::get('/freegoods-form/approval', [FreeGoodsController::class, 'approval'])->name('freegoods-form.approval');
 
     Route::get('/complain-form/log', [ComplainController::class, 'log'])->name('complain-form.log');
     Route::get('/freegoods-form/log', [FreeGoodsController::class, 'log'])->name('freegoods-form.log');

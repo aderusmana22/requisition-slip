@@ -112,7 +112,6 @@ JAVASCRIPT REQUIREMENTS:
 --}}
 
 @push('css')
-    {{-- Memuat file CSS utama untuk Free Goods dari direktori public --}}
     <link rel="stylesheet" href="{{ asset('assets/css/freegoods-table-styles.css') }}">
 
     {{-- Bergantung pada Select2, pastikan link ini juga ada jika belum ada di layout utama --}}
