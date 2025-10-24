@@ -86,9 +86,6 @@ Route::middleware('auth')->group(function () {
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.read.all');
 
 
-    // --- Sample Requisition Routes ---
-    Route::resource('sample-form', SampleController::class);
-    Route::get('/sample-data', [SampleController::class, 'getData'])->name('sample.data');
     // Requisition Routes
     Route::get('/sample-form/approval', [SampleController::class, 'approvalPage'])->name('sample-form.approval');
     Route::get('/sample-approval/data', [SampleController::class, 'getApprovalData'])->name('sample.approval.data');
@@ -138,9 +135,9 @@ Route::middleware('auth')->group(function () {
     // ===== terakhir dari complain ====
 
     Route::get('/sample-form/reports', [SampleController::class, 'reports'])->name('sample-form.reports');
-    
+
     Route::get('/sample-form/log', [SampleController::class, 'log'])->name('sample-form.log');
-    
+
     Route::get('/complain-form/log', [ComplainController::class, 'log'])->name('complain-form.log');
     Route::get('/freegoods-form/log', [FreeGoodsController::class, 'log'])->name('freegoods-form.log');
 
