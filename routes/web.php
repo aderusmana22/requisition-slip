@@ -92,7 +92,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/sample-form/reports', [SampleController::class, 'reportsPage'])->name('sample-form.reports');
     Route::get('/sample-reports/data', [SampleController::class, 'getReportsData'])->name('sample.reports.data');
-    Route::get('/sample-report/print-batch', [SampleController::class, 'printReports'])->name('report_sample.print.batch');
+    Route::post('/sample-report/print', [SampleController::class, 'printMultipleReport'])->name('report_sample.print');
     Route::get('/sample-report/{id}', [SampleController::class, 'printReport'])->name('sample.report');
 
     Route::get('/sample-form/log', [SampleController::class, 'logPage'])->name('sample-form.log');
@@ -133,10 +133,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/complain-report/{id}', [ComplainController::class, 'printReport'])->name('complain.report');
     });
     // ===== terakhir dari complain ====
-
-    Route::get('/sample-form/reports', [SampleController::class, 'reports'])->name('sample-form.reports');
-
-    Route::get('/sample-form/log', [SampleController::class, 'log'])->name('sample-form.log');
 
     Route::get('/complain-form/log', [ComplainController::class, 'log'])->name('complain-form.log');
     Route::get('/freegoods-form/log', [FreeGoodsController::class, 'log'])->name('freegoods-form.log');
