@@ -143,7 +143,10 @@ Route::middleware('auth')->group(function () {
 
     // --- Requisition Path (Approvers) ---
     Route::get('/requistion/path', [RequisitionPath::class, 'index'])->name('requistion.path');
-
+    Route::get('/getapproverlist', [RequisitionPath::class, 'approverList'])->name('get.approverlist');
+    Route::resource('/approvers', RequisitionPath::class);
+    Route::get('/categories', [RequisitionPath::class, 'categories'])->name('get.categories');
+    Route::get('/approver-name', [RequisitionPath::class, 'approverName'])->name('get.approver.name');
 });
 
 
