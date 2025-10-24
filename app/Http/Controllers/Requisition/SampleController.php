@@ -1400,6 +1400,10 @@ class SampleController extends Controller
                         $badgeClass = 'bg-primary';
                         $icon = 'ph-paper-plane-tilt';
                         break;
+                    case 'In Progress':
+                        $badgeClass = 'bg-info';
+                        $icon = 'ph-arrows-clockwise';
+                        break;
                     case 'Approved':
                     case 'Completed':
                         $badgeClass = 'bg-success';
