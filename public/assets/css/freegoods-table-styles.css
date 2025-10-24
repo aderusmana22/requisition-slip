@@ -6,6 +6,13 @@
     --fg-primary: #3A6B35;
     --fg-secondary: #2E532E;
     --fg-primary-light: #6a994e;
+
+    /* [PERUBAHAN] Mengganti gradasi biru menjadi hijau */
+    --badge-blue-gradient: linear-gradient(to right, #34d399, #10b981);
+    --badge-cyan-gradient: linear-gradient(to right, #22d3ee, #06b6d4);
+    --badge-gold-gradient: linear-gradient(to right, #ca8a04, #a16207);
+    --badge-orange-gradient: linear-gradient(to right, #f97316, #ea580c);
+
     --fg-danger: #a94442;
     --fg-black: #1f1f1f;
     --fg-dark-bg: #2d2d2d;
@@ -125,7 +132,7 @@
 
 .main-table-container {
     background: white;
-    border-radius: 16px;
+    border-radius: 1rem;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
     border: 1px solid rgba(58, 107, 53, 0.3);
     overflow: hidden;
@@ -150,7 +157,6 @@
     margin-top: 4px;
 }
 
-/* [FIX] Added margin-bottom for spacing */
 .dataTables_filter {
     margin-bottom: 1.5rem !important;
 }
@@ -175,16 +181,21 @@
 
 #fgTable thead th, .thead-dark th, .detail-table thead th,
 .main-table-container .table-responsive table.dataTable thead tr th {
-    background: linear-gradient(135deg, var(--fg-primary) 0%, var(--fg-secondary) 100%) !important;
+    background: linear-gradient(to bottom, #4a6b4a, #3a523a) !important;
     color: white !important;
     border: none !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.15) !important;
     text-transform: uppercase !important;
     letter-spacing: 0.5px !important;
     font-size: 14px !important;
-    padding: 12px 15px !important;
+    padding: 1rem 15px !important;
     vertical-align: middle !important;
-    text-align: left;
+    text-align: center !important;
 }
+#fgTable thead th:last-child {
+    border-right: none !important;
+}
+
 
 #fgTable tbody td {
     padding: 18px 15px !important;
@@ -221,13 +232,12 @@
     padding: 0.5em 1em;
 }
 
-/* [FIX FINAL] Aturan ini SANGAT SPESIFIK untuk memastikan teks berwarna PUTIH */
 #fgTable_paginate .page-item.active .page-link,
 #fgTable_paginate .paginate_button.current,
 #fgTable_paginate .paginate_button.current:hover {
     background: linear-gradient(135deg, var(--fg-primary) 0%, var(--fg-secondary) 100%) !important;
     border-color: var(--fg-secondary) !important;
-    color: white !important; /* Fix final untuk warna teks */
+    color: white !important;
     box-shadow: 0 2px 8px rgba(58, 107, 53, 0.4);
 }
 
@@ -249,6 +259,46 @@
    ACTION BUTTONS & BADGES
    ======================================== */
 
+.badge-custom {
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    font-size: 0.875rem !important;
+    padding: 0.4em 0.8em !important;
+    border-radius: 50rem !important;
+    border: none !important;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+}
+
+.badge-fg-no {
+    background: var(--badge-blue-gradient) !important;
+}
+.badge-category {
+    background: var(--badge-cyan-gradient) !important;
+}
+.badge-route-to {
+    background: var(--badge-gold-gradient) !important;
+}
+.badge-status-pending {
+    background: var(--badge-orange-gradient) !important;
+}
+
+/* Style untuk badge Requester */
+.requester-badge {
+    background-color: #4A5568;
+    color: #ffffff;
+    padding: 0.35em 0.75em;
+    font-size: 0.875rem;
+    font-weight: 600;
+    border-radius: 50rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    white-space: nowrap;
+}
+.requester-badge i {
+    font-size: 1.2em;
+}
+
 .action-btn-group {
     display: flex;
     gap: 8px;
@@ -256,15 +306,13 @@
     align-items: center;
 }
 
-.action-btn-group .btn-info,
-.action-btn-group .btn-secondary {
-    background: linear-gradient(135deg, var(--fg-dark-bg) 0%, var(--fg-black) 100%) !important;
-    box-shadow: 0 2px 8px rgba(45, 45, 45, 0.3) !important;
+.action-btn-group .btn-info {
+    background: var(--badge-cyan-gradient) !important;
+    box-shadow: 0 2px 8px rgba(34, 211, 238, 0.3) !important;
 }
-.action-btn-group .btn-info:hover,
-.action-btn-group .btn-secondary:hover {
+.action-btn-group .btn-info:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(45, 45, 45, 0.4) !important;
+    box-shadow: 0 4px 12px rgba(34, 211, 238, 0.4) !important;
 }
 
 .action-btn-group .btn-danger {
@@ -274,27 +322,6 @@
 .action-btn-group .btn-danger:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(169, 68, 66, 0.4) !important;
-}
-
-.status-badge-lg {
-    font-size: 0.8em !important;
-    padding: 4px 8px !important;
-    border-radius: 10px !important;
-    text-transform: uppercase !important;
-    border: 2px solid transparent !important;
-}
-.bg-warning.status-badge-lg, .bg-info.status-badge-lg {
-    background: linear-gradient(135deg, var(--fg-dark-bg) 0%, var(--fg-black) 100%) !important;
-    color: white !important;
-    border-color: rgba(255, 255, 255, 0.3) !important;
-}
-.bg-success.status-badge-lg {
-    background: linear-gradient(135deg, var(--fg-primary) 0%, var(--fg-secondary) 100%) !important;
-    border-color: rgba(255, 255, 255, 0.3) !important;
-}
-.bg-danger.status-badge-lg {
-    background: linear-gradient(135deg, var(--fg-danger) 0%, #8b3634 100%) !important;
-    border-color: rgba(255, 255, 255, 0.3) !important;
 }
 
 /* ========================================

@@ -81,13 +81,8 @@
                  </a>
                  <ul class="collapse" id="requisition-slip-log">
                      <li><a href="{{ route('sample-form.log') }}">Sample Log</a></li>
-<<<<<<< HEAD
-                     <li><a href="{{ route('complain.log.index') }}">Complain Log</a></li>
-                     <li><a href="{{ route('free-goods.log') }}">Free Goods Log</a></li>
-=======
                      <li><a href="{{ route('complain-form.log') }}">Complain Log</a></li>
                      <li><a href="{{ route('freegoods-form.log') }}">Free Goods Log</a></li>
->>>>>>> feature/free-goods
                  </ul>
              </li>
          </ul>

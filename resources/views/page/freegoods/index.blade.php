@@ -6,10 +6,6 @@
     {{-- Memuat file CSS Hijau Anda dari komponen --}}
     @include('components.freegoods-table-styles')
 
-    {{-- [PERBAIKAN TATA LETAK]
-        Menambahkan beberapa style minor untuk memberikan "ruang napas"
-        pada form dan modal agar tidak terkesan terlalu padat.
-    --}}
     @push('css')
     <style>
         .modal-body hr {
@@ -25,6 +21,38 @@
         .view-modal-card .row > [class^="col-"] {
             margin-bottom: 1rem;
         }
+
+        /* Style untuk badge Requester */
+        .requester-badge {
+            background-color: #4A5568;
+            color: #ffffff;
+            padding: 0.35em 0.75em;
+            font-size: 0.875rem;
+            font-weight: 600;
+            border-radius: 50rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            white-space: nowrap;
+        }
+        .requester-badge i {
+            font-size: 1.2em;
+        }
+
+        /* Styling untuk Filter */
+        .filter-select {
+            border-radius: 0.5rem;
+            border: 1px solid #ced4da;
+            font-weight: 500;
+        }
+        #btn_reset_filter {
+            background: var(--badge-blue-gradient) !important;
+            border: none;
+            border-radius: 0.5rem;
+            color: white;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+        }
+
     </style>
     @endpush
 
@@ -50,13 +78,33 @@
                 </div>
 
                 <hr class="my-4">
+
+                <div class="row mb-4 align-items-center">
+                    <div class="col-md-auto">
+                        <label class="form-label fw-bold mb-0 text-muted">Filter by:</label>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select filter-select" id="filter_status">
+                            <option value="">All Statuses</option>
+                            <option value="Pending">Pending</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Approved">Approved</option>
+                            <option value="Completed">Completed</option>
+                            <option value="Rejected">Rejected</option>
+                            <option value="Cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                    <div class="col-md-auto">
+                        <button class="btn btn-icon" id="btn_reset_filter" title="Reset Filter">
+                            <i class="ph-bold ph-arrow-counter-clockwise"></i>
+                        </button>
+                    </div>
+                </div>
         
                 {{-- Bagian Konten Utama (Tombol dan Tabel) --}}
                 <div class="row">
                     <div class="col-12">
-                        <div class="d-flex justify-content-between align-items-center mb-4">
-                            <div></div> {{-- Spacer Kiri --}}
-            
+                        <div class="d-flex justify-content-end align-items-center mb-4">
                             <div>
                                 <button class="btn new-freegoods-btn" type="button" data-bs-toggle="modal"
                                     data-bs-target="#fgModal" id="btn-create-fg">
@@ -80,6 +128,7 @@
                                     <thead>
                                         <tr>
                                             <th>No.</th>
+                                            <th>No. FG</th> 
                                             <th>Requester</th>
                                             <th>Customer</th>
                                             <th>Request Date</th>
@@ -418,8 +467,15 @@
             const table = $('#fgTable').DataTable({
                 processing: true,
                 serverSide: true,
-                ajax: "{{ route('freegoods.data') }}",
-                columns: [{
+                ajax: {
+                    url: "{{ route('freegoods.data') }}",
+                    data: function (d) {
+                        // [PERUBAHAN] Hanya mengirim filter status
+                        d.status = $('#filter_status').val();
+                    }
+                },
+                columns: [
+                    {
                         data: 'DT_RowIndex',
                         name: 'DT_RowIndex',
                         orderable: false,
@@ -427,9 +483,10 @@
                         width: '20px',
                         className: 'text-center'
                     },
+                    { data: 'no_srs', name: 'requisitions.no_srs' },
                     { data: 'requester_info', name: 'users.name' },
                     { data: 'customer_name', name: 'customers.name' },
-                    { data: 'request_date', name: 'requisitions.request_date' },
+                    { data: 'request_date', name: 'requisitions.created_at' },
                     { data: 'sub_category', name: 'requisitions.sub_category' },
                     { data: 'route_to', name: 'requisitions.route_to' },
                     { data: 'status', name: 'requisitions.status' },
@@ -437,9 +494,21 @@
                         data: 'action',
                         name: 'action',
                         orderable: false,
-                        searchable: false
+                        searchable: false,
+                        className: 'text-center',
                     }
                 ]
+            });
+
+            // [PERUBAHAN] Event listener hanya untuk filter status
+            $('#filter_status').on('change', function() {
+                table.ajax.reload();
+            });
+
+            // [PERUBAHAN] Tombol reset hanya mereset filter status
+            $('#btn_reset_filter').on('click', function() {
+                $('#filter_status').val('');
+                table.ajax.reload();
             });
 
             let searchInput = $('#fgTable_filter input'); 
@@ -453,7 +522,6 @@
                 }, 500);
             });
 
-            // [FIX] Removed emoji from placeholder
             $('#fgTable_filter input').attr({ 
                 'placeholder': 'Search Free Goods...',
                 'class': 'form-control'
@@ -863,73 +931,6 @@
                     },
                     complete: function() {
                         button.html(originalIcon).prop('disabled', false);
-                    }
-                });
-            });
-
-            $(document).on('click', '.btn-edit-requisition', function () {
-                const id = $(this).data('id');
-                const button = $(this);
-                const originalIcon = button.html();
-
-                const modal = $('#fgModal'); 
-                const overlay = modal.find('.loading-overlay');
-
-                button.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>').prop('disabled', true);
-                overlay.show();
-
-                $.ajax({
-                    url: `/freegoods-form/${id}/edit`, 
-                    type: 'GET',
-                    success: function (response) {
-                        $('#fgModalLabel').text('Edit Free Goods Requisition'); 
-
-                        populateForm(response);
-
-                        modal.modal('show');
-                    },
-                    error: function () {
-                        errorMessage('Failed to fetch data for editing.');
-                    },
-                    complete: function() {
-                        button.html(originalIcon).prop('disabled', false);
-                        overlay.hide();
-                    }
-                });
-            });
-
-            $(document).on('click', '.btn-delete-requisition', function () {
-                const requisitionId = $(this).data('id');
-                Swal.fire({
-                    title: 'Are you sure?',
-                    text: "This action cannot be undone!",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#d33',
-                    cancelButtonColor: '#3085d6',
-                    confirmButtonText: 'Yes, delete it!',
-                    cancelButtonText: 'Cancel'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        $.ajax({
-                            url: `/freegoods-form/${requisitionId}`,
-                            type: 'POST',
-                            data: {
-                                _method: 'DELETE',
-                                _token: "{{ csrf_token() }}"
-                            },
-                            success: function (response) {
-                                if (response.success) {
-                                    Swal.fire('Deleted!', response.message,
-                                        'success');
-                                    table.ajax.reload();
-                                }
-                            },
-                            error: function (xhr) {
-                                Swal.fire('Failed!', 'A system error occurred.',
-                                    'error');
-                            }
-                        });
                     }
                 });
             });

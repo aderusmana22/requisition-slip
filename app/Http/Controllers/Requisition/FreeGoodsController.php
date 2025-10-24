@@ -29,10 +29,7 @@ class FreeGoodsController extends Controller
 {
     use ApprovalTrait;
 
-    //======================================================================
-    // PUBLIC FUNCTIONS (Controller Endpoints & AJAX Handlers)
-    //======================================================================
-
+    // ... (kode dari generateFgNumber hingga update tidak berubah) ...
     private function generateFgNumber()
     {
         // Format: FG YY MM XXX
@@ -73,7 +70,7 @@ class FreeGoodsController extends Controller
             'customers', 'generatedFg', 'userDepartmentName'));
     }
 
-    public function getData()
+    public function getData(Request $request)
     {
         $user = Auth::user();
 
@@ -83,8 +80,10 @@ class FreeGoodsController extends Controller
             ->where('requisitions.category', 'FREE GOODS')
             ->select(
                 'requisitions.id',
+                'requisitions.no_srs',
                 'requisitions.requester_nik',
                 'requisitions.request_date',
+                'requisitions.created_at',
                 'requisitions.cost_center', 
                 'requisitions.sub_category',
                 'requisitions.route_to',
@@ -93,6 +92,10 @@ class FreeGoodsController extends Controller
                 'users.avatar',
                 'customers.name as customer_name'
             );
+        
+        if ($request->filled('status')) {
+            $query->where('requisitions.status', $request->status);
+        }
 
         if (!$user->hasRole('super-admin')) {
              $query->where('requisitions.requester_nik', $user->nik);
@@ -102,56 +105,45 @@ class FreeGoodsController extends Controller
 
         return DataTables::of($query)
             ->addIndexColumn()
-            ->addColumn('requester_info', function ($requisition) {
-                $avatar = $requisition->avatar ? asset($requisition->avatar) : asset('assets/images/logo/sinarmeadow.png');
-                $nik = e($requisition->requester_nik);
-
-                return '
-                    <div class="d-flex align-items-center">
-                        <div class="h-30 w-30 d-flex-center b-r-50 overflow-hidden text-bg-dark me-2">
-                            <img src="' . $avatar . '" alt="avatar" class="img-fluid">
-                        </div>
-                        <div>
-                            <small class="text-muted">' . $nik . '</small>
-                        </div>
-                    </div>
-                ';
+            ->editColumn('no_srs', function($req) {
+                if (!$req->no_srs) {
+                    return '-';
+                }
+                $number = '# ' . e($req->no_srs); 
+                return '<span class="badge-custom badge-fg-no">' . $number . '</span>';
             })
-            ->editColumn('request_date', fn($req) => Carbon::parse($req->request_date)->format('d M Y'))
+            ->addColumn('requester_info', function ($requisition) {
+                $name = e($requisition->requester_name);
+                return '<div class="requester-badge"><i class="ph-bold ph-user-circle"></i><span>' . $name . '</span></div>';
+            })
+            ->editColumn('request_date', fn($req) => Carbon::parse($req->created_at)->format('d M Y, H:i'))
             ->editColumn('cost_center', fn($req) => e($req->cost_center) ?? '-') 
             ->editColumn('sub_category', function ($requisition) {
-                $subCategory = $requisition->sub_category;
-                $badgeClass = 'bg-primary';
-                return '<span class="badge ' . $badgeClass . '">' . e($subCategory) . '</span>';
+                return '<span class="badge-custom badge-category">' . e($requisition->sub_category) . '</span>';
             })
-            ->editColumn('route_to', fn($req) => '<span class="badge bg-warning text-dark"><i class="ph-bold ph-user-switch me-1"></i>' . e($req->route_to) . '</span>')
+            ->editColumn('route_to', function($req) {
+                return '<span class="badge-custom badge-route-to"><i class="ph-bold ph-user-switch me-1"></i>' . e($req->route_to) . '</span>';
+            })
             ->editColumn('status', function ($requisition) {
                 $status = $requisition->status;
-                $badgeClass = 'bg-primary text-white';
-                if (in_array($status, ['Submitted', 'Pending'])) $badgeClass = 'bg-warning';
-                elseif (in_array($status, ['Approved', 'Completed'])) $badgeClass = 'bg-success';
-                elseif (in_array($status, ['Rejected', 'Cancelled'])) $badgeClass = 'bg-danger';
-                elseif ($status == 'In Progress') $badgeClass = 'bg-info';
-                return '<span class="badge ' . $badgeClass . '">' . e($status) . '</span>';
+                $badgeClass = '';
+                if (in_array($status, ['Submitted', 'Pending'])) {
+                    $badgeClass = 'badge-status-pending';
+                } elseif (in_array($status, ['Approved', 'Completed'])) {
+                    $badgeClass = 'bg-success'; 
+                } elseif (in_array($status, ['Rejected', 'Cancelled'])) {
+                    $badgeClass = 'bg-danger';
+                }
+                
+                return '<span class="badge-custom ' . $badgeClass . '">' . e($status) . '</span>';
             })
             ->addColumn('action', function ($row) {
-                $user = Auth::user();
-
-                $viewBtn = '<button type="button" class="btn btn-sm btn-info btn-view-requisition" data-id="' . $row->id . '" title="Show Detail"><i class="fa-solid fa-eye text-white"></i></button>';
-                $editBtn = '';
-                $deleteBtn = '';
-
-                if ($row->status === 'Pending') {
-                    $editBtn = '<button type="button" class="btn btn-sm btn-warning btn-edit-requisition" data-id="' . $row->id . '" title="Edit"><i class="fa-solid fa-pencil text-white"></i></button>';
-                    $deleteBtn = '<button type="button" class="btn btn-sm btn-danger btn-delete-requisition" data-id="' . $row->id . '" title="Delete"><i class="fa-solid fa-trash-alt text-white"></i></button>';
-                }
-
-                return "<div class='d-flex gap-1'>{$viewBtn} {$editBtn} {$deleteBtn}</div>";
+                $viewBtn = '<button type="button" class="btn btn-sm btn-info btn-icon btn-view-requisition" data-id="' . $row->id . '" title="View Details"><i class="ph-bold ph-eye"></i></button>';
+                return "<div class='d-flex justify-content-center gap-1'>{$viewBtn}</div>";
             })
-            ->rawColumns(['requester_info', 'sub_category', 'route_to', 'status', 'action'])
+            ->rawColumns(['no_srs', 'requester_info', 'sub_category', 'route_to', 'status', 'action'])
             ->make(true);
     }
-
     
     public function store(StoreFreeGoodsRequest $request)
     {
@@ -159,7 +151,6 @@ class FreeGoodsController extends Controller
         try {
             $validated = $request->validated();
             
-            // KRITIS: Pastikan 'department' di-load untuk logika conditional
             $user = User::with('atasan', 'department')->find(Auth::id());
             $userAccount = $user->department->code ?? null;
             
@@ -203,7 +194,7 @@ class FreeGoodsController extends Controller
                 $user, 
                 $requisition->id, 
                 'FREE GOODS', 
-                $pathSubCategory // Mengirimkan sub_category path yang spesifik
+                $pathSubCategory
             );
 
             $firstLog = ApprovalLog::where('requisition_id', $requisition->id)->orderBy('level', 'asc')->first();
@@ -272,6 +263,58 @@ class FreeGoodsController extends Controller
         }
     }
 
+    // [METHOD BARU] Method untuk halaman Reports
+    public function reports()
+    {
+        // Untuk saat ini, kita hanya return string untuk memastikan route bekerja
+        // Nanti Anda bisa membuat view khusus untuk halaman report
+        return "This is the Free Goods Reports page.";
+    }
+
+    public function approvalPage()
+    {
+        return view('page.freegoods.approval.index');
+    }
+
+    public function getApprovalData(Request $request)
+    {
+        $user = Auth::user();
+        $query = ApprovalLog::where('approver_nik', $user->nik)
+            ->whereHas('requisition', function ($q) {
+                $q->where('category', 'FREE GOODS');
+            })
+            ->where('status', 'Pending')
+            ->with(['requisition' => function ($q) {
+                $q->select('id', 'no_srs', 'request_date', 'sub_category', 'status');
+            }])
+            ->select('approval_logs.*');
+
+        return DataTables::of($query)
+            ->addIndexColumn()
+            ->addColumn('no_srs', fn($row) => $row->requisition->no_srs ?? 'N/A')
+            ->addColumn('request_date', fn($row) => Carbon::parse($row->requisition->request_date)->format('d M Y'))
+            ->addColumn('sub_category', fn($row) => '<span class="badge bg-info">' . e($row->requisition->sub_category ?? '-') . '</span>')
+            ->editColumn('status', function ($row) {
+                $status = $row->requisition->status ?? 'N/A';
+                $badgeClass = 'bg-warning';
+                return '<span class="badge ' . $badgeClass . '">' . e($status) . '</span>';
+            })
+            ->addColumn('action', function ($row) {
+                $token = $row->token;
+                $srs = $row->requisition->no_srs;
+                $id = $row->requisition->id;
+                
+                $approveBtn = '<button class="btn btn-success btn-sm action-btn" data-token="'.$token.'" data-srs="'.$srs.'" data-tooltip="Quick Approve"><i class="ph-bold ph-check-circle"></i></button>';
+                $reviewBtn = '<button class="btn btn-info btn-sm action-btn-modal" data-id="'.$id.'" data-token="'.$token.'" data-srs="'.$srs.'" data-action="review" data-tooltip="Review & Approve"><i class="ph-bold ph-pencil-simple"></i></button>';
+                $rejectBtn = '<button class="btn btn-danger btn-sm action-btn-modal" data-id="'.$id.'" data-token="'.$token.'" data-srs="'.$srs.'" data-action="reject" data-tooltip="Reject"><i class="ph-bold ph-x-circle"></i></button>';
+                
+                return '<div class="action-btn-group">' . $approveBtn . $reviewBtn . $rejectBtn . '</div>';
+            })
+            ->rawColumns(['action', 'status', 'sub_category'])
+            ->make(true);
+    }
+
+    // ... (sisa kode dari destroy hingga akhir tidak berubah) ...
     public function destroy($id)
     {
         try {
@@ -330,13 +373,11 @@ class FreeGoodsController extends Controller
 
     public function processApproval(Request $request)
     {
-        // 1. Logika untuk membedakan Quick Action dari Form Submit
         if ($request->input('action') === 'approve' && 
             $request->input('notes') === 'Approved via quick action link.') 
         {
             $validated = $request->all();
         } else {
-             // Validasi normal jika datang dari form submit (POST)
             $validated = $request->validate([
                 'token' => 'required|string',
                 'action' => 'required|string|in:approve,review,reject,submit',
@@ -357,7 +398,6 @@ class FreeGoodsController extends Controller
         $tracking = Tracking::where('token', $token)->whereNull('last_updated')->first();
 
         if ($tracking) {
-            // Logika processWarehouseStep
             DB::beginTransaction();
             try {
                 $requisition = $tracking->requisition;
@@ -392,75 +432,11 @@ class FreeGoodsController extends Controller
 
         return redirect()->route('fg.approval.success')->with('card_class', 'reject')->with('title', 'Invalid Request')->withMessage('This approval request is invalid or has already been processed.');
     }
-
-    /**
-     * [METHOD BARU] Menampilkan halaman approval untuk Free Goods.
-     * Method ini dipanggil oleh route 'freegoods.approval.index'.
-     */
-    public function approvalPage()
-    {
-        return view('page.freegoods.approval.index');
-    }
-
-    /**
-     * [METHOD BARU] Menyediakan data untuk DataTables di halaman approval.
-     * Method ini dipanggil oleh route 'freegoods.approval.data'.
-     */
-    public function getApprovalData(Request $request)
-    {
-        if ($request->ajax()) {
-            $user = Auth::user();
-            $query = ApprovalLog::where('approver_nik', $user->nik)
-                ->where('category', 'FREE GOODS')
-                ->where('status', 'Pending') // Hanya tampilkan yang butuh aksi
-                ->with(['requisition' => function ($q) {
-                    $q->select('id', 'no_srs', 'request_date', 'sub_category', 'status');
-                }])
-                ->select('approval_logs.*');
-
-            return DataTables::of($query)
-                ->addIndexColumn()
-                ->addColumn('no_srs', fn($row) => $row->requisition->no_srs ?? 'N/A')
-                ->addColumn('request_date', fn($row) => Carbon::parse($row->requisition->request_date)->format('d M Y'))
-                ->addColumn('sub_category', fn($row) => '<span class="badge bg-info">' . e($row->requisition->sub_category) . '</span>')
-                ->addColumn('status', function ($row) {
-                    $status = $row->requisition->status;
-                    $badgeClass = 'bg-warning'; // Default untuk 'In Progress' atau 'Pending'
-                    if ($status === 'Rejected' || $status === 'Cancelled') $badgeClass = 'bg-danger';
-                    if ($status === 'Completed') $badgeClass = 'bg-success';
-                    return '<span class="badge ' . $badgeClass . '">' . e($status) . '</span>';
-                })
-                ->addColumn('action', function ($row) {
-                    $token = $row->token;
-                    $srs = $row->requisition->no_srs;
-                    $id = $row->requisition->id;
-                    
-                    // Tombol Quick Approve
-                    $approveBtn = '<button class="btn btn-success btn-sm action-btn" data-token="'.$token.'" data-srs="'.$srs.'" data-tooltip="Quick Approve"><i class="ph-bold ph-check-circle"></i></button>';
-                    
-                    // Tombol Review
-                    $reviewBtn = '<button class="btn btn-info btn-sm action-btn-modal" data-id="'.$id.'" data-token="'.$token.'" data-srs="'.$srs.'" data-action="review" data-tooltip="Review & Approve"><i class="ph-bold ph-pencil-simple"></i></button>';
-                    
-                    // Tombol Reject
-                    $rejectBtn = '<button class="btn btn-danger btn-sm action-btn-modal" data-id="'.$id.'" data-token="'.$token.'" data-srs="'.$srs.'" data-action="reject" data-tooltip="Reject"><i class="ph-bold ph-x-circle"></i></button>';
-                    
-                    // Tombol Resend Email
-                    $resendBtn = '<button class="btn btn-secondary btn-sm btn-resend-email" data-token="'.$token.'" data-tooltip="Resend Email"><i class="ph-bold ph-paper-plane-tilt"></i></button>';
-                    
-                    return '<div class="action-btn-group">' . $approveBtn . $reviewBtn . $rejectBtn . $resendBtn . '</div>';
-                })
-                ->rawColumns(['action', 'status', 'sub_category'])
-                ->make(true);
-        }
-    }
     
     //======================================================================
     // PRIVATE/HELPER FUNCTIONS (Core Logic)
     //======================================================================
 
-    /**
-     * Memproses satu langkah persetujuan (approve/reject).
-     */
     private function processApprovalStep(ApprovalLog $approvalLog, string $action, ?string $notes)
     {
         DB::beginTransaction();

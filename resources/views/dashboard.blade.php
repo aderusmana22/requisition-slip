@@ -16,15 +16,9 @@
                     <i class="ti ti-plus me-1"></i> Buat Requisition Slip Baru
                 </button>
                 <ul class="dropdown-menu">
-<<<<<<< HEAD
-                    <li><a class="dropdown-item" href="{{ route('sample-form.index') }}">Sample</a></li>
-                    <li><a class="dropdown-item" href="{{ route('get.complain.data') }}">Complain Packaging</a></li>
-                    <li><a class="dropdown-item" href="{{ route('free-goods.create') }}">FreeGoods</a></li>
-=======
                     <li><a class="dropdown-item" href="{{ route('sample-form.create') }}">Sample</a></li>
                     <li><a class="dropdown-item" href="{{ route('complain-form.create') }}">Complain Packaging</a></li>
                     <li><a class="dropdown-item" href="{{ route('freegoods-form.create') }}">FreeGoods</a></li>
->>>>>>> feature/free-goods
                 </ul>
             </div>
         </div>
