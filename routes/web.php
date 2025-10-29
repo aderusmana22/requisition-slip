@@ -101,7 +101,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('sample-form', SampleController::class);
 
     Route::get('/sample-data', [SampleController::class, 'getData'])->name('sample.data');
-    Route::post('/sample-form/{id}/cancel', [SampleController::class, 'cancelRequisition'])->name('sample.cancel');
+    Route::post('/sample-form/{id}/recall', [SampleController::class, 'recallRequisition'])->name('sample.recall');
     Route::post('/get-products-by-material-types', [SampleController::class, 'getProductsByMaterialTypes'])->name('sample.getProductsByMaterialTypes');
     Route::post('/get-item-details-by-products', [SampleController::class, 'getItemDetailsByProducts'])->name('sample.getItemDetailsByProducts');
     Route::get('/get-all-item-masters', [SampleController::class, 'getAllItemMasters'])->name('sample.getAllItemMasters');
