@@ -25,44 +25,45 @@ class RequisitionPath extends Controller
         $validated = $request->validated();
         $causer = Auth::user();
 
-        try{
-            DB::transaction(function() use($validated, $causer){
+        $subCategory = $validated['sub_category_id'] ?? null;
 
-                Log::info('Validated Data: ', $validated);
+        $existingPath = ApprovalPath::where('category', $validated['category_id'])
+            ->where('sub_category', $subCategory)
+            ->exists();
 
-                // if ($validated['category_id'] === 'Sample') {
-                //     if (empty($validated['sub_category_id'])) {
-                //         throw new \Exception('Sub-category is required for the Sample category.');
-                //     }
-                // }
-                // elseif ($validated['category_id'] === 'Complain' || $validated['category_id'] === 'Free Goods') {
-                //     if ($validated['sub_category_id'] !== null) {
-                //         throw new \Exception('Sub-category must be empty/null for Complain or Free Goods categories.');
-                //     }
-                // }
+        if ($existingPath) {
+            return response()->json(['message' => 'Error: An approval path for this category and sub-category already exists.'], 422);
+        }
 
-                $existingPath = ApprovalPath::where('category', $validated['category_id'])
-                    ->where('sub_category', $validated['sub_category_id'])
-                    ->exists();
-
-                if ($existingPath) {
-                    return response()->json(['message' => 'Error: An approval path for this category and sub-category already exists.'], 422);
-                }
-
+        try {
+            $data = null;
+            DB::transaction(function() use($validated, $subCategory, &$data){
                 $data = ApprovalPath::create([
                     'category' => $validated['category_id'],
-                    'sub_category' => $validated['sub_category_id'],
+                    'sub_category' => $subCategory,
                     'sequence_approvers' => $validated['approvers'],
                 ]);
-
-                activity()
-                    ->causedBy($causer)
-                    ->withProperties(['approval_path_id' => $data->id])
-                    ->log('Created new approval path');
-
             });
+
+            if (!$data) {
+                throw new \RuntimeException('Failed to create approval path');
+            }
+
+            $properties = ['approval_path_id' => $data->id];
+            if ($data->category === 'Sample') {
+                $properties['sub_category'] = $data->sub_category;
+            }
+
+            activity()
+                ->causedBy($causer)
+                ->performedOn($data) // Ini akan mengisi subject_type & subject_id
+                ->useLog('path - ' . strtolower($data->category)) // Mengisi log_name
+                ->event('create') // Mengisi event
+                ->withProperties($properties) // Mengisi properties
+                ->log('Created new approval path');
+
             return response()->json(['message' => 'Approver successfully created'], 201);
-        }catch(\Exception $e){
+        } catch(\Exception $e) {
             return response()->json(['message' => 'Error: '.$e->getMessage()], 500);
         }
     }
@@ -98,12 +99,21 @@ class RequisitionPath extends Controller
                 $approvalPath->update([
                     'sequence_approvers' => $validated['approvers'],
                 ]);
-
-                activity()
-                    ->causedBy($causer)
-                    ->performedOn($approvalPath)
-                    ->log('Updated approval path');
             });
+
+            $properties = ['approval_path_id' => $approvalPath->id];
+            if ($approvalPath->category === 'Sample') {
+                $properties['sub_category'] = $approvalPath->sub_category;
+            }
+
+            activity()
+                ->causedBy($causer)
+                ->performedOn($approvalPath)
+                ->useLog('path - ' . strtolower($approvalPath->category))
+                ->event('update')
+                ->withProperties($properties)
+                ->log('Updated approval path');
+
             return response()->json(['message' => 'Approver successfully updated'], 200);
         } catch(\Exception $e){
             return response()->json(['message' => 'Error: '.$e->getMessage()], 500);
@@ -131,6 +141,7 @@ class RequisitionPath extends Controller
     public function approverName()
     {
         $name = Role::pluck('name' ,'name');
+        $name['atasan'] = 'atasan';
         return response()->json(['approverName' => $name]);
     }
 
@@ -194,13 +205,28 @@ class RequisitionPath extends Controller
 
     public function destroy($id)
     {
+        $causer = Auth::user();
         try {
-            DB::transaction(function () use ($id) {
-                $data = ApprovalPath::where('id', $id)->first();
-                if ($data) {
-                    $data->delete();
+            DB::transaction(function () use ($id, $causer) {
+                $data = ApprovalPath::findOrFail($id);
+
+                // [MODIFIKASI LOGGING UNTUK DELETE]
+                $properties = ['approval_path_id' => $data->id];
+                if ($data->category === 'Sample') {
+                    $properties['sub_category'] = $data->sub_category;
                 }
+
+                activity()
+                    ->causedBy($causer)
+                    ->performedOn($data)
+                    ->useLog('path - ' . strtolower($data->category))
+                    ->event('delete')
+                    ->withProperties($properties)
+                    ->log('Deleted approval path');
+                
+                $data->delete();
             });
+            return response()->json(['message' => 'Approver successfully deleted'], 200);
         } catch (\Exception $e) {
             return response()->json(['message' => 'Error: ' . $e->getMessage()], 500);
         }

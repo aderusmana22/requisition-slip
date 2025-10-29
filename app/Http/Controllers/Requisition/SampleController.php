@@ -212,8 +212,8 @@ class SampleController extends Controller
                 $qaFillBtn = '';
                 $userHasQaRole = $user->hasRole('head-QA') || $user->hasRole('super-admin');
                 $requisitionIsWaitingForQa = $row->sub_category === 'Special Order' &&
-                                             $row->status === 'Approved' &&
-                                             $row->route_to === 'Waiting for QA/QM Form';
+                                            $row->status === 'Approved' &&
+                                            $row->route_to === 'Waiting for QA/QM Form';
 
                 if ($userHasQaRole && $requisitionIsWaitingForQa) {
                     $qaFillBtn = '<button type="button" class="btn btn-sm btn-warning btn-qa-form" data-id="' . $row->id . '" title="Complete QA Form"><i class="fa-solid fa-pencil text-white"></i></button>';

@@ -324,16 +324,31 @@
                     orderable: false,
                     searchable: false,
                     render: function (data, type, row, meta) {
-                        return meta.row + meta.settings._iDisplayStart + 1;
+                        return `<span class="badge bg-secondary rounded-pill">${meta.row + meta.settings._iDisplayStart + 1}</span>`;
                     }
                 }, {
                     data: 'category',
-                    name: 'category'
+                    name: 'category',
+                    render: function(data) {
+                        let iconClass = data === 'Complain' ? 'ph-warning' :
+                                        data === 'Sample' ? 'ph-package' :
+                                        data === 'Free Goods' ? 'ph-gift' : 'ph-question';
+                        return `<div class="d-flex align-items-center">
+                                    <i class="ph-duotone ${iconClass} me-2 text-primary" style="font-size:1.25rem;"></i>
+                                    <span class="fw-medium" style="font-size:1.05rem;">${data}</span>
+                               </div>`;
+                    }
                 }, {
                     data: 'sub_category',
                     name: 'sub_category',
                     render: function (data, type, row) {
-                        return data ? data  : `<span class="text-muted" style="font-style: italic; text-color: gray;"> Non Sub-category </span>`;
+                        return data ? 
+                            `<span class="badge bg-info-subtle text-info rounded-2 px-2 py-1" style="font-size:1rem;">
+                                <i class="ph-duotone ph-tag me-1" style="font-size:1.05rem;"></i>${data}
+                             </span>` : 
+                            `<span class="badge bg-light-subtle text-secondary rounded-2 px-2 py-1" style="font-size:1rem;">
+                                <i class="ph-duotone ph-minus-circle me-1" style="font-size:1.05rem;"></i>Non Sub-category
+                             </span>`;
                     }
                 }, {
                     data: 'sequence_approvers',
