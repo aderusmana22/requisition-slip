@@ -208,6 +208,11 @@
                     }
                 });
 
+                $('#sampleTable_filter input').attr({
+                    'placeholder': '🔍 Search sample...',
+                    'class': 'form-control'
+                });
+
                 //==================================================
                 // FUNGSI UNTUK MENGISI MODAL DETAIL (DIAMBIL DARI sample/index.blade.php)
                 //==================================================
@@ -415,9 +420,9 @@
                         title: 'Are you sure?',
                         text: `Approve SRS ${srs} without review?`,
                         icon: 'question',
-                        showRecallButton: true,
+                        showCancelButton: true,
                         confirmButtonColor: '#28a745',
-                        recallButtonColor: '#6c757d',
+                        cancelButtonColor: '#6c757d',
                         confirmButtonText: 'Yes, Approve!'
                     }).then((result) => {
                         if (result.isConfirmed) {
@@ -526,10 +531,10 @@
                         title: 'Resend Email?',
                         text: "This will send the approval notification email again. Continue?",
                         icon: 'question',
-                        showRecallButton: true,
+                        showCancelButton: true,
                         confirmButtonColor: '#ffc107',
                         confirmButtonText: 'Yes, Resend!',
-                        recallButtonText: 'Recall'
+                        cancelButtonText: 'Recall'
                     }).then((result) => {
                         if (result.isConfirmed) {
                             $.ajax({
@@ -580,9 +585,9 @@
                         title: confirmTitle,
                         text: confirmText,
                         icon: 'question',
-                        showRecallButton: true,
+                        showCancelButton: true,
                         confirmButtonColor: isReject ? '#d33' : '#3085d6',
-                        recallButtonColor: '#6c757d',
+                        cancelButtonColor: '#6c757d',
                         confirmButtonText: confirmButtonText
                     }).then((result) => {
                         if (result.isConfirmed) {

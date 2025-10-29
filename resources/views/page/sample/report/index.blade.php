@@ -1138,7 +1138,7 @@
 
             // Enhanced search placeholder
             $('#sampleTable_filter input').attr({
-                'placeholder': 'Search approval reports...',
+                'placeholder': '🔍 Search sample...',
                 'class': 'form-control'
             });
 

@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Spatie\Permission\Models\Role;
+use Illuminate\Validation\Rule;
 
 class RequisitionPath extends Controller
 {
@@ -29,15 +30,23 @@ class RequisitionPath extends Controller
 
                 Log::info('Validated Data: ', $validated);
 
-                if ($validated['category_id'] === 'Sample') {
-                    if (empty($validated['sub_category_id'])) {
-                        throw new \Exception('Sub-category is required for the Sample category.');
-                    }
-                }
-                elseif ($validated['category_id'] === 'Complain' || $validated['category_id'] === 'Free Goods') {
-                    if ($validated['sub_category_id'] !== null) {
-                        throw new \Exception('Sub-category must be empty/null for Complain or Free Goods categories.');
-                    }
+                // if ($validated['category_id'] === 'Sample') {
+                //     if (empty($validated['sub_category_id'])) {
+                //         throw new \Exception('Sub-category is required for the Sample category.');
+                //     }
+                // }
+                // elseif ($validated['category_id'] === 'Complain' || $validated['category_id'] === 'Free Goods') {
+                //     if ($validated['sub_category_id'] !== null) {
+                //         throw new \Exception('Sub-category must be empty/null for Complain or Free Goods categories.');
+                //     }
+                // }
+
+                $existingPath = ApprovalPath::where('category', $validated['category_id'])
+                    ->where('sub_category', $validated['sub_category_id'])
+                    ->exists();
+
+                if ($existingPath) {
+                    return response()->json(['message' => 'Error: An approval path for this category and sub-category already exists.'], 422);
                 }
 
                 $data = ApprovalPath::create([
@@ -58,6 +67,49 @@ class RequisitionPath extends Controller
         }
     }
 
+    public function edit($id)
+    {
+        $approvalPath = ApprovalPath::findOrFail($id);
+
+        // Mengubah format sequence_approvers agar sesuai dengan value di Select2
+        $approverRoles = $approvalPath->sequence_approvers;
+
+        return response()->json([
+            'category_id' => $approvalPath->category,
+            'sub_category_id' => $approvalPath->sub_category,
+            'approver_user_ids' => $approverRoles, // Kirim array of role names
+        ]);
+    }
+
+    public function update(Request $request, $id)
+    {
+        $approvalPath = ApprovalPath::findOrFail($id);
+        
+        // Validasi sederhana untuk update
+        $validated = $request->validate([
+            'approvers' => 'required|array|min:1',
+            'approvers.*' => 'string',
+        ]);
+
+        $causer = Auth::user();
+
+        try {
+            DB::transaction(function() use($validated, $approvalPath, $causer){
+                $approvalPath->update([
+                    'sequence_approvers' => $validated['approvers'],
+                ]);
+
+                activity()
+                    ->causedBy($causer)
+                    ->performedOn($approvalPath)
+                    ->log('Updated approval path');
+            });
+            return response()->json(['message' => 'Approver successfully updated'], 200);
+        } catch(\Exception $e){
+            return response()->json(['message' => 'Error: '.$e->getMessage()], 500);
+        }
+    }
+
     public function categories()
     {
         $categories = [
@@ -70,7 +122,10 @@ class RequisitionPath extends Controller
             'Finished Goods',
             'Special Order',
         ];
-        return response()->json(['categories' => $categories, 'subCategories' => $subCategories]);
+
+        $existingPaths = ApprovalPath::select('category', 'sub_category')->get();
+
+        return response()->json(['categories' => $categories, 'subCategories' => $subCategories, 'existingPaths' => $existingPaths]);
     }
 
     public function approverName()

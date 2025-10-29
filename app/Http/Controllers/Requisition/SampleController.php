@@ -1407,7 +1407,7 @@ class SampleController extends Controller
 
         return DataTables::of($query)
             ->addIndexColumn()
-            ->addColumn('no_srs', fn($log) => '<span class="srs-badge">' . e($log->requisition->no_srs ?? 'N/A') . '</span>')
+            ->addColumn('no_srs', fn($log) => '<span class="srs-badge"><i class="ph-bold ph-hash me-1"></i>' . e($log->requisition->no_srs ?? 'N/A') . '</span>')
             ->addColumn('requester', function($log) {
                 $requester = optional($log->requisition)->requester;
                 $avatar = $requester && $requester->avatar ? asset($requester->avatar) : asset('assets/images/logo/sinarmeadow.png');
@@ -1433,7 +1433,7 @@ class SampleController extends Controller
             })
             ->addColumn('level', function($log) { // Kolom ini dikembalikan
                 $level = $log->level;
-                return '<span class="status-badge-lg bg-dark"><i class="ph-bold ph-star me-1"></i>Lvl ' . $level . '</span>';
+                return '<span class="status-badge-lg bg-primary"><i class="ph-bold ph-star me-1"></i>Lvl ' . $level . '</span>';
             })
             ->addColumn('status', function ($log) {
                 $status = $log->requisition->status ?? 'N/A';
@@ -1443,7 +1443,7 @@ class SampleController extends Controller
                 switch ($status) {
                     case 'Pending':
                     case 'Submitted':
-                        $badgeClass = 'bg-primary';
+                        $badgeClass = 'bg-warning';
                         $icon = 'ph-paper-plane-tilt';
                         break;
                     case 'In Progress':

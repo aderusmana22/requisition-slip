@@ -136,13 +136,6 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/complain-form/log', [ComplainController::class, 'log'])->name('complain-form.log');
     Route::get('/freegoods-form/log', [FreeGoodsController::class, 'log'])->name('freegoods-form.log');
-
-    // --- Requisition Path (Approvers) ---
-    Route::get('/requistion/path', [RequisitionPath::class, 'index'])->name('requistion.path');
-    Route::get('/getapproverlist', [RequisitionPath::class, 'approverList'])->name('get.approverlist');
-    Route::resource('/approvers', RequisitionPath::class);
-    Route::get('/categories', [RequisitionPath::class, 'categories'])->name('get.categories');
-    Route::get('/approver-name', [RequisitionPath::class, 'approverName'])->name('get.approver.name');
 });
 
 
@@ -156,6 +149,13 @@ Route::group(['middleware' => ['role:super-admin|admin']], function () {
     Route::resource('roles', RoleController::class);
     Route::get('roles/{roleId}/give-permissions', [RoleController::class, 'addPermissionToRole'])->name('roles.give-permissions');
     Route::post('roles/{roleId}/give-permissions', [RoleController::class, 'givePermissionToRole'])->name('roles.give-permission');
+
+    // --- Requisition Path (Approvers) ---
+    Route::get('/requistion/path', [RequisitionPath::class, 'index'])->name('requistion.path');
+    Route::get('/getapproverlist', [RequisitionPath::class, 'approverList'])->name('get.approverlist');
+    Route::resource('/approvers', RequisitionPath::class);
+    Route::get('/categories', [RequisitionPath::class, 'categories'])->name('get.categories');
+    Route::get('/approver-name', [RequisitionPath::class, 'approverName'])->name('get.approver.name');
 
 });
 
