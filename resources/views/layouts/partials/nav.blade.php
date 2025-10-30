@@ -71,8 +71,8 @@
                  <ul class="collapse" id="requisition-slip-approval">
                      <li><a href="{{ route('sample-form.approval') }}">Sample Approval</a></li>
                      <li><a href="{{ route('freegoods-form.approval') }}">Free Goods Approval</a></li>
-                     {{-- [UPDATE] Menambahkan route yang benar untuk Complain Approval --}}
-                     <li><a href="{{ route('complain-form.approval') }}">Complain Approval</a></li>
+                     {{-- [FIX] Mengarahkan ke nama route resource yang benar --}}
+                     <li><a href="{{ route('complain-form.approval.index') }}">Complain Approval</a></li>
                  </ul>
              </li>
              <li class="menu-title"><span>Requisition Slip Log</span></li>

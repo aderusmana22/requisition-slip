@@ -15,7 +15,7 @@ class ComplainApprovalController extends Controller
     //
     public function index()
     {
-        return view('page.approval_complain.index');
+        return view('page.complain.approvals.index');
     }
 
     public function getData($id = null)

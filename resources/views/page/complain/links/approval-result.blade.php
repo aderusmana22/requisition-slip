@@ -253,7 +253,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        let countdown = 10;
+        let countdown = 5;
         let countdownInterval;
         let autoCloseActive = true;
 

@@ -183,6 +183,9 @@
         }
 
         $(document).ready(function () {
+            let allSubCategories = [];
+            let existingPaths = [];
+
             // === Initialize Select2 ===
             $('#approvers, #category_id, #sub_category_id').select2({
                 theme: 'bootstrap-5',
@@ -201,44 +204,51 @@
             });
 
             // === Dynamic Sub-Category Handling ===
-            let allSubCategories = [];
             $('#category_id').on('change', function () {
                 let selectedCategory = $(this).val();
                 let subCategorySelect = $('#sub_category_id');
-                let hiddenSubCategoryInput = $('#hidden_sub_category_id');
+                let approversSelect = $('#approvers');
+                const isEditMode = $('#ApproverForm').attr('data-mode') === 'edit';
+
+                if (isEditMode) return;
+
+                // Reset dan disable pilihan selanjutnya
+                subCategorySelect.val(null).trigger('change');
+                approversSelect.val(null).trigger('change').prop('disabled', true);
 
                 if (selectedCategory === 'Complain' || selectedCategory === 'Free Goods') {
-                    // Nonaktifkan select yang terlihat agar tidak bisa diubah
                     subCategorySelect.prop('disabled', true);
+                    // Langsung aktifkan approver jika tidak ada sub-category
+                    approversSelect.prop('disabled', false);
+                } else if (selectedCategory === 'Sample') {
+                    subCategorySelect.prop('disabled', false); // Aktifkan sub-category
+                    
+                    const subCategoryData = allSubCategories.map(subCat => {
+                        const pathExists = existingPaths.some(path =>
+                            path.category === selectedCategory && path.sub_category === subCat.value
+                        );
+                        return { id: subCat.value, text: subCat.text, disabled: pathExists };
+                    });
+
+                    subCategorySelect.empty().select2({
+                        theme: 'bootstrap-5',
+                        dropdownParent: $('#ApproverModal'),
+                        placeholder: 'Select a sub-category',
+                        data: subCategoryData
+                    });
                     subCategorySelect.val(null).trigger('change');
-                    subCategorySelect.select2({
-                        theme: 'bootstrap-5',
-                        dropdownParent: $('#ApproverModal'),
-                        placeholder: 'This category has no sub-category'
-                    });
+                }
+            });
 
-                    // Aktifkan hidden input dan beri nilai kosong
-                    hiddenSubCategoryInput.prop('disabled', false);
-                    hiddenSubCategoryInput.val(null);
+            $('#sub_category_id').on('change', function() {
+                let selectedSubCategory = $(this).val();
+                let approversSelect = $('#approvers');
+                
+                // Aktifkan approver hanya jika sub-category sudah dipilih
+                if (selectedSubCategory) {
+                    approversSelect.prop('disabled', false);
                 } else {
-                    // Aktifkan kembali select yang terlihat
-                    subCategorySelect.prop('disabled', false);
-
-                    // Nonaktifkan hidden input agar nilainya tidak bentrok
-                    hiddenSubCategoryInput.prop('disabled', true);
-
-                    // Atur ulang Select2 dan isi kembali datanya
-                    subCategorySelect.select2({
-                        theme: 'bootstrap-5',
-                        dropdownParent: $('#ApproverModal'),
-                        placeholder: 'Select a sub-category'
-                    });
-
-                    subCategorySelect.empty();
-                    allSubCategories.forEach(subCat => {
-                        subCategorySelect.append(new Option(subCat.text, subCat.value));
-                    });
-                    subCategorySelect.trigger('change');
+                    approversSelect.val(null).trigger('change').prop('disabled', true);
                 }
             });
 
@@ -254,16 +264,21 @@
                         let subCategorySelect = $('#sub_category_id');
 
                         categorySelect.empty().append('<option selected disabled value="">Choose a category...</option>');
-                        subCategorySelect.empty().append('<option selected disabled value="">Choose a sub category...</option>');
+                        subCategorySelect.empty();
 
                         if (data.categories) {
                             data.categories.forEach(cat => categorySelect.append(new Option(cat, cat)));
                         }
+                        allSubCategories = [];
                         if (data.subCategories) {
-                            data.subCategories.forEach(subCat => { subCategorySelect.append(new Option(subCat, subCat));
+                            data.subCategories.forEach(subCat => {
                                 allSubCategories.push({ value: subCat, text: subCat });
                             });
                         }
+                        if (data.existingPaths) {
+                            existingPaths = data.existingPaths;
+                        }
+
                         categorySelect.trigger('change');
                     },
                     error: function () {
@@ -309,16 +324,31 @@
                     orderable: false,
                     searchable: false,
                     render: function (data, type, row, meta) {
-                        return meta.row + meta.settings._iDisplayStart + 1;
+                        return `<span class="badge bg-secondary rounded-pill">${meta.row + meta.settings._iDisplayStart + 1}</span>`;
                     }
                 }, {
                     data: 'category',
-                    name: 'category'
+                    name: 'category',
+                    render: function(data) {
+                        let iconClass = data === 'Complain' ? 'ph-warning' :
+                                        data === 'Sample' ? 'ph-package' :
+                                        data === 'Free Goods' ? 'ph-gift' : 'ph-question';
+                        return `<div class="d-flex align-items-center">
+                                    <i class="ph-duotone ${iconClass} me-2 text-primary" style="font-size:1.25rem;"></i>
+                                    <span class="fw-medium" style="font-size:1.05rem;">${data}</span>
+                               </div>`;
+                    }
                 }, {
                     data: 'sub_category',
                     name: 'sub_category',
                     render: function (data, type, row) {
-                        return data ? data  : `<span class="text-muted" style="font-style: italic; text-color: gray;"> Non Sub-category </span>`;
+                        return data ? 
+                            `<span class="badge bg-info-subtle text-info rounded-2 px-2 py-1" style="font-size:1rem;">
+                                <i class="ph-duotone ph-tag me-1" style="font-size:1.05rem;"></i>${data}
+                             </span>` : 
+                            `<span class="badge bg-light-subtle text-secondary rounded-2 px-2 py-1" style="font-size:1rem;">
+                                <i class="ph-duotone ph-minus-circle me-1" style="font-size:1.05rem;"></i>Non Sub-category
+                             </span>`;
                     }
                 }, {
                     data: 'sequence_approvers',
@@ -368,19 +398,15 @@
 
             // === Modal: Show for Create ===
             $('#btn-create-approver').on('click', function () {
-                $('#ApproverForm')[0].reset();
+                resetFormState(); // Gunakan helper function
                 $('#ApproverForm').attr('data-mode', 'create');
-                // IMPORTANT: Replace with your actual store route
                 $('#ApproverForm').attr('action', '{{ route("approvers.store") }}');
-                $('#ApproverForm').find('input[name="_method"]').remove();
 
-                $('.is-invalid').removeClass('is-invalid');
-                $('.invalid-feedback').text('');
-
+                // [MODIFIKASI] Atur state awal saat modal create dibuka
+                $('#sub_category_id').prop('disabled', true);
+                $('#approvers').prop('disabled', true);
+                
                 $('#ApproverModalLabel').html('<i class="ph-duotone ph-user-plus"></i> Create New Approver');
-                // Reset Select2 fields
-                $('#category_id, #sub_category_id, #approvers').val(null).trigger('change');
-
                 $('#ApproverModal').modal('show');
             });
 
@@ -388,11 +414,8 @@
             $('#approvertable').on('click', '.action-btn-hover', function (e) {
                 e.preventDefault();
 
-                // Check if this is edit button (btn-secondary) or delete button (btn-danger)
                 if ($(this).hasClass('btn-secondary')) {
-                    // Edit functionality
                     let approverId = $(this).data('id');
-                    // IMPORTANT: Replace with your actual edit/update routes
                     let editUrl = `/approvers/${approverId}/edit`;
                     let updateUrl = `/approvers/${approverId}`;
 
@@ -400,18 +423,18 @@
                         url: editUrl,
                         method: 'GET',
                         success: function (data) {
-                            $('#ApproverForm')[0].reset();
-                            $('.is-invalid').removeClass('is-invalid');
-                            $('.invalid-feedback').text('');
+                            resetFormState();
+                            
                             $('#ApproverForm').attr('data-mode', 'edit');
                             $('#ApproverForm').attr('action', updateUrl);
+                            
+                            $('#category_id').val(data.category_id).trigger('change').prop('disabled', true);
+                            $('#sub_category_id').val(data.sub_category_id).trigger('change').prop('disabled', true);
+                            
+                            // [MODIFIKASI] Pastikan field approver SELALU aktif saat mode edit
+                            $('#approvers').prop('disabled', false).val(data.approver_user_ids).trigger('change');
 
-                            // Populate form fields with data from server
-                            $('#category_id').val(data.category_id).trigger('change');
-                            $('#sub_category_id').val(data.sub_category_id).trigger('change');
-                            $('#approvers').val(data.approver_user_ids).trigger('change'); // Assuming the server returns an array of user IDs
-
-                            $('#ApproverModalLabel').html('<i class="ph-duotone ph-user-gear"></i> Edit Approver');
+                            $('#ApproverModalLabel').html('<i class="ph-duotone ph-user-gear"></i> Edit Approver Sequence');
                             $('#ApproverModal').modal('show');
                         },
                         error: function (xhr) {
@@ -449,6 +472,21 @@
                 }
             });
 
+            function resetFormState() {
+                const form = $('#ApproverForm');
+                form[0].reset();
+                form.find('.is-invalid').removeClass('is-invalid');
+                form.find('.invalid-feedback').text('');
+                
+                // Aktifkan kembali field yang mungkin di-disable saat edit
+                $('#category_id, #sub_category_id').prop('disabled', false);
+                
+                // Reset dan disable field secara berurutan
+                $('#category_id').val(null).trigger('change');
+                $('#sub_category_id').val(null).trigger('change').prop('disabled', true);
+                $('#approvers').val(null).trigger('change').prop('disabled', true);
+            }
+
             // === Form Submit Handler (Create & Edit) ===
             $('#ApproverForm').on('submit', function (e) {
                 e.preventDefault();
@@ -458,14 +496,15 @@
                 let form = $(this);
                 let url = form.attr('action');
                 let formData = new FormData(this);
+                let mode = form.attr('data-mode'); // Ambil mode form
 
-                if (form.attr('data-mode') === 'edit') {
+                if (mode === 'edit') {
                     formData.append('_method', 'PUT');
                 }
 
                 $.ajax({
                     url: url,
-                    method: 'POST', // Always POST for FormData w/ method spoofing
+                    method: 'POST',
                     data: formData,
                     processData: false,
                     contentType: false,
@@ -473,6 +512,17 @@
                         $('#ApproverModal').modal('hide');
                         table.ajax.reload(null, false);
                         successMessage(res.message || 'Operation successful!');
+
+                        if (mode === 'create') {
+                            const newCategory = formData.get('category_id');
+                            const newSubCategory = formData.get('sub_category_id');
+                            
+                            // Tambahkan path baru ke array di sisi klien
+                            existingPaths.push({
+                                category: newCategory,
+                                sub_category: newSubCategory
+                            });
+                        }
                     },
                     error: function (xhr) {
                         if (xhr.status === 422) { // Validation Error

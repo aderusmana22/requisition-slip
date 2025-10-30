@@ -131,8 +131,8 @@
                     Kabar baik! Sample Requisition Anda dengan nomor <strong>{{ $requisition->no_srs }}</strong> telah selesai diproses dan siap untuk langkah selanjutnya.
                 @elseif(isset($mail_type) && $mail_type === 'rejection_notification')
                     Mohon maaf, Sample Requisition Anda dengan nomor <strong>{{ $requisition->no_srs }}</strong> telah ditolak.
-                @elseif(isset($mail_type) && $mail_type === 'cancellation_notification')
-                    This is a notification to inform you that the sample requisition <strong>{{ $requisition->no_srs }}</strong> from <strong>{{ $requisition->requester->name ?? 'N/A' }}</strong> has been cancelled.
+                @elseif(isset($mail_type) && $mail_type === 'recallation_notification')
+                    This is a notification to inform you that the sample requisition <strong>{{ $requisition->no_srs }}</strong> from <strong>{{ $requisition->requester->name ?? 'N/A' }}</strong> has been **RECALLED** by the requester.
                     <br><br>
                     No further action is required from you for this request.
                 @else
@@ -210,8 +210,8 @@
                         <tr>
                             <td>
                                 <div class="info-item">
-                                    <div class="info-label">Reason for Replacement</div>
-                                    <div class="info-value">{{ $requisition->reason_for_replacement }}</div>
+                                    <div class="info-label">Objective</div>
+                                    <div class="info-value">{{ $requisition->objectives }}</div>
                                 </div>
                             </td>
                             <td>
@@ -291,9 +291,12 @@
                     <h3 class="action-title" style="color: #28a745;">✅ Process Completed</h3>
                     <p class="action-subtitle">Tidak ada tindakan lebih lanjut yang diperlukan dari Anda untuk email ini. Terima kasih.</p>
 
-                @elseif(isset($mail_type) && $mail_type === 'cancellation_notification')
-                    <h3 class="action-title" style="color: #6c757d;">🚫 Requisition Cancelled</h3>
-                    <p class="action-subtitle">This requisition has been cancelled by the requester. No action is required from you.</p>
+                @elseif(isset($mail_type) && $mail_type === 'recallation_notification')
+                    <h3 class="action-title" style="color: #6c757d;">🚫 Requisition Recalled</h3>
+                    <p class="action-subtitle">This requisition has been recalled by the requester <strong>{{ $approver_name ?? 'Requester' }}</strong>
+                    <br>
+                        Alasan: <i>"{{ $rejection_notes ?? 'Tidak ada alasan yang diberikan.' }}"</i>
+                    </p>
 
                 @elseif(isset($mail_type) && $mail_type === 'rejection_notification')
                     <h3 class="action-title" style="color: #dc3545;">❌ Requisition Rejected</h3>

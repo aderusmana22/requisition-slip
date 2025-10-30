@@ -59,6 +59,11 @@
                     ],
                     order: [[ 6, 'desc' ]] // Default sort by timestamp descending
                 });
+
+                $('#sampleTable_filter input').attr({
+                    'placeholder': '🔍 Search sample...',
+                    'class': 'form-control'
+                });
             });
         </script>
     @endpush

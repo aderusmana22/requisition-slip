@@ -24,14 +24,14 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Yajra\DataTables\Facades\DataTables;
-use App\Traits\ApprovalTrait;
+use App\Traits\traitRequisition;
 use Spatie\Activitylog\Models\Activity;
 use App\Notifications\RequisitionNotification;
 use Illuminate\Notifications\Notification;
 
 class SampleController extends Controller
 {
-    use ApprovalTrait;
+    use traitRequisition;
 
     //======================================================================
     // PUBLIC FUNCTIONS (Controller Endpoints & AJAX Handlers)
@@ -184,7 +184,7 @@ class SampleController extends Controller
                         $badgeClass = 'bg-danger';
                         $icon = 'ph-x-circle';
                         break;
-                    case 'Cancelled':
+                    case 'Recalled':
                         $badgeClass = 'bg-secondary';
                         $icon = 'ph-prohibit';
                         break;
@@ -195,24 +195,31 @@ class SampleController extends Controller
             ->addColumn('action', function ($row) {
                 $user = Auth::user();
                 $viewBtn = '<button type="button" class="btn btn-sm btn-info btn-view-requisition" data-id="' . $row->id . '" title="Show Detail"><i class="fa-solid fa-eye text-white"></i></button>';
-                $cancelBtn = '';
-                $printBtn = '<a href="' . route('sample.report', $row->id) . '" target="_blank" class="btn btn-sm btn-secondary" title="Print Report"><i class="ph-bold ph-printer text-white"></i></a>';
+                // $printBtn = '<a href="' . route('sample.report', $row->id) . '" target="_blank" class="btn btn-sm btn-secondary" title="Print Report"><i class="ph-bold ph-printer text-white"></i></a>';
 
-                if ($row->status === 'Pending') {
-                    $cancelBtn = '<button type="button" class="btn btn-sm btn-danger btn-cancel-requisition" data-id="' . $row->id . '" title="Cancel Requisition"><i class="ph-bold ph-x-circle text-white"></i></button>';
+                $actionButtons = '';
+
+                // [MODIFIKASI] Tampilkan tombol Recall HANYA jika status Pending (Tombol Edit Dihapus)
+                if ($row->status === 'Pending' && $row->requester_nik === $user->nik) {
+                    $actionButtons .= '<button type="button" class="btn btn-sm btn-danger btn-recall-modal" data-id="' . $row->id . '" data-srs="' . $row->no_srs . '" title="Recall Requisition"><i class="fa-solid fa-rotate-left text-white"></i></button>';
+                }
+
+                // Tampilkan tombol Duplicate HANYA jika status Recalled
+                if ($row->status === 'Recalled' && $row->requester_nik === $user->nik) {
+                    $actionButtons = '<button type="button" class="btn btn-sm btn-warning btn-duplicate-requisition" data-id="' . $row->id . '" title="Duplicate Requisition"><i class="ph-bold ph-copy-simple text-white"></i></button>';
                 }
 
                 $qaFillBtn = '';
                 $userHasQaRole = $user->hasRole('head-QA') || $user->hasRole('super-admin');
                 $requisitionIsWaitingForQa = $row->sub_category === 'Special Order' &&
-                                             $row->status === 'Approved' &&
-                                             $row->route_to === 'Waiting for QA/QM Form';
+                                            $row->status === 'Approved' &&
+                                            $row->route_to === 'Waiting for QA/QM Form';
 
                 if ($userHasQaRole && $requisitionIsWaitingForQa) {
                     $qaFillBtn = '<button type="button" class="btn btn-sm btn-warning btn-qa-form" data-id="' . $row->id . '" title="Complete QA Form"><i class="fa-solid fa-pencil text-white"></i></button>';
                 }
 
-                return "<div class='d-flex gap-1'>{$viewBtn} {$qaFillBtn} {$cancelBtn} {$printBtn}</div>";
+                return "<div class='d-flex gap-1'>{$viewBtn} {$qaFillBtn} {$actionButtons}</div>";
             })
             ->rawColumns(['no_srs', 'requester_info', 'sub_category', 'route_to', 'status', 'action'])
             ->make(true);
@@ -305,7 +312,7 @@ class SampleController extends Controller
                 $firstApprover->notify(new RequisitionNotification($notificationData, $user));
 
             } else {
-                $requisition->update(['status' => 'Completed', 'route_to' => 'Finished (No Path)']);
+                $requisition->update(['status' => 'Completed', 'route_to' => 'No Path']);
                 Log::warning("Tidak ada alur approval. Auto-complete Requisition ID {$requisition->id}.");
             }
 
@@ -403,46 +410,81 @@ class SampleController extends Controller
     /**
      * Membatalkan requisition.
      */
-    public function cancelRequisition($id)
+    public function recallRequisition(Request $request, $id)
     {
+        $request->validate([
+            'notes' => 'required|string|max:500', // Validasi notes untuk alasan recall
+        ]);
+
         DB::beginTransaction();
         try {
             $requisition = Requisition::findOrFail($id);
+            $requester = Auth::user();
 
-            if ($requisition->status !== 'Pending') {
-                return response()->json(['success' => false, 'message' => 'Cannot cancel. This requisition is already in progress.'], 403);
+            if ($requisition->status !== 'Pending' || $requisition->requester_nik !== $requester->nik) {
+                return response()->json(['success' => false, 'message' => 'Cannot recall. This requisition is already in progress or not your request.'], 403);
             }
 
-            // [PERBAIKAN] Cari approver yang sedang menunggu SEBELUM token dihapus
+            // Cari approver pertama yang sedang menunggu
             $pendingLog = ApprovalLog::where('requisition_id', $id)
                                     ->where('status', 'Pending')
-                                    ->with('approver') // Muat relasi approver
+                                    ->with('approver')
+                                    ->orderBy('level', 'asc')
                                     ->first();
 
+            $notes = $request->input('notes');
+
             // Lanjutkan proses pembatalan
-            $requisition->update(['status' => 'Cancelled', 'route_to' => 'Finished (Cancelled)']);
-            ApprovalLog::where('requisition_id', $id)->where('status', 'Pending')->update(['token' => null]);
+            $requisition->update([
+                'status' => 'Recalled',
+                'route_to' => '-',
+            ]);
 
-            activity()
-                ->causedBy(Auth::user())
-                ->performedOn($requisition)
-                ->useLog('sample - ' . strtolower($requisition->sub_category))
-                ->event('cancel')
-                ->withProperties(['srs_number' => $requisition->no_srs])
-                ->log('Cancelled the Sample Requisition.');
-
-            // [PERBAIKAN] Kirim email ke approver yang tadinya menunggu
-            if ($pendingLog && $pendingLog->approver) {
-                dispatch(new sendSample(
-                    $requisition,
-                    $pendingLog->approver, // Target email adalah approver
-                    null,
-                    ['mail_type' => 'cancellation_notification'] // Hanya kirim tipe email
-                ));
+            // Update ApprovalLog pertama untuk mencatat alasan recall
+            if ($pendingLog) {
+                $pendingLog->update([
+                    'notes' => "RECALLED by Requester: " . $notes,
+                    'status' => 'Recalled',
+                ]);
             }
 
+            // Revoke SEMUA tokens yang masih ada
+            ApprovalLog::where('requisition_id', $id)->whereNotNull('token')->update(['token' => null]);
+            Tracking::where('requisition_id', $id)->whereNotNull('token')->update(['token' => null]);
+
+
+            activity()
+                ->causedBy($requester)
+                ->performedOn($requisition)
+                ->useLog('sample - ' . strtolower($requisition->sub_category))
+                ->event('recall')
+                ->withProperties(['srs_number' => $requisition->no_srs, 'reason' => $notes]) // Catat alasan di log
+                ->log("Recalled the Sample Requisition. Reason: {$notes}");
+
+            // Kirim email dan notifikasi SISTEM ke approver yang tadinya menunggu
+            if ($pendingLog && $pendingLog->approver) {
+                $approver = $pendingLog->approver;
+
+                // 1. Kirim Email Notifikasi Recalled
+                dispatch(new sendSample(
+                    $requisition,
+                    $approver,
+                    null, // Tidak perlu token, karena notifikasi
+                    ['mail_type' => 'recallation_notification', 'rejection_notes' => $notes, 'approver_name' => $requester->name]
+                ));
+
+                // 2. Kirim Notifikasi Sistem ke Approver
+                $approver->notify(new RequisitionNotification([
+                    'requisition_id' => $requisition->id,
+                    'srs_number'     => $requisition->no_srs,
+                    'message'        => "Requisition #{$requisition->no_srs} telah di-RECALL oleh {$requester->name}. Alasan: {$notes}",
+                    'url'            => route('sample-form.approval'),
+                ], $requester));
+            }
+
+
             DB::commit();
-            return response()->json(['success' => true, 'message' => 'Requisition has been successfully cancelled.']);
+            return response()->json(['success' => true, 'message' => 'Requisition has been successfully Recalled with notes.']);
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error("Gagal membatalkan Requisition #{$id}: " . $e->getMessage());
@@ -620,7 +662,7 @@ class SampleController extends Controller
 
             // --- BLOK UNTUK AKSI: REJECT ---
             if ($action === 'reject') {
-                $requisition->update(['status' => 'Rejected', 'route_to' => 'Finished (Rejected)']);
+                $requisition->update(['status' => 'Rejected', 'route_to' => '-']);
                 $approvalLog->update([
                     'status'     => 'Rejected',
                     'notes'      => $notes ?? 'Rejected without reason',
@@ -907,7 +949,7 @@ class SampleController extends Controller
     private function notifyRequesterAsCompleted(Requisition $requisition)
     {
         $requisition->load('requester');
-        $requisition->update(['status' => 'Completed', 'route_to' => 'Finished']);
+        $requisition->update(['status' => 'Completed', 'route_to' => '-']);
 
         // Hapus sisa token yang mungkin masih aktif
         Tracking::where('requisition_id', $requisition->id)->whereNotNull('token')->update(['token' => null]);
@@ -1032,12 +1074,12 @@ class SampleController extends Controller
         }
 
         // 4. Kejadian: Pembatalan
-        if ($requisition->status === 'Cancelled') {
+        if ($requisition->status === 'Recalled') {
             $history[] = [
                 'actor' => $requisition->requester->name ?? 'Requester',
                 'avatar' => $requisition->requester->avatar ? asset($requisition->requester->avatar) : null, // [MODIFIKASI]
-                'action' => 'Cancelled Requisition',
-                'notes' => 'Requisition was cancelled by the requester.',
+                'action' => 'Recalled Requisition',
+                'notes' => 'Requisition was Recalled by the requester.',
                 'timestamp' => $requisition->updated_at,
             ];
         }
@@ -1066,6 +1108,10 @@ class SampleController extends Controller
             ->get()
             ->map(fn($item) => ['id' => $item->id, 'text' => "[{$item->item_master_code}] {$item->item_master_name}"])
             ->toArray();
+
+        if (request()->query('mode') === 'duplicate') {
+            $responseData['new_srs'] = $this->generateSrsNumber();
+        }
 
         return response()->json($responseData);
     }
@@ -1287,7 +1333,7 @@ class SampleController extends Controller
                         $badgeClass = 'bg-danger';
                         $icon = 'ph-thumbs-down';
                         break;
-                    case 'cancel':
+                    case 'recall':
                         $badgeClass = 'bg-danger';
                         $icon = 'ph-prohibit';
                         break;
@@ -1361,7 +1407,7 @@ class SampleController extends Controller
 
         return DataTables::of($query)
             ->addIndexColumn()
-            ->addColumn('no_srs', fn($log) => '<span class="srs-badge">' . e($log->requisition->no_srs ?? 'N/A') . '</span>')
+            ->addColumn('no_srs', fn($log) => '<span class="srs-badge"><i class="ph-bold ph-hash me-1"></i>' . e($log->requisition->no_srs ?? 'N/A') . '</span>')
             ->addColumn('requester', function($log) {
                 $requester = optional($log->requisition)->requester;
                 $avatar = $requester && $requester->avatar ? asset($requester->avatar) : asset('assets/images/logo/sinarmeadow.png');
@@ -1387,7 +1433,7 @@ class SampleController extends Controller
             })
             ->addColumn('level', function($log) { // Kolom ini dikembalikan
                 $level = $log->level;
-                return '<span class="status-badge-lg bg-dark"><i class="ph-bold ph-star me-1"></i>Lvl ' . $level . '</span>';
+                return '<span class="status-badge-lg bg-primary"><i class="ph-bold ph-star me-1"></i>Lvl ' . $level . '</span>';
             })
             ->addColumn('status', function ($log) {
                 $status = $log->requisition->status ?? 'N/A';
@@ -1397,7 +1443,7 @@ class SampleController extends Controller
                 switch ($status) {
                     case 'Pending':
                     case 'Submitted':
-                        $badgeClass = 'bg-primary';
+                        $badgeClass = 'bg-warning';
                         $icon = 'ph-paper-plane-tilt';
                         break;
                     case 'In Progress':
@@ -1413,7 +1459,7 @@ class SampleController extends Controller
                         $badgeClass = 'bg-danger';
                         $icon = 'ph-x-circle';
                         break;
-                    case 'Cancelled':
+                    case 'Recalled':
                         $badgeClass = 'bg-secondary';
                         $icon = 'ph-prohibit';
                         break;
@@ -1444,7 +1490,7 @@ class SampleController extends Controller
 
                 if ($logStatus === 'Pending') {
                     $requisitionStatus = $log->requisition->status;
-                    if (in_array($requisitionStatus, ['Rejected', 'Cancelled'])) {
+                    if (in_array($requisitionStatus, ['Rejected', 'Recalled'])) {
                         $icon = $requisitionStatus === 'Rejected' ? 'ph-x-circle text-danger' : 'ph-prohibit text-secondary';
                         $title = 'Requisition ' . $requisitionStatus;
                         return '<div class="action-icon-container" data-bs-toggle="tooltip" title="' . $title . '"><i class="ph-bold ' . $icon . ' fs-4"></i></div>';

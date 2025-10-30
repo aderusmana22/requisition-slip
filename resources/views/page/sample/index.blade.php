@@ -48,7 +48,7 @@
                         <option value="Approved">Approved</option>
                         <option value="Completed">Completed</option>
                         <option value="Rejected">Rejected</option>
-                        <option value="Cancelled">Cancelled</option>
+                        <option value="Recalled">Recalled</option>
                     </select>
 
                     <button id="resetFilters" class="btn btn-secondary border" data-bs-toggle="tooltip" title="Reset Filters">
@@ -755,6 +755,7 @@
         }
 
         $(document).ready(function () {
+            let isPopulatingForm = false;
             const userDepartmentName = @json($userDepartmentName ?? '');
             const userDepartmentCode = "{{ $userAccount ?? '' }}";
 
@@ -928,6 +929,7 @@
                 resetForm();
                 $('#sampleModalLabel').text('Create Sample Requisition');
                 $('#sampleForm').attr('data-mode', 'create').removeAttr('data-id');
+                $('#sampleForm').data('is-fresh-creation', true);
                 $('#no_srs').val(nextSrsNumber);
                 $('#sampleModal').modal('show');
             });
@@ -1023,6 +1025,8 @@
             });
 
             $('#product_select').on('change', function() {
+                if (isPopulatingForm) return; 
+
                 const selectedProductIds = $(this).val();
                 const isEditMode = $('#sampleForm').attr('data-mode') === 'edit';
                 const tbody = $('#requisition-items-tbody');
@@ -1041,7 +1045,7 @@
                             tbody.html('<tr id="no-items-row"><td colspan="6" class="text-center">No items have been added yet.</td></tr>');
                         }
                     }
-                    applyMaterialTypeFilter(); // Terapkan filter setelah perubahan
+                    applyMaterialTypeFilter(); 
                     return;
                 }
 
@@ -1053,7 +1057,7 @@
                         product_ids: selectedProductIds
                     },
                     success: function (itemDetails) {
-                        $('#no-items-row').remove(); // Hapus baris "No items" jika ada
+                        $('#no-items-row').remove(); 
 
                         const existingItemDetailIds = new Set();
                         tbody.find('tr[id^="item-row-detail-"]').each(function() {
@@ -1063,7 +1067,6 @@
 
                         itemDetails.forEach(detail => {
                             if (!existingItemDetailIds.has(String(detail.id))) {
-                                // Hanya tambahkan item yang belum ada di tabel
                                 const newRow = `
                                     <tr id="item-row-detail-${detail.id}" data-master-id="${detail.item_master_id}" data-material-type="${detail.material_type}">
                                         <td><span class="badge bg-info">${detail.material_type}</span></td>
@@ -1077,11 +1080,8 @@
                             }
                         });
 
-                        // Jika ini bukan mode edit, pastikan semua item ditampilkan
-                        if (!isEditMode) {
-                            $('.material-type-checkbox').prop('checked', false); // Bersihkan filter jika mode create
-                        }
-                        applyMaterialTypeFilter(); // Terapkan filter setelah menambahkan item
+                        // Langsung terapkan filter. Item baru akan tampil jika cocok dengan filter yang ada.
+                        applyMaterialTypeFilter(); 
                     },
                     error: function() {
                         errorMessage('Failed to load item details.');
@@ -1202,11 +1202,11 @@
                                 <hr>
                                 <b class="text-danger">Pastikan semua data yang Anda masukkan sudah benar.</b>`,
                             icon: 'question',
-                            showCancelButton: true,
+                            showCancelButton: true,      
                             confirmButtonColor: '#3085d6',
-                            cancelButtonColor: '#d33',
+                            cancelButtonColor: 'rgba(248, 0, 0, 1)',       
                             confirmButtonText: 'Ya, Data Sudah Benar!',
-                            cancelButtonText: 'Batal, Cek Lagi'
+                            cancelButtonText: 'Batal, Cek Lagi' 
                         }).then((result) => {
                             if (result.isConfirmed) {
                                 const mode = $(form).attr('data-mode');
@@ -1285,7 +1285,7 @@
                         }
 
                         // Logika untuk print_batch (jika ada) dipindahkan ke sini juga
-                        if (currentSubCategory === 'Packaging' && mode === 'create') {
+                        if (currentSubCategory === 'Packaging' && mode === 'create' && $(form).data('is-fresh-creation')) {
                             Swal.fire({
                                 title: 'Print Batch Number',
                                 text: "Apakah Anda ingin mencetak Batch Number untuk requisition ini?",
@@ -1306,9 +1306,9 @@
                                             icon: 'warning',
                                             title: 'Aksi Tidak Diizinkan',
                                             html: 'Departemen R&D tidak dapat melakukan print batch.<br><br><b>Lanjutkan proses tanpa print batch?</b>',
-                                            showCancelButton: true,
+                                            showRecallButton: true,
                                             confirmButtonText: 'Ya, Lanjutkan',
-                                            cancelButtonText: 'Batal',
+                                            recallButtonText: 'Batal',
                                             confirmButtonColor: '#28a745', // Tombol konfirmasi hijau
                                         }).then((warningResult) => {
                                             // Jika user setuju untuk melanjutkan tanpa print batch
@@ -1337,8 +1337,15 @@
                                 }
                             });
                         } else {
-                            // Jika bukan 'Packaging' atau mode 'edit', langsung submit
+                            // Jika bukan 'Packaging', atau mode 'edit', atau ini adalah DUPLICATE
                             let formData = new FormData(form);
+
+                            // [FIX DI SINI] Tambahkan nilai default untuk 'print_batch' jika ini adalah duplikasi 'Packaging'
+                            if (currentSubCategory === 'Packaging' && mode === 'create' && !$(form).data('is-fresh-creation')) {
+                                formData.append('print_batch', '0'); // Set default ke 'No, Don't Print'
+                            }
+
+                            // Langsung submit form
                             submitForm(formData);
                         }
                     }
@@ -1418,7 +1425,7 @@
             });
 
             function populateForm(data, mode = null) {
-                $('#sampleForm').attr('data-mode', 'edit').attr('data-id', data.id);
+                // $('#sampleForm').attr('data-mode', 'edit').attr('data-id', data.id);
 
                 if (mode === 'qa_mode') {
                     // Sembunyikan form utama & pilihan sub-kategori yang interaktif
@@ -1443,17 +1450,25 @@
                     $('#customer_id').prop('disabled', false);
                     $('#sub_category_hidden').removeAttr('name');
                     $('#customer_id_hidden').removeAttr('name');
+                    // if ($('#sampleForm').attr('data-mode') === 'edit') {
+                    //     $('#saveSampleBtn').text('Save Changes');
+                    // }
                     $('.sm-field').prop('disabled', false);
                     $('.qa-field').prop('disabled', true);
-                    $('#saveSampleBtn').text('Save Changes').prop('disabled', false);
+                    $('#saveSampleBtn').prop('disabled', false);
                 }
 
                 $('#sub_category').val(data.sub_category).trigger('change.select2');
                 $('#customer_id').val(data.customer_id).trigger('change.select2');
-                $('#no_srs').val(data.no_srs);
+                if ($('#sampleForm').attr('data-mode') === 'edit') {
+                    $('#no_srs').val(data.no_srs);
+                }
                 $('#account').val(data.account);
                 $('#cost_center').val(data.cost_center);
-                $('#request_date').val(data.request_date);
+                if (data.request_date) {
+                    const formattedDate = new Date(data.request_date).toISOString().split('T')[0];
+                    $('#request_date').val(formattedDate);
+                }
                 $('#objectives').val(data.objectives);
                 $('#estimated_potential').val(data.estimated_potential);
                 if (data.print_batch !== undefined) {
@@ -1530,14 +1545,17 @@
                                     ? `<td class="material-type-column"><span class="badge bg-info">${item.material_type}</span></td>`
                                     : '';
 
+                                const inputId = isPackaging ? item.item_detail_id : item.item_master_id;
+                                const inputName = `items[${id}]`;
+
                                 const newRow = `
-                                    <tr id="item-row-${type}-${id}" data-master-id="${masterId}">
+                                    <tr id="item-row-${type}-${id}" data-master-id="${masterId}" data-material-type="${item.material_type || ''}">
                                         ${materialTypeCell}
                                         <td>${itemCode}</td>
                                         <td>${itemName}</td>
                                         <td>${unit}</td>
-                                        <td><input type="number" class="form-control" name="items[${id}][quantity_required]" value="${item.quantity_required || ''}" min="1"></td>
-                                        <td><input type="number" class="form-control" name="items[${id}][quantity_issued]" value="${item.quantity_issued || ''}" min="0"></td>
+                                        <td><input type="number" class="form-control" name="${inputName}[quantity_required]" value="${item.quantity_required || ''}" min="1"></td>
+                                        <td><input type="number" class="form-control" name="${inputName}[quantity_issued]" value="${item.quantity_issued || ''}" min="0"></td>
                                     </tr>`;
                                 itemTbody.append(newRow);
                             }
@@ -1716,7 +1734,7 @@
                 if (['Submitted', 'Pending'].includes(status)) badgeClass = 'bg-primary';
                 else if (status.includes('Approved') || status === 'Completed') badgeClass = 'bg-success';
                 else if (['Rejected'].includes(status)) badgeClass = 'bg-danger';
-                else if (['Cancelled'].includes(status)) badgeClass = 'bg-secondary';
+                else if (['Recalled'].includes(status)) badgeClass = 'bg-secondary';
                 else if (status === 'Processing' || status === 'In Progress') badgeClass = 'bg-info';
                 $('#view_status_badge').html(`<span class="badge fs-6 rounded-pill ${badgeClass}">${status}</span>`);
 
@@ -1733,7 +1751,7 @@
                     });
                 }
 
-                if (data.status !== 'Rejected' && data.status !== 'Cancelled') {
+                if (data.status !== 'Rejected' && data.status !== 'Recalled') {
                     if (data.sub_category === 'Packaging') {
                         if (data.print_batch == 1) {
                             steps.push({ id: 'inward_initial', label: 'Inward (Initial)', icon: 'ph-package' });
@@ -1757,7 +1775,7 @@
                 trackerContainer.html(trackerHtml);
 
                 let lastCompletedIndex = -1;
-                const isRejected = ['Rejected', 'Cancelled'].includes(data.status);
+                const isRejected = ['Rejected', 'Recalled'].includes(data.status);
 
                 if (data.requester && data.created_at) {
                     const submittedStep = $(`.tracker-step[data-step-id="submitted"]`);
@@ -1813,10 +1831,10 @@
                     completedStep.find('.tracker-details').html(`<div class="tracker-user text-primary">${data.requester.name}</div><div class="tracker-date text-dark">${completionDate}</div>`);
                     $('.tracker-step').addClass('completed');
                     lastCompletedIndex = steps.length - 1;
-                } else if (data.status === 'Cancelled') {
+                } else if (data.status === 'Recalled') {
                     const submittedStep = $(`.tracker-step[data-step-id="submitted"]`);
-                    const cancelDate = new Date(data.updated_at).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).replace(',', '');
-                    submittedStep.addClass('rejected').find('.tracker-details').html(`<div class="tracker-user text-danger">${data.requester.name}</div><div class="tracker-date text-dark">${cancelDate}</div>`);
+                    const recallDate = new Date(data.updated_at).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).replace(',', '');
+                    submittedStep.addClass('rejected').find('.tracker-details').html(`<div class="tracker-user text-danger">${data.requester.name}</div><div class="tracker-date text-dark">${recallDate}</div>`);
                 } else if (!isRejected) {
                     const nextStepIndex = lastCompletedIndex + 1;
                     if (nextStepIndex < steps.length) {
@@ -1849,7 +1867,7 @@
                         const action = log.action.toLowerCase();
                         if (action.includes('approved not review')) { badgeClass = 'badge-approved'; avatarClass = 'avatar-approved'; }
                         else if (action.includes('approved with review')) { badgeClass = 'badge-review'; avatarClass = 'avatar-review'; }
-                        else if (action.includes('rejected') || action.includes('cancelled')) { badgeClass = 'badge-rejected'; avatarClass = 'avatar-rejected'; }
+                        else if (action.includes('rejected') || action.includes('recalled')) { badgeClass = 'badge-rejected'; avatarClass = 'avatar-rejected'; }
                         else if (action.includes('completed step')) { badgeClass = 'badge-process'; avatarClass = 'avatar-process'; }
                         let avatarHtml = '', actorInitial = log.actor ? log.actor.charAt(0).toUpperCase() : '?';
                         if (log.avatar) {
@@ -1891,41 +1909,131 @@
                 });
             });
 
-            $(document).on('click', '.btn-cancel-requisition', function () {
-                const requisitionId = $(this).data('id');
+            $(document).on('click', '.btn-duplicate-requisition', function() {
+                const id = $(this).data('id');
+                const button = $(this);
+                const originalIcon = button.html();
 
+                button.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>').prop('disabled', true);
+
+                $.ajax({
+                    // Tambahkan query parameter 'mode=duplicate' agar Controller menghasilkan SRS baru
+                    url: `/sample-form/${id}/edit?mode=duplicate`,
+                    type: 'GET',
+                    success: function(response) {
+                        resetForm();
+                        $('#sampleModalLabel').text('Duplicate Sample Requisition (New SRS)');
+                        $('#sampleForm').attr('data-mode', 'create').removeAttr('data-id'); // Penting: set mode ke 'create'
+                        $('#sampleForm').data('is-fresh-creation', false);
+                        // Set SRS Number baru yang di-generate dari Controller
+                        $('#no_srs').val(response.new_srs || nextSrsNumber);
+
+                        // Hapus SRS baru dari response agar tidak merusak populateForm
+                        delete response.new_srs;
+
+                        // Isi form dengan data lama, kecuali SRS
+                        isPopulatingForm = true;
+                        populateForm(response);
+                        isPopulatingForm = false;
+
+                        // Disable field yang tidak boleh diubah pada mode duplicate/edit awal
+                        $('.qa-fields-section').hide();
+                        $('.qa-field').prop('disabled', true);
+                        $('.sm-field').prop('disabled', false); // Marketing fields
+                        $('#sub_category').prop('disabled', false); // Memungkinkan ubah sub-category
+
+                        // Tombol harus kembali ke "Save" (store)
+                        $('#saveSampleBtn').text('Save as New Requisition').prop('disabled', false);
+
+                        // Show modal
+                        $('#sampleModal').modal('show');
+                    },
+                    error: function() {
+                        errorMessage('Failed to fetch data for duplication.');
+                    },
+                    complete: function() {
+                        button.html(originalIcon).prop('disabled', false);
+                    }
+                });
+            });
+
+            // [MODIFIKASI] Handler untuk menampilkan modal SweetAlert untuk Recall Notes
+            $(document).on('click', '.btn-recall-modal', function () {
+                const requisitionId = $(this).data('id');
+                const srsNumber = $(this).data('srs');
+                const button = $(this);
+                const originalHtml = button.html();
+
+                // --- LANGKAH 1: Meminta input alasan recall ---
                 Swal.fire({
-                    title: 'Are you sure?',
-                    text: "You are about to cancel this requisition. This action cannot be undone!",
+                    title: `Recall Requisition ${srsNumber}`,
+                    width: '600px',
+                    html: `
+                        <p class="text-danger fw-bold">Tindakan ini akan membatalkan requisition dan tidak dapat di-undo.</p>
+                        <textarea id="recallNotes" class="swal2-textarea" placeholder="Mohon berikan alasan untuk recall (wajib)..." style="width: 400px; height: 150px;"></textarea>
+                    `,
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonColor: '#d33',
-                    cancelButtonColor: '#3085d6',
-                    confirmButtonText: 'Yes, cancel it!',
-                    cancelButtonText: 'No, keep it'
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Lanjutkan',
+                    cancelButtonText: 'Batal',
+                    focusConfirm: false,
+                    preConfirm: () => {
+                        const notes = Swal.getPopup().querySelector('#recallNotes').value;
+                        if (!notes.trim()) {
+                            Swal.showValidationMessage('Alasan recall wajib diisi.');
+                            return false;
+                        }
+                        return notes;
+                    }
                 }).then((result) => {
-                    if (result.isConfirmed) {
-                        const button = $(this);
-                        const originalHtml = button.html();
-                        button.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>').prop('disabled', true);
+                    // Lanjutkan hanya jika langkah 1 di-konfirmasi dan ada isinya
+                    if (result.isConfirmed && result.value) {
+                        const notes = result.value;
 
-                        $.ajax({
-                            url: `/sample-form/${requisitionId}/cancel`, // URL ke route baru
-                            type: 'POST',
-                            data: {
-                                _token: "{{ csrf_token() }}"
-                            },
-                            success: function (response) {
-                                if (response.success) {
-                                    Swal.fire('Cancelled!', response.message, 'success');
-                                    table.ajax.reload(null, false); // Muat ulang tabel
-                                }
-                            },
-                            error: function (xhr) {
-                                Swal.fire('Failed!', xhr.responseJSON?.message || 'An error occurred.', 'error');
-                            },
-                            complete: function() {
-                                button.html(originalHtml).prop('disabled', false);
+                        // --- LANGKAH 2: Konfirmasi alasan yang sudah diinput ---
+                        Swal.fire({
+                            title: 'Konfirmasi Alasan Recall',
+                            html: `
+                                <p>Pastikan alasan yang Anda masukkan sudah benar:</p>
+                                <div style="background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 5px; padding: 10px; text-align: left; margin-top: 10px;">
+                                    <i>"${notes}"</i>
+                                </div>
+                            `,
+                            icon: 'question',
+                            showCancelButton: true,
+                            confirmButtonColor: '#28a745',
+                            cancelButtonColor: '#6c757d',
+                            confirmButtonText: 'Ya, Data Benar & Recall!',
+                            cancelButtonText: 'Batal'
+                        }).then((confirmResult) => {
+                            // Lanjutkan hanya jika langkah 2 di-konfirmasi
+                            if (confirmResult.isConfirmed) {
+                                // Panggil AJAX untuk proses recall
+                                $.ajax({
+                                    url: `/sample-form/${requisitionId}/recall`,
+                                    type: 'POST',
+                                    data: {
+                                        _token: "{{ csrf_token() }}",
+                                        notes: notes // Kirim notes yang sudah dikonfirmasi
+                                    },
+                                    beforeSend: function() {
+                                        button.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>').prop('disabled', true);
+                                    },
+                                    success: function (response) {
+                                        if (response.success) {
+                                            Swal.fire('Recalled!', response.message, 'success');
+                                            table.ajax.reload(null, false);
+                                        }
+                                    },
+                                    error: function (xhr) {
+                                        Swal.fire('Gagal!', xhr.responseJSON?.message || 'Terjadi kesalahan.', 'error');
+                                    },
+                                    complete: function() {
+                                        button.html(originalHtml).prop('disabled', false);
+                                    }
+                                });
                             }
                         });
                     }
