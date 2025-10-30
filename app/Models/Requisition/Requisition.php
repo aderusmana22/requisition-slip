@@ -3,13 +3,18 @@
 namespace App\Models\Requisition;
 
 use App\Models\Master\Customer;
-use App\Models\Master\ItemMaster;
 use App\Models\Master\Revision;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory; // [DITAMBAHKAN] Baris ini memperbaiki error
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Requisition extends Model
 {
+    // [DITAMBAHKAN] Trait yang menyebabkan error kini sudah diimpor dengan benar
+    use HasFactory, LogsActivity;
+
     protected $table = 'requisitions';
 
     protected $fillable = [
@@ -35,8 +40,15 @@ class Requisition extends Model
         'request_date' => 'date',
         'end_date' => 'date',
         'print_batch' => 'boolean',
-
     ];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['status', 'route_to', 'objectives', 'estimated_potential'])
+            ->setDescriptionForEvent(fn(string $eventName) => "Requisition has been {$eventName}")
+            ->useLogName('Requisition');
+    }
 
     // Relasi ke Customer
     public function customer()
@@ -70,6 +82,11 @@ class Requisition extends Model
      public function approvalLogs()
     {
         return $this->hasMany(ApprovalLog::class);
+    }
+
+    public function approvals()
+    {
+        return $this->hasMany(ApprovalLog::class, 'requisition_id', 'id')->orderBy('level', 'asc');
     }
 
     // Relasi ke Tracking (untuk status terakhir)

@@ -64,7 +64,6 @@ Route::get('/fg-approval/success', [FreeGoodsController::class, 'showSuccessPage
 
 Route::middleware('auth')->group(function () {
 
-    // [PERBAIKAN] MENAMBAHKAN BLOK INI UNTUK MENGATASI ERROR
     Route::prefix('dashboard/data')->name('dashboard.data.')->group(function () {
         Route::get('/metric-counts', [DashboardController::class, 'getMetricCounts'])->name('metric-counts');
         Route::get('/monthly-stats', [DashboardController::class, 'getMonthlyStats'])->name('monthly-stats');
@@ -110,20 +109,32 @@ Route::middleware('auth')->group(function () {
     Route::resource('complain-form', ComplainController::class);
 
     // --- FREE GOODS REQUISITION ROUTES ---
-    Route::get('/freegoods-requisition', [FreeGoodsController::class, 'index'])->name('freegoods.index');
-    Route::get('/freegoods-form/approval', [FreeGoodsController::class, 'approvalPage'])->name('freegoods-form.approval');
-    Route::resource('freegoods-form', FreeGoodsController::class)->parameters(['freegoods-form' => 'id']);
-    Route::get('/freegoods-data', [FreeGoodsController::class, 'getData'])->name('freegoods.data');
-    Route::get('/get-all-item-masters-fg', [FreeGoodsController::class, 'getAllItemMasters'])->name('freegoods.getAllItemMasters');
-    // Free Goods Approval & Reports
+    // PENTING: Rute spesifik ditempatkan DI ATAS rute resource
     Route::get('/freegoods-form/approval', [FreeGoodsController::class, 'approvalPage'])->name('freegoods-form.approval');
     Route::get('/freegoods-form/approval/data', [FreeGoodsController::class, 'getApprovalData'])->name('freegoods.approval.data');
-    Route::get('/freegoods-form/reports', [FreeGoodsController::class, 'reports'])->name('freegoods-form.reports');
+    Route::get('/freegoods-form/reports', [FreeGoodsController::class, 'reportIndex'])->name('freegoods-form.reports');
+    Route::get('/freegoods/reports/data', [FreeGoodsController::class, 'getReportData'])->name('freegoods.reports.data');
+    Route::post('/freegoods/reports/print-batch', [FreeGoodsController::class, 'printBatch'])->name('freegoods.report.print.batch');
+    
+    // [DITAMBAHKAN] Route untuk halaman Log dan pengambilan datanya
+    Route::get('/freegoods-form/log', [FreeGoodsController::class, 'log'])->name('freegoods-form.log');
+    Route::get('/freegoods-log/data', [FreeGoodsController::class, 'getLogData'])->name('freegoods.log.data');
 
+    // [DITAMBAHKAN] Route untuk aksi Recall
+    Route::post('/freegoods-form/{id}/recall', [FreeGoodsController::class, 'recallRequisition'])->name('freegoods.recall');
+    // [DITAMBAHKAN] Route untuk mendapatkan nomor FG baru untuk duplikasi
+    Route::get('/freegoods-form/get-next-number', [FreeGoodsController::class, 'getNextFgNumber'])->name('freegoods.get-next-number');
+    
+    // Rute resource
+    Route::resource('freegoods-form', FreeGoodsController::class)->parameters(['freegoods-form' => 'id']);
+    
+    // Rute pendukung lainnya
+    Route::get('/freegoods-requisition', [FreeGoodsController::class, 'index'])->name('freegoods.index');
+    Route::get('/freegoods-data', [FreeGoodsController::class, 'getData'])->name('freegoods.data');
+    Route::get('/get-all-item-masters-fg', [FreeGoodsController::class, 'getAllItemMasters'])->name('freegoods.getAllItemMasters');
 
-    // --- Reports, Approval, Log Routes (Bagian ini memiliki beberapa duplikasi) ---
+    // --- Reports, Approval, Log Routes (Bagian ini memiliki beberapa duplikasi dari atas) ---
     Route::get('/complain-form/reports', [ComplainController::class, 'reports'])->name('complain-form.reports');
-
     Route::get('/complain-form/approval', [ComplainController::class, 'approval'])->name('complain-form.approval');
 
     // route complain (Bagian ini juga banyak duplikasi dari atas)
@@ -135,11 +146,9 @@ Route::middleware('auth')->group(function () {
     // ===== terakhir dari complain ====
 
     Route::get('/sample-form/reports', [SampleController::class, 'reports'])->name('sample-form.reports');
-
     Route::get('/sample-form/log', [SampleController::class, 'log'])->name('sample-form.log');
-
     Route::get('/complain-form/log', [ComplainController::class, 'log'])->name('complain-form.log');
-    Route::get('/freegoods-form/log', [FreeGoodsController::class, 'log'])->name('freegoods-form.log');
+    // Route::get('/freegoods-form/log', [FreeGoodsController::class, 'log'])->name('freegoods-form.log'); // Baris ini duplikat, sudah dipindahkan ke atas
 
     // --- Requisition Path (Approvers) ---
     Route::get('/requistion/path', [RequisitionPath::class, 'index'])->name('requistion.path');
@@ -151,7 +160,6 @@ Route::middleware('auth')->group(function () {
 
 
 Route::group(['middleware' => ['role:super-admin|admin']], function () {
-
     Route::resource('users', UserController::class);
     Route::get('/users-data', [UserController::class, 'getData'])->name('users.data');
     Route::resource('departments', DepartmentController::class);
@@ -160,8 +168,6 @@ Route::group(['middleware' => ['role:super-admin|admin']], function () {
     Route::resource('roles', RoleController::class);
     Route::get('roles/{roleId}/give-permissions', [RoleController::class, 'addPermissionToRole'])->name('roles.give-permissions');
     Route::post('roles/{roleId}/give-permissions', [RoleController::class, 'givePermissionToRole'])->name('roles.give-permission');
-
 });
-
 
 require __DIR__ . '/auth.php';

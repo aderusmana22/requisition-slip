@@ -91,7 +91,8 @@
                             <option value="Approved">Approved</option>
                             <option value="Completed">Completed</option>
                             <option value="Rejected">Rejected</option>
-                            <option value="Cancelled">Cancelled</option>
+                            {{-- [UPDATE] Mengganti Cancelled menjadi Recalled --}}
+                            <option value="Recalled">Recalled</option>
                         </select>
                     </div>
                     <div class="col-md-auto">
@@ -799,7 +800,7 @@
                 let badgeClass = 'bg-secondary';
                 if (['Submitted', 'Pending'].includes(status)) badgeClass = 'bg-warning';
                 else if (status.includes('Approved') || status === 'Completed') badgeClass = 'bg-success';
-                else if (['Rejected', 'Cancelled'].includes(status)) badgeClass = 'bg-danger';
+                else if (['Rejected', 'Recalled'].includes(status)) badgeClass = 'bg-danger'; // [UPDATE] Diganti
                 else if (status === 'Processing' || status === 'In Progress') badgeClass = 'bg-info';
 
                 $('#view_status_badge').html(`<span class="badge status-badge-lg fs-6 rounded-pill ${badgeClass}">${status}</span>`);
@@ -830,7 +831,7 @@
                     });
                 });
                 
-                if (status !== 'Rejected' && status !== 'Cancelled') {
+                if (status !== 'Rejected' && status !== 'Recalled') { // [UPDATE] Diganti
                     steps.push({ id: 'outward', label: 'Outward WH Supervisor', icon: 'ph-package' });
                     steps.push({ id: 'completed', label: 'Completed', icon: 'ph-check-circle' });
                 }
@@ -847,7 +848,7 @@
                 trackerContainer.html(trackerHtml);
 
                 let lastCompletedIndex = -1;
-                let isRejected = ['Rejected', 'Cancelled'].includes(status);
+                let isRejected = ['Rejected', 'Recalled'].includes(status); // [UPDATE] Diganti
 
                 if (data.requester && data.created_at) {
                     const submittedStep = $(`.tracker-step[data-step-id="submitted"]`);
@@ -909,7 +910,6 @@
                         $(`.tracker-step`).eq(nextStepIndex).addClass('active');
                     }
                 }
-
             }
 
             $(document).on('click', '.btn-view-requisition', function() {
@@ -930,6 +930,80 @@
                         errorMessage('Failed to fetch requisition details.');
                     },
                     complete: function() {
+                        button.html(originalIcon).prop('disabled', false);
+                    }
+                });
+            });
+
+            // [DITAMBAHKAN] Event listener untuk tombol recall
+            $(document).on('click', '.btn-recall-requisition', function() {
+                const id = $(this).data('id');
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: "You want to recall this requisition?",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Yes, recall it!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: `/freegoods-form/${id}/recall`,
+                            type: 'POST',
+                            data: {
+                                _token: '{{ csrf_token() }}'
+                            },
+                            success: function(response) {
+                                if (response.success) {
+                                    successMessage(response.message);
+                                    table.ajax.reload(null, false);
+                                }
+                            },
+                            error: function(xhr) {
+                                errorMessage(xhr.responseJSON?.message || 'An error occurred.');
+                            }
+                        });
+                    }
+                });
+            });
+
+            // [DITAMBAHKAN] Event listener untuk tombol duplicate
+            $(document).on('click', '.btn-duplicate-requisition', function() {
+                const id = $(this).data('id');
+                const button = $(this);
+                const originalIcon = button.html();
+                button.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>').prop('disabled', true);
+
+                // Ambil data dari requisition yang ada
+                $.ajax({
+                    url: `/freegoods-form/${id}/edit`, // Menggunakan endpoint edit yang sudah ada
+                    type: 'GET',
+                    success: function(data) {
+                        resetForm(); 
+                        populateForm(data);
+
+                        // Ambil nomor FG baru
+                        $.ajax({
+                            url: "{{ route('freegoods.get-next-number') }}",
+                            type: 'GET',
+                            success: function(res) {
+                                $('#no_fg').val(res.next_fg_number);
+                                nextFgNumber = res.next_fg_number;
+                            },
+                            complete: function() {
+                                // Override beberapa field untuk mode duplikat/create
+                                $('#fgForm').attr('data-mode', 'create').removeAttr('data-id');
+                                $('#fgModalLabel').text('Duplicate Free Goods Requisition');
+                                $('#saveFgBtn').text('Save as New');
+                                
+                                button.html(originalIcon).prop('disabled', false);
+                                $('#fgModal').modal('show');
+                            }
+                        });
+                    },
+                    error: function() {
+                        errorMessage('Failed to fetch data for duplication.');
                         button.html(originalIcon).prop('disabled', false);
                     }
                 });

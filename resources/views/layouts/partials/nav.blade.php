@@ -71,10 +71,11 @@
                  <ul class="collapse" id="requisition-slip-approval">
                      <li><a href="{{ route('sample-form.approval') }}">Sample Approval</a></li>
                      <li><a href="{{ route('freegoods-form.approval') }}">Free Goods Approval</a></li>
-                     <li><a href="">Complain Approval</a></li>
+                     {{-- [UPDATE] Menambahkan route yang benar untuk Complain Approval --}}
+                     <li><a href="{{ route('complain-form.approval') }}">Complain Approval</a></li>
                  </ul>
              </li>
-             <li class="menu-title"><span>Requisition Slip Approval</span></li>
+             <li class="menu-title"><span>Requisition Slip Log</span></li>
              <li>
                  <a aria-expanded="false" class="" data-bs-toggle="collapse" href="#requisition-slip-log">
                      <i class="iconoir-stats-report"></i> Requisition Slip Log

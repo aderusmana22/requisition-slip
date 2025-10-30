@@ -150,15 +150,15 @@
                 const table = $('#fgApprovalTable').DataTable({
                     processing: true,
                     serverSide: true,
-                    ajax: "{{ route('freegoods.approval.data') }}", // Asumsi nama route
+                    ajax: "{{ route('freegoods.approval.data') }}",
                     columns: [
                         { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false, width: '20px', className: 'text-center' },
-                        { data: 'no_srs', name: 'requisitions.no_srs' }, // nama kolom di DB
+                        { data: 'no_srs', name: 'requisition.no_srs' },
                         { data: 'approver_nik', name: 'approver_nik' },
-                        { data: 'request_date', name: 'requisitions.request_date' },
-                        { data: 'sub_category', name: 'requisitions.sub_category', className: 'text-center' },
+                        { data: 'request_date', name: 'requisition.request_date' },
+                        { data: 'sub_category', name: 'requisition.sub_category', className: 'text-center' },
                         { data: 'level', name: 'level', className: 'text-center' },
-                        { data: 'status', name: 'requisitions.status', className: 'text-center' },
+                        { data: 'status', name: 'requisition.status', className: 'text-center' },
                         { data: 'action', name: 'action', orderable: false, searchable: false, className: 'text-center', width: '120px' }
                     ],
                 });
@@ -177,7 +177,6 @@
                     $('#view_objectives').text(data.objectives || '-');
                     $('#view_estimated_potential').text(data.estimated_potential || '-');
                     
-                    // [DIUBAH] Logika untuk mengisi item list
                     const viewItemTbody = $('#view-items-tbody-fg');
                     viewItemTbody.empty();
                     if (data.requisition_items && data.requisition_items.length > 0) {
@@ -192,18 +191,14 @@
                         viewItemTbody.html(`<tr><td colspan="5" class="text-center">No items have been added.</td></tr>`);
                     }
 
-                    // [DIHAPUS] Logika untuk special order & QA dihapus
-
-                    // [DIUBAH] Logika Status Badge (warna disesuaikan dengan CSS freegoods)
                     const status = data.status;
                     let badgeClass = 'bg-secondary';
-                    if (['Submitted', 'Pending'].includes(status)) badgeClass = 'bg-warning'; // Ini akan menjadi hitam di CSS
-                    else if (status.includes('Approved') || status === 'Completed') badgeClass = 'bg-success'; // Hijau
-                    else if (['Rejected', 'Cancelled'].includes(status)) badgeClass = 'bg-danger'; // Merah
-                    else if (status === 'Processing' || status === 'In Progress') badgeClass = 'bg-info'; // Hitam
+                    if (['Submitted', 'Pending'].includes(status)) badgeClass = 'bg-warning';
+                    else if (status.includes('Approved') || status === 'Completed') badgeClass = 'bg-success';
+                    else if (['Rejected', 'Cancelled', 'Recalled'].includes(status)) badgeClass = 'bg-danger';
+                    else if (status === 'Processing' || status === 'In Progress') badgeClass = 'bg-info';
                     $('#view_status_badge').html(`<span class="badge status-badge-lg fs-6 rounded-pill ${badgeClass}">${status}</span>`);
 
-                    // [DIUBAH] Logika untuk Tracker (disederhanakan untuk Free Goods)
                     const trackerContainer = $('#approval-tracker-container-fg');
                     trackerContainer.empty();
                     
@@ -222,9 +217,8 @@
                     trackerContainer.html(trackerHtml);
 
                     let lastCompletedIndex = -1;
-                    const isRejected = ['Rejected', 'Cancelled'].includes(data.status);
+                    const isRejected = ['Rejected', 'Cancelled', 'Recalled'].includes(data.status);
 
-                    // Submitted Step
                     if (data.requester && data.created_at) {
                         const submittedStep = $(`.tracker-step[data-step-id="submitted"]`);
                         const creationDate = new Date(data.created_at).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).replace(',', '');
@@ -232,7 +226,6 @@
                         lastCompletedIndex = 0;
                     }
                     
-                    // Approval Logs Steps
                     if (data.approval_logs) {
                         data.approval_logs.forEach(log => {
                             const stepElement = $(`.tracker-step[data-step-id="approver_${log.level}"]`);
@@ -249,32 +242,29 @@
                         });
                     }
                     
-                    // Warehouse & Completed Steps
                     if (data.status === 'Processing') {
                         const whStep = $(`.tracker-step[data-step-id="outward"]`);
                         whStep.addClass('active');
-                        lastCompletedIndex = 2; // Index sebelum WH
+                        lastCompletedIndex = 2;
                     } else if (data.status === 'Completed') {
                         $('.tracker-step').addClass('completed');
                         lastCompletedIndex = steps.length - 1;
                     }
 
-                    // Progress Bar
                     if (lastCompletedIndex >= 0 && !isRejected) {
                         let progressPercentage = (lastCompletedIndex / (steps.length - 1)) * 100;
                         $('#tracker-progress').css('width', progressPercentage + '%');
                     }
                     
-                    // History Log (logika ini generik, bisa dipakai ulang)
                     const historyContainer = $('#history-log-container');
                     historyContainer.empty();
                     if (data.history && data.history.length > 0) {
                         data.history.forEach(log => {
                             let badgeClass = 'badge-created', avatarClass = 'avatar-created';
                             const action = log.action.toLowerCase();
-                            if (action.includes('approved not review')) { badgeClass = 'badge-approved'; avatarClass = 'avatar-approved'; }
+                            if (action.includes('approved not review') || action.includes('approved')) { badgeClass = 'badge-approved'; avatarClass = 'avatar-approved'; }
                             else if (action.includes('approved with review')) { badgeClass = 'badge-review'; avatarClass = 'avatar-review'; }
-                            else if (action.includes('rejected') || action.includes('cancelled')) { badgeClass = 'badge-rejected'; avatarClass = 'avatar-rejected'; }
+                            else if (action.includes('rejected') || action.includes('cancelled') || action.includes('recalled')) { badgeClass = 'badge-rejected'; avatarClass = 'avatar-rejected'; }
                             else if (action.includes('completed step')) { badgeClass = 'badge-process'; avatarClass = 'avatar-process'; }
                             const logDate = new Date(log.timestamp).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
                             const notesHtml = log.notes ? `<div class="history-notes">"${log.notes}"</div>` : '';
@@ -286,30 +276,24 @@
                     }
                 }
 
-                //==================================================
-                // JAVASCRIPT AKSI APPROVAL (Disesuaikan untuk Free Goods)
-                //==================================================
-
-                // --- Quick Approve Handler ---
                 $('#fgApprovalTable').on('click', '.action-btn', function(e) {
                     e.preventDefault();
                     const button = $(this);
                     const token = button.data('token');
-                    const srs = button.data('srs'); // srs di sini mengacu pada FG No.
+                    const srs = button.data('srs');
 
                     Swal.fire({
                         title: 'Are you sure?',
                         text: `Approve FG No. ${srs} without review?`,
                         icon: 'question',
                         showCancelButton: true,
-                        confirmButtonColor: '#3A6B35', // Warna hijau
+                        confirmButtonColor: '#3A6B35',
                         cancelButtonColor: '#6c757d',
                         confirmButtonText: 'Yes, Approve!'
                     }).then((result) => {
                         if (result.isConfirmed) {
                             const originalIcon = button.html();
                             $.ajax({
-                                // [DIUBAH] Route disesuaikan
                                 url: "{{ route('fg.approval.process') }}",
                                 method: 'POST',
                                 data: {
@@ -321,8 +305,8 @@
                                 beforeSend: function() {
                                     button.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>').prop('disabled', true);
                                 },
-                                success: function() {
-                                    Swal.fire('Approved!', `Requisition ${srs} has been approved.`, 'success');
+                                success: function(res) {
+                                    Swal.fire('Approved!', res.message || `Requisition ${srs} has been approved.`, 'success');
                                     table.ajax.reload(null, false);
                                 },
                                 error: function(xhr) {
@@ -336,7 +320,6 @@
                     });
                 });
 
-                // --- Review & Reject Modal Handler ---
                 $(document).on('click', '.action-btn-modal', function() {
                     const button = $(this);
                     const requisitionId = button.data('id');
@@ -348,7 +331,6 @@
                     button.html('<span class="spinner-border spinner-border-sm"></span>').prop('disabled', true);
 
                     $.ajax({
-                        // [DIUBAH] Route untuk mengambil data detail
                         url: `/freegoods-form/${requisitionId}`,
                         type: 'GET',
                         success: function(response) {
@@ -368,7 +350,7 @@
                                 <form id="modalResponseForm" action="{{ route('fg.approval.process') }}" method="POST">
                                     @csrf
                                     <input type="hidden" name="token" value="${token}">
-                                    <input type="hidden" name="action" value="${action}">
+                                    <input type="hidden" name="action" value="${isReject ? 'reject' : 'review'}">
                                     <div class="card view-modal-card">
                                         <div class="card-header view-modal-card-header border-bottom">
                                             <h5 class="fw-bold text-warning mb-0"><i class="ph-bold ph-note-pencil me-2"></i>Notes</h5>
@@ -397,43 +379,6 @@
                     });
                 });
 
-                // --- Resend Email Handler ---
-                // [DIUBAH] Selector tabel disesuaikan
-                $('#fgApprovalTable').on('click', '.btn-resend-email', function() {
-                    const button = $(this);
-                    const token = button.data('token');
-                    Swal.fire({
-                        title: 'Resend Email?',
-                        text: "This will send the approval notification email again. Continue?",
-                        icon: 'question',
-                        showCancelButton: true,
-                        confirmButtonColor: '#ffc107',
-                        confirmButtonText: 'Yes, Resend!',
-                        cancelButtonText: 'Cancel'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            $.ajax({
-                                url: `/approvals/resend/${token}`, // Route ini bisa jadi generik
-                                method: 'POST',
-                                data: { _token: '{{ csrf_token() }}' },
-                                beforeSend: function() {
-                                    button.prop('disabled', true).find('i').addClass('spinner-border spinner-border-sm').removeClass('ph-paper-plane-tilt');
-                                },
-                                success: function(response) {
-                                    Swal.fire('Success!', response.message, 'success');
-                                },
-                                error: function(xhr) {
-                                    Swal.fire('Error!', xhr.responseJSON?.message || 'An error occurred.', 'error');
-                                },
-                                complete: function() {
-                                    button.prop('disabled', false).find('i').removeClass('spinner-border spinner-border-sm').addClass('ph-paper-plane-tilt');
-                                }
-                            });
-                        }
-                    });
-                });
-
-                // --- Modal Form Submit Handler (Generik, tidak perlu banyak diubah) ---
                 $(document).on('submit', '#modalResponseForm', function(e) {
                     e.preventDefault();
                     const form = $(this);
@@ -448,7 +393,7 @@
                     const action = form.find('input[name="action"]').val();
                     const isReject = action === 'reject';
                     const confirmTitle = isReject ? 'Confirm Rejection' : 'Confirm Approval';
-                    const confirmText = isReject ? 'Are you sure you want to REJECT this requisition?' : 'Are you sure you want to APPROVE this requisition?';
+                    const confirmText = isReject ? 'Are you sure you want to REJECT this requisition?' : 'Are you sure you want to APPROVE this requisition with your review?';
                     const confirmButtonText = isReject ? 'Yes, Reject It!' : 'Yes, Approve It!';
 
                     Swal.fire({
@@ -463,7 +408,7 @@
                         if (result.isConfirmed) {
                             $.ajax({
                                 url: form.attr('action'),
-                                method: form.attr('method'),
+                                method: 'POST',
                                 data: form.serialize(),
                                 beforeSend: function() {
                                     submitButton.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...').prop('disabled', true);
@@ -475,17 +420,12 @@
                                 },
                                 error: function(xhr) {
                                     Swal.fire('Error!', xhr.responseJSON?.message || 'An unknown error occurred.', 'error');
-                                },
-                                complete: function() {
-                                    const btnText = isReject ? 'Submit Reject' : 'Submit Approve with Review';
-                                    submitButton.html(btnText).prop('disabled', false);
                                 }
                             });
                         }
                     });
                 });
 
-                // --- Modal Cleanup (Generik) ---
                 $('#viewModal').on('hidden.bs.modal', function () {
                     $('#viewModalActionFormContainer').empty();
                     $('#viewModalFooter button[type="submit"]').remove();

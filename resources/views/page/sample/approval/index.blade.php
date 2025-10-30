@@ -50,7 +50,7 @@
                      <h5 class="modal-title text-white" id="viewModalLabel"><i class="ph-bold ph-file-text me-2"></i>Sample Requisition Details</h5>
                     <button type="button" class="btn-close btn-close-white m-0 fs-5" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body p-4" style="background-color: #f8f9fa;">
+                <div class="modal-body p-4" style="background-color: #f8faf8ff;">
                     {{-- CARD 1: MAIN REQUISITION DETAILS --}}
                     <div class="card view-modal-card">
                         <div class="card-header view-modal-card-header">
