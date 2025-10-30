@@ -671,7 +671,6 @@
         }
 
         $(document).ready(function() {
-            const printUrlTemplate = "{{ route('complain.report', ['id' => '__ID__']) }}";
             let customerSelect = $('#customer_id');
             let addressField = $('#customer_address');
             let productselect = $('#requisition_items');
@@ -771,7 +770,6 @@
                         orderable: false,
                         searchable: false,
                         render: function (data, type, row) {
-                            let printUrl = printUrlTemplate.replace('__ID__', data);
                             let status = (row.status || '').toLowerCase();
 
                             let deleteButton = (status === 'pending')
@@ -793,9 +791,6 @@
                                         data-tooltip="View Details">
                                         <i class="ph-duotone ph-eye"></i>
                                     </button>
-                                    <a href="${printUrl}" target="_blank" class="btn btn-secondary btn-sm action-btn-hover" data-tooltip="Print Complaint">
-                                    <i class="ph-duotone ph-printer"></i>
-                                    </a>
                                     ${deleteButton}
                                     ${paymentProofButton}
                                 </div>

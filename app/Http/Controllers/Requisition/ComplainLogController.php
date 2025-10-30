@@ -10,7 +10,7 @@ class ComplainLogController extends Controller
 {
     public function index()
     {
-        return view('page.requisition_log.index');
+        return view('page.complain.logs.index');
     }
 
     public function getData()

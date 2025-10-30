@@ -59,7 +59,7 @@
                  </a>
                  <ul class="collapse" id="requisition-slip-report">
                      <li><a href="{{ route('sample-form.reports') }}">Sample Reports</a></li>
-                     <li><a href="{{ route('complain-form.reports') }}">Complain Reports</a></li>
+                     <li><a href="{{ route('complain.reports') }}">Complain Reports</a></li>
                      <li><a href="{{ route('freegoods-form.reports') }}">Free Goods Reports</a></li>
                  </ul>
              </li>
@@ -70,8 +70,8 @@
                  </a>
                  <ul class="collapse" id="requisition-slip-approval">
                      <li><a href="{{ route('sample-form.approval') }}">Sample Approval</a></li>
+                     <li><a href="{{ route('complain.approval') }}">Complain Approval</a></li>
                      <li><a href="{{ route('freegoods-form.approval') }}">Free Goods Approval</a></li>
-                     <li><a href="">Complain Approval</a></li>
                  </ul>
              </li>
              <li class="menu-title"><span>Requisition Slip Approval</span></li>
@@ -81,7 +81,7 @@
                  </a>
                  <ul class="collapse" id="requisition-slip-log">
                      <li><a href="{{ route('sample-form.log') }}">Sample Log</a></li>
-                     <li><a href="{{ route('complain-form.log') }}">Complain Log</a></li>
+                     <li><a href="{{ route('complain.log') }}">Complain Log</a></li>
                      <li><a href="{{ route('freegoods-form.log') }}">Free Goods Log</a></li>
                  </ul>
              </li>
