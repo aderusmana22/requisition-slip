@@ -14,12 +14,6 @@
     border-top: 1px solid rgba(#2563eb);
 }
 
-.status-badge-lg {
-    font-size: 0.9em;
-    padding: 0.5em 0.7em;
-    font-weight: 700;
-}
-
 /* Gold Theme Accent Colors */
 .btn-light-danger {
     background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%) !important;
@@ -44,8 +38,6 @@
     background: linear-gradient(135deg, #0dcaf0 0%, #17a2b8 100%) !important;
     color: white !important;
 }
-
-/* File: sample-table-styles.css */
 
 /* [BARU] Tambahkan style untuk tombol Close */
 .btn-light-secondary {
@@ -92,7 +84,7 @@
 
 .select2-container--bootstrap-5 .select2-results__option--highlighted {
     background-color: rgba(#2563eb) !important;
-    color: white !important;
+    color: rgb(55, 112, 170) !important;
     padding: 4px 6px;
 }
 
@@ -821,6 +813,16 @@ body {
     box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
 }
 
+.route-to-badge-lg {
+    font-size: 0.8em !important;
+    padding: 4px 8px !important;
+    font-weight: 700 !important;
+    border-radius: 10px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    transition: all 0.3s ease !important;
+}
+
 /* Status Badge Enhanced */
 .status-badge-lg {
     font-size: 0.8em !important;
@@ -829,8 +831,6 @@ body {
     border-radius: 10px !important;
     text-transform: uppercase !important;
     letter-spacing: 0.5px !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
-    border: 2px solid transparent !important;
     transition: all 0.3s ease !important;
 }
 
@@ -839,19 +839,24 @@ body {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
 }
 
+.bg-primary.status-badge-lg {
+    background: linear-gradient(135deg, #ac83f9 0%, #6629d9 100%) !important;
+    border-color: rgba(23, 162, 184, 0.3) !important;
+}
+
 .bg-warning.status-badge-lg {
-    background: linear-gradient(135deg, #ff8a1c 0%, #e1931c 100%) !important;
+    background: linear-gradient(135deg, #ff7b00 0%, #e68a00 100%) !important;
     color: white !important;
     border-color: rgba(#2563eb) !important;
 }
 
 .bg-info.status-badge-lg {
-    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%) !important;
+    background: linear-gradient(135deg, #2bcee7 0%, #138496 100%) !important;
     border-color: rgba(23, 162, 184, 0.3) !important;
 }
 
 .bg-success.status-badge-lg {
-    background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%) !important;
+    background: linear-gradient(135deg, #31d657 0%, #1c8735 100%) !important;
     border-color: rgba(40, 167, 69, 0.3) !important;
 }
 
@@ -861,8 +866,18 @@ body {
 }
 
 .bg-secondary.status-badge-lg {
-    background: linear-gradient(135deg, #6c757d 0%, #545b62 100%) !important;
+    background: linear-gradient(135deg, #a4afb9 0%, #53616d 100%) !important;
     border-color: rgba(108, 117, 125, 0.3) !important;
+}
+
+.bg-dark.status-badge-lg {
+    background: linear-gradient(135deg, #3a444c 0%, rgb(98, 101, 107) 100%) !important;
+    border-color: rgba(108, 117, 125, 0.3) !important;
+}
+
+.bg-info.route-to-badge-lg {
+    background: linear-gradient(135deg, #e4b047 0%, #9d6400 100%) !important;
+    border-color: rgb(68, 90, 0) !important;
 }
 
 /* DataTable Info & Pagination */
@@ -1141,14 +1156,17 @@ STYLES MOVED FROM index.blade.php
 .action-icon-success { color: #28a745; }
 .action-icon-danger { color: #dc3545; }
 .action-icon-secondary { color: #6c757d; }
+
 .srs-badge {
     display: inline-block;
-    padding: 6px 12px;
+    padding: 4px 8px;
     font-weight: 700;
     color: #ffffff; /* Warna teks lebih gelap */
-    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%) !important;
-    border-radius: 8px;
-    font-size: 0.85em;
+    background: linear-gradient(135deg, #54a9ff 0%, #1f47cc 100%) !important;
+    border-radius: 10px;
+    font-size: 0.8em;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
 }
 
 /* Style untuk info Causer di halaman log */

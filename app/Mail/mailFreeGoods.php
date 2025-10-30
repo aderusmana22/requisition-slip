@@ -11,17 +11,14 @@ use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Mail\Mailables\Address;
 
-class mailSample extends Mailable
+class MailFreeGoods extends Mailable
 {
     use Queueable, SerializesModels;
 
     public $requisition;
-    public $recipient; // Menggunakan nama generik 'recipient'
+    public $recipient;
     public $data;
 
-    /**
-     * Kita tambahkan $mailType untuk menentukan jenis email
-     */
     public function __construct(Requisition $requisition, User $recipient, array $data = [])
     {
         $this->requisition = $requisition;
@@ -38,7 +35,7 @@ class mailSample extends Mailable
     public function envelope()
     {
         // Default subject
-        $subject = 'Request Requisition Sample: ' . $this->requisition->no_srs;
+        $subject = 'Request Requisition Free Goods: ' . $this->requisition->no_srs;
 
         // Mengubah subject berdasarkan tipe email dari data
         if (isset($this->data['mail_type'])) {
@@ -48,13 +45,13 @@ class mailSample extends Mailable
                     $subject = "{$step} for SRS: {$this->requisition->no_srs}";
                     break;
                 case 'completed_notification':
-                    $subject = 'Completed: Your Sample Requisition ' . $this->requisition->no_srs . ' is Ready';
+                    $subject = 'Completed: Your Free Goods Requisition ' . $this->requisition->no_srs . ' is Ready';
                     break;
                 case 'rejection_notification':
-                    $subject = 'Rejected: Your Sample Requisition ' . $this->requisition->no_srs;
+                    $subject = 'Rejected: Your Free Goods Requisition ' . $this->requisition->no_srs;
                     break;
-                case 'recallation_notification':
-                    $subject = 'Recalled: Sample Requisition ' . $this->requisition->no_srs . ' has been recalled';
+                case 'cancellation_notification':
+                    $subject = 'Cancelled: Free Goods Requisition ' . $this->requisition->no_srs . ' has been cancelled';
                     break;
             }
         }
@@ -65,20 +62,15 @@ class mailSample extends Mailable
         );
     }
 
-    /**
-     * Get the message content definition.
-     */
     public function content()
     {
         return new Content(
-            view: 'mail.mail-sample',
+            view: 'mail.mail-freegoods',
+            // Kita tetap meneruskan $data agar variabel lain seperti URL tetap ada
             with: $this->data
         );
     }
 
-    /**
-     * Get the attachments for the message.
-     */
     public function attachments()
     {
         return [];

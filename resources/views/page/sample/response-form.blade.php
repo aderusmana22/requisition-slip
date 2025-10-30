@@ -534,11 +534,11 @@
                         title: 'Konfirmasi Pengiriman',
                         text: "Apakah Anda yakin ingin melanjutkan?",
                         icon: 'question',
-                        showCancelButton: true,
+                        showRecallButton: true,
                         confirmButtonColor: '#3085d6',
-                        cancelButtonColor: '#d33',
+                        recallButtonColor: '#d33',
                         confirmButtonText: 'Ya, Lanjutkan!',
-                        cancelButtonText: 'Batal'
+                        recallButtonText: 'Batal'
                     }).then((result) => {
                         if (result.isConfirmed) {
                             // Jika dikonfirmasi, tampilkan overlay dan submit form

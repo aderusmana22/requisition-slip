@@ -35,7 +35,7 @@
             <div class="filter-container">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <div class="d-flex align-items-center gap-2">
-                        <label class="mb-0 text-muted flex-shrink-0">Filter by date:</label>
+                        <label class="text-muted flex-shrink-0 fw-bold">Filter by date:</label>
 
                         <select id="dateFilter" class="form-select select2-styled" style="width:200px;">
                             <option value="all">All time</option>
@@ -47,7 +47,9 @@
                         <input type="hidden" id="startDate" name="startDate" />
                         <input type="hidden" id="endDate" name="endDate" />
 
-                        <button type="button" id="resetDateFilter" class="btn btn-sm btn-secondary border">Reset</button>
+                        <button id="resetDateFilter" class="btn btn-secondary border" data-bs-toggle="tooltip" title="Reset Filters">
+                            <i class="ph-bold ph-arrow-counter-clockwise"></i>
+                        </button>
                     </div>
                     <div>
                         <button class="btn btn-success" type="button" onclick="printSelectedReports()" id="printSelectedBtn" disabled>
@@ -61,14 +63,12 @@
             <!-- Enhanced Table Container -->
             <div class="main-table-container">
                 <!-- Table Header -->
-                <div class="table-header-enhanced">
-                    <div class="table-header-enhanced d-flex justify-content-between align-items-center">
-                        <div>
-                            <h4 class="table-title"><i class="ph-duotone ph-list-checks"></i> Requisition List for Printing</h4>
-                            <p class="table-subtitle">Select requisitions to print in a batch.</p>
-                        </div>
-
-                    </div>
+                 <div class="table-header-enhanced">
+                    <h4 class="table-title">
+                        <i class="ph-duotone ph-list-checks"></i></i>
+                        Requisition List for Printing
+                    </h4>
+                    <p class="table-subtitle">Select requisitions to print in a batch.</p>
                 </div>
 
                 <!-- Table Content -->
@@ -365,11 +365,11 @@
                 title: 'Print Selected Reports',
                 text: `Are you sure you want to print ${selectedIds.length} selected report(s)?`,
                 icon: 'question',
-                showCancelButton: true,
+                showRecallButton: true,
                 confirmButtonColor: '#28a745',
-                cancelButtonColor: '#dc3545',
+                recallButtonColor: '#dc3545',
                 confirmButtonText: 'Yes, Print!',
-                cancelButtonText: 'Cancel'
+                recallButtonText: 'Recall'
             }).then((result) => {
                 if (result.isConfirmed) {
                     // Show loading
@@ -451,16 +451,10 @@
 
         $(document).ready(function () {
             $('#dateFilter').select2({
-                theme: 'bootstrap-5',
-                minimumResultsForSearch: Infinity,
-                width: 'style'
+                width: 'style',
+                placeholder: 'Select Filter',
+                allowClear: true,
             });
-
-            $('#dateFilter').select2({
-                    width: 'style',
-                    placeholder: 'Select Filter',
-                    allowClear: true,
-                });
 
             // Insert date inputs inside Select2 dropdown when 'custom' is selected
             function renderCustomDateControls() {
@@ -679,11 +673,10 @@
                                     icon = 'ph-x-circle';
                                     label = 'Rejected';
                                     break;
-                                case 'cancelled':
-                                case 'canceled':
+                                case 'Recalled':
                                     badgeClass = 'bg-secondary';
                                     icon = 'ph-ban';
-                                    label = 'Cancelled';
+                                    label = 'Recalled';
                                     break;
                                 default:
                                     badgeClass = 'bg-secondary';
@@ -845,7 +838,7 @@
                 let badgeClass = 'bg-secondary';
                 if (['Submitted', 'Pending'].includes(status)) badgeClass = 'bg-primary';
                 else if (status.includes('Approved') || status === 'Completed') badgeClass = 'bg-success';
-                else if (['Rejected', 'Cancelled'].includes(status)) badgeClass = 'bg-danger';
+                else if (['Rejected', 'Recalled'].includes(status)) badgeClass = 'bg-danger';
                 else if (status === 'Processing' || status === 'In Progress') badgeClass = 'bg-warning text-dark';
                 $('#view_status_badge').html(`<span class="badge fs-6 rounded-pill ${badgeClass}">${status}</span>`);
 
@@ -862,7 +855,7 @@
                     });
                 }
 
-                if (data.status !== 'Rejected' && data.status !== 'Cancelled') {
+                if (data.status !== 'Rejected' && data.status !== 'Recalled') {
                     if (data.sub_category === 'Packaging') {
                         if (data.print_batch == 1) {
                             steps.push({ id: 'inward_initial', label: 'Inward (Initial)', icon: 'ph-package' });
@@ -886,7 +879,7 @@
                 trackerContainer.html(trackerHtml);
 
                 let lastCompletedIndex = -1;
-                const isRejected = ['Rejected', 'Cancelled'].includes(data.status);
+                const isRejected = ['Rejected', 'Recalled'].includes(data.status);
 
                 if (data.requester && data.created_at) {
                     const submittedStep = $(`.tracker-step[data-step-id="submitted"]`);
@@ -942,10 +935,10 @@
                     completedStep.find('.tracker-details').html(`<div class="tracker-user text-primary">${data.requester.name}</div><div class="tracker-date text-dark">${completionDate}</div>`);
                     $('.tracker-step').addClass('completed');
                     lastCompletedIndex = steps.length - 1;
-                } else if (data.status === 'Cancelled') {
+                } else if (data.status === 'Recalled') {
                     const submittedStep = $(`.tracker-step[data-step-id="submitted"]`);
-                    const cancelDate = new Date(data.updated_at).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).replace(',', '');
-                    submittedStep.addClass('rejected').find('.tracker-details').html(`<div class="tracker-user text-danger">${data.requester.name}</div><div class="tracker-date text-dark">${cancelDate}</div>`);
+                    const recallDate = new Date(data.updated_at).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).replace(',', '');
+                    submittedStep.addClass('rejected').find('.tracker-details').html(`<div class="tracker-user text-danger">${data.requester.name}</div><div class="tracker-date text-dark">${recallDate}</div>`);
                 } else if (!isRejected) {
                     const nextStepIndex = lastCompletedIndex + 1;
                     if (nextStepIndex < steps.length) {
@@ -978,7 +971,7 @@
                         const action = log.action.toLowerCase();
                         if (action.includes('approved not review')) { badgeClass = 'badge-approved'; avatarClass = 'avatar-approved'; }
                         else if (action.includes('approved with review')) { badgeClass = 'badge-review'; avatarClass = 'avatar-review'; }
-                        else if (action.includes('rejected') || action.includes('cancelled')) { badgeClass = 'badge-rejected'; avatarClass = 'avatar-rejected'; }
+                        else if (action.includes('rejected') || action.includes('Recalled')) { badgeClass = 'badge-rejected'; avatarClass = 'avatar-rejected'; }
                         else if (action.includes('completed step')) { badgeClass = 'badge-process'; avatarClass = 'avatar-process'; }
                         let avatarHtml = '', actorInitial = log.actor ? log.actor.charAt(0).toUpperCase() : '?';
                         if (log.avatar) {
@@ -1145,7 +1138,7 @@
 
             // Enhanced search placeholder
             $('#sampleTable_filter input').attr({
-                'placeholder': 'Search approval reports...',
+                'placeholder': '🔍 Search sample...',
                 'class': 'form-control'
             });
 

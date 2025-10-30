@@ -5,6 +5,8 @@ namespace App\Traits;
 use App\Models\Requisition\ApprovalLog;
 use App\Models\Requisition\ApprovalPath;
 use App\Models\User;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
 
 trait ApprovalTrait
 {
@@ -14,78 +16,64 @@ trait ApprovalTrait
      * @param  \App\Models\User  $requester
      * @param  int|string  $requisitionId
      * @param  string  $category
-     * @param  string|null  $subCategory
+     * @param  string|null  $pathSubCategory  // Nilai ini datang dari Controller (misal: 'SNM_PATH')
      * @return \Illuminate\Support\Collection
      */
-    public function generateApprovalLogs($requester, $requisitionId, $category, $subCategory = null)
+    public function generateApprovalLogs($requester, $requisitionId, $category, $pathSubCategory = null) 
     {
         $query = ApprovalPath::where('category', $category);
 
-        if (!empty($subCategory)) {
-            $query->where('sub_category', $subCategory);
+        // KRITIS: Trait mencari path yang spesifik ('SNM_PATH' atau 'NON_SNM_PATH')
+        if (!empty($pathSubCategory)) {
+            $query->where('sub_category', $pathSubCategory);
         }
 
-        $approvalPath = $query->firstOrFail();
-
-        $sequence = collect($approvalPath->sequence_approvers);
+        $approvalPath = $query->firstOrFail(); 
+        
+        $targetSequence = collect($approvalPath->sequence_approvers); 
         $logs = collect();
 
-        // Khusus untuk category complain, cek apakah ada head qa di sequence
-        // if (strtolower($category) === 'complain') {
-        //     $headQaExists = $sequence->contains(function ($role) {
-        //         return strtolower($role) === 'head-QA';
-        //     });
+        foreach ($targetSequence as $approverStep) {
+            $level = $approverStep['level'] ?? 10; 
+            $approverType = strtolower($approverStep['type'] ?? '');
+            $approverValue = $approverStep['value'] ?? null;
+            $approverNik = null;
 
-        //     // Jika ada head qa, pastikan head qa di urutan pertama
-        //     if ($headQaExists) {
-        //         // Remove head qa dari sequence original dan buat sequence baru
-        //         $otherRoles = $sequence->filter(function ($role) {
-        //             return strtolower($role) !== 'head-QA';
-        //         });
+            if (empty($approverType) || ($approverType !== 'atasan' && empty($approverValue))) {
+                Log::warning("Skipping invalid approver step in sequence for requisition ID: {$requisitionId}. Data: " . json_encode($approverStep));
+                continue;
+            }
 
-        //         // Gabungkan dengan head qa di urutan pertama
-        //         $sequence = collect(['head-QA'])->merge($otherRoles);
-        //     }
-        // }
-
-        foreach ($sequence as $index => $role) {
-            $level = $index + 1;
-            if (strtolower($role) === 'atasan') {
-                // Ambil NIK atasan requester
-                if ($requester->atasan_nik) {
-                    $logs->push([
-                        'requisition_id' => $requisitionId,
-                        'approver_nik'   => $requester->atasan_nik,
-                        'status'         => 'Pending',
-                        'level'          => $level,
-                        'token'          => bin2hex(random_bytes(16)),
-                        'notes'          => null,
-                        'created_at'     => now(),
-                        'updated_at'     => now(),
-                    ]);
+            if ($approverType === 'atasan') {
+                $approverNik = $requester->atasan_nik;
+            } elseif ($approverType === 'nik') {
+                 $approverNik = $approverValue;
+            } elseif ($approverType === 'role') {
+                $user = User::whereHas('roles', function ($q) use ($approverValue) {
+                    $q->where('name', $approverValue);
+                })->first(); 
+                
+                if ($user) {
+                    $approverNik = $user->nik;
                 }
+            }
+
+            if ($approverNik) {
+                 $logs->push([
+                    'requisition_id' => $requisitionId,
+                    'approver_nik'   => $approverNik,
+                    'status'         => 'Pending',
+                    'level'          => $level,
+                    'token'          => bin2hex(random_bytes(16)), 
+                    'notes'          => null,
+                    'created_at'     => now(),
+                    'updated_at'     => now(),
+                ]);
             } else {
-                // Ambil semua user dengan role ini
-                $users = User::whereHas('roles', function ($q) use ($role) {
-                    $q->where('name', $role);
-                })->first();
-
-                if ($users) {
-                    $logs->push([
-                        'requisition_id' => $requisitionId,
-                        'approver_nik'   => $users->nik,
-                        'status'         => 'Pending',
-                        'level'          => $level,
-                        'token'          => bin2hex(random_bytes(16)),
-                        'notes'          => null,
-                        'created_at'     => now(),
-                        'updated_at'     => now(),
-                    ]);
-                }
+                 Log::warning("Approver not found for step '{$approverType}:{$approverValue}' in Requisition ID {$requisitionId}.");
             }
         }
 
-        // Bulk insert biar lebih cepat
         if ($logs->isNotEmpty()) {
             ApprovalLog::insert($logs->toArray());
         }
