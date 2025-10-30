@@ -568,9 +568,15 @@
                     const notesField = $('#modal_notes');
                     const submitButton = $('#viewModalFooter button[type="submit"]');
 
-                    if (!notesField.val().trim()) {
-                        Swal.fire('Warning', 'Notes are required for this action.', 'warning');
-                        return;
+                    const notesValue = notesField.val();
+                    // Regex ini akan memeriksa apakah ada setidaknya SATU huruf (a-z, A-Z) di dalam string.
+                    if (!/[a-zA-Z]/.test(notesValue)) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Catatan Tidak Valid',
+                            text: 'Mohon berikan alasan yang jelas. Catatan tidak boleh hanya berisi spasi, angka, atau simbol.'
+                        });
+                        return; // Hentikan proses jika tidak valid
                     }
 
                     const action = form.find('input[name="action"]').val();

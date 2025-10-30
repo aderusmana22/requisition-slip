@@ -30,7 +30,8 @@
                                 <th>Log Name</th>
                                 <th>Description</th>
                                 <th>Event</th>
-                                <th>Subject (No SRS)</th>
+                                <th>Subject</th>
+                                <th>Subject ID</th>
                                 <th>Causer</th>
                                 <th>Timestamp</th>
                             </tr>
@@ -49,15 +50,16 @@
                     serverSide: true,
                     ajax: "{{ route('sample.log.data') }}",
                     columns: [
-                        { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false, width: '20px', className: 'text-center' },
-                        { data: 'log_name', name: 'log_name' },
-                        { data: 'description', name: 'description' },
-                        { data: 'event', name: 'event', className: 'text-center' },
-                        { data: 'subject_info', name: 'subject.no_srs', orderable: false },
-                        { data: 'causer_info', name: 'causer.name', orderable: false },
-                        { data: 'created_at', name: 'created_at' }
+                        { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false, width: '5%', className: 'text-center' },
+                        { data: 'log_name', name: 'log_name', width: '15%' }, // <-- LEBAR DITAMBAHKAN
+                        { data: 'description', name: 'description', width: '28%' },
+                        { data: 'event', name: 'event', width: '10%', className: 'text-center' },
+                        { data: 'subject_info', name: 'subject.no_srs', width: '12%', orderable: false },
+                        { data: 'subject_id', name: 'subject_id', width: '5%', className: 'text-center', orderable: false },
+                        { data: 'causer_info', name: 'causer.name', width: '10%', orderable: false },
+                        { data: 'created_at', name: 'created_at', width: '10%' }
                     ],
-                    order: [[ 6, 'desc' ]] // Default sort by timestamp descending
+                    order: [[ 7, 'desc' ]] // Default sort by timestamp descending (indeks kolom ke-7)
                 });
 
                 $('#sampleTable_filter input').attr({
