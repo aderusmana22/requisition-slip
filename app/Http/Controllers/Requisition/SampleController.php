@@ -318,13 +318,20 @@ class SampleController extends Controller
 
             DB::commit();
 
+            $logMessage = "Membuat Sample Requisition baru #{$requisition->no_srs} untuk customer {$requisition->customer->name}.";
+            $properties = [
+                'srs_number' => $requisition->no_srs,
+                'customer' => $requisition->customer->name,
+                'sub_category' => $requisition->sub_category
+            ];
+
             activity()
                 ->causedBy($user)
                 ->performedOn($requisition)
                 ->useLog('sample - ' . strtolower($requisition->sub_category))
                 ->event('create')
-                ->withProperties(['srs_number' => $requisition->no_srs])
-                ->log('Created a new Sample Requisition.');
+                ->withProperties($properties)
+                ->log($logMessage);
 
             return response()->json([
                 'success' => true,
@@ -452,14 +459,19 @@ class SampleController extends Controller
             ApprovalLog::where('requisition_id', $id)->whereNotNull('token')->update(['token' => null]);
             Tracking::where('requisition_id', $id)->whereNotNull('token')->update(['token' => null]);
 
+            $logMessage = "Menarik kembali (recall) Sample Requisition #{$requisition->no_srs}.";
+            $properties = [
+                'srs_number' => $requisition->no_srs,
+                'reason' => $notes
+            ];
 
             activity()
                 ->causedBy($requester)
                 ->performedOn($requisition)
                 ->useLog('sample - ' . strtolower($requisition->sub_category))
                 ->event('recall')
-                ->withProperties(['srs_number' => $requisition->no_srs, 'reason' => $notes]) // Catat alasan di log
-                ->log("Recalled the Sample Requisition. Reason: {$notes}");
+                ->withProperties($properties)
+                ->log($logMessage . " Alasan: \"{$notes}\"");
 
             // Kirim email dan notifikasi SISTEM ke approver yang tadinya menunggu
             if ($pendingLog && $pendingLog->approver) {
@@ -653,109 +665,62 @@ class SampleController extends Controller
     {
         DB::beginTransaction();
         try {
+            $currentLevel = $approvalLog->level;
+            if ($currentLevel > 1) {
+                $previousLevelLog = ApprovalLog::where('requisition_id', $approvalLog->requisition_id)
+                                                ->where('level', $currentLevel - 1)
+                                                ->first();
+
+                // Jika log level sebelumnya tidak ada ATAU statusnya BUKAN 'Approved'
+                if (!$previousLevelLog || $previousLevelLog->status !== 'Approved') {
+                    $errorMessage = "Approval level {$currentLevel} cannot be processed because level " . ($currentLevel - 1) . " has not been approved yet.";
+                    
+                    // Rollback transaksi jika ada (walaupun belum ada operasi DB)
+                    DB::rollBack();
+
+                    // Kirim respons error yang sesuai
+                    if ($request->ajax()) {
+                        return response()->json(['success' => false, 'message' => $errorMessage], 422); // 422 Unprocessable Entity
+                    }
+                    // Fallback jika request bukan AJAX
+                    return redirect()->route('approval.success')->with('card_class', 'reject')->with('title', 'Invalid Action')->with('message', $errorMessage);
+                }
+            }
+            
             $requisition = $approvalLog->requisition->load('requester', 'customer');
             $approver = $approvalLog->approver;
-            $requester = $requisition->requester;
-
-            // Siapkan variabel untuk respons di akhir, agar tidak duplikat kode
             $redirectData = [];
 
-            // --- BLOK UNTUK AKSI: REJECT ---
             if ($action === 'reject') {
-                $requisition->update(['status' => 'Rejected', 'route_to' => '-']);
-                $approvalLog->update([
-                    'status'     => 'Rejected',
-                    'notes'      => $notes ?? 'Rejected without reason',
-                    'updated_at' => now(),
-                    'token'      => null,
-                ]);
-
-                // Kirim notifikasi reject ke requester
-                if ($requester) {
-                    $requester->notify(new RequisitionNotification([
-                        'requisition_id' => $requisition->id,
-                        'srs_number'     => $requisition->no_srs,
-                        'message'        => "Requisition #{$requisition->no_srs} Anda telah di-reject oleh {$approver->name}.",
-                        'url'            => route('sample-form.index'),
-                    ], $approver));
-                }
-
-                // Siapkan data untuk halaman sukses (tampilan reject)
+                $this->handleRejection($requisition, $approvalLog, $approver, $notes);
                 $redirectData = [
                     'card_class' => 'reject',
                     'title'      => 'Requisition Rejected',
                     'new_status' => 'Rejected',
                 ];
-            }
+            } else {
+                // Untuk 'approve' atau 'review'
+                $this->handleApproval($requisition, $approvalLog, $approver, $notes);
+                $nextStep = $this->getNextStep($requisition, $approvalLog->level);
 
-            // --- BLOK UNTUK AKSI: APPROVE ---
-            else {
-                // Update log approval yang sedang diproses
-                $approvalLog->update([
-                    'status'     => 'Approved',
-                    'notes'      => $notes,
-                    'updated_at' => now(),
-                    'token'      => null,
-                ]);
-
-                // Cek apakah ada langkah approval selanjutnya
-                $nextApprovalLog = ApprovalLog::where('requisition_id', $requisition->id)
-                                            ->where('level', '>', $approvalLog->level)
-                                            ->orderBy('level', 'asc')->first();
-
-                // KONDISI 1: JIKA MASIH ADA APPROVER SELANJUTNYA
-                if ($nextApprovalLog && $nextApprover = $nextApprovalLog->approver) {
-                    $requisition->update(['status' => 'In Progress', 'route_to' => $nextApprover->name]);
-
-                    // Kirim notifikasi ke approver selanjutnya
-                    sendSample::dispatch($requisition, $nextApprover, $nextApprovalLog->token);
-                    $nextApprover->notify(new RequisitionNotification([
-                        'requisition_id' => $requisition->id,
-                        'srs_number'     => $requisition->no_srs,
-                        'message'        => "Requisition #{$requisition->no_srs} dari {$requester->name} menunggu approval Anda.",
-                        'url'            => route('sample-form.approval'),
-                    ], $requester));
-
-                    // Kirim notifikasi progres ke requester
-                    if ($requester) {
-                        $requester->notify(new RequisitionNotification([
-                            'requisition_id' => $requisition->id,
-                            'srs_number'     => $requisition->no_srs,
-                            'message'        => "Requisition #{$requisition->no_srs} telah di-approve oleh {$approver->name}.",
-                            'url'            => route('sample-form.index'),
-                        ], $approver));
-                    }
-
-                    $redirectData = [ 'new_status' => 'In Progress' ];
-                }
-
-                // KONDISI 2: JIKA INI ADALAH APPROVER TERAKHIR
-                else {
-                    $requisition->update(['status' => 'Approved']);
+                if ($nextStep['type'] === 'approver') {
+                    $this->notifyNextApprover($requisition, $nextStep['log'], $nextStep['user']);
+                    $this->notifyRequesterOfProgress($requisition, $approver);
+                    $redirectData = ['new_status' => 'In Progress'];
+                } else { // Approval selesai
                     $newStatus = $this->handlePostApprovalFlow($requisition);
-
-                    // HANYA kirim notifikasi "sepenuhnya di-approve" ke requester
-                    if ($requester) {
-                        $requester->notify(new RequisitionNotification([
-                            'requisition_id' => $requisition->id,
-                            'srs_number'     => $requisition->no_srs,
-                            'message'        => "Requisition #{$requisition->no_srs} Anda telah sepenuhnya di-approve.",
-                            'url'            => route('sample-form.index'),
-                        ], $approver));
-                    }
-
-                    $redirectData = [ 'new_status' => $newStatus ];
+                    $this->notifyRequesterOfFinalApproval($requisition, $approver);
+                    $redirectData = ['new_status' => $newStatus];
                 }
 
-                // Gabungkan data redirect untuk 'approve'
                 $redirectData = array_merge($redirectData, [
                     'card_class' => 'success',
                     'title'      => !empty($notes) ? 'Approved with Review' : 'Approved without Review',
                 ]);
             }
 
-            // Log aktivitas (berlaku untuk approve & reject)
-            activity()->causedBy($approver)->performedOn($requisition)->event($action)->log("{$approver->name} {$action}d the requisition.");
+            // Logging terpusat
+            $this->logApprovalActivity($requisition, $approver, $action, $notes, $approvalLog->level);
 
             DB::commit();
 
@@ -763,7 +728,6 @@ class SampleController extends Controller
                 return response()->json(['success' => true, 'message' => 'Decision has been recorded successfully.']);
             }
 
-            // Siapkan data lengkap untuk halaman sukses
             $finalRedirectData = array_merge($redirectData, [
                 'no_srs'        => $requisition->no_srs,
                 'customer_name' => $requisition->customer->name ?? 'N/A',
@@ -781,6 +745,134 @@ class SampleController extends Controller
             }
             return redirect()->route('approval.success')->with('card_class', 'reject')->with('title', 'System Error');
         }
+    }
+
+    // --- [BARU] HELPER FUNCTIONS FOR processApprovalStep ---
+
+    private function handleRejection(Requisition $requisition, ApprovalLog $approvalLog, User $approver, ?string $notes)
+    {
+        $requisition->update(['status' => 'Rejected', 'route_to' => '-']);
+        $approvalLog->update([
+            'status'     => 'Rejected',
+            'notes'      => $notes ?? 'Rejected without reason',
+            'updated_at' => now(),
+            'token'      => null,
+        ]);
+
+        // 1. Kirim notifikasi sistem (yang sudah ada sebelumnya)
+        $this->notifyRequesterOfRejection($requisition, $approver);
+
+        // [FIX] 2. Tambahkan dispatch job untuk mengirim NOTIFIKASI EMAIL
+        if ($requester = $requisition->requester) {
+            sendSample::dispatch(
+                $requisition,
+                $requester, // Penerima email adalah requester
+                null,       // Tidak perlu token untuk notifikasi
+                [
+                    'mail_type'       => 'rejection_notification',
+                    'approver_name'   => $approver->name,
+                    'rejection_notes' => $notes,
+                ]
+            );
+        }
+    }
+
+    private function handleApproval(Requisition $requisition, ApprovalLog $approvalLog, User $approver, ?string $notes)
+    {
+        $approvalLog->update([
+            'status'     => 'Approved',
+            'notes'      => $notes,
+            'updated_at' => now(),
+            'token'      => null,
+        ]);
+    }
+
+    private function getNextStep(Requisition $requisition, int $currentLevel)
+    {
+        $nextApprovalLog = ApprovalLog::where('requisition_id', $requisition->id)
+                                    ->where('level', '>', $currentLevel)
+                                    ->orderBy('level', 'asc')->first();
+
+        if ($nextApprovalLog && $nextApprover = $nextApprovalLog->approver) {
+            return ['type' => 'approver', 'log' => $nextApprovalLog, 'user' => $nextApprover];
+        }
+        return ['type' => 'finished'];
+    }
+
+    // --- [BARU] HELPER FUNCTIONS FOR NOTIFICATIONS ---
+
+    private function notifyRequesterOfRejection(Requisition $requisition, User $approver)
+    {
+        if ($requester = $requisition->requester) {
+            $requester->notify(new RequisitionNotification([
+                'requisition_id' => $requisition->id,
+                'srs_number'     => $requisition->no_srs,
+                'message'        => "Requisition #{$requisition->no_srs} Anda telah di-reject oleh {$approver->name}.",
+                'url'            => route('sample-form.index'),
+            ], $approver));
+        }
+    }
+
+    private function notifyNextApprover(Requisition $requisition, ApprovalLog $nextApprovalLog, User $nextApprover)
+    {
+        $requisition->update(['status' => 'In Progress', 'route_to' => $nextApprover->name]);
+        sendSample::dispatch($requisition, $nextApprover, $nextApprovalLog->token);
+        $nextApprover->notify(new RequisitionNotification([
+            'requisition_id' => $requisition->id,
+            'srs_number'     => $requisition->no_srs,
+            'message'        => "Requisition #{$requisition->no_srs} dari {$requisition->requester->name} menunggu approval Anda.",
+            'url'            => route('sample-form.approval'),
+        ], $requisition->requester));
+    }
+
+    private function notifyRequesterOfProgress(Requisition $requisition, User $approver)
+    {
+        if ($requester = $requisition->requester) {
+            $requester->notify(new RequisitionNotification([
+                'requisition_id' => $requisition->id,
+                'srs_number'     => $requisition->no_srs,
+                'message'        => "Requisition #{$requisition->no_srs} telah di-approve oleh {$approver->name}.",
+                'url'            => route('sample-form.index'),
+            ], $approver));
+        }
+    }
+
+    private function notifyRequesterOfFinalApproval(Requisition $requisition, User $approver)
+    {
+        if ($requester = $requisition->requester) {
+            $requester->notify(new RequisitionNotification([
+                'requisition_id' => $requisition->id,
+                'srs_number'     => $requisition->no_srs,
+                'message'        => "Requisition #{$requisition->no_srs} Anda telah sepenuhnya di-approve.",
+                'url'            => route('sample-form.index'),
+            ], $approver));
+        }
+    }
+
+    // --- [BARU] HELPER FUNCTION FOR LOGGING ---
+
+    private function logApprovalActivity(Requisition $requisition, User $approver, string $action, ?string $notes, int $level)
+    {
+        $logMessage = '';
+        $properties = [];
+
+        if ($action === 'reject') {
+            $logMessage = "Menolak (reject) Requisition #{$requisition->no_srs} pada level {$level}.";
+            $properties = ['srs_number' => $requisition->no_srs, 'level' => $level, 'reason' => $notes];
+            if($notes) $logMessage .= " Alasan: \"{$notes}\"";
+        } else { // approve atau review
+            $logMessage = "Menyetujui (approve) Requisition #{$requisition->no_srs} pada level {$level}.";
+            $properties = ['srs_number' => $requisition->no_srs, 'level' => $level, 'notes' => $notes];
+            if($notes) $logMessage .= " Dengan catatan: \"{$notes}\"";
+        }
+
+        activity()
+            ->causedBy($approver)
+            ->performedOn($requisition)
+            ->useLog('sample - ' . strtolower($requisition->sub_category))
+            ->event($action)
+            ->withProperties($properties)
+            ->log($logMessage);
     }
 
     /**
@@ -851,12 +943,12 @@ class SampleController extends Controller
             case 'Packaging':
                 $steps = [];
                 if ($requesterDepartment === 'R&D') {
-                    $steps = ['Inward (Final Check)'];
+                    $steps = ['Inward WH Supervisor (Final Check)'];
                     Log::info("Requisition #{$requisition->id} dari R&D, alur langsung ke Final Check.");
                 } else {
                     $steps = $requisition->print_batch
-                        ? ['Inward (Initial Check)', 'Material Support Supervisor', 'Inward (Final Check)']
-                        : ['Inward (Final Check)'];
+                        ? ['Inward WH Supervisor (Initial Check)', 'Material Support Supervisor', 'Inward WH Supervisor (Final Check)']
+                        : ['Inward WH Supervisor (Final Check)'];
                     Log::info("Requisition #{$requisition->id} dari {$requesterDepartment}, alur berdasarkan print_batch.");
                 }
                 if (empty($steps)) return $this->notifyRequesterAsCompleted($requisition);
@@ -866,7 +958,7 @@ class SampleController extends Controller
                 return $this->advanceWarehouseStep($requisition);
 
             case 'Finished Goods':
-                $steps = ['Outward'];
+                $steps = ['Outward WH Supervisor'];
                 if (empty($steps)) return $this->notifyRequesterAsCompleted($requisition);
                 foreach ($steps as $stepName) {
                     Tracking::create(['requisition_id' => $requisition->id, 'current_position' => $stepName, 'token' => Str::uuid()->toString()]);
@@ -948,15 +1040,31 @@ class SampleController extends Controller
      */
     private function notifyRequesterAsCompleted(Requisition $requisition)
     {
-        $requisition->load('requester');
+        $requisition->load('requester', 'approvalLogs.approver'); // Eager load relasi yang dibutuhkan
         $requisition->update(['status' => 'Completed', 'route_to' => '-']);
 
         // Hapus sisa token yang mungkin masih aktif
         Tracking::where('requisition_id', $requisition->id)->whereNotNull('token')->update(['token' => null]);
 
-        if ($requisition->requester) {
-            dispatch(new sendSample($requisition, $requisition->requester, null, ['mail_type' => 'completed_notification']))->delay(now()->addSeconds(3));
+        if ($requester = $requisition->requester) {
+            // 1. Kirim notifikasi EMAIL (ini sudah ada sebelumnya)
+            dispatch(new sendSample($requisition, $requester, null, ['mail_type' => 'completed_notification']))->delay(now()->addSeconds(3));
+
+            // 2. Kirim notifikasi SISTEM (ini yang ditambahkan)
+            // Cari approver terakhir sebagai 'causer' notifikasi
+            $lastApproverLog = $requisition->approvalLogs->where('status', 'Approved')->sortByDesc('level')->first();
+
+            // Jika ada approver, gunakan dia. Jika tidak (misal: auto-complete), gunakan requester sebagai fallback.
+            $causer = optional($lastApproverLog)->approver ?? $requester;
+
+            $requester->notify(new RequisitionNotification([
+                'requisition_id' => $requisition->id,
+                'srs_number'     => $requisition->no_srs,
+                'message'        => "Requisition #{$requisition->no_srs} Anda telah selesai diproses.",
+                'url'            => route('sample-form.index'),
+            ], $causer));
         }
+
         Log::info("Requisition #{$requisition->id} selesai. Notifikasi dikirim ke requester.");
         return 'Completed';
     }
@@ -980,9 +1088,9 @@ class SampleController extends Controller
      */
     private function findUserForStep(string $stepName)
     {
-        if (str_contains($stepName, 'Inward'))    return $this->findWarehouseUser('Inward', 'WH0001');
-        if (str_contains($stepName, 'Material'))  return $this->findWarehouseUser('Material Support Supervisor', 'MS0001');
-        if (str_contains($stepName, 'Outward'))   return $this->findWarehouseUser('Outward', 'WH0002');
+        if (str_contains($stepName, 'Inward WH Supervisor'))    return $this->findWarehouseUser('Inward WH Supervisor', 'WH0001');
+        if (str_contains($stepName, 'Material Support Supervisor'))  return $this->findWarehouseUser('Material Support Supervisor', 'MS0001');
+        if (str_contains($stepName, 'Outward WH Supervisor'))   return $this->findWarehouseUser('Outward WH Supervisor', 'WH0002');
         return null;
     }
 
@@ -1256,57 +1364,123 @@ class SampleController extends Controller
     {
         $query = Activity::with(['causer', 'subject'])
             ->where(function ($q) {
+
+                // 1. Ambil log baru Requisition (cth: 'sample-packaging')
                 $q->where('log_name', 'like', 'sample%')
-                ->orWhere('subject_type', Requisition::class)
-                ->orWhere('log_name', 'default');
+
+                // 2. Ambil log baru Approval Path (cth: 'path - sample')
+                ->orWhere('log_name', 'path - sample')
+
+                // 3. Ambil log lama (default) TAPI HANYA JIKA subject-nya
+                //    adalah Requisition DENGAN KATEGORI "Sample"
+                ->orWhere(function ($subQ) {
+                    $subQ->where('log_name', 'default')
+                         ->where('subject_type', Requisition::class)
+                         ->whereHasMorph('subject', [Requisition::class], function ($reqQuery) {
+                             $reqQuery->where('category', 'Sample');
+                         });
+                })
+
+                // 4. Ambil log lama (default) TAPI HANYA JIKA subject-nya
+                //    adalah ApprovalPath DENGAN KATEGORI "Sample"
+                ->orWhere(function ($subQ) {
+                    $subQ->where('log_name', 'default')
+                         ->where('subject_type', ApprovalPath::class)
+                         ->whereHasMorph('subject', [ApprovalPath::class], function ($pathQuery) {
+                             $pathQuery->where('category', 'Sample');
+                         });
+                });
             })
             ->orderBy('created_at', 'desc');
 
+        // Terapkan styling dari prompt pengguna
         return DataTables::of($query)
             ->addIndexColumn()
             ->editColumn('log_name', function ($log) {
                 $logName = $log->log_name;
-                $badgeClass = 'bg-dark';    // Warna default
-                $icon = 'ph-scroll';        // Ikon default untuk log umum
+                $badgeClass = 'bg-dark';
+                $icon = 'ph-scroll';
 
-                // Cek jika log ini berhubungan dengan Requisition
-                if ($log->subject_type === Requisition::class && $log->subject) {
-                    $subCategory = strtolower($log->subject->sub_category);
-                    $logName = 'sample - ' . $subCategory;
-
-                    // Logika pewarnaan dan ikon dinamis berdasarkan sub_category
-                    switch ($subCategory) {
-                        case 'packaging':
-                            $badgeClass = 'bg-warning text-dark';
-                            $icon = 'ph-package';
-                            break;
-                        case 'finished goods':
-                            $badgeClass = 'bg-info';
-                            $icon = 'ph-cube';
-                            break;
-                        case 'special order':
-                            $badgeClass = 'bg-secondary';
-                            $icon = 'ph-star';
-                            break;
-                        default:
-                            $badgeClass = 'bg-primary';
-                            $icon = 'ph-tag'; // Ikon fallback jika ada sub-kategori baru
-                            break;
+                // Logika untuk 'path - sample' atau 'default' (jika subject-nya ApprovalPath)
+                if (str_starts_with($logName, 'path') || $log->subject_type === ApprovalPath::class) {
+                    $logName = 'path - sample';
+                    $badgeClass = 'bg-dark'; // Badge untuk approval path
+                    $icon = 'ph-git-branch';
+                }
+                // Logika untuk 'sample - ...' atau 'default' (jika subject-nya Requisition)
+                elseif (str_starts_with($logName, 'sample') || $log->subject_type === Requisition::class) {
+                    if ($log->subject) {
+                        $subCategory = strtolower($log->subject->sub_category);
+                        $logName = 'sample - ' . $subCategory; // Standarkan nama log
+                        switch ($subCategory) {
+                            case 'packaging':
+                                $badgeClass = 'bg-warning text-dark'; $icon = 'ph-package'; break;
+                            case 'finished goods':
+                                $badgeClass = 'bg-info'; $icon = 'ph-cube'; break;
+                            case 'special order':
+                                $badgeClass = 'bg-secondary'; $icon = 'ph-star'; break;
+                            default:
+                                $badgeClass = 'bg-primary'; $icon = 'ph-tag'; break;
+                        }
+                    } else {
+                        $logName = 'sample - (unknown)'; // Jika subject terhapus
                     }
+                }
+
+                // Fallback untuk log 'default' yang tidak punya subject (seperti log ID 6 di screenshot Anda)
+                if ($logName === 'default') {
+                    $logName = 'System Log';
                 }
 
                 return '<span class="status-badge-lg ' . $badgeClass . '"><i class="ph-bold ' . $icon . ' me-1"></i>' . e($logName) . '</span>';
             })
             ->addColumn('subject_info', function ($log) {
-                // [MODIFIKASI 1] Desain untuk No. SRS
-                $srsNumber = optional($log->subject)->no_srs;
-                if ($srsNumber) {
-                    return '<span class="srs-badge">' . e($srsNumber) . '</span>';
+                // Tampilkan No. SRS jika subject-nya Requisition
+                if ($log->subject_type === Requisition::class && $log->subject) {
+                    return '<span class="srs-badge">' . e($log->subject->no_srs) . '</span>';
                 }
+
+                // [FIX] Tampilkan Info Path dari relasi ATAU dari properties (jika subject sudah dihapus)
+                if ($log->subject_type === ApprovalPath::class) {
+                    // Coba ambil dari relasi dulu
+                    $subCategory = optional($log->subject)->sub_category;
+
+                    // Jika relasi null (karena subject dihapus), coba ambil dari properties
+                    if (!$subCategory) {
+                        $subCategory = $log->properties->get('sub_category');
+                    }
+
+                    $pathInfo = $subCategory ?? 'Non-Subcategory';
+                    return '<span class="srs-badge" style="background: linear-gradient(135deg, #6c757d 0%, #343a40 100%);">PATH: ' . e($pathInfo) . '</span>';
+                }
+
                 return '<span class="status-badge-lg bg-secondary">N/A</span>';
             })
+            // [BARU] Menambahkan kolom Subject ID yang bisa diklik
+            ->addColumn('subject_id', function ($log) {
+                $id = $log->subject_id;
+                if (!$id) {
+                    return 'N/A';
+                }
+
+                $subjectExists = !is_null($log->subject);
+
+                if ($log->subject_type === Requisition::class) {
+                    // Buat link ke halaman sample form, target _blank untuk buka tab baru
+                    $url = route('sample-form.index');
+                    return '<a href="' . $url . '" target="_blank" class="srs-badge" title="View in Sample Requisition Page">' . e($id) . '</a>';
+
+                } elseif ($log->subject_type === ApprovalPath::class) {
+                    // Buat link ke halaman approval path
+                    $url = route('requistion.path');
+                    $style = $subjectExists ? 'background-color: #5a6268;' : 'background-color: #dc3545; text-decoration: line-through;';
+                    $title = $subjectExists ? 'View in Approval Path Page' : 'Subject has been deleted';
+                    return '<a href="' . $url . '" target="_blank" class="srs-badge" style="' . $style . '" title="' . $title . '">' . e($id) . '</a>';
+                }
+
+                return e($id); // Fallback jika tipe tidak dikenali
+            })
             ->addColumn('causer_info', function ($log) {
-                // [MODIFIKASI 2] Desain untuk Causer
                 $causerName = optional($log->causer)->name ?? 'System';
                 $icon = $causerName === 'System' ? 'ph-robot' : 'ph-user-circle';
                 return '
@@ -1318,42 +1492,23 @@ class SampleController extends Controller
             ->editColumn('event', function ($log) {
                 $event = strtolower($log->event ?? 'N/A');
                 $badgeClass = 'bg-secondary';
-                $icon = 'ph-info'; // Ikon default
-
+                $icon = 'ph-info';
                 switch ($event) {
-                    case 'create':
-                        $badgeClass = 'bg-primary';
-                        $icon = 'ph-plus-circle';
-                        break;
-                    case 'approve':
-                        $badgeClass = 'bg-success';
-                        $icon = 'ph-thumbs-up';
-                        break;
-                    case 'reject':
-                        $badgeClass = 'bg-danger';
-                        $icon = 'ph-thumbs-down';
-                        break;
-                    case 'recall':
-                        $badgeClass = 'bg-danger';
-                        $icon = 'ph-prohibit';
-                        break;
-                    case 'tracking':
-                        $badgeClass = 'bg-info';
-                        $icon = 'ph-path';
-                        break;
-                    case 'resend':
-                        $badgeClass = 'bg-warning text-dark';
-                        $icon = 'ph-paper-plane-tilt';
-                        break;
+                    case 'create': $badgeClass = 'bg-primary'; $icon = 'ph-plus-circle'; break;
+                    case 'update': $badgeClass = 'bg-warning text-dark'; $icon = 'ph-pencil-simple'; break;
+                    case 'delete': $badgeClass = 'bg-danger'; $icon = 'ph-trash'; break;
+                    case 'approve': $badgeClass = 'bg-success'; $icon = 'ph-thumbs-up'; break;
+                    case 'reject': $badgeClass = 'bg-danger'; $icon = 'ph-thumbs-down'; break;
+                    case 'recall': $badgeClass = 'bg-danger'; $icon = 'ph-prohibit'; break;
+                    case 'tracking': $badgeClass = 'bg-info'; $icon = 'ph-path'; break;
+                    case 'resend': $badgeClass = 'bg-warning text-dark'; $icon = 'ph-paper-plane-tilt'; break;
                 }
-
                 return '<span class="status-badge-lg ' . $badgeClass . '"><i class="ph-bold ' . $icon . ' me-1"></i>' . e(ucfirst($event)) . '</span>';
             })
             ->editColumn('created_at', function ($log) {
                 return Carbon::parse($log->created_at)->format('d M Y, H:i:s');
             })
-            // [MODIFIKASI 3] Tambahkan kolom baru ke rawColumns
-            ->rawColumns(['log_name', 'event', 'subject_info', 'causer_info'])
+            ->rawColumns(['log_name', 'event', 'subject_info', 'causer_info', 'subject_id'])
             ->make(true);
     }
 
@@ -1532,6 +1687,21 @@ class SampleController extends Controller
         if (!$approvalLog) {
             return response()->json(['success' => false, 'message' => 'This approval task is no longer valid or has been processed.'], 404);
         }
+
+        $currentLevel = $approvalLog->level;
+            if ($currentLevel > 1) {
+                $previousLevelLog = ApprovalLog::where('requisition_id', $approvalLog->requisition_id)
+                                                ->where('level', $currentLevel - 1)
+                                                ->first();
+
+                // Jika log level sebelumnya belum 'Approved'
+                if (!$previousLevelLog || $previousLevelLog->status !== 'Approved') {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Email cannot be resent. The approver at the previous level has not yet completed their action.'
+                    ], 422); // 422 Unprocessable Entity
+                }
+            }
 
         // Ambil data yang diperlukan
         $requisition = $approvalLog->requisition;

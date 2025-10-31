@@ -420,14 +420,25 @@
 
             $batch_no = '........';
             $pallet_no = '........';
-            $wb_deo_tank_no = '........';
+            $wb_deo_no = '........';
+            $tank_no = '........';
+
             if ($special->description) {
-                if (str_contains($special->description, 'P')) {
-                    $parts = explode('P', $special->description);
+                $desc = $special->description;
+
+                if (str_contains($desc, 'P')) {
+                    $parts = explode('P', $desc, 2);
                     $batch_no = "<b><u>" . e($parts[0] ?: 'N/A') . "</u></b>";
                     $pallet_no = "<b><u>" . e($parts[1] ?: 'N/A') . "</u></b>";
-                } else {
-                    $wb_deo_tank_no = "<b><u>" . e($special->description) . "</u></b>";
+                }
+                elseif (str_starts_with($desc, 'WB:')) {
+                    $wb_deo_no = "<b><u>" . e(substr($desc, 3)) . "</u></b>";
+                }
+                elseif (str_starts_with($desc, 'TANK:')) {
+                    $tank_no = "<b><u>" . e(substr($desc, 5)) . "</u></b>";
+                }
+                else {
+                    $wb_deo_no = "<b><u>" . e($desc) . "</u></b>";
                 }
             }
         @endphp
@@ -532,7 +543,7 @@
                 <tr>
                     <td style="width: 20%; white-space: nowrap; border: none; border-right: 1px solid #333; padding-right: 8px;">Keterangan sample</td>
                     <td style="white-space: nowrap; border: none; padding-left: 8px;" colspan="6">
-                        : a. Batch / Pallet No: {!! $batch_no !!} P {!! $pallet_no !!} &nbsp;&nbsp; b. WB/DEO No / &nbsp;&nbsp;&nbsp; c. Tank No: {!! $wb_deo_tank_no !!}
+                        : a. Batch / Pallet No: {!! $batch_no !!} P {!! $pallet_no !!} &nbsp;&nbsp; b. WB/DEO No: {!! $wb_deo_no !!} &nbsp;&nbsp; c. Tank No: {!! $tank_no !!}
                     </td>
                 </tr>
                 <tr>

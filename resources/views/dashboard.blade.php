@@ -110,77 +110,42 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    {{-- [MODIFIKASI] style="min-height" ditambahkan sebagai fallback --}}
                     <div id="monthlyRequisitionChart" style="min-height: 350px;"></div>
                 </div>
             </div>
         </div>
         <div class="col-lg-5">
-            {{-- [MODIFIKASI] ID ditambahkan untuk kalkulasi tinggi chart --}}
-            <div id="summaryCardsContainer" class="row row-cols-1 row-cols-sm-2 gx-3">
-                <div class="col">
-                    <div class="card h-100 ticket-card bg-light-primary">
+            {{-- [MODIFIKASI] Struktur wadah diubah total --}}
+            <div id="summaryCardsContainer" class="row gx-3">
+
+                {{-- [BARU] Kartu Total Created yang Lebar --}}
+                <div class="col-12 mb-1">
+                     <div class="card h-100 ticket-card bg-primary text-white shadow-lg">
                         <div class="card-body">
                             <div class="d-flex-center bg-white mb-2" style="width: 45px; height: 45px; border-radius: 12px;">
-                                <i class="ti ti-file-plus fs-3 text-primary"></i>
+                                <i class="ti ti-files fs-3 text-primary"></i>
                             </div>
-                            <p class="fs-6 text-muted mb-0">Total Created</p>
-                            <small class="text-muted d-block mb-2" style="font-size: 0.75rem;">Semua requisition yang pernah dibuat.</small>
-                            <h3 class="text-primary-dark mb-0" id="summaryCreated">0</h3>
+                            <p class="fs-6 mb-0">Total Created</p>
+                            <small class="d-block mb-2" style="font-size: 0.75rem; opacity: 0.8;">Semua requisition yang pernah dibuat.</small>
+                            <h3 class="mb-0" id="summaryCreated">0</h3>
                         </div>
                     </div>
                 </div>
-                <div class="col">
+
+                {{-- Kartu Status Lainnya (6 kartu) --}}
+                <div class="col-sm-6 mb-1">
                     <div class="card h-100 ticket-card bg-light-success">
                         <div class="card-body">
                             <div class="d-flex-center bg-white mb-2" style="width: 45px; height: 45px; border-radius: 12px;">
                                 <i class="ti ti-check fs-3 text-success"></i>
                             </div>
                             <p class="fs-6 text-muted mb-0">Approved</p>
-                            <small class="text-muted d-block mb-2" style="font-size: 0.75rem;">Selesai tahap approval, siap diproses menuju warehouse/QA.</small>
+                            <small class="text-muted d-block mb-2" style="font-size: 0.75rem;">Siap diproses warehouse/QA.</small>
                             <h3 class="text-success-dark mb-0" id="summaryApproved">0</h3>
                         </div>
                     </div>
                 </div>
-                <div class="col">
-                    <div class="card h-100 ticket-card bg-light-info">
-                        <div class="card-body">
-                            <div class="d-flex-center bg-white mb-2" style="width: 45px; height: 45px; border-radius: 12px;">
-                                <i class="ti ti-loader-2 fs-3 text-info"></i>
-                            </div>
-                            <p class="fs-6 text-muted mb-0">In Progress</p>
-                            <small class="text-muted d-block mb-2" style="font-size: 0.75rem;">Sedang dalam proses approval bisnis controller.</small>
-                            <h3 class="text-info-dark mb-0" id="summaryInProgress">0</h3>
-                        </div>
-                    </div>
-                </div>
-                <div class="col">
-                    <div class="card h-100 ticket-card bg-light-warning">
-                        <div class="card-body">
-                            <div class="d-flex-center bg-white mb-2" style="width: 45px; height: 45px; border-radius: 12px;">
-                                <i class="ti ti-clock fs-3 text-warning"></i>
-                            </div>
-                            <p class="fs-6 text-muted mb-0">Pending</p>
-                            <small class="text-muted d-block mb-2" style="font-size: 0.75rem;">Request baru, menunggu approval pertama.</small>
-                            <h3 class="text-warning-dark mb-0" id="summaryPending">0</h3>
-                        </div>
-                    </div>
-                </div>
-                <div class="col">
-                    <div class="card h-100 ticket-card bg-light-danger">
-                        <div class="card-body">
-                            <div class="d-flex-center bg-white mb-2" style="width: 45px; height: 45px; border-radius: 12px;">
-                                <i class="ti ti-ban fs-3 text-danger"></i>
-                            </div>
-                            {{-- [MODIFIKASI] Judul, deskripsi, dan ID diubah --}}
-                            <p class="fs-6 text-muted mb-0">Rejected / Cancelled</p>
-                            <small class="text-muted d-block mb-2" style="font-size: 0.75rem;">Ditolak approver atau dibatalkan requester.</small>
-                            <h3 class="text-danger-dark mb-0" id="summaryRejectedCancelled">0</h3>
-                        </div>
-                    </div>
-                </div>
-                {{-- [KARTU BARU] Kartu untuk Completed --}}
-                <div class="col">
+                <div class="col-sm-6 mb-1">
                     <div class="card h-100 ticket-card bg-light-dark">
                         <div class="card-body">
                             <div class="d-flex-center bg-white mb-2" style="width: 45px; height: 45px; border-radius: 12px;">
@@ -189,6 +154,56 @@
                             <p class="fs-6 text-muted mb-0">Completed</p>
                             <small class="text-muted d-block mb-2" style="font-size: 0.75rem;">Selesai proses warehouse/QA.</small>
                             <h3 class="text-dark mb-0" id="summaryCompleted">0</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6 mb-1">
+                    <div class="card h-100 ticket-card bg-light-info">
+                        <div class="card-body">
+                            <div class="d-flex-center bg-white mb-2" style="width: 45px; height: 45px; border-radius: 12px;">
+                                <i class="ti ti-loader-2 fs-3 text-info"></i>
+                            </div>
+                            <p class="fs-6 text-muted mb-0">In Progress</p>
+                            <small class="text-muted d-block mb-2" style="font-size: 0.75rem;">Dalam proses approval.</small>
+                            <h3 class="text-info-dark mb-0" id="summaryInProgress">0</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6 mb-1">
+                    <div class="card h-100 ticket-card bg-light-warning">
+                        <div class="card-body">
+                            <div class="d-flex-center bg-white mb-2" style="width: 45px; height: 45px; border-radius: 12px;">
+                                <i class="ti ti-clock fs-3 text-warning"></i>
+                            </div>
+                            <p class="fs-6 text-muted mb-0">Pending</p>
+                            <small class="text-muted d-block mb-2" style="font-size: 0.75rem;">Menunggu approval pertama.</small>
+                            <h3 class="text-warning-dark mb-0" id="summaryPending">0</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6 mb-1">
+                    <div class="card h-100 ticket-card bg-light-danger">
+                        <div class="card-body">
+                            <div class="d-flex-center bg-white mb-2" style="width: 45px; height: 45px; border-radius: 12px;">
+                                <i class="ti ti-ban fs-3 text-danger"></i>
+                            </div>
+                            {{-- [MODIFIKASI] Judul, deskripsi, dan ID diubah --}}
+                            <p class="fs-6 text-muted mb-0">Rejected</p>
+                            <small class="text-muted d-block mb-2" style="font-size: 0.75rem;">Ditolak oleh approver.</small>
+                            <h3 class="text-danger-dark mb-0" id="summaryRejected">0</h3>
+                        </div>
+                    </div>
+                </div>
+                {{-- [BARU] Kartu untuk Recalled --}}
+                <div class="col-sm-6 mb-1">
+                    <div class="card h-100 ticket-card bg-light-primary"> {{-- Style dari kartu 'created' lama --}}
+                        <div class="card-body">
+                            <div class="d-flex-center bg-white mb-2" style="width: 45px; height: 45px; border-radius: 12px;">
+                                <i class="ti ti-file-plus fs-3 text-primary"></i>
+                            </div>
+                            <p class="fs-6 text-muted mb-0">Recalled</p>
+                            <small class="text-muted d-block mb-2" style="font-size: 0.75rem;">Ditarik kembali oleh requester.</small>
+                            <h3 class="text-primary-dark mb-0" id="summaryRecalled">0</h3>
                         </div>
                     </div>
                 </div>
@@ -597,7 +612,7 @@
                             "Print Batch Number?".</p>
                     </div>
 
-                    <div class="tab-pane fade" id="freegoods" role="tabpanel">
+                    <div class="tab-pane fade" id="free-goods" role="tabpanel">
                         <div class="row gy-4">
                             <div class="col-lg-6 border-end-lg">
                                 <h6>Flow 1: Dari Departemen SnM</h6>
@@ -719,16 +734,16 @@
                         if (!years || !Array.isArray(years)) return;
 
                         const currentYear = new Date().getFullYear();
-                        
+
                         // Update semua year filter selects
                         const yearSelects = ['yearFilterSelect', 'topItemYearFilter', 'topCustomerYearFilter'];
-                        
+
                         yearSelects.forEach(selectId => {
                             const selectElement = document.getElementById(selectId);
                             if (selectElement) {
                                 const currentValue = selectElement.value;
                                 selectElement.innerHTML = '';
-                                
+
                                 years.forEach(year => {
                                     const option = document.createElement('option');
                                     option.value = year;
@@ -750,12 +765,12 @@
                         { name: 'Approved',    type: 'line', data: data.approved,    color: '#198754' },
                         { name: 'In Progress', type: 'line', data: data.in_progress, color: '#0dcaf0' },
                         { name: 'Pending',     type: 'line', data: data.pending,     color: '#ffc107' },
-                        { name: 'Rejected / Cancelled', type: 'line', data: data.rejected_cancelled, color: '#dc3545' },
+                        { name: 'Rejected',    type: 'line', data: data.rejected,    color: '#dc3545' }, // [MODIFIKASI]
+                        { name: 'Recalled',    type: 'line', data: data.recalled,    color: '#6f42c1' }, // [BARU]
                         { name: 'Completed',   type: 'line', data: data.completed,   color: '#212529' }
                     ],
                     chart: { type: 'line', stacked: false, toolbar: { show: true, tools: { download: true, selection: false, zoom: false, zoomin: false, zoomout: false, pan: false, reset: false }}},
-                    // [MODIFIKASI] Kurangi jumlah array agar sesuai (menjadi 6)
-                    stroke: { width: [3, 3, 3, 3, 3, 3], curve: 'smooth', dashArray: [0, 0, 0, 5, 0, 5] }, // DashArray disesuaikan
+                    stroke: { width: [3, 3, 3, 3, 3, 3, 3], curve: 'smooth', dashArray: [0, 0, 5, 5, 0, 0, 0] }, // [MODIFIKASI] Disesuaikan jadi 7
                     xaxis: { categories: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'] },
                     yaxis: { title: { text: 'Jumlah Requisition', style: { fontWeight: 500 }}},
                     tooltip: { shared: true, intersect: false },
@@ -767,25 +782,18 @@
                 const chartElement = document.querySelector("#monthlyRequisitionChart");
                 const summaryCardsContainer = document.getElementById('summaryCardsContainer');
 
-                // [FUNGSI BARU] Untuk menyesuaikan tinggi chart
                 function adjustChartHeight() {
                     const chartCard = chartElement.closest('.card');
                     const chartCardHeader = chartCard.querySelector('.card-header');
                     const chartCardBody = chartCard.querySelector('.card-body');
 
                     if (chartElement && summaryCardsContainer && chartCardHeader && chartCardBody) {
-                        // Get the total height of the summary cards block
                         const summaryHeight = summaryCardsContainer.offsetHeight;
-                        // Get the height of the chart card's header
                         const headerHeight = chartCardHeader.offsetHeight;
-                        // Get the vertical padding of the chart card's body
                         const bodyStyles = window.getComputedStyle(chartCardBody);
                         const bodyPaddingY = parseFloat(bodyStyles.paddingTop) + parseFloat(bodyStyles.paddingBottom);
-
-                        // Calculate the target height for the chart itself
                         const newChartHeight = summaryHeight - headerHeight - bodyPaddingY;
 
-                        // Set a minimum height to avoid errors
                         if (newChartHeight > 100) {
                             chartElement.style.height = `${newChartHeight}px`;
                             if (currentChart) {
@@ -808,17 +816,16 @@
                         });
                     }
 
-                    const sum = arr => arr.reduce((acc, val) => acc + val, 0);
-                    
+                    const sum = arr => Array.isArray(arr) ? arr.reduce((acc, val) => acc + val, 0) : 0;
+
+                    // [MODIFIKASI] Logika update kartu disesuaikan dengan ID baru
                     document.getElementById('summaryCreated').textContent = sum(data.created).toLocaleString('id-ID');
                     document.getElementById('summaryApproved').textContent = sum(data.approved).toLocaleString('id-ID');
                     document.getElementById('summaryInProgress').textContent = sum(data.in_progress).toLocaleString('id-ID');
                     document.getElementById('summaryPending').textContent = sum(data.pending).toLocaleString('id-ID');
                     document.getElementById('summaryCompleted').textContent = sum(data.completed).toLocaleString('id-ID');
-
-                    // [MODIFIKASI] Gunakan data gabungan yang baru untuk total di kartu ringkasan
-                    const totalRejectedCancelled = sum(data.rejected_cancelled || []);
-                    document.getElementById('summaryRejectedCancelled').textContent = totalRejectedCancelled.toLocaleString('id-ID');
+                    document.getElementById('summaryRejected').textContent = sum(data.rejected).toLocaleString('id-ID');
+                    document.getElementById('summaryRecalled').textContent = sum(data.recalled).toLocaleString('id-ID'); // [BARU]
                 };
 
                 const yearFilterElement = document.getElementById('yearFilterSelect');
@@ -937,9 +944,8 @@
 
 
                 // === INITIAL DATA LOAD ===
-                // Load available years first, then load other data
                 await loadAvailableYears();
-                
+
                 loadMetricCounts();
                 updateDashboardChart(yearFilterElement.value);
                 updateTop5List('Items', getTopFilters('topItem'));
@@ -950,4 +956,3 @@
         </script>
     @endpush
 </x-app-layout>
-

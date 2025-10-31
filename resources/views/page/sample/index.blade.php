@@ -228,11 +228,11 @@
                                         </div>
                                         <div class="form-check form-check-inline">
                                             <input class="form-check-input sample-weight-radio" type="radio" name="weight_selection_option" value="500g">
-                                            <label class="form-check-label">500g</label>
+                                            <label class="form-check-label">500gr</label>
                                         </div>
                                         <div class="form-check form-check-inline">
                                             <input class="form-check-input sample-weight-radio" type="radio" name="weight_selection_option" value="250g">
-                                            <label class="form-check-label">250g</label>
+                                            <label class="form-check-label">250gr</label>
                                         </div>
                                         <div class="form-check form-check-inline">
                                             <input class="form-check-input sample-weight-radio" type="radio" name="weight_selection_option" value="5lt">
@@ -1025,7 +1025,7 @@
             });
 
             $('#product_select').on('change', function() {
-                if (isPopulatingForm) return; 
+                if (isPopulatingForm) return;
 
                 const selectedProductIds = $(this).val();
                 const isEditMode = $('#sampleForm').attr('data-mode') === 'edit';
@@ -1045,7 +1045,7 @@
                             tbody.html('<tr id="no-items-row"><td colspan="6" class="text-center">No items have been added yet.</td></tr>');
                         }
                     }
-                    applyMaterialTypeFilter(); 
+                    applyMaterialTypeFilter();
                     return;
                 }
 
@@ -1057,7 +1057,7 @@
                         product_ids: selectedProductIds
                     },
                     success: function (itemDetails) {
-                        $('#no-items-row').remove(); 
+                        $('#no-items-row').remove();
 
                         const existingItemDetailIds = new Set();
                         tbody.find('tr[id^="item-row-detail-"]').each(function() {
@@ -1081,7 +1081,7 @@
                         });
 
                         // Langsung terapkan filter. Item baru akan tampil jika cocok dengan filter yang ada.
-                        applyMaterialTypeFilter(); 
+                        applyMaterialTypeFilter();
                     },
                     error: function() {
                         errorMessage('Failed to load item details.');
@@ -1202,11 +1202,11 @@
                                 <hr>
                                 <b class="text-danger">Pastikan semua data yang Anda masukkan sudah benar.</b>`,
                             icon: 'question',
-                            showCancelButton: true,      
+                            showCancelButton: true,
                             confirmButtonColor: '#3085d6',
-                            cancelButtonColor: 'rgba(248, 0, 0, 1)',       
+                            cancelButtonColor: 'rgba(248, 0, 0, 1)',
                             confirmButtonText: 'Ya, Data Sudah Benar!',
-                            cancelButtonText: 'Batal, Cek Lagi' 
+                            cancelButtonText: 'Batal, Cek Lagi'
                         }).then((result) => {
                             if (result.isConfirmed) {
                                 const mode = $(form).attr('data-mode');
@@ -1296,12 +1296,9 @@
                                 confirmButtonColor: '#3085d6',
                                 denyButtonColor: '#6c757d',
                             }).then((batchResult) => {
-                                // [MODIFIKASI UTAMA] Logika baru ditambahkan di sini
-                                if (batchResult.isConfirmed) { // Jika user mengklik "Yes, Print"
+                                if (batchResult.isConfirmed) {
 
-                                    // 1. Cek apakah user dari departemen R&D
                                     if (userDepartmentName === 'R&D') {
-                                        // [MODIFIKASI UTAMA] Tampilkan pop-up peringatan yang lebih cerdas
                                         Swal.fire({
                                             icon: 'warning',
                                             title: 'Aksi Tidak Diizinkan',
@@ -1309,43 +1306,34 @@
                                             showRecallButton: true,
                                             confirmButtonText: 'Ya, Lanjutkan',
                                             recallButtonText: 'Batal',
-                                            confirmButtonColor: '#28a745', // Tombol konfirmasi hijau
+                                            confirmButtonColor: '#28a745',
                                         }).then((warningResult) => {
-                                            // Jika user setuju untuk melanjutkan tanpa print batch
                                             if (warningResult.isConfirmed) {
-                                                // Langsung submit form dengan nilai yang sudah diperbaiki
                                                 let formData = new FormData(form);
-                                                formData.append('print_batch', '0'); // Paksa nilainya menjadi 0
+                                                formData.append('print_batch', '0');
                                                 submitForm(formData);
                                             }
-                                            // Jika user klik 'Batal', maka semua pop-up tertutup dan kembali ke modal utama.
                                         });
-                                        // Proses berhenti di sini untuk user R&D
 
                                     } else {
-                                        // Logika untuk user non-R&D (tidak berubah)
                                         let formData = new FormData(form);
                                         formData.append('print_batch', '1');
                                         submitForm(formData);
                                     }
 
-                                } else if (batchResult.isDenied) { // Jika user mengklik "No, Don't Print"
-                                    // Logika ini benar untuk SEMUA user
+                                } else if (batchResult.isDenied) {
                                     let formData = new FormData(form);
                                     formData.append('print_batch', '0');
                                     submitForm(formData);
                                 }
                             });
                         } else {
-                            // Jika bukan 'Packaging', atau mode 'edit', atau ini adalah DUPLICATE
                             let formData = new FormData(form);
 
-                            // [FIX DI SINI] Tambahkan nilai default untuk 'print_batch' jika ini adalah duplikasi 'Packaging'
                             if (currentSubCategory === 'Packaging' && mode === 'create' && !$(form).data('is-fresh-creation')) {
-                                formData.append('print_batch', '0'); // Set default ke 'No, Don't Print'
+                                formData.append('print_batch', '0');
                             }
 
-                            // Langsung submit form
                             submitForm(formData);
                         }
                     }
@@ -1381,7 +1369,6 @@
             setupQaRadioLainnya('sample_notes');
 
 
-            // --- Logika untuk Keterangan Sample (Radio Button) ---
             const keteranganWrapper = $('#keterangan_sample_input_wrapper');
             const keteranganInput1 = $('#keterangan_sample_input_1');
             const keteranganInput2 = $('#keterangan_sample_input_2');
@@ -1416,9 +1403,11 @@
                 if (selectedType === 'batch') {
                     finalValue = `${val1}P${val2}`;
                 } else if (selectedType === 'wb') {
-                    finalValue = `WB No ${val1}`; // <-- Tambahkan prefiks di sini
+                    // Format BARU untuk WB/DEO: "WB:Nilai1"
+                    finalValue = `WB:${val1}`;
                 } else if (selectedType === 'tank') {
-                    finalValue = `Tank No ${val1}`; // <-- Tambahkan prefiks di sini
+                    // Format BARU untuk Tank: "TANK:Nilai1"
+                    finalValue = `TANK:${val1}`;
                 }
 
                 finalDescriptionInput.val(finalValue);
@@ -1571,22 +1560,17 @@
                 if (isSpecialOrder && data.requisition_special) {
                     const specialData = data.requisition_special;
 
-                    // Helper function untuk mengisi radio button yang punya opsi "Lainnya"
                     const populateRadioWithOptions = (baseName, value) => {
-                        if (!value) return; // Jangan lakukan apa-apa jika nilainya kosong
+                        if (!value) return;
 
-                        // Set nilai di hidden input
                         $(`#${baseName}`).val(value);
 
-                        // Cari radio button standar yang cocok
                         const standardRadio = $(`input[name="${baseName}_option"][value="${value}"]`);
 
                         if (standardRadio.length > 0) {
-                            // Jika ditemukan, centang radio tsb dan sembunyikan input "Lainnya"
                             standardRadio.prop('checked', true);
                             $(`#${baseName}_other_input`).hide().val('');
                         } else {
-                            // Jika tidak, ini pasti opsi "Lainnya"
                             $(`#${baseName}_other_radio`).prop('checked', true);
                             $(`#${baseName}_other_input`).val(value).show();
                         }
@@ -1598,7 +1582,6 @@
                     $('input[name="sample_count"]').val(specialData.sample_count);
                     $('input[name=coa_required][value="' + specialData.coa_required + '"]').prop('checked', true);
 
-                    // [FIX] Gunakan helper untuk mengisi data radio button marketing
                     populateRadioWithOptions('weight_selection', specialData.weight_selection);
                     populateRadioWithOptions('packaging_selection', specialData.packaging_selection);
                     populateRadioWithOptions('shipment_method', specialData.shipment_method);
@@ -1754,11 +1737,11 @@
                 if (data.status !== 'Rejected' && data.status !== 'Recalled') {
                     if (data.sub_category === 'Packaging') {
                         if (data.print_batch == 1) {
-                            steps.push({ id: 'inward_initial', label: 'Inward (Initial)', icon: 'ph-package' });
+                            steps.push({ id: 'inward_initial', label: 'Inward WH Supervisor (Initial)', icon: 'ph-package' });
                             steps.push({ id: 'material', label: 'Material Support', icon: 'ph-printer' });
-                            steps.push({ id: 'inward_final', label: 'Inward (Final)', icon: 'ph-package' });
+                            steps.push({ id: 'inward_final', label: 'Inward WH Supervisor (Final)', icon: 'ph-package' });
                         } else {
-                            steps.push({ id: 'inward_final', label: 'Inward Check', icon: 'ph-package' });
+                            steps.push({ id: 'inward_final', label: 'Inward WH Supervisor Check', icon: 'ph-package' });
                         }
                     } else if (data.sub_category === 'Finished Goods') {
                         steps.push({ id: 'outward', label: 'Outward', icon: 'ph-truck' });
