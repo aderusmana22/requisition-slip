@@ -18,6 +18,10 @@ class ComplainApprovalController extends Controller
     //
     public function index()
     {
+        $user = Auth::user();
+        if(!$user->can('view approval-path')){
+            abort(403);
+        }
         return view('page.complain.approvals.index');
     }
 
@@ -38,7 +42,6 @@ class ComplainApprovalController extends Controller
             $query = ApprovalLog::whereIn('requisition_id', $complainIds);
 
             if (!$user->hasRole('super-admin')) {
-                // Non super-admin: hanya tampilkan yang punya token dan sesuai dengan NIK mereka
                 $query->where('approver_nik', $user->nik)
                     ->whereNotNull('token')
                     ->where(function ($query) {

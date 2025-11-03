@@ -10,6 +10,10 @@ class RevisionController extends Controller
 {
     public function index()
     {
+        $user = Auth::user();
+        if(!$user->can('view revision')){
+            abort(403);
+        }
         return view('page.master.revision.index');
     }
 
