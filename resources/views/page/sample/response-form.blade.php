@@ -625,9 +625,23 @@
                 function updateDescription() {
                     const selectedType = document.querySelector('input[name="description_option"]:checked')?.value;
                     if (!selectedType) return;
-                    const val1 = keteranganInput1.value;
-                    const val2 = keteranganInput2.value;
-                    finalDescriptionInput.value = (selectedType === 'batch') ? `${val1}P${val2}` : val1;
+
+                    const val1 = document.getElementById('keterangan_sample_input_1').value;
+                    const val2 = document.getElementById('keterangan_sample_input_2').value;
+                    const finalDescriptionInput = document.getElementById('description');
+
+                    let finalValue = '';
+                    if (selectedType === 'batch') {
+                        // Format untuk Batch/Pallet tetap sama: "Nilai1P Nilai2"
+                        finalValue = `${val1}P${val2}`;
+                    } else if (selectedType === 'wb') {
+                        // Format BARU untuk WB/DEO: "WB:Nilai1"
+                        finalValue = `WB:${val1}`;
+                    } else if (selectedType === 'tank') {
+                        // Format BARU untuk Tank: "TANK:Nilai1"
+                        finalValue = `TANK:${val1}`;
+                    }
+                    finalDescriptionInput.value = finalValue;
                 }
                 keteranganInput1.addEventListener('input', updateDescription);
                 keteranganInput2.addEventListener('input', updateDescription);

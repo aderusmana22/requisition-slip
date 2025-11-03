@@ -49,18 +49,20 @@ class RequisitionPath extends Controller
                 throw new \RuntimeException('Failed to create approval path');
             }
 
-            $properties = ['approval_path_id' => $data->id];
-            if ($data->category === 'Sample') {
-                $properties['sub_category'] = $data->sub_category;
-            }
+            $logMessage = "Membuat alur persetujuan baru untuk {$data->category}" . ($data->sub_category ? " - {$data->sub_category}" : "") . ".";
+            $properties = [
+                'category' => $data->category,
+                'sub_category' => $data->sub_category,
+                'approvers' => $data->sequence_approvers,
+            ];
 
             activity()
                 ->causedBy($causer)
-                ->performedOn($data) // Ini akan mengisi subject_type & subject_id
-                ->useLog('path - ' . strtolower($data->category)) // Mengisi log_name
-                ->event('create') // Mengisi event
-                ->withProperties($properties) // Mengisi properties
-                ->log('Created new approval path');
+                ->performedOn($data)
+                ->useLog('path - ' . strtolower($data->category))
+                ->event('create')
+                ->withProperties($properties)
+                ->log($logMessage);
 
             return response()->json(['message' => 'Approver successfully created'], 201);
         } catch(\Exception $e) {
@@ -85,7 +87,7 @@ class RequisitionPath extends Controller
     public function update(Request $request, $id)
     {
         $approvalPath = ApprovalPath::findOrFail($id);
-        
+
         // Validasi sederhana untuk update
         $validated = $request->validate([
             'approvers' => 'required|array|min:1',
@@ -95,16 +97,20 @@ class RequisitionPath extends Controller
         $causer = Auth::user();
 
         try {
-            DB::transaction(function() use($validated, $approvalPath, $causer){
-                $approvalPath->update([
-                    'sequence_approvers' => $validated['approvers'],
-                ]);
+            $oldApprovers = $approvalPath->sequence_approvers;
+
+            DB::transaction(function() use($validated, $approvalPath){
+                $approvalPath->update(['sequence_approvers' => $validated['approvers']]);
             });
 
-            $properties = ['approval_path_id' => $approvalPath->id];
-            if ($approvalPath->category === 'Sample') {
-                $properties['sub_category'] = $approvalPath->sub_category;
-            }
+            // [LOGGING DISEMPURNAKAN]
+            $logMessage = "Memperbarui alur persetujuan untuk {$approvalPath->category}" . ($approvalPath->sub_category ? " - {$approvalPath->sub_category}" : "") . ".";
+            $properties = [
+                'category' => $approvalPath->category,
+                'sub_category' => $approvalPath->sub_category,
+                'old_approvers' => $oldApprovers,
+                'new_approvers' => $validated['approvers'],
+            ];
 
             activity()
                 ->causedBy($causer)
@@ -112,7 +118,7 @@ class RequisitionPath extends Controller
                 ->useLog('path - ' . strtolower($approvalPath->category))
                 ->event('update')
                 ->withProperties($properties)
-                ->log('Updated approval path');
+                ->log($logMessage);
 
             return response()->json(['message' => 'Approver successfully updated'], 200);
         } catch(\Exception $e){
@@ -210,20 +216,22 @@ class RequisitionPath extends Controller
             DB::transaction(function () use ($id, $causer) {
                 $data = ApprovalPath::findOrFail($id);
 
-                // [MODIFIKASI LOGGING UNTUK DELETE]
-                $properties = ['approval_path_id' => $data->id];
-                if ($data->category === 'Sample') {
-                    $properties['sub_category'] = $data->sub_category;
-                }
+                $logMessage = "Menghapus alur persetujuan untuk {$data->category}" . ($data->sub_category ? " - {$data->sub_category}" : "") . ".";
+                $properties = [
+                    'category' => $data->category,
+                    'sub_category' => $data->sub_category,
+                    'deleted_approvers' => $data->sequence_approvers,
+                ];
 
+                // Log dicatat SEBELUM data dihapus
                 activity()
                     ->causedBy($causer)
                     ->performedOn($data)
                     ->useLog('path - ' . strtolower($data->category))
                     ->event('delete')
                     ->withProperties($properties)
-                    ->log('Deleted approval path');
-                
+                    ->log($logMessage);
+
                 $data->delete();
             });
             return response()->json(['message' => 'Approver successfully deleted'], 200);
