@@ -17,17 +17,13 @@ class paymentProoferMail extends Mailable
     use Queueable, SerializesModels;
     
     public $requisition;
-    public $payment;
-    public $emailType;
 
     /**
      * Create a new message instance.
      */
-    public function __construct(Requisition $requisition, $payment = null, $emailType = 'rejection_warning')
+    public function __construct(Requisition $requisition)
     {
         $this->requisition = $requisition;
-        $this->payment = $payment;
-        $this->emailType = $emailType;
     }
 
     /**
@@ -35,15 +31,8 @@ class paymentProoferMail extends Mailable
      */
     public function envelope(): Envelope
     {
-        // Tentukan subject berdasarkan tipe email
-        $subject = match($this->emailType) {
-            'rejection_warning' => 'Payment Proof Required - Requisition need payment proof',
-            'payment_confirmation' => 'Payment Proof Received',
-            default => 'Payment Notification'
-        };
-
         return new Envelope(
-            subject: $subject,
+            subject: '⚠️ Payment Proof Required - Requisition ' . $this->requisition->no_srs,
         );
     }
 
@@ -53,11 +42,9 @@ class paymentProoferMail extends Mailable
     public function content(): Content
     {
         return new Content(
-            markdown: 'mail.payment-proofer-mail',
+            view: 'mail.payment-proofer-mail',
             with: [
                 'requisition' => $this->requisition,
-                'payment' => $this->payment,
-                'emailType' => $this->emailType,
             ]
         );
     }
@@ -69,26 +56,6 @@ class paymentProoferMail extends Mailable
      */
     public function attachments(): array
     {
-        $attachments = [];
-        
-        // Jika email konfirmasi payment dan ada payment data
-        if ($this->emailType === 'payment_confirmation' && $this->payment && $this->payment->document_url) {
-            try {
-                $filePath = storage_path('app/public/' . $this->payment->document_url);
-                
-                // Pastikan file exists sebelum menambahkan attachment
-                if (file_exists($filePath)) {
-                    $fileName = 'payment_proof_' . $this->requisition->id . '_' . basename($this->payment->document_url);
-                    
-                    $attachments[] = Attachment::fromPath($filePath)
-                        ->as($fileName)
-                        ->withMime('application/octet-stream');
-                }
-            } catch (\Exception $e) {
-                Log::error("Failed to attach payment proof: " . $e->getMessage());
-            }
-        }
-
-        return $attachments;
+        return [];
     }
 }

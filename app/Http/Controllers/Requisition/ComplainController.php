@@ -23,6 +23,7 @@ use App\Models\Requisition\Tracking;
 use App\Models\User;
 use App\Notifications\RequisitionNotification;
 use App\Traits\approvalTrait;
+use App\Traits\traitRequisition;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -34,7 +35,7 @@ use function Pest\Laravel\json;
 
 class ComplainController extends Controller
 {
-    use ApprovalTrait;
+    use traitRequisition;
 
     /**
      * Helper method to format datetime to Indonesian timezone
@@ -260,7 +261,7 @@ class ComplainController extends Controller
             );
 
             // Kirim notifikasi ke approver
-            $approveWithReviewLink = route('approval.index');
+            $approveWithReviewLink = route('complain.approval');
 
             $notificationData = [
                 'requisition_id' => $firstApprover['requisition']->id,
@@ -639,7 +640,7 @@ class ComplainController extends Controller
                             'requisition_id' => $requisition->id,
                             'srs_number' => $requisition->no_srs,
                             'message' => "Requisition {$requisition->no_srs} telah di-approve oleh {$approver->name}",
-                            'url' => route('complain-form.show', $requisition->id)
+                            'url' => route('complain-form.index')
                         ];
                         $requester->notify(new RequisitionNotification($notificationData, $approver));
                     }
@@ -660,7 +661,7 @@ class ComplainController extends Controller
                     if ($approvalLog->approver->hasRole('head-QA')) {
                         $requisition->status = 'payment proof';
                         $requisition->save();
-                        sendPaymentProofer::dispatch($requisition, null, 'rejection_warning');
+                        sendPaymentProofer::dispatch($requisition);
                         
                         // Kirim notifikasi payment proof required ke requester
                         if ($rejectedBy && $requester) {
@@ -668,7 +669,7 @@ class ComplainController extends Controller
                                 'requisition_id' => $requisition->id,
                                 'srs_number' => $requisition->no_srs,
                                 'message' => "Requisition {$requisition->no_srs} memerlukan bukti pembayaran untuk proses ulang",
-                                'url' => route('complain-form.show', $requisition->id)
+                                'url' => route('complain-form.index')
                             ];
                             $requester->notify(new RequisitionNotification($notificationData, $rejectedBy));
                         }
@@ -681,7 +682,7 @@ class ComplainController extends Controller
 
                         foreach ($getApproverAfters as $approverAfter) {
                             $approverAfter->token = null;
-                            $approverAfter->status = 'Cancelled';
+                            $approverAfter->status = 'Rejected';
                             $approverAfter->save();
                         }
                     
@@ -701,7 +702,7 @@ class ComplainController extends Controller
                                     'requisition_id' => $requisition->id,
                                     'srs_number' => $requisition->no_srs,
                                     'message' => "Requisition {$requisition->no_srs} telah di-reject oleh {$rejectedBy->name}",
-                                    'url' => route('complain-form.show', $requisition->id)
+                                    'url' => route('complain-form.index')
                                 ];
                                 $requester->notify(new RequisitionNotification($notificationData, $rejectedBy));
                             }
@@ -818,7 +819,7 @@ class ComplainController extends Controller
                             'requisition_id' => $requisition->id,
                             'srs_number' => $requisition->no_srs,
                             'message' => "Requisition {$requisition->no_srs} telah di-approve oleh {$approver->name}",
-                            'url' => route('complain-form.show', $requisition->id)
+                            'url' => route('complain-form.index')
                         ];
                         $requester->notify(new RequisitionNotification($notificationData, $approver));
                     }
@@ -840,7 +841,7 @@ class ComplainController extends Controller
                     if ($approvalLog->approver->hasRole('head-QA')) {
                         $requisition->status = 'payment proof';
                         $requisition->save();
-                        sendPaymentProofer::dispatch($requisition, null, 'rejection_warning');
+                        sendPaymentProofer::dispatch($requisition);
                         
                         // Kirim notifikasi payment proof required ke requester
                         if ($rejectedBy && $requester) {
@@ -848,7 +849,7 @@ class ComplainController extends Controller
                                 'requisition_id' => $requisition->id,
                                 'srs_number' => $requisition->no_srs,
                                 'message' => "Requisition {$requisition->no_srs} memerlukan bukti pembayaran untuk proses ulang",
-                                'url' => route('complain-form.show', $requisition->id)
+                                'url' => route('complain-form.index')
                             ];
                             $requester->notify(new RequisitionNotification($notificationData, $rejectedBy));
                         }
@@ -862,7 +863,7 @@ class ComplainController extends Controller
                         foreach ($getApproverAfters as $approverAfter) {
                             // Set token null untuk membatalkan approval selanjutnya
                             $approverAfter->token = null;
-                            $approverAfter->status = 'Cancelled';
+                            $approverAfter->status = 'Rejected';
                             $approverAfter->save();
                         }
                     
@@ -882,7 +883,7 @@ class ComplainController extends Controller
                                     'requisition_id' => $requisition->id,
                                     'srs_number' => $requisition->no_srs,
                                     'message' => "Requisition {$requisition->no_srs} telah di-reject oleh {$rejectedBy->name}",
-                                    'url' => route('complain-form.show', $requisition->id)
+                                    'url' => route('complain-form.index')
                                 ];
                                 $requester->notify(new RequisitionNotification($notificationData, $rejectedBy));
                             }
@@ -907,7 +908,7 @@ class ComplainController extends Controller
             
             // Untuk semua error, tampilkan halaman error yang sesuai
             if (str_contains($errorMessage, 'Invalid approval link') || str_contains($errorMessage, 'expired')) {
-                return view('page.complain.links.approval-invalid', [
+                return view('page.complain.links.approval-expired', [
                     'message' => $errorMessage,
                     'errorType' => 'token_expired'
                 ]);
@@ -1005,7 +1006,7 @@ class ComplainController extends Controller
                         sendMailComplain::dispatch($approver, $requisition, $nextApprovalLog);
                         
                         // Kirim notifikasi ke approver level berikutnya
-                        $approveWithReviewLink = route('approval.index');
+                        $approveWithReviewLink = route('complain.approval');
 
                         $notificationData = [
                             'requisition_id' => $requisition->id,
@@ -1247,7 +1248,7 @@ class ComplainController extends Controller
                             'requisition_id' => $requisition->id,
                             'srs_number' => $requisition->no_srs,
                             'message' => "Requisition {$requisition->no_srs} telah selesai diproses - Status: Completed",
-                            'url' => route('complain-form.show', $requisition->id)
+                            'url' => route('complain-form.index')
                         ];
                         $requester->notify(new RequisitionNotification($notificationData, $completedBy));
                     }
@@ -1339,7 +1340,7 @@ class ComplainController extends Controller
                             'requisition_id' => $requisition->id,
                             'srs_number' => $requisition->no_srs,
                             'message' => "Requisition {$requisition->no_srs} telah selesai diproses - Status: Completed",
-                            'url' => route('complain-form.show', $requisition->id)
+                            'url' => route('complain-form.index')
                         ];
                         $requester->notify(new RequisitionNotification($notificationData, $completedBy));
                     }
@@ -1453,6 +1454,13 @@ class ComplainController extends Controller
                 $requisition->status = 'In Progress';
                 $requisition->save();
 
+                // current level
+                $currentLevel = $requisition->approvalLogs()
+                    ->where('status', 'Pending')
+                    ->orderBy('level', 'asc')
+                    ->whereNotNull('token')
+                    ->value('level');
+                
                 // Log activity
                 $user = Auth::user();
                 if ($user) {
@@ -1466,7 +1474,7 @@ class ComplainController extends Controller
                 }
 
                 // Send payment confirmation email with attachment
-                $this->mailOtherLevel($validated['complain_id'], 1, false);
+                $this->mailOtherLevel($validated['complain_id'], $currentLevel, false);
                 
                 // Kirim notifikasi payment proof uploaded
                 $requester = User::where('nik', $requisition->requester_nik)->first();
@@ -1475,7 +1483,7 @@ class ComplainController extends Controller
                         'requisition_id' => $requisition->id,
                         'srs_number' => $requisition->no_srs,
                         'message' => "Bukti pembayaran untuk requisition {$requisition->no_srs} telah berhasil diupload",
-                        'url' => route('complain-form.show', $requisition->id)
+                        'url' => route('complain-form.index')
                     ];
                     $requester->notify(new RequisitionNotification($notificationData, $user));
                 }

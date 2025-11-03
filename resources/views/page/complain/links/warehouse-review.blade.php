@@ -126,9 +126,132 @@
             font-weight: 600;
         }
 
+        /* Responsive table wrapper */
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            margin-bottom: 1rem;
+        }
+
+        .table-responsive table {
+            min-width: 600px;
+        }
+
         @media (max-width:1024px) {
             .main-container {
                 grid-template-columns: 1fr;
+            }
+
+            .action-card {
+                position: relative;
+                top: 0;
+            }
+        }
+
+        @media (max-width:768px) {
+            .main-container {
+                margin: 20px auto;
+                padding: 0 10px;
+                gap: 20px;
+            }
+
+            .card-body {
+                padding: 1.5rem !important;
+            }
+
+            .card-header.main-header {
+                padding: 15px 20px;
+            }
+
+            .card-header.main-header h4 {
+                font-size: 1.1rem;
+            }
+
+            .card-header.main-header p {
+                font-size: 0.9rem;
+            }
+
+            .section-title {
+                font-size: 1rem;
+            }
+
+            .info-label {
+                font-size: 0.8em;
+            }
+
+            .info-value {
+                font-size: 0.9em;
+            }
+
+            .table-responsive {
+                margin-left: -1.5rem;
+                margin-right: -1.5rem;
+                padding: 0 1.5rem;
+            }
+
+            .table-responsive table {
+                font-size: 0.85rem;
+            }
+
+            .table-responsive th,
+            .table-responsive td {
+                padding: 0.5rem !important;
+                white-space: nowrap;
+            }
+
+            .status-badge {
+                font-size: 0.8em;
+                padding: 0.4em 0.6em;
+            }
+        }
+
+        @media (max-width:480px) {
+            .main-container {
+                padding: 0 5px;
+            }
+
+            .card {
+                border-radius: 12px;
+            }
+
+            .card-header.main-header {
+                border-radius: 12px 12px 0 0 !important;
+                padding: 12px 15px;
+            }
+
+            .card-header.main-header h4 {
+                font-size: 1rem;
+            }
+
+            .card-header.main-header p {
+                font-size: 0.85rem;
+            }
+
+            .section-title {
+                font-size: 0.95rem;
+            }
+
+            .table-responsive {
+                margin-left: -1rem;
+                margin-right: -1rem;
+                padding: 0 1rem;
+            }
+
+            .table-responsive table {
+                font-size: 0.8rem;
+            }
+
+            .form-label {
+                font-size: 0.9rem;
+            }
+
+            .form-control {
+                font-size: 0.9rem;
+            }
+
+            .btn-lg {
+                padding: 0.75rem 1rem;
+                font-size: 1rem;
             }
         }
     </style>
@@ -309,22 +432,15 @@
                                         <strong>Approve</strong>
                                     </label>
                                 </div>
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input" type="radio" name="status" id="reject"
-                                        value="reject" required>
-                                    <label class="form-check-label text-danger" for="reject">
-                                        <strong>Reject</strong>
-                                    </label>
-                                </div>
                             </div>
                         </div>
 
                         <!-- Notes/Reason -->
                         <div class="mb-3">
-                            <label for="notes" class="form-label fw-semibold">Notes/Comments:</label>
+                            <label for="notes" class="form-label fw-semibold">Notes/Comments: <span class="text-danger">*</span></label>
                             <textarea class="form-control" id="notes" name="notes" rows="8"
-                                placeholder="Enter your notes or comments here..."></textarea>
-                            <div class="form-text" id="notes-help-text">Notes are required for rejection.</div>
+                                placeholder="Enter your notes or comments here..." required></textarea>
+                            <div class="form-text text-danger" id="notes-help-text">Notes are required for your decision.</div>
                         </div>
 
                         <!-- Submit Button -->
@@ -360,51 +476,56 @@
             const overlay = document.getElementById('processingOverlay');
             const submitBtn = document.getElementById('submitBtn');
             const approveRadio = document.getElementById('approve');
-            const rejectRadio = document.getElementById('reject');
             const notesTextarea = document.getElementById('notes');
             const notesHelpText = document.getElementById('notes-help-text');
 
             // --- FUNGSI VALIDASI ---
             const validateForm = () => {
-                const reviewRadio = document.getElementById('reject');
                 const notesTextarea = document.getElementById('notes');
-                if (reviewRadio.checked && !(/[a-zA-Z]/.test(notesTextarea.value.trim()))) {
+                const notesValue = notesTextarea.value.trim();
+                
+                // Cek apakah notes kosong atau hanya berisi spasi
+                if (!notesValue || notesValue.length === 0) {
                     Swal.fire({ 
                         icon: 'warning', 
-                        title: 'Alasan Diperlukan', 
-                        text: 'Mohon berikan alasan yang valid untuk penolakan.' 
+                        title: 'Notes Required', 
+                        text: 'Please provide notes for your decision.' 
                     });
                     return false;
                 }
+                
+                // Cek apakah notes mengandung setidaknya satu huruf (bukan hanya angka/simbol/spasi)
+                if (!/[a-zA-Z]/.test(notesValue)) {
+                    Swal.fire({ 
+                        icon: 'warning', 
+                        title: 'Invalid Notes', 
+                        text: 'Please provide valid notes with at least some text.' 
+                    });
+                    return false;
+                }
+                
                 return true; // Jika semua validasi lolos
             };
 
             // Update form behavior based on selected decision
             function updateFormBehavior() {
-                if (rejectRadio.checked) {
+                if (approveRadio.checked) {
                     notesTextarea.required = true;
-                    notesHelpText.textContent = 'Please provide a reason for rejection (required).';
-                    notesHelpText.className = 'form-text text-danger';
-                    submitBtn.textContent = 'Submit Rejection';
-                    submitBtn.className = 'btn btn-danger btn-lg';
-                } else if (approveRadio.checked) {
-                    notesTextarea.required = false;
-                    notesHelpText.textContent = 'Optional: Add any notes or comments for this approval.';
-                    notesHelpText.className = 'form-text text-muted';
-                    submitBtn.textContent = 'Submit Approval';
+                    notesHelpText.textContent = 'Please provide notes for your approval (required).';
+                    notesHelpText.className = 'form-text text-warning';
+                    submitBtn.innerHTML = '<i class="fas fa-check-circle me-2"></i>Submit Approval';
                     submitBtn.className = 'btn btn-success btn-lg';
                 } else {
-                    notesTextarea.required = false;
-                    notesHelpText.textContent = 'Please provide a reason for your decision.';
-                    notesHelpText.className = 'form-text text-muted';
-                    submitBtn.textContent = 'Submit Decision';
+                    notesTextarea.required = true;
+                    notesHelpText.textContent = 'Please provide notes for your decision (required).';
+                    notesHelpText.className = 'form-text text-danger';
+                    submitBtn.innerHTML = '<i class="fas fa-paper-plane me-2"></i>Submit Decision';
                     submitBtn.className = 'btn btn-primary btn-lg';
                 }
             }
 
             // Add event listeners
             approveRadio.addEventListener('change', updateFormBehavior);
-            rejectRadio.addEventListener('change', updateFormBehavior);
 
             // --- LOGIKA SUBMIT MANUAL ---
             if (form && submitBtn) {

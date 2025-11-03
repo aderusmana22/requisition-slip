@@ -123,6 +123,7 @@ Route::middleware('auth')->group(function () {
         // * complain approval
         Route::get('/approval', [ComplainApprovalController::class, 'index'])->name('complain.approval');
         Route::get('/getapproverdata/{id?}', [ComplainApprovalController::class, 'getData'])->name('get.approver.data');
+        Route::post('/approval/resend/{token}', [ComplainApprovalController::class, 'resendApprovalEmail'])->name('complain.approval.resend');
 
         // * complain reports
         Route::get('/reports', [ComplainController::class, 'reports'])->name('complain.reports');
