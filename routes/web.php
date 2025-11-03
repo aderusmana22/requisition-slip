@@ -151,7 +151,7 @@ Route::group(['middleware' => ['role:super-admin|admin']], function () {
     Route::post('roles/{roleId}/give-permissions', [RoleController::class, 'givePermissionToRole'])->name('roles.give-permission');
 
     // --- Requisition Path (Approvers) ---
-    Route::get('/requistion/path', [RequisitionPath::class, 'index'])->name('requisition.path');
+    Route::get('/requisition/path', [RequisitionPath::class, 'index'])->name('requisition.path');
     Route::get('/getapproverlist', [RequisitionPath::class, 'approverList'])->name('get.approverlist');
     Route::resource('/approvers', RequisitionPath::class);
     Route::get('/categories', [RequisitionPath::class, 'categories'])->name('get.categories');

@@ -9,6 +9,7 @@ use App\Jobs\sendSample;
 use App\Models\Master\Customer;
 use App\Models\Master\ItemMaster;
 use App\Models\Master\ItemDetail;
+use App\Models\Master\Revision;
 use App\Models\Requisition\Requisition;
 use App\Models\Requisition\RequisitionItem;
 use App\Models\Requisition\RequisitionSpecial;
@@ -1182,13 +1183,13 @@ class SampleController extends Controller
             if ($log->status !== 'Pending') {
                 $actionText = 'Unknown';
                 if ($log->status === 'Approved') {
-                    if (!empty($log->notes) && !str_starts_with($log->notes, 'Approved by')) {
-                        $actionText = 'Approved with Review';
+                    $isDefaultNote = in_array($log->notes, ['Approved without Review', 'Approved without Review (Quick Action)']);
+
+                    if (!empty($log->notes) && !$isDefaultNote && !str_starts_with($log->notes, 'Approved by')) {
+                        $actionText = 'Approved with Review'; // Ini adalah review sungguhan
                     } else {
-                        $actionText = 'Approved not Review';
+                        $actionText = 'Approved not Review'; // Ini adalah Quick Approve
                     }
-                } elseif ($log->status === 'Rejected') {
-                    $actionText = 'Rejected';
                 }
                 $history[] = [
                     'actor' => $log->approver->name ?? 'Approver',
@@ -1275,57 +1276,6 @@ class SampleController extends Controller
         return view('page.sample.report.index');
     }
 
-    public function printReport($id)
-    {
-        $requisition = Requisition::with([
-            'customer',
-            'requester.department',
-            'requisitionItems.itemMaster',
-            'requisitionItems.itemDetail',
-            'requisitionSpecial',
-            // Ambil semua approval logs, tidak hanya yang 'Approved'
-            'approvalLogs' => fn($q) => $q->orderBy('level', 'asc'),
-            'approvalLogs.approver.roles'
-        ])->findOrFail($id);
-
-        // Siapkan data approver untuk view
-        $approvals = $requisition->approvalLogs->map(function ($log) {
-            $statusText = 'NOT REVIEWED';
-            if ($log->status === 'Approved' && !empty($log->notes) && $log->notes !== 'Approved by ' . ($log->approver->name ?? '')) {
-            $statusText = 'APPROVED WITH REVIEW';
-            } elseif ($log->status === 'Approved') {
-            $statusText = 'APPROVED NOT REVIEW';
-            } elseif ($log->status === 'Rejected') {
-            $statusText = 'NOT APPROVED';
-            }
-
-            // Ambil role pertama (atau gabungkan jika multi-role)
-            $roleNames = $log->approver?->roles->pluck('name')->toArray() ?? [];
-            $roleDisplay = !empty($roleNames) ? implode(', ', $roleNames) : 'N/A';
-
-            return (object) [
-            'name' => $log->approver->name ?? 'N/A',
-            'position' => $roleDisplay,
-            'status' => $statusText,
-            'updated_at' => $log->updated_at,
-            'notes' => $log->notes,
-            ];
-        });
-
-        // Kirim semua data yang dibutuhkan ke view
-        $data = [
-            'requisition' => $requisition,
-            'requester' => $requisition->requester,
-            'approvals' => $approvals, // <-- VARIABEL APPROVALS DITAMBAHKAN DI SINI
-            // Variabel approver lama untuk tanda tangan (jika masih diperlukan)
-            'firstApprover' => $requisition->approvalLogs->first()->approver ?? null,
-            'lastApprover' => $requisition->approvalLogs->last()->approver ?? null,
-        ];
-
-        $pdf = Pdf::loadView('page.sample.report.print', $data)->setPaper('a4', 'landscape');
-        return $pdf->stream('RS Sample - ' . $requisition->no_srs . '.pdf');
-    }
-
     public function printMultipleReport(Request $request)
     {
         $request->validate([
@@ -1343,12 +1293,15 @@ class SampleController extends Controller
             'approvalLogs.approver.roles'
         ])->whereIn('id', $request->selected_ids)->get();
 
+        $revisionData = Revision::first();
+
         if ($requisitions->isEmpty()) {
             return redirect()->back()->with('error', 'Tidak ada data yang dipilih untuk dicetak.');
         }
 
         $pdf = Pdf::loadView('page.sample.report.print', [
-            'requisitions' => $requisitions
+            'requisitions' => $requisitions,
+            'revision'     => $revisionData
         ])->setPaper('a4', 'landscape');
 
         return $pdf->stream('Bulk-RS-Sample-' . now()->format('Y-m-d') . '.pdf');
@@ -1505,7 +1458,7 @@ class SampleController extends Controller
 
                 } elseif ($log->subject_type === ApprovalPath::class) {
                     // Buat link ke halaman approval path
-                    $url = route('requistion.path');
+                    $url = route('requisition.path');
                     $style = $subjectExists ? 'background-color: #5a6268;' : 'background-color: #dc3545; text-decoration: line-through;';
                     $title = $subjectExists ? 'View in Approval Path Page' : 'Subject has been deleted';
                     return '<a href="' . $url . '" target="_blank" class="srs-badge" style="' . $style . '" title="' . $title . '">' . e($id) . '</a>';
