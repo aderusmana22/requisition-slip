@@ -359,8 +359,39 @@ class SampleController extends Controller
             // Jika ada 'source', berarti ini adalah submit dari form QA/QM
             if (isset($validated['source'])) {
                 RequisitionSpecial::updateOrCreate(['requisition_id' => $requisition->id], $validated);
+                $tracking = Tracking::where('requisition_id', $requisition->id)
+                                    ->where('current_position', 'Waiting for QA/QM Form')
+                                    ->whereNull('last_updated')
+                                    ->first();
+
+                if ($tracking) {
+                    $headQaUser = Auth::user(); // Gunakan user yang sedang login sebagai causer/actor
+
+                    // Isi last_updated, hapus token, dan tambahkan notes
+                    $tracking->update([
+                        'token'        => null,
+                        'last_updated' => now(),
+                        'notes'        => 'Form has been completed by QA via internal system.', // Notes yang jelas
+                    ]);
+
+                    // Log aktivitas tracking
+                    activity()
+                        ->causedBy($headQaUser)
+                        ->performedOn($requisition)
+                        ->useLog('sample - special order')
+                        ->event('tracking')
+                        ->withProperties([
+                            'step'    => 'QA/QM Form',
+                            'notes'   => 'Form has been completed by QA via internal system.',
+                            'details' => $validated,
+                        ])
+                        ->log('Submitted the QA/QM & HSE form via internal system.');
+                }
+
+                // 3. Ubah status Requisition menjadi Completed & Kirim Notifikasi
                 $this->notifyRequesterAsCompleted($requisition);
-                $message = 'QM & HSE form has been successfully submitted.';
+                $message = 'QM & HSE form has been successfully submitted and Requisition completed.';
+
             } else { // Jika tidak, ini adalah edit biasa oleh requester
                 $requisition->update($validated);
                 $requisition->requisitionItems()->delete();
@@ -674,7 +705,7 @@ class SampleController extends Controller
                 // Jika log level sebelumnya tidak ada ATAU statusnya BUKAN 'Approved'
                 if (!$previousLevelLog || $previousLevelLog->status !== 'Approved') {
                     $errorMessage = "Approval level {$currentLevel} cannot be processed because level " . ($currentLevel - 1) . " has not been approved yet.";
-                    
+
                     // Rollback transaksi jika ada (walaupun belum ada operasi DB)
                     DB::rollBack();
 
@@ -686,7 +717,7 @@ class SampleController extends Controller
                     return redirect()->route('approval.success')->with('card_class', 'reject')->with('title', 'Invalid Action')->with('message', $errorMessage);
                 }
             }
-            
+
             $requisition = $approvalLog->requisition->load('requester', 'customer');
             $approver = $approvalLog->approver;
             $redirectData = [];
@@ -779,9 +810,11 @@ class SampleController extends Controller
 
     private function handleApproval(Requisition $requisition, ApprovalLog $approvalLog, User $approver, ?string $notes)
     {
+        $finalNotes = $notes ?? 'Approved without Review (Quick Action)';
+
         $approvalLog->update([
             'status'     => 'Approved',
-            'notes'      => $notes,
+            'notes'      => $finalNotes, // Selalu ada catatan
             'updated_at' => now(),
             'token'      => null,
         ]);
