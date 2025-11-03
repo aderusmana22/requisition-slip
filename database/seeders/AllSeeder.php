@@ -57,17 +57,17 @@ class AllSeeder extends Seeder
         Permission::updateOrCreate(['name' => 'create customer']);
         Permission::updateOrCreate(['name' => 'update customer']);
         Permission::updateOrCreate(['name' => 'delete customer']);
-
+        
+        // ! permision untuk page requisition
+        Permission::updateOrCreate(['name' => 'view log']);
+        Permission::updateOrCreate(['name' => 'view requisition-form']);
         Permission::updateOrCreate(['name' => 'view report']);
-        Permission::updateOrCreate(['name' => 'create report']);
-        Permission::updateOrCreate(['name' => 'update report']);
-        Permission::updateOrCreate(['name' => 'delete report']);
-
-        Permission::updateOrCreate(['name' => 'view approval-sequence']);
-        Permission::updateOrCreate(['name' => 'update approval-sequence']);
-        Permission::updateOrCreate(['name' => 'delete approval-sequence']);
-
         Permission::updateOrCreate(['name' => 'view requisition-approval']);
+        
+        // ! permision untuk master data (approval path dan revision)
+        Permission::updateOrCreate(['name' => 'view approval-path']);
+        Permission::updateOrCreate(['name' => 'view revision']);
+
         Permission::updateOrCreate(['name' => 'approve requisition']);
         Permission::updateOrCreate(['name' => 'reject requisition']);
 
@@ -173,12 +173,18 @@ class AllSeeder extends Seeder
         //* wh-supervisor
         $headWhRole = Role::create(['name' => 'wh-supervisor']);
         $headWhRole->givePermissionTo([
+            'view log',
+            'view requisition-form',
+            'view report',
             'view requisition-approval', 
             'approve requisition', 
             'reject requisition']);
 
         $staffWhRole = Role::create(['name' => 'wh-staff']);
         $staffWhRole->givePermissionTo([
+            'view log',
+            'view requisition-form',
+            'view report',
             'view requisition', 
             'create requisition', 
             'update requisition', 
@@ -187,12 +193,18 @@ class AllSeeder extends Seeder
         // * material
         $headMaterialRole = Role::create(['name' => 'material-supervisor']);
         $headMaterialRole->givePermissionTo([
+            'view log',
+            'view requisition-form',
+            'view report',
             'view requisition-approval', 
             'approve requisition', 
             'reject requisition']);
 
         $staffMaterialRole = Role::create(['name' => 'material-staff']);
         $staffMaterialRole->givePermissionTo([
+            'view log',
+            'view requisition-form',
+            'view report',
             'view requisition', 
             'create requisition', 
             'update requisition', 
@@ -201,12 +213,18 @@ class AllSeeder extends Seeder
         //* Sales & Marketing
         $headSalesMarketingRole = Role::updateOrCreate(['name' => 'head-SNM']);
         $headSalesMarketingRole->givePermissionTo([
+            'view log',
+            'view requisition-form',
+            'view report',
             'view requisition-approval',
             'approve requisition',
             'reject requisition']);
 
         $staffSalesMarketingRole = Role::updateOrCreate(['name' => 'staff-SNM']);
         $staffSalesMarketingRole->givePermissionTo([
+            'view log',
+            'view requisition-form',
+            'view report',
             'view requisition',
             'create requisition',
             'update requisition',
@@ -215,12 +233,18 @@ class AllSeeder extends Seeder
         //* R&D
         $headRndRole = Role::updateOrCreate(['name' => 'head-R&D']);
         $headRndRole->givePermissionTo([
+            'view log',
+            'view requisition-form',
+            'view report',
             'view requisition-approval',
             'approve requisition',
             'reject requisition']);
 
         $staffRndRole = Role::updateOrCreate(['name' => 'staff-R&D']);
         $staffRndRole->givePermissionTo([
+            'view log',
+            'view requisition-form',
+            'view report',
             'view requisition',
             'create requisition',
             'update requisition',
@@ -229,12 +253,18 @@ class AllSeeder extends Seeder
         //* QA
         $headQaRole = Role::updateOrCreate(['name' => 'head-QA']);
         $headQaRole->givePermissionTo([
+            'view log',
+            'view requisition-form',
+            'view report',
             'view requisition-approval',
             'approve requisition',
             'reject requisition']);
 
         $staffQaRole = Role::updateOrCreate(['name' => 'staff-QA']);
         $staffQaRole->givePermissionTo([
+            'view log',
+            'view requisition-form',
+            'view report',
             'view requisition',
             'create requisition',
             'update requisition',
@@ -243,12 +273,18 @@ class AllSeeder extends Seeder
         //* HCD
         $headHcdRole = Role::updateOrCreate(['name' => 'head-HCD']);
         $headHcdRole->givePermissionTo([
+            'view log',
+            'view requisition-form',
+            'view report',
             'view requisition-approval',
             'approve requisition',
             'reject requisition']);
 
         $staffHcdRole = Role::updateOrCreate(['name' => 'staff-HCD']);
         $staffHcdRole->givePermissionTo([
+            'view log',
+            'view requisition-form',
+            'view report',
             'view requisition',
             'create requisition',
             'update requisition',
@@ -256,6 +292,9 @@ class AllSeeder extends Seeder
 
         $atasanRole = Role::updateOrCreate(['name' => 'atasan']);
         $atasanRole->givePermissionTo([
+            'view log',
+            'view requisition-form',
+            'view report',
             'view requisition-approval', 
             'approve requisition', 
             'reject requisition']);
@@ -502,17 +541,30 @@ class AllSeeder extends Seeder
 
         // Lets give all permission to super-admin role.
         $allPermissionNames = Permission::pluck('name')->toArray();
+        
+        // User Requisition Role - basic permissions
         $userRequisitionRole->givePermissionTo([
+            'view log',
+            'view requisition-form',
+            'view report',
             'view requisition',
             'create requisition',
             'update requisition',
             'delete requisition',
         ]);
+        
+        // Approval Role - untuk head department (approval permissions)
         $approvalRole->givePermissionTo([
+            'view log',
+            'view requisition-form',
+            'view report',
             'view approval',
+            'view requisition-approval',
             'approve requisition',
+            'reject requisition',
         ]);
 
+        // Super Admin - full access termasuk master data
         $superAdminRole->givePermissionTo($allPermissionNames);
         // Baris yang dihapus karena berpotensi error:
         // $userRequisitionRole->givePermissionTo($userRequisitionRole); 

@@ -30,6 +30,17 @@ Route::get('/dashboard', function () {
     return view('dashboard', compact('availableYears'));
 })->middleware(['auth', 'verified'])->name('dashboard');
 
+Route::get('/tes-404', function () {
+    abort(404); // Menampilkan halaman resources/views/errors/404.blade.php
+});
+
+Route::get('/tes-500', function () {
+    abort(500); // Menampilkan halaman resources/views/errors/500.blade.php
+});
+
+Route::get('/tes-403', function () {
+    abort(403, 'Akses Ditolak'); // Menampilkan halaman 403 dengan pesan kustom
+});
 
 // --- mailing dan approval proses complain ---
 Route::get('/approval', [ComplainController::class, 'processApproval'])->name('approval.process');

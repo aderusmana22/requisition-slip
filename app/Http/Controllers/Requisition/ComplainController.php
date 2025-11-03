@@ -30,7 +30,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;    
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-
+use App\Models\Master\Revision;
 use function Pest\Laravel\json;
 
 class ComplainController extends Controller
@@ -111,6 +111,10 @@ class ComplainController extends Controller
 
     public function index()
     {
+        $user = Auth::user();
+        if(!$user->can('view requisition-form')){
+            abort(403);
+        }
         return view('page.complain.index');
     }
 
@@ -1529,8 +1533,12 @@ class ComplainController extends Controller
             return redirect()->back()->with('error', 'Tidak ada data yang dipilih untuk dicetak.');
         }
 
+        // Ambil data revision pertama (atau bisa disesuaikan dengan kebutuhan)
+        $revision = Revision::first();
+
         $pdf = Pdf::loadView('page.complain.reports.report-template', [
-            'requisitions' => $requisitions
+            'requisitions' => $requisitions,
+            'revision' => $revision
         ])->setPaper('a4', 'landscape');
 
         return $pdf->stream('Bulk-RS-Complain-' . now()->format('Y-m-d') . '.pdf');
@@ -1538,6 +1546,10 @@ class ComplainController extends Controller
 
     public function reports()
     {
+        $user = Auth::user();
+        if(!$user->can('view report')){
+            abort(403);
+        }
         return view('page.complain.reports.report');
     }
 }

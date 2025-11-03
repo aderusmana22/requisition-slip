@@ -278,7 +278,6 @@
                     name: 'revision_count',
                     render: function(data) {
                         return `<span class="badge bg-info-subtle text-info rounded-2 px-3 py-2" style="font-size:0.95rem;">
-                                    <i class="ph-duotone ph-number-circle-one me-1"></i>
                                     Count: ${data}
                                 </span>`;
                     }

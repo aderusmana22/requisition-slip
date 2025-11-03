@@ -14,8 +14,4 @@ class Revision extends Model
         'revision_date',
     ];
 
-    public function requisition()
-    {
-        return $this->belongsTo(Requisition::class, 'requisition_id');
-    }
 }
