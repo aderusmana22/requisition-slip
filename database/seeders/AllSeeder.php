@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Master\Department;
+use App\Models\Master\Revision;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
@@ -151,6 +152,18 @@ class AllSeeder extends Seeder
         foreach ($departments as $dept) {
             Department::updateOrCreate(['id' => $dept['id']], $dept);
         }
+
+        // Create Revision Data
+        Revision::updateOrCreate(
+            ['id' => 1],
+            [
+                'revision_number' => 'REV-001',
+                'revision_count' => 1,
+                'revision_date' => $now->format('Y-m-d'),
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]
+        );
 
          //! Create Roles - Menggunakan updateOrCreate
         $superAdminRole = Role::updateOrCreate(['name' => 'super-admin']); //as super-admin
@@ -615,6 +628,9 @@ class AllSeeder extends Seeder
 
             $user->assignRole('user-requisition');
         }
+
+
+
     }
 
 }

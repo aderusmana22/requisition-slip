@@ -5,6 +5,7 @@ use App\Http\Controllers\DashboardController; // Tambahkan ini
 use App\Http\Controllers\Master\DepartmentController;
 use App\Http\Controllers\Master\CustomerController;
 use App\Http\Controllers\Master\PermissionController;
+use App\Http\Controllers\Master\RevisionController;
 use App\Http\Controllers\Master\RoleController;
 use App\Http\Controllers\Master\UserController;
 use App\Http\Controllers\NotificationController;
@@ -150,11 +151,15 @@ Route::group(['middleware' => ['role:super-admin|admin']], function () {
     Route::post('roles/{roleId}/give-permissions', [RoleController::class, 'givePermissionToRole'])->name('roles.give-permission');
 
     // --- Requisition Path (Approvers) ---
-    Route::get('/requistion/path', [RequisitionPath::class, 'index'])->name('requistion.path');
+    Route::get('/requistion/path', [RequisitionPath::class, 'index'])->name('requisition.path');
     Route::get('/getapproverlist', [RequisitionPath::class, 'approverList'])->name('get.approverlist');
     Route::resource('/approvers', RequisitionPath::class);
     Route::get('/categories', [RequisitionPath::class, 'categories'])->name('get.categories');
     Route::get('/approver-name', [RequisitionPath::class, 'approverName'])->name('get.approver.name');
+
+    Route::get('/master/revision', [RevisionController::class, 'index'])->name('master.revision.index');
+    Route::post('/master/revision/update', [RevisionController::class, 'update'])->name('master.revision.update');
+    Route::get('/master/revision/getdata', [RevisionController::class, 'getrevisiondata'])->name('master.revision.getdata');
 
 });
 
