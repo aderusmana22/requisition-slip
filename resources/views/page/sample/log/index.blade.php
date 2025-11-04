@@ -51,11 +51,11 @@
                     ajax: "{{ route('sample.log.data') }}",
                     columns: [
                         { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false, width: '5%', className: 'text-center' },
-                        { data: 'log_name', name: 'log_name', width: '15%' }, // <-- LEBAR DITAMBAHKAN
+                        { data: 'log_name', name: 'log_name', width: '15%', className: 'dt-no-wrap' }, // <-- LEBAR DITAMBAHKAN
                         { data: 'causer_info', name: 'causer.name', width: '10%', orderable: false },
                         { data: 'description', name: 'description', width: '31%' },
                         { data: 'event', name: 'event', width: '10%', className: 'text-center' },
-                        { data: 'subject_info', name: 'subject.no_srs', width: '9%', className: 'text-center', orderable: false },
+                        { data: 'subject_info', name: 'subject.no_srs', width: '9%', className: 'dt-no-wrap', orderable: false },
                         { data: 'subject_id', name: 'subject_id', width: '5%', className: 'text-center', orderable: false },
                         { data: 'created_at', name: 'created_at', width: '10%' }
                     ],

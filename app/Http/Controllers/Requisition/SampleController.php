@@ -552,7 +552,7 @@ class SampleController extends Controller
         $tracking = !$approvalLog ? Tracking::where('token', $token)->whereNull('last_updated')->first() : null;
 
         if (!$approvalLog && !$tracking) {
-            return view('page.sample.invalid', ['message' => 'This request is invalid or has been processed.']);
+            return view('page.sample.links.invalid', ['message' => 'This request is invalid or has been processed.']);
         }
 
         $requisition = ($approvalLog) ? $approvalLog->requisition : $tracking->requisition;
@@ -570,7 +570,7 @@ class SampleController extends Controller
             $action = 'review';
         }
 
-        return view('page.sample.response-form', compact('token', 'action', 'originalAction', 'requisition', 'pageTitle', 'isQaForm', 'isWarehouseProcess'));
+        return view('page.sample.links.response-form', compact('token', 'action', 'originalAction', 'requisition', 'pageTitle', 'isQaForm', 'isWarehouseProcess'));
     }
 
     /**
@@ -1264,7 +1264,7 @@ class SampleController extends Controller
 
     public function showSuccessPage()
     {
-        return session('title') ? view('page.sample.response-success') : redirect('/');
+        return session('title') ? view('page.sample.links.response-success') : redirect('/');
     }
 
     //======================================================================
