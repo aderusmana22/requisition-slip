@@ -297,7 +297,7 @@ class FreeGoodsController extends Controller
             ->make(true);
     }
     
-    public function reportIndex()
+    public function reports()
     {
         return view('page.freegoods.report.index');
     }
@@ -685,13 +685,11 @@ class FreeGoodsController extends Controller
                 $query->orderBy('level', 'asc');
             },
             'approvalLogs.approver:nik,name',
-            'trackings'
+            'tracking'
         ])->findOrFail($id);
     
-        // [UPDATE] Menambahkan logika untuk membuat data histori
         $history = [];
     
-        // 1. Add Creation Event
         $history[] = [
             'actor' => $requisition->requester->name ?? 'System',
             'action' => 'Created',
@@ -699,9 +697,8 @@ class FreeGoodsController extends Controller
             'timestamp' => $requisition->created_at->toDateTimeString(),
         ];
     
-        // 2. Add Approval Log Events
         foreach ($requisition->approvalLogs as $log) {
-            if ($log->status !== 'Pending') { // Hanya tampilkan yang sudah direspon
+            if ($log->status !== 'Pending') {
                 $action_text = $log->status;
                 if ($log->status === 'Approved' && Str::contains($log->notes, 'Review')) {
                     $action_text = 'Approved with Review';
@@ -716,21 +713,16 @@ class FreeGoodsController extends Controller
             }
         }
     
-        // 3. Add Tracking/Warehouse Events
-        if ($requisition->trackings) {
-            foreach($requisition->trackings as $tracking) {
-                if($tracking->last_updated) {
-                     $history[] = [
-                        'actor' => $tracking->current_position,
-                        'action' => 'Completed Step',
-                        'notes' => $tracking->notes,
-                        'timestamp' => $tracking->last_updated->toDateTimeString(),
-                    ];
-                }
-            }
+        if ($requisition->tracking && $requisition->tracking->last_updated) {
+            $tracking = $requisition->tracking;
+            $history[] = [
+                'actor' => $tracking->current_position,
+                'action' => 'Completed Step',
+                'notes' => $tracking->notes,
+                'timestamp' => $tracking->last_updated->toDateTimeString(),
+            ];
         }
     
-        // 4. Sort history by timestamp
         usort($history, function ($a, $b) {
             return strtotime($a['timestamp']) - strtotime($b['timestamp']);
         });
@@ -789,30 +781,46 @@ class FreeGoodsController extends Controller
             ->make(true);
     }
 
-    public function recallRequisition($id)
+    // [UPDATE] Seluruh method recallRequisition diganti
+    public function recallRequisition(Request $request, $id)
     {
+        // Validasi untuk memastikan alasan recall diisi
+        $request->validate([
+            'notes' => 'required|string|max:500',
+        ]);
+    
         DB::beginTransaction();
         try {
             $requisition = Requisition::with('requester')->findOrFail($id);
-
+    
             if ($requisition->status !== 'Pending') {
                 return response()->json(['success' => false, 'message' => 'Requisition can no longer be recalled.'], 403);
             }
-
+    
             $firstLog = ApprovalLog::where('requisition_id', $id)->orderBy('level', 'asc')->first();
             if ($firstLog) {
                 $firstApprover = User::where('nik', $firstLog->approver_nik)->first();
                 if ($firstApprover) {
                     Log::info("Mengirim notifikasi recall untuk FG #{$id} ke {$firstApprover->name}");
+    
+                    // Mengirimkan alasan recall ke notifikasi email
                     dispatch(new sendFreeGoods($requisition, $firstApprover, null, [
-                        'mail_type' => 'recalled_notification'
+                        'mail_type' => 'recalled_notification',
+                        'notes'     => $request->input('notes') // Menggunakan notes dari request
                     ]));
                 }
             }
-
+    
             $requisition->update(['status' => 'Recalled', 'route_to' => 'Recalled by Requester']);
             ApprovalLog::where('requisition_id', $id)->delete();
-
+            
+            // Mencatat aktivitas recall ke dalam log
+            activity()
+                ->performedOn($requisition)
+                ->causedBy(Auth::user())
+                ->withProperties(['attributes' => ['status' => 'Recalled'], 'reason' => $request->input('notes')])
+                ->log('Requisition was recalled');
+    
             DB::commit();
             return response()->json(['success' => true, 'message' => 'Requisition has been successfully recalled.']);
         } catch (\Exception $e) {

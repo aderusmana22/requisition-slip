@@ -3,14 +3,11 @@
         Free Goods Approval
     @endsection
 
-    {{-- [DIUBAH] Memuat komponen gaya untuk Free Goods (Tema Hijau & Hitam) --}}
     @include('components.freegoods-table-styles')
 
-    {{-- [DITAMBAHKAN] Pembungkus utama untuk memberikan padding dan background --}}
     <div class="bg-white p-4 rounded shadow-sm">
         <div class="row m-1">
             <div class="col-12">
-                {{-- [DIUBAH] Judul halaman disesuaikan --}}
                 <h4 class="main-title">Free Goods Approval</h4>
                 <ul class="app-line-breadcrumbs mb-3">
                     <li><a class="f-s-14 f-w-500" href="#"><i class="ph-duotone ph-check-square f-s-16"></i> Approvals</a></li>
@@ -23,23 +20,21 @@
             <div class="col-12">
                 <div class="main-table-container">
                     <div class="table-header-enhanced">
-                        {{-- [DIUBAH] Judul tabel disesuaikan --}}
                         <h4 class="table-title"><i class="ph-duotone ph-list-checks"></i> Free Goods Action Center</h4>
                         <p class="table-subtitle">View and process all free goods requisition approval stages.</p>
                     </div>
                     <div class="table-responsive">
-                        {{-- [DIUBAH] ID Tabel diubah untuk Free Goods --}}
                         <table class="w-100 display" id="fgApprovalTable">
                             <thead>
                                 <tr>
                                     <th>No.</th>
-                                    {{-- [DIUBAH] Kolom disesuaikan --}}
                                     <th>FG No.</th>
-                                    <th>Approver NIK</th>
+                                    <th>Requester</th>
                                     <th>Request Date</th>
                                     <th>Sub Category</th>
-                                    <th>Level</th>
                                     <th>Status</th>
+                                    <th>Approver NIK</th>
+                                    <th>Level</th>
                                     <th>Action</th>
                                 </tr>
                             </thead>
@@ -51,11 +46,13 @@
     </div>
 
 
+    {{-- ========================================================== --}}
+    {{-- MODAL DETAIL (Struktur HTML tidak berubah) --}}
+    {{-- ========================================================== --}}
     <div class="modal fade" id="viewModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
         <div class="modal-dialog modal-dialog-centered modal-xl">
             <div class="modal-content">
                 <div class="modal-header">
-                     {{-- [DIUBAH] Judul modal disesuaikan --}}
                      <h5 class="modal-title text-white" id="viewModalLabel"><i class="ph-bold ph-file-text me-2"></i>Free Goods Requisition Details</h5>
                     <button type="button" class="btn-close btn-close-white m-0 fs-5" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
@@ -89,7 +86,6 @@
                                 <table class="table table-bordered w-100 mb-1">
                                     <thead class="thead-dark">
                                         <tr>
-                                            {{-- [DIHAPUS] Kolom Material Type dihapus --}}
                                             <th>Item Code</th>
                                             <th>Item Name</th>
                                             <th>Unit</th>
@@ -97,15 +93,13 @@
                                             <th class="text-center">Qty Issued</th>
                                         </tr>
                                     </thead>
-                                    {{-- [DIUBAH] ID Tbody disesuaikan --}}
                                     <tbody id="view-items-tbody-fg"></tbody>
                                 </table>
                             </div>
                         </div>
                     </div>
 
-                    {{-- [DIHAPUS] Card untuk Special Order & QA/QM dihapus karena tidak relevan --}}
-
+                    {{-- CARD 3: APPROVAL TRACKING --}}
                     <div class="card view-modal-card">
                         <div class="card-header view-modal-card-header">
                             <h5 class="fw-bold text-warning mb-3"><i class="ph-bold ph-path me-2"></i> Approval & Process Tracking</h5>
@@ -115,13 +109,13 @@
                                 <span class="fw-bold me-3">Current Status:</span>
                                 <div id="view_status_badge"></div>
                             </div>
-                            {{-- [DIUBAH] ID Container Tracker disesuaikan --}}
                             <div class="tracker-container" id="approval-tracker-container-fg">
                                 {{-- Tracker akan di-generate oleh JavaScript --}}
                             </div>
                         </div>
                     </div>
 
+                    {{-- CARD 4: REQUISITION HISTORY --}}
                     <div class="card view-modal-card">
                         <div class="card-header view-modal-card-header">
                             <h5 class="fw-bold text-warning mb-3"><i class="ph-bold ph-clock-counter-clockwise me-2"></i> Requisition History</h5>
@@ -132,6 +126,8 @@
                             </ul>
                         </div>
                     </div>
+
+                    {{-- Container untuk form aksi (approve/reject) yang dinamis --}}
                     <div id="viewModalActionFormContainer" class="mt-4"></div>
                 </div>
                 <div class="modal-footer" id="viewModalFooter">
@@ -146,25 +142,26 @@
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
         <script>
             $(document).ready(function() {
-                // [DIUBAH] Selector dan Route disesuaikan untuk Free Goods
                 const table = $('#fgApprovalTable').DataTable({
                     processing: true,
                     serverSide: true,
                     ajax: "{{ route('freegoods.approval.data') }}",
+                    // [UPDATE] Urutan dan tambahan kolom disesuaikan seperti Sample
                     columns: [
                         { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false, width: '20px', className: 'text-center' },
                         { data: 'no_srs', name: 'requisition.no_srs' },
-                        { data: 'approver_nik', name: 'approver_nik' },
+                        { data: 'requester', name: 'requisition.requester.name' }, // Kolom baru
                         { data: 'request_date', name: 'requisition.request_date' },
                         { data: 'sub_category', name: 'requisition.sub_category', className: 'text-center' },
-                        { data: 'level', name: 'level', className: 'text-center' },
                         { data: 'status', name: 'requisition.status', className: 'text-center' },
+                        { data: 'approver_nik', name: 'approver_nik' },
+                        { data: 'level', name: 'level', className: 'text-center' },
                         { data: 'action', name: 'action', orderable: false, searchable: false, className: 'text-center', width: '120px' }
                     ],
                 });
 
                 //==================================================
-                // FUNGSI UNTUK MENGISI MODAL DETAIL (Disesuaikan untuk Free Goods)
+                // FUNGSI UNTUK MENGISI MODAL DETAIL (Tidak diubah, hanya memastikan konsisten)
                 //==================================================
                 function populateViewForm(data) {
                     $('#view_sub_category').text(data.sub_category || '-');
@@ -276,6 +273,11 @@
                     }
                 }
 
+                //==================================================
+                // [UPDATE] SEMUA JAVASCRIPT AKSI DIGANTI DENGAN VERSI DARI SAMPLE
+                //==================================================
+
+                // --- Handler untuk Quick Approve (Approve Tanpa Review) ---
                 $('#fgApprovalTable').on('click', '.action-btn', function(e) {
                     e.preventDefault();
                     const button = $(this);
@@ -287,7 +289,7 @@
                         text: `Approve FG No. ${srs} without review?`,
                         icon: 'question',
                         showCancelButton: true,
-                        confirmButtonColor: '#3A6B35',
+                        confirmButtonColor: '#3A6B35', // Warna hijau
                         cancelButtonColor: '#6c757d',
                         confirmButtonText: 'Yes, Approve!'
                     }).then((result) => {
@@ -305,8 +307,8 @@
                                 beforeSend: function() {
                                     button.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>').prop('disabled', true);
                                 },
-                                success: function(res) {
-                                    Swal.fire('Approved!', res.message || `Requisition ${srs} has been approved.`, 'success');
+                                success: function() {
+                                    Swal.fire('Approved!', `Requisition ${srs} has been approved.`, 'success');
                                     table.ajax.reload(null, false);
                                 },
                                 error: function(xhr) {
@@ -320,6 +322,7 @@
                     });
                 });
 
+                // --- Handler untuk Review & Reject yang akan menampilkan Modal Detail ---
                 $(document).on('click', '.action-btn-modal', function() {
                     const button = $(this);
                     const requisitionId = button.data('id');
@@ -331,7 +334,7 @@
                     button.html('<span class="spinner-border spinner-border-sm"></span>').prop('disabled', true);
 
                     $.ajax({
-                        url: `/freegoods-form/${requisitionId}`,
+                        url: `/freegoods-form/${requisitionId}`, // URL disesuaikan
                         type: 'GET',
                         success: function(response) {
                             populateViewForm(response);
@@ -339,7 +342,7 @@
                             const isReject = action === 'reject';
                             const modalTitle = isReject ? 'Reject Requisition' : 'Approve with Review';
                             const btnClass = isReject ? 'btn-danger' : 'btn-primary-theme';
-                            const btnText = isReject ? 'Submit Reject' : 'Submit Approve with Review';
+                            const btnText = isReject ? 'Submit Reject' : 'Submit Approve';
                             const notesPlaceholder = isReject ? 'Provide reason for rejection...' : 'Provide review notes...';
                             const notesLabel = isReject ? 'Rejection Reason' : 'Review Notes';
 
@@ -379,17 +382,23 @@
                     });
                 });
 
+                // --- Handler untuk submit form dari dalam modal ---
                 $(document).on('submit', '#modalResponseForm', function(e) {
                     e.preventDefault();
                     const form = $(this);
                     const notesField = $('#modal_notes');
                     const submitButton = $('#viewModalFooter button[type="submit"]');
 
-                    if (!notesField.val().trim()) {
-                        Swal.fire('Warning', 'Notes are required for this action.', 'warning');
+                    // Validasi notes yang lebih baik
+                    if (!/[a-zA-Z]/.test(notesField.val())) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Invalid Notes',
+                            text: 'Please provide a clear reason. Notes cannot only contain spaces, numbers, or symbols.'
+                        });
                         return;
                     }
-                    
+
                     const action = form.find('input[name="action"]').val();
                     const isReject = action === 'reject';
                     const confirmTitle = isReject ? 'Confirm Rejection' : 'Confirm Approval';
@@ -415,17 +424,24 @@
                                 },
                                 success: function(response) {
                                     $('#viewModal').modal('hide');
-                                    Swal.fire('Success!', response.message, 'success');
+                                    // Pesan sukses dari controller lebih diutamakan
+                                    Swal.fire('Success!', response.message || 'Action was successful.', 'success');
                                     table.ajax.reload(null, false);
                                 },
                                 error: function(xhr) {
                                     Swal.fire('Error!', xhr.responseJSON?.message || 'An unknown error occurred.', 'error');
+                                },
+                                complete: function() {
+                                     // Kembalikan tombol ke kondisi semula jika terjadi error
+                                     const btnText = isReject ? 'Submit Reject' : 'Submit Approve';
+                                     submitButton.html(btnText).prop('disabled', false);
                                 }
                             });
                         }
                     });
                 });
 
+                // --- Handler untuk membersihkan modal setelah ditutup ---
                 $('#viewModal').on('hidden.bs.modal', function () {
                     $('#viewModalActionFormContainer').empty();
                     $('#viewModalFooter button[type="submit"]').remove();

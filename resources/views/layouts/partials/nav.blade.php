@@ -59,7 +59,7 @@
                  </a>
                  <ul class="collapse" id="requisition-slip-report">
                      <li><a href="{{ route('sample-form.reports') }}">Sample Reports</a></li>
-                     <li><a href="{{ route('complain-form.reports') }}">Complain Reports</a></li>
+                     <li><a href="{{ route('complain.reports') }}">Complain Reports</a></li>
                      <li><a href="{{ route('freegoods-form.reports') }}">Free Goods Reports</a></li>
                  </ul>
              </li>
@@ -70,19 +70,18 @@
                  </a>
                  <ul class="collapse" id="requisition-slip-approval">
                      <li><a href="{{ route('sample-form.approval') }}">Sample Approval</a></li>
+                     <li><a href="{{ route('complain.approval') }}">Complain Approval</a></li>
                      <li><a href="{{ route('freegoods-form.approval') }}">Free Goods Approval</a></li>
-                     {{-- [FIX] Mengarahkan ke nama route resource yang benar --}}
-                     <li><a href="{{ route('complain-form.approval.index') }}">Complain Approval</a></li>
                  </ul>
              </li>
-             <li class="menu-title"><span>Requisition Slip Log</span></li>
+             <li class="menu-title"><span>Requisition Slip Approval</span></li>
              <li>
                  <a aria-expanded="false" class="" data-bs-toggle="collapse" href="#requisition-slip-log">
                      <i class="iconoir-stats-report"></i> Requisition Slip Log
                  </a>
                  <ul class="collapse" id="requisition-slip-log">
                      <li><a href="{{ route('sample-form.log') }}">Sample Log</a></li>
-                     <li><a href="{{ route('complain-form.log') }}">Complain Log</a></li>
+                     <li><a href="{{ route('complain.log') }}">Complain Log</a></li>
                      <li><a href="{{ route('freegoods-form.log') }}">Free Goods Log</a></li>
                  </ul>
              </li>
