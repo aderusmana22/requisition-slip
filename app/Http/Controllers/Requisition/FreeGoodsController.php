@@ -258,23 +258,38 @@ class FreeGoodsController extends Controller
     {
         return view('page.freegoods.approval.index');
     }
-
-    public function getApprovalData(Request $request)
+public function getApprovalData(Request $request)
     {
         $user = Auth::user();
+
+        // [PERBAIKAN 1] Memuat relasi 'requisition' DAN 'requisition.requester'
         $query = ApprovalLog::where('approver_nik', $user->nik)
             ->whereHas('requisition', function ($q) {
                 $q->where('category', 'FREE GOODS');
             })
             ->where('status', 'Pending')
-            ->with(['requisition' => function ($q) {
-                $q->select('id', 'no_srs', 'request_date', 'sub_category', 'status');
-            }])
+            ->with([
+                'requisition' => function ($q) {
+                    // Pastikan 'requester_nik' ada di select agar relasi 'requester' bisa dimuat
+                    $q->select('id', 'no_srs', 'request_date', 'sub_category', 'status', 'requester_nik');
+                },
+                'requisition.requester' => function ($q) {
+                    // Muat nama requester
+                    $q->select('nik', 'name');
+                }
+            ])
             ->select('approval_logs.*');
 
         return DataTables::of($query)
             ->addIndexColumn()
             ->addColumn('no_srs', fn($row) => $row->requisition->no_srs ?? 'N/A')
+
+            // [PERBAIKAN 2] Menambahkan kolom 'requester' yang diharapkan oleh DataTables
+            ->addColumn('requester', function ($row) {
+                // Mengakses data nama dari relasi yang sudah dimuat
+                return $row->requisition->requester->name ?? 'Unknown';
+            })
+            
             ->addColumn('request_date', fn($row) => Carbon::parse($row->requisition->request_date)->format('d M Y'))
             ->addColumn('sub_category', fn($row) => '<span class="badge bg-info">' . e($row->requisition->sub_category ?? '-') . '</span>')
             ->editColumn('status', function ($row) {
@@ -806,7 +821,7 @@ class FreeGoodsController extends Controller
                     // Mengirimkan alasan recall ke notifikasi email
                     dispatch(new sendFreeGoods($requisition, $firstApprover, null, [
                         'mail_type' => 'recalled_notification',
-                        'notes'     => $request->input('notes') // Menggunakan notes dari request
+                        'notes'     => $request->input('notes') 
                     ]));
                 }
             }
