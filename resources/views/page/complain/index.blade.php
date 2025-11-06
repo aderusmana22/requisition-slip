@@ -81,7 +81,7 @@
         </div>
     </div>
 
-    <!-- Modal Add/Edit User -->
+    <!-- Modal Add -->
     <div class="modal fade" id="complineModal" aria-hidden="true">
         <div class="modal-dialog modal-dialog-scrollable modal-xl">
             <div class="modal-content">
@@ -610,6 +610,39 @@
         </div>
     </div>
 
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); z-index: 9999; backdrop-filter: blur(8px);">
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; background: rgba(255, 255, 255, 0.1); padding: 40px 60px; border-radius: 20px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);">
+            <div class="spinner-border text-warning" role="status" style="width: 4rem; height: 4rem; border-width: 0.4rem; animation: spin 1s linear infinite;">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <div style="margin-top: 20px; color: white; font-size: 18px; font-weight: 600;">
+                <i class="ph-duotone ph-spinner-gap ph-spin" style="font-size: 24px;"></i>
+                <p class="mt-3 mb-1" style="letter-spacing: 0.5px;">Processing your request...</p>
+                <p style="font-size: 14px; opacity: 0.8; margin-bottom: 0;">Please wait, do not close this page</p>
+            </div>
+            <div class="mt-3" style="font-size: 12px; color: rgba(255, 255, 255, 0.6);">
+                <i class="ph-duotone ph-clock-clockwise"></i> This may take a few moments
+            </div>
+        </div>
+    </div>
+
+    <style>
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        #loadingOverlay {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+
     @push('scripts')
     <!-- Select2 -->
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
@@ -702,7 +735,7 @@
                         orderable: true,
                         searchable: true,
                         render: function (data, type, row) {
-                            return (row.requester && row.requester.name) ? row.requester.name : '-';
+                            return (row.requester && row.requester.name) ? `<span class="fw-bold text-primary">${data}</span>` : '-';
                         }
                     },{
                         data: 'customer_id',
@@ -727,7 +760,10 @@
                         name: 'cost_center'
                     },{
                         data: 'route_to',
-                        name: 'route_to'
+                        name: 'route_to',
+                        render: function (data, type, row) {
+                            return `<span class="badge bg-info">${data}</span>` || 'N/A';
+                        }
                     },{
                         data: 'status',
                         name: 'status',
@@ -2105,6 +2141,10 @@
                     updatedFormData.append('_method', 'PUT'); // override
                 }
 
+                // Show loading overlay and disable submit button
+                $('#loadingOverlay').fadeIn(300);
+                $('#saveUserBtn').prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Processing...');
+
                 // Submit the form
                 $.ajax({
                     url: url,
@@ -2113,6 +2153,12 @@
                     processData: false,
                     contentType: false,
                     success: function (res) {
+                        // Hide loading overlay
+                        $('#loadingOverlay').fadeOut(300);
+                        
+                        // Reset button state
+                        $('#saveUserBtn').prop('disabled', false).html('Save changes');
+                        
                         $('#complineModal').modal('hide');
                         $('#complainTable').DataTable().ajax.reload(null, false);
                         qtyCache = {};
@@ -2126,6 +2172,11 @@
                         successMessage(successMsg);
                     },
                     error: function (xhr) {
+                        // Hide loading overlay
+                        $('#loadingOverlay').fadeOut(300);
+                        
+                        // Reset button state
+                        $('#saveUserBtn').prop('disabled', false).html('Save changes');
                         if (xhr.status === 422) { // Unprocessable Entity -> Error Validasi
                             let errors = xhr.responseJSON.errors;
 

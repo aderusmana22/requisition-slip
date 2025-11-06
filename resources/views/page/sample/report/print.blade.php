@@ -8,8 +8,8 @@
             $reportCount = isset($requisitions) ? count($requisitions) : 1;
             $firstReport = isset($requisitions) ? $requisitions->first() : $requisition;
         @endphp
-        @if($reportCount > 1)
-            RS Sample - {{ $reportCount }} Reports
+        @if($reportCount > 0)
+            Requisition Slip SAMPLE - {{ $reportCount }} Reports
         @else
             Bulk RS Complain Reports - {{ $reportCount }} Reports
         @endif
@@ -257,19 +257,26 @@
                                 <div class="sub-title" style="margin-bottom: 1px;">SALES & MARKETING</div>
                                 <div class="sub-title">SAMPLE PRODUCT</div>
                             </td>
-                            <td style="width: 25%;" class="header-info">
+                            <td style="width: 23%;" class="header-info">
                                 <table class="bordered" style="width: 100%;">
                                     <tr>
-                                        <td><strong>FORM NO.:</strong></td>
-                                        <td>FA-INV-05</td>
+                                        <td><strong>FORM NO.</strong></td>
+
+                                        <td>: {{ $revision->revision_number ?? 'N/A' }}</td>
                                     </tr>
                                     <tr>
-                                        <td><strong>REVISION:</strong></td>
-                                        <td>3</td>
+                                        <td><strong>REVISION</strong></td>
+                                        <td>: {{ $revision->revision_count ?? 'N/A' }}</td>
                                     </tr>
                                     <tr>
-                                        <td><strong>DATE:</strong></td>
-                                        <td>19 FEBRUARY 2021</td>
+                                        <td><strong>DATE</strong></td>
+                                        <td>:
+                                            @if(isset($revision) && $revision->revision_date)
+                                                {{ \Carbon\Carbon::parse($revision->revision_date)->format('d F Y') }}
+                                            @else
+                                                N/A
+                                            @endif
+                                        </td>
                                     </tr>
                                 </table>
                             </td>
@@ -295,7 +302,7 @@
                                     </tr>
                                 </table>
                             </td>
-                            <td style="width: 40%; vertical-align: top; padding-left: 483px;">
+                            <td style="width: 40%; vertical-align: top; padding-left: 450px;">
                                 {{-- Tabel untuk info RS --}}
                                 <table class="no-border">
                                     <tr>
@@ -633,29 +640,44 @@
                         <tbody>
                             @if(isset($approvals) && $approvals->count() > 0)
                                 @foreach($approvals as $approval)
-                                <tr>
-                                    <td>{{ $approval->name }}</td>
-                                    <td>{{ $approval->position }}</td>
-                                    <td class="text-center">
-                                        @if($approval->status == 'APPROVED NOT REVIEW')
-                                            <span class="status-indicator status-approved">APPROVED NOT REVIEW</span>
-                                        @elseif($approval->status == 'APPROVED WITH REVIEW')
-                                            <span class="status-indicator status-review">APPROVED WITH REVIEW</span>
-                                        @elseif($approval->status == 'NOT APPROVED')
-                                            <span class="status-indicator status-rejected">NOT APPROVED</span>
-                                        @else
-                                            <span class="status-indicator status-pending">NOT REVIEWED</span>
-                                        @endif
-                                    </td>
-                                    <td class="text-center">
-                                        @if($approval->updated_at)
-                                            {{ \Carbon\Carbon::parse($approval->updated_at)->format('d M Y H:i') }}
-                                        @else
-                                            -
-                                        @endif
-                                    </td>
-                                    <td>{{ $approval->status == 'APPROVED NOT REVIEW' ? '' : $approval->notes ?? 'Tidak ada komentar' }}</td>
-                                </tr>
+                                    @php
+                                        $isDefaultNote = in_array($approval->notes, [
+                                            'Approved without Review',
+                                            'Approved without Review (Quick Action)'
+                                        ]);
+
+                                        $correctStatus = $approval->status;
+
+                                        if ($isDefaultNote) {
+                                            $correctStatus = 'APPROVED NOT REVIEW';
+                                        } elseif (!empty($approval->notes) && !$isDefaultNote) {
+                                            $correctStatus = 'APPROVED WITH REVIEW';
+                                        }
+                                    @endphp
+
+                                    <tr>
+                                        <td>{{ $approval->name }}</td>
+                                        <td>{{ $approval->position }}</td>
+                                        <td class="text-center">
+                                            @if($correctStatus == 'APPROVED NOT REVIEW')
+                                                <span class="status-indicator status-approved">APPROVED NOT REVIEW</span>
+                                            @elseif($correctStatus == 'APPROVED WITH REVIEW')
+                                                <span class="status-indicator status-review">APPROVED WITH REVIEW</span>
+                                            @elseif($correctStatus == 'NOT APPROVED')
+                                                <span class="status-indicator status-rejected">NOT APPROVED</span>
+                                            @else
+                                                <span class="status-indicator status-pending">NOT REVIEWED</span>
+                                            @endif
+                                        </td>
+                                        <td class="text-center">
+                                            @if($approval->updated_at)
+                                                {{ \Carbon\Carbon::parse($approval->updated_at)->format('d M Y H:i') }}
+                                            @else
+                                                -
+                                            @endif
+                                        </td>
+                                        <td>{{ $correctStatus == 'APPROVED NOT REVIEW' ? '-' : $approval->notes ?? '-' }}</td>
+                                    </tr>
                                 @endforeach
                             @else
                                 <tr>

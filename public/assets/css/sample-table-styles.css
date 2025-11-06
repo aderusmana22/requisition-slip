@@ -1235,3 +1235,29 @@ STYLES MOVED FROM index.blade.php
 #select-all-checkbox {
     cursor: pointer;
 }
+
+/* ========================================
+   ATURAN WRAPPING TABEL
+   ======================================== */
+
+/* Mencegah wrapping pada kolom yang tidak diinginkan */
+.dt-no-wrap {
+    white-space: nowrap;
+    vertical-align: middle; /* Jaga agar tetap di tengah secara vertikal */
+}
+
+/* Mengizinkan wrapping pada kolom yang diinginkan (Customer & Route To) */
+.dt-wrap {
+    white-space: normal !important; /* Paksa wrapping */
+    word-wrap: break-word;         /* Pecah kata jika terlalu panjang */
+    vertical-align: middle;        /* Jaga agar tetap di tengah */
+    min-width: 150px;              /* Beri lebar minimum agar tidak terlalu sempit */
+}
+
+/* [PENTING] Pastikan badge di dalam kolom "Route To" juga bisa wrap */
+.dt-wrap .route-to-badge-lg {
+    white-space: normal; /* Izinkan teks di dalam badge untuk wrap */
+    height: auto;        /* Izinkan tinggi badge bertambah sesuai konten */
+    display: inline-block;
+    line-height: 1.4;    /* Atur jarak baris agar mudah dibaca */
+}

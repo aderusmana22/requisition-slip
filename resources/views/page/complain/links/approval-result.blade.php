@@ -240,7 +240,7 @@
             <div class="countdown-text">
                 <i class="fas fa-stopwatch"></i>
                 Auto-close in
-                <span class="countdown-number" id="countdown">10</span>
+                <span class="countdown-number" id="countdown">5</span>
                 sec
             </div>
             <button class="btn btn-cancel" onclick="cancelAutoClose()">

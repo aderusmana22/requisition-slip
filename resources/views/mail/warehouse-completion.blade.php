@@ -386,32 +386,6 @@
                     </table>
                 </div>
             </div>
-
-            <!-- Next Steps -->
-            <div class="info-section">
-                <h3 class="section-title">📢 What happens next?</h3>
-                <div style="background: #f8f9fa; padding: 20px; border-radius: 0 0 8px 8px; border: 1px solid #e9ecef; border-top: none;">
-                    <p style="margin: 0 0 15px 0; color: #2c3e50; line-height: 1.6;">
-                        Your requisition has been fully approved and will now proceed to the fulfillment stage. 
-                        The relevant departments will begin processing your request according to the specified requirements. 
-                        You will be notified of any further updates or if additional information is required.
-                    </p>
-                    <p style="margin: 0; color: #2c3e50; line-height: 1.6; font-weight: 600;">
-                        Thank you for using our requisition system!
-                    </p>
-                </div>
-            </div>
-
-            <!-- Important Note -->
-            <div style="background: #d4edda; border: 1px solid #c3e6cb; border-radius: 8px; padding: 20px; margin: 20px 0;">
-                <h4 style="color: #155724; margin: 0 0 10px 0;">✅ Success Notice</h4>
-                <ul style="color: #155724; margin: 0; padding-left: 20px;">
-                    <li>Your requisition has been successfully approved</li>
-                    <li>Processing will begin immediately according to schedule</li>
-                    <li>You will receive updates on fulfillment progress</li>
-                    <li>Contact warehouse directly if you have any questions</li>
-                </ul>
-            </div>
         </div>
         
         <!-- Footer -->

@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('revisions', function (Blueprint $table) {
             $table->id();
-            $table->integer('revision_number');
+            $table->string('revision_number');
             $table->integer('revision_count');
             $table->date('revision_date');
             $table->timestamps();

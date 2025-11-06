@@ -5,6 +5,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Master\DepartmentController;
 use App\Http\Controllers\Master\CustomerController;
 use App\Http\Controllers\Master\PermissionController;
+use App\Http\Controllers\Master\RevisionController;
 use App\Http\Controllers\Master\RoleController;
 use App\Http\Controllers\Master\UserController;
 use App\Http\Controllers\NotificationController;
@@ -29,6 +30,17 @@ Route::get('/dashboard', function () {
     return view('dashboard', compact('availableYears'));
 })->middleware(['auth', 'verified'])->name('dashboard');
 
+Route::get('/tes-404', function () {
+    abort(404); // Menampilkan halaman resources/views/errors/404.blade.php
+});
+
+Route::get('/tes-500', function () {
+    abort(500); // Menampilkan halaman resources/views/errors/500.blade.php
+});
+
+Route::get('/tes-403', function () {
+    abort(403, 'Akses Ditolak'); // Menampilkan halaman 403 dengan pesan kustom
+});
 
 // --- mailing dan approval proses complain ---
 Route::get('/approval', [ComplainController::class, 'processApproval'])->name('approval.process');
@@ -136,6 +148,7 @@ Route::middleware('auth')->group(function () {
         // * complain approval
         Route::get('/approval', [ComplainApprovalController::class, 'index'])->name('complain.approval');
         Route::get('/getapproverdata/{id?}', [ComplainApprovalController::class, 'getData'])->name('get.approver.data');
+        Route::post('/approval/resend/{token}', [ComplainApprovalController::class, 'resendApprovalEmail'])->name('complain.approval.resend');
 
         // * complain reports
         Route::get('/reports', [ComplainController::class, 'reports'])->name('complain.reports');
@@ -161,11 +174,15 @@ Route::group(['middleware' => ['role:super-admin|admin']], function () {
     Route::post('roles/{roleId}/give-permissions', [RoleController::class, 'givePermissionToRole'])->name('roles.give-permission');
 
     // --- Requisition Path (Approvers) ---
-    Route::get('/requistion/path', [RequisitionPath::class, 'index'])->name('requistion.path');
+    Route::get('/requisition/path', [RequisitionPath::class, 'index'])->name('requisition.path');
     Route::get('/getapproverlist', [RequisitionPath::class, 'approverList'])->name('get.approverlist');
     Route::resource('/approvers', RequisitionPath::class);
     Route::get('/categories', [RequisitionPath::class, 'categories'])->name('get.categories');
     Route::get('/approver-name', [RequisitionPath::class, 'approverName'])->name('get.approver.name');
+
+    Route::get('/master/revision', [RevisionController::class, 'index'])->name('master.revision.index');
+    Route::post('/master/revision/update', [RevisionController::class, 'update'])->name('master.revision.update');
+    Route::get('/master/revision/getdata', [RevisionController::class, 'getrevisiondata'])->name('master.revision.getdata');
 
 });
 
