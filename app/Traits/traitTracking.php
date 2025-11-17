@@ -19,12 +19,16 @@ trait traitTracking
      * @param  string|null  $subCategory
      * @return \Illuminate\Support\Collection
      */
-    public function generateTrackingPath($requisitionId, $category, $subCategory = null)
+    public function generateTrackingPath($requisitionId, $category, $subCategory = null, $printBatch = null)
     {
         $query = TrackingPath::where('category', $category);
 
         if (!empty($subCategory)) {
             $query->where('sub_category', $subCategory);
+        }
+
+        if (!empty($printBatch)) {
+            $query->where('print_batch', $printBatch);
         }
 
         $approvalPath = $query->firstOrFail();
@@ -33,10 +37,10 @@ trait traitTracking
         $logs = collect();
 
         foreach ($sequence as $index => $role) {
-        // Ambil semua user dengan role ini
-        $users = User::whereHas('roles', function ($q) use ($role) {
-            $q->where('name', $role);
-        })->first();
+            // Ambil semua user dengan role ini
+            $users = User::whereHas('roles', function ($q) use ($role) {
+                $q->where('name', $role);
+            })->first();
 
             if ($users) {
                 $logs->push([
