@@ -8,7 +8,7 @@ use App\Models\Requisition\ApprovalPath;
 use App\Models\Requisition\Tracking;
 use App\Models\User;
 
-trait traitRequisition
+trait traitTracking
 {
     /**
      * Generate approval logs dari approval path.
@@ -19,7 +19,7 @@ trait traitRequisition
      * @param  string|null  $subCategory
      * @return \Illuminate\Support\Collection
      */
-    public function generateApprovalLogs($requester, $requisitionId, $category, $subCategory = null)
+    public function generateTrackingPath($requisitionId, $category, $subCategory = null)
     {
         $query = TrackingPath::where('category', $category);
 
