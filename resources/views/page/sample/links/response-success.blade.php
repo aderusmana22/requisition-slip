@@ -24,8 +24,9 @@
             border-radius: 16px;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
             text-align: center;
-            padding: 40px 50px;
-            max-width: 550px;
+            /* [MODIFIKASI] Menambah padding vertikal */
+            padding: 50px 50px 40px;
+            max-width: 650px;
             width: 100%;
             border-top: 8px solid;
         }
@@ -37,7 +38,8 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 25px;
+            /* [MODIFIKASI] Menambah margin bawah */
+            margin: 0 auto 30px;
             font-size: 36px;
             color: #fff;
         }
@@ -61,11 +63,14 @@
         h3 {
             font-weight: 600;
             color: #333;
+            /* [MODIFIKASI] Menambah margin bawah */
+            margin-bottom: 15px;
         }
 
         .message {
             color: #6c757d;
-            margin-bottom: 30px;
+            /* [MODIFIKASI] Menambah margin bawah */
+            margin-bottom: 40px;
         }
 
         .details-box {
@@ -73,14 +78,16 @@
             border-radius: 8px;
             padding: 20px;
             text-align: left;
-            margin-bottom: 30px;
+            /* [MODIFIKASI] Sedikit mengubah margin bawah */
+            margin-bottom: 35px;
             border: 1px solid #e9ecef;
         }
 
         .detail-item {
             display: flex;
             justify-content: space-between;
-            padding: 8px 0;
+            align-items: start;
+            padding: 10px 0;
             border-bottom: 1px dashed #dee2e6;
         }
 
@@ -91,10 +98,14 @@
         .detail-label {
             font-weight: 600;
             color: #495057;
+            white-space: nowrap;
+            margin-right: 20px;
         }
 
         .detail-value {
             color: #212529;
+            text-align: right;
+            word-break: break-word;
         }
 
         .countdown-text {
@@ -102,7 +113,6 @@
             color: #6c757d;
             margin-top: 25px;
         }
-
     </style>
 </head>
 
@@ -157,7 +167,6 @@
                 window.close();
             }
         }, 1000);
-
     </script>
 </body>
 
