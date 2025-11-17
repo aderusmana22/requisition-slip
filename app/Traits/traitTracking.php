@@ -19,7 +19,7 @@ trait traitTracking
      * @param  string|null  $subCategory
      * @return \Illuminate\Support\Collection
      */
-    public function generateApprovalLogs($requester, $requisitionId, $category, $subCategory = null)
+    public function generateTrackingPath($requisitionId, $category, $subCategory = null)
     {
         $query = TrackingPath::where('category', $category);
 
