@@ -8,7 +8,7 @@ use App\Models\Requisition\ApprovalPath;
 use App\Models\Requisition\Tracking;
 use App\Models\User;
 
-trait traitRequisition
+trait traitTracking
 {
     /**
      * Generate approval logs dari approval path.
