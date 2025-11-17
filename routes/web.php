@@ -7,6 +7,7 @@ use App\Http\Controllers\Master\CustomerController;
 use App\Http\Controllers\Master\PermissionController;
 use App\Http\Controllers\Master\RevisionController;
 use App\Http\Controllers\Master\RoleController;
+use App\Http\Controllers\Master\TrackingPathController;
 use App\Http\Controllers\Master\UserController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
@@ -83,6 +84,16 @@ Route::middleware('auth')->group(function () {
     Route::get('/notifications/fetch', [NotificationController::class, 'fetch'])->name('notifications.fetch');
     Route::post('/notifications/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.read.all');
+
+    // ROUTE MASTER TRACKING PATH
+    Route::get('/master/tracking-path', [TrackingPathController::class, 'index'])->name('tracking-path.index');
+    Route::get('/master/tracking-path/list', [TrackingPathController::class, 'approverList'])->name('tracking-path.list');
+    Route::post('/master/tracking-path', [TrackingPathController::class, 'store'])->name('tracking-path.store');
+    Route::get('/master/tracking-path/{id}/edit', [TrackingPathController::class, 'edit'])->name('tracking-path.edit');
+    Route::put('/master/tracking-path/{id}', [TrackingPathController::class, 'update'])->name('tracking-path.update');
+    Route::delete('/master/tracking-path/{id}', [TrackingPathController::class, 'destroy'])->name('tracking-path.destroy');
+    Route::get('/master/tracking-path/categories', [TrackingPathController::class, 'categories'])->name('tracking-path.categories');
+    Route::get('/master/tracking-path/approver-name', [TrackingPathController::class, 'approverName'])->name('tracking-path.approverName');
 
 
     // Requisition Routes
@@ -167,6 +178,9 @@ Route::group(['middleware' => ['role:super-admin|admin']], function () {
     Route::resource('/approvers', RequisitionPath::class);
     Route::get('/categories', [RequisitionPath::class, 'categories'])->name('get.categories');
     Route::get('/approver-name', [RequisitionPath::class, 'approverName'])->name('get.approver.name');
+
+    Route::get('/master/tracking-path', [TrackingPathController::class, 'index'])->name('master.tracking-path.index');
+    Route::put('/master/tracking-path/', [TrackingPathController::class, 'edit'])->name('master.tracking-path.update');
 
     Route::get('/master/revision', [RevisionController::class, 'index'])->name('master.revision.index');
     Route::post('/master/revision/update', [RevisionController::class, 'update'])->name('master.revision.update');
