@@ -834,41 +834,49 @@
                         orderable: false,
                         searchable: false,
                         width: '20px',
-                        className: 'text-center'
+                        className: 'text-center dt-no-wrap'
                     },
                     {
                         data: 'no_srs',
-                        name: 'requisitions.no_srs'
+                        name: 'requisitions.no_srs',
+                        className: 'dt-no-wrap'
                     },
                     {
                         data: 'requester_info',
-                        name: 'users.name'
+                        name: 'users.name',
+                        className: 'dt-no-wrap'
                     },
                     {
                         data: 'customer_name',
-                        name: 'customers.name'
+                        name: 'customers.name',
+                        className: 'dt-wrap'
                     },
                     {
                         data: 'request_date',
-                        name: 'requisitions.request_date'
+                        name: 'requisitions.request_date',
+                        className: 'dt-no-wrap'
                     },
                     {
                         data: 'sub_category',
-                        name: 'requisitions.sub_category'
+                        name: 'requisitions.sub_category',
+                        className: 'dt-no-wrap'
                     },
                     {
                         data: 'route_to',
-                        name: 'requisitions.route_to'
+                        name: 'requisitions.route_to',
+                        className: 'dt-wrap'
                     },
                     {
                         data: 'status',
-                        name: 'requisitions.status'
+                        name: 'requisitions.status',
+                        className: 'dt-no-wrap'
                     },
                     {
                         data: 'action',
                         name: 'action',
                         orderable: false,
-                        searchable: false
+                        searchable: false,
+                        className: 'dt-no-wrap'
                     }
                 ]
             });

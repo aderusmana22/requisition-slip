@@ -765,8 +765,8 @@
                         { name: 'Approved',    type: 'line', data: data.approved,    color: '#198754' },
                         { name: 'In Progress', type: 'line', data: data.in_progress, color: '#0dcaf0' },
                         { name: 'Pending',     type: 'line', data: data.pending,     color: '#ffc107' },
-                        { name: 'Rejected',    type: 'line', data: data.rejected,    color: '#dc3545' }, // [MODIFIKASI]
-                        { name: 'Recalled',    type: 'line', data: data.recalled,    color: '#6f42c1' }, // [BARU]
+                        { name: 'Rejected',    type: 'line', data: data.rejected,    color: '#dc3545' },
+                        { name: 'Recalled',    type: 'line', data: data.recalled,    color: '#6f42c1' },
                         { name: 'Completed',   type: 'line', data: data.completed,   color: '#212529' }
                     ],
                     chart: { type: 'line', stacked: false, toolbar: { show: true, tools: { download: true, selection: false, zoom: false, zoomin: false, zoomout: false, pan: false, reset: false }}},

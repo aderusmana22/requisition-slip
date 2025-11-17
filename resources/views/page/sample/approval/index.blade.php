@@ -50,7 +50,7 @@
                      <h5 class="modal-title text-white" id="viewModalLabel"><i class="ph-bold ph-file-text me-2"></i>Sample Requisition Details</h5>
                     <button type="button" class="btn-close btn-close-white m-0 fs-5" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body p-4" style="background-color: #f8f9fa;">
+                <div class="modal-body p-4" style="background-color: #f8faf8ff;">
                     {{-- CARD 1: MAIN REQUISITION DETAILS --}}
                     <div class="card view-modal-card">
                         <div class="card-header view-modal-card-header">
@@ -192,15 +192,15 @@
                     serverSide: true,
                     ajax: "{{ route('sample.approval.data') }}",
                     columns: [
-                        { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false, width: '20px', className: 'text-center' },
+                        { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false, width: '20px', },
                         { data: 'no_srs', name: 'requisition.no_srs' },
                         { data: 'requester', name: 'requisition.requester.name' },
                         { data: 'request_date', name: 'requisition.request_date' },
-                        { data: 'sub_category', name: 'requisition.sub_category', className: 'text-center' },
-                        { data: 'status', name: 'requisition.status', className: 'text-center' },
+                        { data: 'sub_category', name: 'requisition.sub_category', },
+                        { data: 'status', name: 'requisition.status', },
                         { data: 'approver', name: 'approval_logs.approver_nik' },
-                        { data: 'level', name: 'level', className: 'text-center' },
-                        { data: 'action', name: 'action', orderable: false, searchable: false, className: 'text-center', width: '120px' }
+                        { data: 'level', name: 'level', },
+                        { data: 'action', name: 'action', orderable: false, searchable: false,, width: '120px' }
                     ],
                     drawCallback: function () {
                         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));

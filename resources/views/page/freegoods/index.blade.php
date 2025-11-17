@@ -7,6 +7,10 @@
     @include('components.freegoods-table-styles')
 
     @push('css')
+    {{-- [DITAMBAHKAN] CSS untuk Select2 agar filter terlihat rapi --}}
+    <link rel="stylesheet" href="{{ asset('assets/vendor/select/select2.min.css') }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+
     <style>
         .modal-body hr {
             margin-top: 1.75rem;
@@ -38,120 +42,91 @@
         .requester-badge i {
             font-size: 1.2em;
         }
-
-        /* Styling untuk Filter */
-        .filter-select {
-            border-radius: 0.5rem;
-            border: 1px solid #ced4da;
-            font-weight: 500;
-        }
-        #btn_reset_filter {
-            background: var(--badge-blue-gradient) !important;
-            border: none;
-            border-radius: 0.5rem;
-            color: white;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.15);
-        }
-
     </style>
     @endpush
 
 
-    <div class="container-fluid py-4">
+    <div class="row m-1">
+        <div class="col-12">
+            <h4 class="main-title">Free Goods Requisition List</h4>
+            <ul class="app-line-breadcrumbs mb-3">
+                <li>
+                    <a class="f-s-14 f-w-500" href="#">
+                        <i class="ph-duotone ph ph-note-pencil f-s-16"></i> Forms
+                    </a>
+                </li>
+                <li class="active">
+                    <a class="f-s-14 f-w-500" href="#">Free Goods Requisition</a>
+                </li>
+            </ul>
+        </div>
+    </div>
 
-        <div class="card shadow-sm">
-            <div class="card-body p-4">
+    <div class="row">
+        <div class="col-12">
+             {{-- [UPDATE] Layout Filter & Tombol disesuaikan seperti Sample --}}
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                {{-- Grup Filter di Kiri --}}
+                <div class="d-flex align-items-center gap-2">
+                    <span class="text-muted fw-bold">Filter by:</span>
+                    <select id="statusFilter" class="form-select select2" style="width: 200px;">
+                        <option value="all">All Statuses</option>
+                        <option value="Pending">Pending</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Approved">Approved</option>
+                        <option value="Completed">Completed</option>
+                        <option value="Rejected">Rejected</option>
+                        <option value="Recalled">Recalled</option>
+                    </select>
+                    <button id="resetFilters" class="btn btn-secondary border" data-bs-toggle="tooltip" title="Reset Filters">
+                        <i class="ph-bold ph-arrow-counter-clockwise"></i>
+                    </button>
+                </div>
 
-                {{-- Bagian Header Halaman (Judul & Breadcrumbs) --}}
+                {{-- Tombol Create di Kanan --}}
                 <div>
-                    <h4 class="main-title">Free Goods Requisition List</h4>
-                    <ul class="app-line-breadcrumbs mb-0">
-                        <li>
-                            <a class="f-s-14 f-w-500" href="#">
-                                <i class="ph-duotone ph ph-note-pencil f-s-16"></i> Forms
-                            </a>
-                        </li>
-                        <li class="active">
-                            <a class="f-s-14 f-w-500" href="#">Free Goods Requisition</a>
-                        </li>
-                    </ul>
+                    <button class="btn new-freegoods-btn" type="button" data-bs-toggle="modal"
+                        data-bs-target="#fgModal" id="btn-create-fg">
+                        <i class="ph-bold ph-plus"></i>
+                        <span>New Free Goods</span>
+                    </button>
+                </div>
+            </div>
+    
+            {{-- [UPDATE] Container tabel disesuaikan seperti Sample --}}
+            <div class="main-table-container">
+                <div class="table-header-enhanced">
+                    <h4 class="table-title">
+                        <i class="ph-duotone ph-list"></i>
+                        Free Goods Requisition List
+                    </h4>
+                    <p class="table-subtitle">View, manage and track all free goods requisition submissions</p>
                 </div>
 
-                <hr class="my-4">
-
-                <div class="row mb-4 align-items-center">
-                    <div class="col-md-auto">
-                        <label class="form-label fw-bold mb-0 text-muted">Filter by:</label>
-                    </div>
-                    <div class="col-md-3">
-                        <select class="form-select filter-select" id="filter_status">
-                            <option value="">All Statuses</option>
-                            <option value="Pending">Pending</option>
-                            <option value="In Progress">In Progress</option>
-                            <option value="Approved">Approved</option>
-                            <option value="Completed">Completed</option>
-                            <option value="Rejected">Rejected</option>
-                            <option value="Cancelled">Cancelled</option>
-                        </select>
-                    </div>
-                    <div class="col-md-auto">
-                        <button class="btn btn-icon" id="btn_reset_filter" title="Reset Filter">
-                            <i class="ph-bold ph-arrow-counter-clockwise"></i>
-                        </button>
-                    </div>
+                <div class="table-responsive">
+                    <table class="w-100 display" id="fgTable">
+                        <thead>
+                            <tr>
+                                <th>No.</th>
+                                <th>No. FG</th> 
+                                <th>Requester</th>
+                                <th>Customer</th>
+                                <th>Request Date</th>
+                                <th>Category</th>
+                                <th>Route To</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                    </table>
                 </div>
-        
-                {{-- Bagian Konten Utama (Tombol dan Tabel) --}}
-                <div class="row">
-                    <div class="col-12">
-                        <div class="d-flex justify-content-end align-items-center mb-4">
-                            <div>
-                                <button class="btn new-freegoods-btn" type="button" data-bs-toggle="modal"
-                                    data-bs-target="#fgModal" id="btn-create-fg">
-                                    <i class="ph-bold ph-plus"></i>
-                                    <span>New Free Goods</span>
-                                </button>
-                            </div>
-                        </div>
-            
-                        <div class="main-table-container">
-                            <div class="table-header-enhanced">
-                                <h4 class="table-title">
-                                    <i class="ph-duotone ph-list"></i>
-                                    Free Goods Requisition List
-                                </h4>
-                                <p class="table-subtitle">View, manage and track all free goods requisition submissions</p>
-                            </div>
-            
-                            <div class="table-responsive">
-                                <table class="w-100 display" id="fgTable">
-                                    <thead>
-                                        <tr>
-                                            <th>No.</th>
-                                            <th>No. FG</th> 
-                                            <th>Requester</th>
-                                            <th>Customer</th>
-                                            <th>Request Date</th>
-                                            <th>Category</th>
-                                            <th>Route To</th>
-                                            <th>Status</th>
-                                            <th>Action</th>
-                                        </tr>
-                                    </thead>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-            </div> {{-- Penutup .card-body --}}
-        </div> {{-- Penutup .card --}}
-
-    </div> {{-- Penutup .container-fluid --}}
+            </div>
+        </div>
+    </div>
 
 
     {{-- ========================================================== --}}
-    {{-- MODAL & SCRIPT --}}
+    {{-- MODAL & SCRIPT (Isi modal tidak diubah) --}}
     {{-- ========================================================== --}}
     <div class="modal fade" id="fgModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static"
         data-bs-keyboard="false">
@@ -464,14 +439,20 @@
             }
             initSelect2();
 
+            // [UPDATE] Inisialisasi Select2 untuk filter
+            $('#statusFilter').select2({
+                theme: 'bootstrap-5',
+                minimumResultsForSearch: Infinity // Sembunyikan kotak pencarian
+            });
+
             const table = $('#fgTable').DataTable({
                 processing: true,
                 serverSide: true,
                 ajax: {
                     url: "{{ route('freegoods.data') }}",
                     data: function (d) {
-                        // [PERUBAHAN] Hanya mengirim filter status
-                        d.status = $('#filter_status').val();
+                        // [UPDATE] Menggunakan ID filter yang baru
+                        d.status = $('#statusFilter').val();
                     }
                 },
                 columns: [
@@ -500,15 +481,14 @@
                 ]
             });
 
-            // [PERUBAHAN] Event listener hanya untuk filter status
-            $('#filter_status').on('change', function() {
+            // [UPDATE] Event listener untuk filter status yang baru
+            $('#statusFilter').on('change', function() {
                 table.ajax.reload();
             });
 
-            // [PERUBAHAN] Tombol reset hanya mereset filter status
-            $('#btn_reset_filter').on('click', function() {
-                $('#filter_status').val('');
-                table.ajax.reload();
+            // [UPDATE] Tombol reset untuk filter yang baru
+            $('#resetFilters').on('click', function() {
+                $('#statusFilter').val('all').trigger('change');
             });
 
             let searchInput = $('#fgTable_filter input'); 
@@ -799,7 +779,7 @@
                 let badgeClass = 'bg-secondary';
                 if (['Submitted', 'Pending'].includes(status)) badgeClass = 'bg-warning';
                 else if (status.includes('Approved') || status === 'Completed') badgeClass = 'bg-success';
-                else if (['Rejected', 'Cancelled'].includes(status)) badgeClass = 'bg-danger';
+                else if (['Rejected', 'Recalled'].includes(status)) badgeClass = 'bg-danger'; 
                 else if (status === 'Processing' || status === 'In Progress') badgeClass = 'bg-info';
 
                 $('#view_status_badge').html(`<span class="badge status-badge-lg fs-6 rounded-pill ${badgeClass}">${status}</span>`);
@@ -830,7 +810,7 @@
                     });
                 });
                 
-                if (status !== 'Rejected' && status !== 'Cancelled') {
+                if (status !== 'Rejected' && status !== 'Recalled') {
                     steps.push({ id: 'outward', label: 'Outward WH Supervisor', icon: 'ph-package' });
                     steps.push({ id: 'completed', label: 'Completed', icon: 'ph-check-circle' });
                 }
@@ -847,7 +827,7 @@
                 trackerContainer.html(trackerHtml);
 
                 let lastCompletedIndex = -1;
-                let isRejected = ['Rejected', 'Cancelled'].includes(status);
+                let isRejected = ['Rejected', 'Recalled'].includes(status);
 
                 if (data.requester && data.created_at) {
                     const submittedStep = $(`.tracker-step[data-step-id="submitted"]`);
@@ -909,7 +889,6 @@
                         $(`.tracker-step`).eq(nextStepIndex).addClass('active');
                     }
                 }
-
             }
 
             $(document).on('click', '.btn-view-requisition', function() {
@@ -930,6 +909,129 @@
                         errorMessage('Failed to fetch requisition details.');
                     },
                     complete: function() {
+                        button.html(originalIcon).prop('disabled', false);
+                    }
+                });
+            });
+
+            // [UPDATE] Event listener untuk tombol recall disesuaikan seperti Sample
+            $(document).on('click', '.btn-recall-requisition', function() {
+                const requisitionId = $(this).data('id');
+                const row = $(this).closest('tr');
+                const rowData = table.row(row).data();
+                const fgNumber = rowData.no_srs; // Mengambil nomor FG dari data baris
+                const button = $(this);
+                const originalHtml = button.html();
+
+                // Langkah 1: Meminta input alasan recall
+                Swal.fire({
+                    title: `Recall Requisition ${fgNumber}`,
+                    width: '600px',
+                    html: `
+                        <p class="text-danger fw-bold">Tindakan ini akan membatalkan requisition dan tidak dapat di-undo.</p>
+                        <textarea id="recallNotes" class="swal2-textarea" placeholder="Mohon berikan alasan untuk recall (wajib)..." style="width: 400px; height: 150px;"></textarea>
+                    `,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Lanjutkan',
+                    cancelButtonText: 'Batal',
+                    focusConfirm: false,
+                    preConfirm: () => {
+                        const notes = Swal.getPopup().querySelector('#recallNotes').value;
+                        if (!notes.trim()) {
+                            Swal.showValidationMessage('Alasan recall wajib diisi.');
+                            return false;
+                        }
+                        return notes;
+                    }
+                }).then((result) => {
+                    // Lanjutkan jika langkah 1 di-konfirmasi
+                    if (result.isConfirmed && result.value) {
+                        const notes = result.value;
+
+                        // Langkah 2: Konfirmasi alasan
+                        Swal.fire({
+                            title: 'Konfirmasi Alasan Recall',
+                            html: `
+                                <p>Pastikan alasan yang Anda masukkan sudah benar:</p>
+                                <div style="background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 5px; padding: 10px; text-align: left; margin-top: 10px;">
+                                    <i>"${notes}"</i>
+                                </div>
+                            `,
+                            icon: 'question',
+                            showCancelButton: true,
+                            confirmButtonColor: '#28a745',
+                            cancelButtonColor: '#6c757d',
+                            confirmButtonText: 'Ya, Data Benar & Recall!',
+                            cancelButtonText: 'Batal'
+                        }).then((confirmResult) => {
+                            // Lanjutkan jika langkah 2 di-konfirmasi
+                            if (confirmResult.isConfirmed) {
+                                $.ajax({
+                                    url: `/freegoods-form/${requisitionId}/recall`,
+                                    type: 'POST',
+                                    data: {
+                                        _token: '{{ csrf_token() }}',
+                                        notes: notes // Kirim notes ke controller
+                                    },
+                                    beforeSend: function() {
+                                        button.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>').prop('disabled', true);
+                                    },
+                                    success: function (response) {
+                                        if (response.success) {
+                                            Swal.fire('Recalled!', response.message, 'success');
+                                            table.ajax.reload(null, false);
+                                        }
+                                    },
+                                    error: function (xhr) {
+                                        Swal.fire('Gagal!', xhr.responseJSON?.message || 'Terjadi kesalahan.', 'error');
+                                    },
+                                    complete: function() {
+                                        button.html(originalHtml).prop('disabled', false);
+                                    }
+                                });
+                            }
+                        });
+                    }
+                });
+            });
+
+
+            // Event listener untuk tombol duplicate (tidak diubah)
+            $(document).on('click', '.btn-duplicate-requisition', function() {
+                const id = $(this).data('id');
+                const button = $(this);
+                const originalIcon = button.html();
+                button.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>').prop('disabled', true);
+
+                $.ajax({
+                    url: `/freegoods-form/${id}/edit`,
+                    type: 'GET',
+                    success: function(data) {
+                        resetForm(); 
+                        populateForm(data);
+
+                        $.ajax({
+                            url: "{{ route('freegoods.get-next-number') }}",
+                            type: 'GET',
+                            success: function(res) {
+                                $('#no_fg').val(res.next_fg_number);
+                                nextFgNumber = res.next_fg_number;
+                            },
+                            complete: function() {
+                                $('#fgForm').attr('data-mode', 'create').removeAttr('data-id');
+                                $('#fgModalLabel').text('Duplicate Free Goods Requisition');
+                                $('#saveFgBtn').text('Save as New');
+                                
+                                button.html(originalIcon).prop('disabled', false);
+                                $('#fgModal').modal('show');
+                            }
+                        });
+                    },
+                    error: function() {
+                        errorMessage('Failed to fetch data for duplication.');
                         button.html(originalIcon).prop('disabled', false);
                     }
                 });

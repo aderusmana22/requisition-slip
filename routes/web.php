@@ -1,7 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
-use App\Http\Controllers\DashboardController; // Tambahkan ini
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Master\DepartmentController;
 use App\Http\Controllers\Master\CustomerController;
 use App\Http\Controllers\Master\PermissionController;
@@ -49,8 +49,8 @@ Route::get('/complain/approval-direct', [ComplainController::class, 'processAppr
 Route::get('/complain/approval/review', [ComplainController::class, 'showReviewPage'])->name('complain.approval.review');
 Route::post('/complain/approval/process', [ComplainController::class, 'processApproval'])->name('complain.approval.process');
 Route::get('/complain/warehouse/approval', [ComplainController::class, 'processWarehouseApproval'])->name('complain.warehouse.approval');
-Route::get('/complain/warehouse/review', [ComplainController::class, 'showWarehouseReviewPage'])->name('complain.warehouse.review');
-Route::post('/complain/warehouse/process', [ComplainController::class, 'processWarehouseApproval'])->name('complain.warehouse.process');
+Route::get('/comclaim/warehouse/review', [ComplainController::class, 'showWarehouseReviewPage'])->name('complain.warehouse.review');
+Route::post('/comclaim/warehouse/process', [ComplainController::class, 'processWarehouseApproval'])->name('complain.warehouse.process');
 
 // Approval Link dari Email (Sample Requisition)
 Route::get('/approval/response/{token}', [SampleController::class, 'showResponseForm'])->name('approval.response');
@@ -64,7 +64,6 @@ Route::post('/fg-approval/process', [FreeGoodsController::class, 'processApprova
 Route::get('/fg-approval/success', [FreeGoodsController::class, 'showSuccessPage'])->name('fg.approval.success');
 
 Route::middleware('auth')->group(function () {
-    // [PERBAIKAN] MENAMBAHKAN BLOK INI UNTUK MENGATASI ERROR
     Route::prefix('dashboard/data')->name('dashboard.data.')->group(function () {
         Route::get('/metric-counts', [DashboardController::class, 'getMetricCounts'])->name('metric-counts');
         Route::get('/monthly-stats', [DashboardController::class, 'getMonthlyStats'])->name('monthly-stats');
@@ -96,7 +95,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/master/tracking-path/approver-name', [TrackingPathController::class, 'approverName'])->name('tracking-path.approverName');
 
 
-    // Requisition Routes
+    // --- SAMPLE REQUISITION ROUTES ---
     Route::get('/sample-form/approval', [SampleController::class, 'approvalPage'])->name('sample-form.approval');
     Route::get('/sample-approval/data', [SampleController::class, 'getApprovalData'])->name('sample.approval.data');
 
@@ -116,16 +115,30 @@ Route::middleware('auth')->group(function () {
     Route::post('/get-item-details-by-products', [SampleController::class, 'getItemDetailsByProducts'])->name('sample.getItemDetailsByProducts');
     Route::get('/get-all-item-masters', [SampleController::class, 'getAllItemMasters'])->name('sample.getAllItemMasters');
 
+
     // --- FREE GOODS REQUISITION ROUTES ---
-    Route::get('/freegoods-requisition', [FreeGoodsController::class, 'index'])->name('freegoods.index');
-    Route::get('/freegoods-form/approval', [FreeGoodsController::class, 'approvalPage'])->name('freegoods-form.approval');
-    Route::resource('freegoods-form', FreeGoodsController::class)->parameters(['freegoods-form' => 'id']);
-    Route::get('/freegoods-data', [FreeGoodsController::class, 'getData'])->name('freegoods.data');
-    Route::get('/get-all-item-masters-fg', [FreeGoodsController::class, 'getAllItemMasters'])->name('freegoods.getAllItemMasters');
-    // Free Goods Approval & Reports
-    Route::get('/freegoods-form/approval', [FreeGoodsController::class, 'approvalPage'])->name('freegoods-form.approval');
-    Route::get('/freegoods-form/approval/data', [FreeGoodsController::class, 'getApprovalData'])->name('freegoods.approval.data');
-    Route::get('/freegoods-form/reports', [FreeGoodsController::class, 'reports'])->name('freegoods-form.reports');
+    Route::prefix('freegoods-form')->name('freegoods-form.')->group(function () {
+        Route::get('/', [FreeGoodsController::class, 'index'])->name('index');
+        Route::get('/approval', [FreeGoodsController::class, 'approvalPage'])->name('approval');
+        Route::get('/reports', [FreeGoodsController::class, 'reports'])->name('reports');
+        Route::get('/log', [FreeGoodsController::class, 'log'])->name('log');
+        
+        // [FIX] Menambahkan route untuk recall yang hilang
+        Route::post('/{id}/recall', [FreeGoodsController::class, 'recallRequisition'])->name('recall');
+
+        Route::resource('/', FreeGoodsController::class)->except(['index'])->parameters(['' => 'id']);
+    });
+
+    Route::name('freegoods.')->group(function () {
+        Route::get('/freegoods-data', [FreeGoodsController::class, 'getData'])->name('data');
+        Route::get('/freegoods-approval/data', [FreeGoodsController::class, 'getApprovalData'])->name('approval.data');
+        Route::get('/freegoods-reports/data', [FreeGoodsController::class, 'getReportData'])->name('reports.data');
+        Route::get('/freegoods-log/data', [FreeGoodsController::class, 'getLogData'])->name('log.data');
+        Route::get('/freegoods/get-next-number', [FreeGoodsController::class, 'getNextFgNumber'])->name('get-next-number');
+        Route::get('/get-all-item-masters-fg', [FreeGoodsController::class, 'getAllItemMasters'])->name('getAllItemMasters');
+        Route::post('/freegoods-form/reports/print-batch', [FreeGoodsController::class, 'printBatch'])->name('report.print.batch');
+    });
+
 
     // ! complain routes
     Route::prefix('complain')->group(function () {
@@ -157,7 +170,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/log.data', [ComplainLogController::class, 'getData'])->name('complain.log.data');
     });
 
-    Route::get('/freegoods-form/log', [FreeGoodsController::class, 'log'])->name('freegoods-form.log');
 });
 
 
@@ -173,7 +185,7 @@ Route::group(['middleware' => ['role:super-admin|admin']], function () {
     Route::post('roles/{roleId}/give-permissions', [RoleController::class, 'givePermissionToRole'])->name('roles.give-permission');
 
     // --- Requisition Path (Approvers) ---
-    Route::get('/requistion/path', [RequisitionPath::class, 'index'])->name('requisition.path');
+    Route::get('/requisition/path', [RequisitionPath::class, 'index'])->name('requisition.path');
     Route::get('/getapproverlist', [RequisitionPath::class, 'approverList'])->name('get.approverlist');
     Route::resource('/approvers', RequisitionPath::class);
     Route::get('/categories', [RequisitionPath::class, 'categories'])->name('get.categories');

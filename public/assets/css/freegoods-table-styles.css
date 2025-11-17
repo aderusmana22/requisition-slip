@@ -179,8 +179,7 @@
     color: var(--fg-dark-text);
 }
 
-#fgTable thead th, .thead-dark th, .detail-table thead th,
-.main-table-container .table-responsive table.dataTable thead tr th {
+.main-table-container table.dataTable thead th {
     background: linear-gradient(to bottom, #4a6b4a, #3a523a) !important;
     color: white !important;
     border: none !important;
@@ -192,25 +191,25 @@
     vertical-align: middle !important;
     text-align: center !important;
 }
-#fgTable thead th:last-child {
+.main-table-container table.dataTable thead th:last-child {
     border-right: none !important;
 }
 
 
-#fgTable tbody td {
+.main-table-container table.dataTable tbody td {
     padding: 18px 15px !important;
     border-bottom: 1px solid rgba(58, 107, 53, 0.2) !important;
     vertical-align: middle !important;
     font-size: 15px !important;
     font-weight: 500 !important;
-    color: #495057;
+    color: #495057 !important;
 }
 
-#fgTable tbody tr:nth-child(even) {
+.main-table-container table.dataTable tbody tr:nth-child(even) {
     background: var(--fg-light-bg) !important;
 }
 
-#fgTable tbody tr:hover {
+.main-table-container table.dataTable tbody tr:hover {
     background: linear-gradient(90deg, rgba(58, 107, 53, 0.15) 0%, rgba(58, 107, 53, 0.05) 100%) !important;
 }
 
@@ -232,9 +231,9 @@
     padding: 0.5em 1em;
 }
 
-#fgTable_paginate .page-item.active .page-link,
-#fgTable_paginate .paginate_button.current,
-#fgTable_paginate .paginate_button.current:hover {
+.dataTables_wrapper .dataTables_paginate .page-item.active .page-link,
+.dataTables_wrapper .dataTables_paginate .paginate_button.current,
+.dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
     background: linear-gradient(135deg, var(--fg-primary) 0%, var(--fg-secondary) 100%) !important;
     border-color: var(--fg-secondary) !important;
     color: white !important;
@@ -280,6 +279,11 @@
 }
 .badge-status-pending {
     background: var(--badge-orange-gradient) !important;
+}
+
+/* [UPDATE] Menambahkan kelas baru untuk status "In Progress" */
+.badge-status-progress {
+    background: var(--badge-cyan-gradient) !important;
 }
 
 /* Style untuk badge Requester */
