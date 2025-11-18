@@ -3,8 +3,6 @@
 namespace App\Traits;
 
 use App\Models\Master\TrackingPath;
-use App\Models\Requisition\ApprovalLog;
-use App\Models\Requisition\ApprovalPath;
 use App\Models\Requisition\Tracking;
 use App\Models\User;
 
@@ -46,7 +44,7 @@ trait traitTracking
                 $logs->push([
                         'requisition_id' => $requisitionId,
                         'current_position' => $users->name,
-                        'last_updated'   => now(),
+                        'last_updated'   => null,
                         'token'          => bin2hex(random_bytes(16)),
                         'notes'          => null,
                         'created_at'     => now(),

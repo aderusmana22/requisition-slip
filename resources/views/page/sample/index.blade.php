@@ -754,6 +754,13 @@
             });
         }
 
+        function formatStepName(name) {
+            if (!name) return 'Unknown';
+            return name
+                .replace(/-/g, ' ')
+                .replace(/\b\w/g, char => char.toUpperCase());
+        }
+
         $(document).ready(function () {
             let isPopulatingForm = false;
             const userDepartmentName = @json($userDepartmentName ?? '');
@@ -1742,20 +1749,28 @@
                     });
                 }
 
+                let trackingSteps = []; // Variabel untuk menyimpan ID step tracking
+
+                if (data.sequence_tracking && data.status !== 'Rejected' && data.status !== 'Recalled') {
+                    data.sequence_tracking.forEach((stepName, index) => {
+                        let icon = 'ph-package'; // Icon default
+                        const stepNameLower = stepName.toLowerCase();
+
+                        // Coba buat icon lebih relevan
+                        if (stepNameLower.includes('material')) icon = 'ph-printer';
+                        if (stepNameLower.includes('outward')) icon = 'ph-truck';
+                        if (stepNameLower.includes('qa') || stepNameLower.includes('qm')) icon = 'ph-clipboard-text';
+
+                        // Buat stepId unik berdasarkan index
+                        const stepId = `tracking_${index}`; // cth: tracking_0, tracking_1
+
+                        steps.push({ id: stepId, label: formatStepName(stepName), icon: icon });
+                        trackingSteps.push(stepId); // Simpan ID untuk pemetaan nanti
+                    });
+                }
+
+                // Tambahkan 'Completed' HANYA jika tidak ditolak
                 if (data.status !== 'Rejected' && data.status !== 'Recalled') {
-                    if (data.sub_category === 'Packaging') {
-                        if (data.print_batch == 1) {
-                            steps.push({ id: 'inward_initial', label: 'Inward WH Supervisor (Initial)', icon: 'ph-package' });
-                            steps.push({ id: 'material', label: 'Material Support', icon: 'ph-printer' });
-                            steps.push({ id: 'inward_final', label: 'Inward WH Supervisor (Final)', icon: 'ph-package' });
-                        } else {
-                            steps.push({ id: 'inward_final', label: 'Inward WH Supervisor Check', icon: 'ph-package' });
-                        }
-                    } else if (data.sub_category === 'Finished Goods') {
-                        steps.push({ id: 'outward', label: 'Outward', icon: 'ph-truck' });
-                    } else if (data.sub_category === 'Special Order') {
-                        steps.push({ id: 'qa_form', label: 'QA/QM Form', icon: 'ph-clipboard-text' });
-                    }
                     steps.push({ id: 'completed', label: 'Completed', icon: 'ph-check-circle' });
                 }
 
@@ -1793,22 +1808,26 @@
                 }
 
                 if (data.trackings && data.trackings.length > 0) {
-                    const positionToStepId = {
-                        'Inward WH Supervisor (Initial Check)': 'inward_initial',
-                        'Material Support Supervisor': 'material',
-                        'Inward WH Supervisor (Final Check)': 'inward_final',
-                        'Outward WH Supervisor': 'outward',
-                        'Waiting for QA/QM Form': 'qa_form'
-                    };
-                    data.trackings.forEach(tracking => {
-                        // [FIX 1] Hanya proses tracking jika tanggalnya valid (bukan 1970)
+                    data.trackings.forEach((tracking, index) => {
+                        // Hanya proses tracking jika tanggalnya valid
                         if (tracking.last_updated && new Date(tracking.last_updated).getFullYear() > 1970) {
-                            const stepId = positionToStepId[tracking.current_position];
+
+                            // Ambil stepId dari array trackingSteps berdasarkan index
+                            const stepId = trackingSteps[index];
+
                             if (stepId) {
                                 const stepElement = $(`.tracker-step[data-step-id="${stepId}"]`);
-                                const userName = (stepId === 'qa_form') ? 'QA/QM HSE Team' : tracking.current_position;
+                                const stepLabel = stepElement.find('.tracker-label').text(); // Ambil nama role dari label
+
+                                // Tentukan nama user
+                                let userName = tracking.current_position; // Ini adalah Nama User (cth: "Head WH")
+                                if (stepLabel.toLowerCase().includes('qa') || stepLabel.toLowerCase().includes('qm')) {
+                                    userName = 'QA/QM HSE Team';
+                                }
+
                                 const completionDate = new Date(tracking.last_updated).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).replace(',', '');
                                 stepElement.addClass('completed').find('.tracker-details').html(`<div class="tracker-user text-primary">${userName}</div><div class="tracker-date text-dark">${completionDate}</div>`);
+
                                 const stepIndex = steps.findIndex(s => s.id === stepId);
                                 lastCompletedIndex = Math.max(lastCompletedIndex, stepIndex);
                             }

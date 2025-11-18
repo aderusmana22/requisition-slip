@@ -111,9 +111,26 @@
                             </select>
                         </div>
                         <div class="form-group">
+                            <label class="form-label">Print Batch</label>
+                            <div class="d-flex gap-3 mt-1">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="print_batch" id="print_batch_yes" value="1">
+                                    <label class="form-check-label" for="print_batch_yes">
+                                        Yes
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="print_batch" id="print_batch_no" value="0">
+                                    <label class="form-check-label" for="print_batch_no">
+                                        No
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- <div class="form-group">
                             <label for="print_batch" class="form-label">Print Batch</label>
                             <input type="text" name="print_batch" id="print_batch" class="form-control">
-                        </div>
+                        </div> -->
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                             <button type="submit" class="btn btn-primary" id="btn-save" form="ApproverForm">Save changes</button>
@@ -208,10 +225,21 @@
 
 
                 // atur urutan selected approvers
-                $('#approvers').on('select2:select', function(e) {
-                    var option = $(e.params.data.element);
-                    option.detach();
-                    $(this).append(option).trigger('change');
+                // $('#approvers').on('select2:select', function(e) {
+                //     var option = $(e.params.data.element);
+                //     option.detach();
+                //     $(this).append(option).trigger('change');
+                // });
+
+                $('#approvers').on('select2:selecting', function(e) {
+                    var data = e.params.args.data;
+                    var newOption = new Option(data.text, data.id, true, true);
+
+                    $(this).append(newOption);
+                    $(this).trigger('change');
+
+                    e.preventDefault();
+                    $(this).select2('close');
                 });
 
                 // === Dynamic Sub-Category Handling ===
@@ -350,7 +378,14 @@
                         },
                         {
                             "data": "print_batch",
-                            "name": "print_batch"
+                            "name": "print_batch",
+                            "render": function(data, type, row) {
+                                if (data == 1 || data === true) {
+                                    return '<span class="badge bg-success">Yes</span>';
+                                } else {
+                                    return '<span class="badge bg-secondary">No</span>';
+                                }
+                            }
                         },
                         {
                             "data": "created_at",
@@ -443,7 +478,15 @@
                         $('#approvers').val(data.approver_user_ids).trigger('change');
 
                         // Set print batch
-                        $('#print_batch').val(data.print_batch).trigger('change');
+                        if (data.print_batch == 1) { // '==' akan menangani true, 1, atau '1'
+                            $('#print_batch_yes').prop('checked', true);
+                        } else if (data.print_batch == 0) { // '==' akan menangani false, 0, atau '0'
+                            $('#print_batch_no').prop('checked', true);
+                        } else {
+                            // Jika nilainya null, pastikan tidak ada yang tercentang
+                            $('#print_batch_yes').prop('checked', false);
+                            $('#print_batch_no').prop('checked', false);
+                        }
 
                         $('#ApproverModal').modal('show');
                     }).fail(function() {
@@ -453,7 +496,8 @@
 
                 function resetFormState() {
                     $('#ApproverForm').trigger("reset");
-                    $('#approvers, #category_id, #sub_category_id, #print_batch').val(null).trigger('change');
+                    $('#approvers, #category_id, #sub_category_id').val(null).trigger('change');
+                    $('input[name="print_batch"]').prop('checked', false);
                     $('#ApproverForm .is-invalid').removeClass('is-invalid');
                     $('#ApproverForm .invalid-feedback').remove();
                     $('#path-exists-warning').remove();
@@ -476,7 +520,7 @@
                         category_id: $('#category_id').val(),
                         sub_category_id: $('#sub_category_id').val(),
                         approvers: $('#approvers').val(),
-                        print_batch: $('#print_batch').val(),
+                        print_batch: $('input[name="print_batch"]:checked').val(),
                         _token: '{{ csrf_token() }}',
                         _method: method
                     };
