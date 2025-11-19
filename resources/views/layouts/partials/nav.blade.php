@@ -39,7 +39,6 @@
                     <li><a href="{{ route('requisition.path') }}">Approval Path</a></li>
                     <li><a href="{{ route('master.revision.index') }}">Revision</a></li>
                     <li><a href="{{ route('master.tracking-path.index') }}">Tracking Path</a></li>
-
                 </ul>
             </li>
 
