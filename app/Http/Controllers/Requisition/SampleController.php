@@ -29,10 +29,13 @@ use App\Traits\traitRequisition;
 use Spatie\Activitylog\Models\Activity;
 use App\Notifications\RequisitionNotification;
 use Illuminate\Notifications\Notification;
+use App\Models\Master\TrackingPath;
+use App\Traits\traitTracking;
 
 class SampleController extends Controller
 {
     use traitRequisition;
+    use traitTracking;
 
     //======================================================================
     // PUBLIC FUNCTIONS (Controller Endpoints & AJAX Handlers)
@@ -811,7 +814,7 @@ class SampleController extends Controller
 
     private function handleApproval(Requisition $requisition, ApprovalLog $approvalLog, User $approver, ?string $notes)
     {
-        $finalNotes = $notes ?? 'Approved without Review (Quick Action)';
+        $finalNotes = $notes ?? 'Approved without Review';
 
         $approvalLog->update([
             'status'     => 'Approved',
@@ -968,77 +971,76 @@ class SampleController extends Controller
      */
     private function handlePostApprovalFlow(Requisition $requisition)
     {
-        Log::info("Approval path selesai untuk Requisition #{$requisition->id}. Memulai alur proses.");
+        Log::info("Approval path selesai untuk Requisition #{$requisition->id}. Memulai alur proses dinamis via TrackingPath.");
 
         $requisition->load('requester.department');
-        $requesterDepartment = optional($requisition->requester)->department->name ?? null;
 
-        switch ($requisition->sub_category) {
-            case 'Packaging':
-                $steps = [];
-                if ($requesterDepartment === 'R&D') {
-                    $steps = ['Inward WH Supervisor (Final Check)'];
-                    Log::info("Requisition #{$requisition->id} dari R&D, alur langsung ke Final Check.");
-                } else {
-                    $steps = $requisition->print_batch
-                        ? ['Inward WH Supervisor (Initial Check)', 'Material Support Supervisor', 'Inward WH Supervisor (Final Check)']
-                        : ['Inward WH Supervisor (Final Check)'];
-                    Log::info("Requisition #{$requisition->id} dari {$requesterDepartment}, alur berdasarkan print_batch.");
-                }
-                if (empty($steps)) return $this->notifyRequesterAsCompleted($requisition);
-                foreach ($steps as $stepName) {
-                    Tracking::create(['requisition_id' => $requisition->id, 'current_position' => $stepName, 'token' => Str::uuid()->toString()]);
-                }
-                return $this->advanceWarehouseStep($requisition);
+        $printBatchValue = $requisition->print_batch ? '1' : null;
 
-            case 'Finished Goods':
-                $steps = ['Outward WH Supervisor'];
-                if (empty($steps)) return $this->notifyRequesterAsCompleted($requisition);
-                foreach ($steps as $stepName) {
-                    Tracking::create(['requisition_id' => $requisition->id, 'current_position' => $stepName, 'token' => Str::uuid()->toString()]);
-                }
-                return $this->advanceWarehouseStep($requisition);
+        try {
+            // Panggil trait dinamis untuk membuat tracking steps
+            $createdTrackingLogs = $this->generateTrackingPath(
+                $requisition->id,
+                $requisition->category,
+                $requisition->sub_category,
+                $printBatchValue
+            );
 
-            case 'Special Order':
+            // Jika tidak ada path yang ditemukan (atau path-nya kosong)
+            if ($createdTrackingLogs->isEmpty()) {
+                Log::warning("Tidak ada TrackingPath yang ditemukan untuk Requisition #{$requisition->id} (Sub-Category: {$requisition->sub_category}, PrintBatch: {$printBatchValue}). Menyelesaikan requisition.");
+                return $this->notifyRequesterAsCompleted($requisition);
+            }
+
+            // [PERBAIKAN] Cek apakah langkah pertama adalah 'Waiting for QA/QM Form'
+            // Ini untuk mereplikasi logika notifikasi khusus ke Head QA
+            $firstStepLog = $createdTrackingLogs->first();
+            if ($firstStepLog && $firstStepLog['current_position'] === 'Waiting for QA/QM Form') {
+
                 $headQaUser = User::whereHas('department', fn ($q) => $q->where('name', 'QM & HSE'))
-                            ->whereHas('roles', fn ($q) => $q->where('name', 'head-QA'))
-                            ->first();
+                                ->whereHas('roles', fn ($q) => $q->where('name', 'head-QA'))
+                                ->first();
 
                 if ($headQaUser) {
-                    $stepName = 'Waiting for QA/QM Form';
-                    $token = Str::uuid()->toString();
-                    Tracking::create([
-                        'requisition_id'   => $requisition->id,
-                        'current_position' => $stepName,
-                        'notes'            => "Waiting for form to be filled by {$headQaUser->name}",
-                        'token'            => $token,
-                    ]);
-                    $requisition->update(['status' => 'Approved', 'route_to' => $stepName]);
+                    // Ambil record tracking yang baru saja dibuat oleh trait
+                    $firstTrackingRecord = Tracking::where('requisition_id', $requisition->id)
+                                                ->where('current_position', 'Waiting for QA/QM Form')
+                                                ->whereNull('last_updated')
+                                                ->first();
 
-                    // [BARU] Logika untuk mengirim notifikasi DI DALAM SISTEM
-                    $notificationData = [
-                        'requisition_id' => $requisition->id,
-                        'srs_number'     => $requisition->no_srs,
-                        'message'        => "Form QA/QM untuk Requisition #{$requisition->no_srs} perlu dilengkapi.",
-                        'url'            => route('sample-form.index', ['open_form' => $requisition->id]),
-                    ];
-                    // Mengirim notifikasi ke Head QA, dengan info "From" dari requester asli
-                    $headQaUser->notify(new RequisitionNotification($notificationData, $requisition->requester));
+                    if ($firstTrackingRecord) {
+                        $token = $firstTrackingRecord->token; // Ambil token yang di-generate trait
+                        $firstTrackingRecord->update(['notes' => "Waiting for form to be filled by {$headQaUser->name}"]);
+                        $requisition->update(['status' => 'Approved', 'route_to' => 'Waiting for QA/QM Form']);
 
-                    // Logika email (yang sudah ada sebelumnya) tetap dijalankan
-                    $formUrl = route('approval.response', ['token' => $token, 'action' => 'qa_form']);
-                    dispatch(new sendSample($requisition, $headQaUser, $token, [
-                        'mail_type' => 'qa_form_notification',
-                        'form_url'  => $formUrl
-                    ]))->delay(now()->addSeconds(3));
+                        // Kirim Notifikasi SISTEM
+                        $notificationData = [
+                            'requisition_id' => $requisition->id,
+                            'srs_number'     => $requisition->no_srs,
+                            'message'        => "Form QA/QM untuk Requisition #{$requisition->no_srs} perlu dilengkapi.",
+                            'url'            => route('sample-form.index', ['open_form' => $requisition->id]),
+                        ];
+                        $headQaUser->notify(new RequisitionNotification($notificationData, $requisition->requester));
 
-                    return $stepName;
+                        // Kirim Notifikasi EMAIL
+                        $formUrl = route('approval.response', ['token' => $token, 'action' => 'qa_form']);
+                        dispatch(new sendSample($requisition, $headQaUser, $token, [
+                            'mail_type' => 'qa_form_notification',
+                            'form_url'  => $formUrl
+                        ]))->delay(now()->addSeconds(3));
+
+                        return 'Waiting for QA/QM Form'; // Selesai, jangan lanjut ke advanceWarehouseStep
+                    }
                 }
-                Log::warning("Head of Department QA/QM tidak ditemukan untuk Requisition #{$requisition->id}.");
+            }
 
-            default:
-                Log::warning("Tidak ada alur proses untuk sub-category: {$requisition->sub_category}. Menyelesaikan requisition.");
-                return $this->notifyRequesterAsCompleted($requisition);
+            return $this->advanceWarehouseStep($requisition);
+
+        } catch (\Exception $e) {
+            // Ini akan menangkap 'firstOrFail()' jika tidak ada TrackingPath yang didefinisikan
+            Log::error("Gagal generate tracking path untuk Requisition #{$requisition->id}: " . $e->getMessage() . ". Requisition akan di-autocomplete.");
+            // Fallback jika terjadi error (misal: path tidak ada), langsung selesaikan
+            return $this->notifyRequesterAsCompleted($requisition);
         }
     }
 
@@ -1118,14 +1120,26 @@ class SampleController extends Controller
     }
 
     /**
-     * Helper untuk mencari user berdasarkan nama step proses.
+     * Helper untuk mencari user berdasarkan nama step proses (Nama User).
      */
     private function findUserForStep(string $stepName)
     {
-        if (str_contains($stepName, 'Inward WH Supervisor'))    return $this->findWarehouseUser('Inward WH Supervisor', 'WH0001');
-        if (str_contains($stepName, 'Material Support Supervisor'))  return $this->findWarehouseUser('Material Support Supervisor', 'MS0001');
-        if (str_contains($stepName, 'Outward WH Supervisor'))   return $this->findWarehouseUser('Outward WH Supervisor', 'WH0002');
-        return null;
+        try {
+            // Kita cari user berdasarkan nama yang tersimpan di current_position
+            $user = User::where('name', $stepName)->first();
+
+            if ($user) {
+                return $user;
+            }
+
+            // Jika tidak ada user dengan nama itu, catat error
+            Log::error("Tidak ada user yang ditemukan dengan NAMA '{$stepName}' untuk proses tracking.");
+            return null;
+
+        } catch (\Exception $e) {
+            Log::error("Error saat mencari user '{$stepName}': " . $e->getMessage());
+            return null;
+        }
     }
 
     /**
@@ -1166,6 +1180,19 @@ class SampleController extends Controller
         $approvalPath = ApprovalPath::where('category', $requisition->category)
                         ->where('sub_category', $requisition->sub_category)
                         ->first();
+        
+        $trackingPathQuery = TrackingPath::where('category', $requisition->category)
+                        ->where('sub_category', $requisition->sub_category);
+
+        // Sesuaikan query berdasarkan print_batch
+        if ($requisition->print_batch == 1 || $requisition->print_batch === true) {
+            $trackingPathQuery->where('print_batch', '1');
+        } else {
+            $trackingPathQuery->where(function ($q) {
+                $q->where('print_batch', '0')->orWhereNull('print_batch');
+            });
+        }
+        $trackingPath = $trackingPathQuery->first();
 
         $history = [];
 
@@ -1183,7 +1210,7 @@ class SampleController extends Controller
             if ($log->status !== 'Pending') {
                 $actionText = 'Unknown';
                 if ($log->status === 'Approved') {
-                    $isDefaultNote = in_array($log->notes, ['Approved without Review', 'Approved without Review (Quick Action)']);
+                    $isDefaultNote = in_array($log->notes, ['Approved without Review']);
 
                     if (!empty($log->notes) && !$isDefaultNote && !str_starts_with($log->notes, 'Approved by')) {
                         $actionText = 'Approved with Review'; // Ini adalah review sungguhan
@@ -1231,6 +1258,7 @@ class SampleController extends Controller
         $responseData = $requisition->toArray();
         $responseData['history'] = $history;
         $responseData['sequence_approvers'] = $approvalPath ? $approvalPath->sequence_approvers : [];
+        $responseData['sequence_tracking'] = $trackingPath ? $trackingPath->sequence_approvers : [];
 
         return response()->json($responseData);
     }

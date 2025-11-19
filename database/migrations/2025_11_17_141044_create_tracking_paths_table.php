@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('category');
             $table->string('sub_category')->nullable();
             $table->json('sequence_approvers');
-            $table->string('print_batch')->nullable();
+            $table->boolean('print_batch')->nullable();
             $table->timestamps();
         });
     }

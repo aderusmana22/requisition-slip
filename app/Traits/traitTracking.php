@@ -3,8 +3,6 @@
 namespace App\Traits;
 
 use App\Models\Master\TrackingPath;
-use App\Models\Requisition\ApprovalLog;
-use App\Models\Requisition\ApprovalPath;
 use App\Models\Requisition\Tracking;
 use App\Models\User;
 

@@ -3,9 +3,99 @@
         Tracking Path Management
     @endsection
 
-    {{-- Include Complaint Table Styles Component --}}
+    {{-- Include Complaint Table Styles Component (Tetap dipertahankan sesuai asli) --}}
     @include('components.complaint-table-styles')
 
+    {{-- Custom CSS untuk Tampilan Emas & Badge --}}
+    @push('css')
+    <style>
+        /* Header Card Warna Emas (Gradient) */
+        .card-gold-header {
+            background: linear-gradient(85deg, #b07b04, #d49709);
+            color: white;
+            border-radius: 10px 10px 0 0;
+            padding: 1.5rem;
+        }
+        
+        .card-custom {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 0.25rem 1.125rem rgba(75, 70, 92, 0.1);
+        }
+
+        /* Styling untuk Action Button (Kotak) */
+        .btn-action-box {
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 5px;
+            margin: 0 2px;
+            border: none;
+            color: white;
+            transition: all 0.2s;
+        }
+        
+        .btn-gold { background-color: #b07b04; }
+        .btn-gold:hover { background-color: #8f6303; color: white; }
+        
+        .btn-red { background-color: #ea5455; }
+        .btn-red:hover { background-color: #c0392b; color: white; }
+
+        /* Badge Styles yang lebih mudah dibaca (Background terang, Text gelap) */
+        .badge-sub-category {
+            background-color: rgba(3, 195, 236, 0.15);
+            color: #03c3ec;
+            font-weight: 600;
+            padding: 5px 10px;
+        }
+
+        .badge-print-yes {
+            background-color: rgba(113, 221, 55, 0.15);
+            color: #71dd37;
+            padding: 5px 10px;
+            font-weight: 600;
+        }
+
+        .badge-print-no {
+            background-color: rgba(133, 146, 163, 0.15);
+            color: #8592a3;
+            padding: 5px 10px;
+            font-weight: 600;
+        }
+
+        /* Styling Text List Approver */
+        .approver-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 4px;
+            color: #566a7f;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        
+        .approver-icon {
+            margin-right: 8px;
+            color: #b07b04; /* Gold Icon */
+        }
+
+        /* Table Rows Alignment */
+        table.dataTable tbody td {
+            vertical-align: middle;
+        }
+
+        /* Search Box Styling */
+        .dataTables_filter input {
+            border-radius: 20px;
+            padding: 5px 15px;
+            border: 1px solid #d9dee3;
+        }
+    </style>
+    @endpush
+
+    {{-- Header & Breadcrumbs (Tetap dipertahankan sesuai asli) --}}
     <div class="row m-1">
         <div class="col-12 ">
             <h4 class="main-title">Tracking Path Management</h4>
@@ -20,61 +110,48 @@
         </div>
     </div>
 
-    <!--  -->
     <div class="row">
         <div class="col-12">
-            <!-- Action Bar with Enhanced Styling -->
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
-                    <h5 class="table-title">Tracking Path List</h5>
-                    <p class="table-description">A list of all tracking paths including their category, sub-category, and
-                        approvers.</p>
+                    <p class="text-muted mb-0">A list of all tracking paths including their category, sub-category, and approvers.</p>
                 </div>
                 <div>
-                    <button id="btn-create-approver" class="btn btn-primary-custom">
-                        <i class="ph ph-plus"></i>
-                        <span class="d-none d-sm-inline">Create New Path</span>
+                    <button id="btn-create-approver" class="btn btn-gold fw-bold px-3 py-2" style="border-radius: 8px;">
+                        <i class="ph ph-plus me-1"></i> Create New Path
                     </button>
                 </div>
             </div>
 
-            <!-- Enhanced Table Container -->
-            <div class="main-table-container">
-                <!-- Table Header -->
-                <div class="table-header">
-                    <div class="row">
-                        <div class="col-lg-6">
-                            <div class="d-flex align-items-center">
-                                <p class="table-label">Tracking Paths</p>
-                                <span class="table-info-badge">{{ \App\Models\Master\TrackingPath::count() }}
-                                    Paths</span>
-                            </div>
-                        </div>
+            <div class="card card-custom">
+                <div class="card-header card-gold-header">
+                    <div class="d-flex align-items-center">
+                        <i class="ph ph-list-dashes fs-4 me-2"></i>
+                        <h5 class="mb-0 text-white fw-bold">Tracking Paths List</h5>
                     </div>
+                    <small class="text-white opacity-75">Manage approval workflow configurations and sequences</small>
                 </div>
 
-                <!-- Table -->
-                <table id="trackingpathtable" class="table table-striped table-hover" style="width:100%">
-                    <thead>
-                        <tr>
-                            <th class="no-sort"></th>
-                            <th>Category</th>
-                            <th>Sub Category</th>
-                            <th>Approvers</th>
-                            <th>Print Batch</th>
-                            <th>Created At</th>
-                            <th class="no-sort text-center">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Data will be populated by DataTables -->
-                    </tbody>
-                </table>
+                <div class="card-body mt-3">
+                    <table id="trackingpathtable" class="table table-hover w-100">
+                        <thead>
+                            <tr>
+                                <th class="no-sort text-center" style="width: 5%">No</th>
+                                <th>Category</th>
+                                <th>Sub Category</th>
+                                <th>Approvers</th>
+                                <th>Print Batch</th>
+                                <th class="no-sort text-center" style="width: 15%">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- modal create approver -->
     <div class="modal fade" id="ApproverModal" aria-hidden="true" tabindex="-1">
         <div class="modal-dialog modal-dialog-scrollable modal-lg">
             <div class="modal-content">
@@ -104,19 +181,28 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="form-group">
+                        <div class="form-group mt-3">
                             <label for="approvers" class="form-label">Approvers</label>
-                            <select id="approvers" name="approvers[]" class="form-control" multiple="multiple"
-                                required>
+                            <select id="approvers" name="approvers[]" class="form-control" multiple="multiple" required>
                             </select>
+                            <small class="text-muted">Select user roles in order of approval sequence.</small>
                         </div>
-                        <div class="form-group">
-                            <label for="print_batch" class="form-label">Print Batch</label>
-                            <input type="text" name="print_batch" id="print_batch" class="form-control">
+                        <div class="form-group mt-3">
+                            <label class="form-label">Print Batch</label>
+                            <div class="d-flex gap-3 mt-1">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="print_batch" id="print_batch_yes" value="1">
+                                    <label class="form-check-label" for="print_batch_yes">Yes</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="print_batch" id="print_batch_no" value="0">
+                                    <label class="form-check-label" for="print_batch_no">No</label>
+                                </div>
+                            </div>
                         </div>
-                        <div class="modal-footer">
+                        <div class="modal-footer px-0 pb-0 mt-4">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                            <button type="submit" class="btn btn-primary" id="btn-save" form="ApproverForm">Save changes</button>
+                            <button type="submit" class="btn btn-gold" id="btn-save" form="ApproverForm">Save changes</button>
                         </div>
                     </form>
                 </div>
@@ -130,53 +216,20 @@
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
         <script>
-            // === SweetAlert2 Reusable Functions ===
+            // === SweetAlert2 Reusable Functions (Tetap dipertahankan) ===
             function successMessage(message, title = 'Success', timer = 1500) {
-                Swal.fire({
-                    icon: 'success',
-                    title: title,
-                    text: message,
-                    timer: timer,
-                    showConfirmButton: false
-                });
+                Swal.fire({ icon: 'success', title: title, text: message, timer: timer, showConfirmButton: false });
             }
 
             function errorMessage(message, title = 'Error') {
-                Swal.fire({
-                    icon: 'error',
-                    title: title,
-                    text: message
-                });
+                Swal.fire({ icon: 'error', title: title, text: message });
             }
 
-            function warningMessage(message, title = 'Warning') {
-                Swal.fire({
-                    icon: 'warning',
-                    title: title,
-                    text: message
-                });
-            }
-
-            function confirmDialog({
-                title = 'Are you sure?',
-                text = 'This action cannot be undone!',
-                confirmButtonText = 'Yes',
-                cancelButtonText = 'Cancel',
-                confirmButtonColor = '#3085d6',
-                cancelButtonColor = '#d33',
-                icon = 'warning',
-                reverseButtons = true
-            } = {}) {
+            function confirmDialog({ title = 'Are you sure?', text = 'This action cannot be undone!', confirmButtonText = 'Yes', cancelButtonText = 'Cancel' } = {}) {
                 return Swal.fire({
-                    title: title,
-                    text: text,
-                    icon: icon,
-                    showCancelButton: true,
-                    confirmButtonColor: confirmButtonColor,
-                    cancelButtonColor: cancelButtonColor,
-                    confirmButtonText: confirmButtonText,
-                    cancelButtonText: cancelButtonText,
-                    reverseButtons
+                    title: title, text: text, icon: 'warning', showCancelButton: true,
+                    confirmButtonColor: '#b07b04', cancelButtonColor: '#d33',
+                    confirmButtonText: confirmButtonText, cancelButtonText: cancelButtonText, reverseButtons: true
                 });
             }
 
@@ -184,43 +237,25 @@
                 let allSubCategories = [];
                 let existingPaths = [];
 
-                // === Initialize Select2 ===
+                // === Initialize Select2 (Tetap dipertahankan) ===
                 $('#approvers, #category_id, #sub_category_id').select2({
-                    theme: 'bootstrap-5',
-                    dropdownParent: $('#ApproverModal')
+                    theme: 'bootstrap-5', dropdownParent: $('#ApproverModal')
                 });
-                // Atur placeholder secara spesifik
-                $('#category_id').select2({
-                    theme: 'bootstrap-5',
-                    placeholder: 'Select a category',
-                    dropdownParent: $('#ApproverModal')
-                });
-                $('#sub_category_id').select2({
-                    theme: 'bootstrap-5',
-                    placeholder: 'Select a sub-category',
-                    dropdownParent: $('#ApproverModal')
-                });
-                $('#approvers').select2({
-                    theme: 'bootstrap-5',
-                    placeholder: 'Select approvers in order',
-                    dropdownParent: $('#ApproverModal')
+                
+                $('#approvers').on('select2:selecting', function(e) {
+                    var data = e.params.args.data;
+                    var newOption = new Option(data.text, data.id, true, true);
+                    $(this).append(newOption).trigger('change');
+                    e.preventDefault();
+                    $(this).select2('close');
                 });
 
-
-                // atur urutan selected approvers
-                $('#approvers').on('select2:select', function(e) {
-                    var option = $(e.params.data.element);
-                    option.detach();
-                    $(this).append(option).trigger('change');
-                });
-
-                // === Dynamic Sub-Category Handling ===
+                // === Dynamic Sub-Category Logic (Tetap dipertahankan) ===
                 $('#category_id').on('change', function() {
                     const selectedCategory = $(this).val();
                     const selectedSubCategory = $('#sub_category_id').val();
                     updatePathWarning(selectedCategory, selectedSubCategory);
 
-                    // Disable sub-category if category is not 'Sample'
                     if (selectedCategory && selectedCategory.toLowerCase() !== 'sample') {
                         $('#sub_category_id').val(null).trigger('change').prop('disabled', true);
                     } else {
@@ -229,43 +264,27 @@
                 });
 
                 $('#sub_category_id').on('change', function() {
-                    const selectedCategory = $('#category_id').val();
-                    const selectedSubCategory = $(this).val();
-                    updatePathWarning(selectedCategory, selectedSubCategory);
+                    updatePathWarning($('#category_id').val(), $(this).val());
                 });
 
                 function updatePathWarning(category, subCategory) {
-                    // Hapus warning yang ada
                     $('#path-exists-warning').remove();
-
                     if (!category) return;
-
                     const pathExists = existingPaths.some(path =>
                         path.category === category &&
-                        (path.sub_category === subCategory || (subCategory === '' && path.sub_category ===
-                            null))
+                        (path.sub_category === subCategory || (subCategory === '' && path.sub_category === null))
                     );
-
                     if (pathExists) {
-                        const warningHtml =
-                            '<div id="path-exists-warning" class="alert alert-warning mt-2">An approval path for this category and sub-category already exists.</div>';
-                        $('#ApproverForm').prepend(warningHtml);
+                        $('#ApproverForm').prepend('<div id="path-exists-warning" class="alert alert-warning mt-2">Path already exists.</div>');
                     }
                 }
 
-                // === Load ALL Dropdown Data via AJAX ===
+                // === Load Dropdown Data (Tetap dipertahankan) ===
                 function loadDropdownData() {
                     $.when(
-                        $.ajax({
-                            url: "{{ route('tracking-path.categories') }}",
-                            type: 'GET'
-                        }),
-                        $.ajax({
-                            url: "{{ route('tracking-path.approverName') }}",
-                            type: 'GET'
-                        })
+                        $.ajax({ url: "{{ route('tracking-path.categories') }}", type: 'GET' }),
+                        $.ajax({ url: "{{ route('tracking-path.approverName') }}", type: 'GET' })
                     ).done(function(categoriesResponse, approversResponse) {
-                        // Handle Categories & Sub-Categories
                         const categoriesData = categoriesResponse[0];
                         const categories = categoriesData.categories;
                         allSubCategories = categoriesData.subCategories;
@@ -273,156 +292,114 @@
 
                         const categorySelect = $('#category_id');
                         categorySelect.empty().append(new Option('Select a category', ''));
-                        categories.forEach(function(category) {
-                            categorySelect.append(new Option(category, category));
-                        });
+                        categories.forEach(cat => categorySelect.append(new Option(cat, cat)));
 
                         const subCategorySelect = $('#sub_category_id');
-                        subCategorySelect.empty().append(new Option('Select a sub-category (optional)',
-                            ''));
-                        allSubCategories.forEach(function(subCategory) {
-                            subCategorySelect.append(new Option(subCategory, subCategory));
-                        });
+                        subCategorySelect.empty().append(new Option('Select a sub-category (optional)', ''));
+                        allSubCategories.forEach(sub => subCategorySelect.append(new Option(sub, sub)));
 
-                        // Handle Approvers
                         const approversData = approversResponse[0].approverName;
                         const approverSelect = $('#approvers');
                         approverSelect.empty();
-
                         $.each(approversData, function(key, value) {
                             approverSelect.append(new Option(value, key));
                         });
-
                     }).fail(function() {
                         errorMessage('Failed to load initial data. Please refresh the page.');
                     });
                 }
-
                 loadDropdownData();
 
-                // === DataTable Initialization ===
+                // === DataTable Initialization (UPDATE RENDER AGAR SESUAI STYLE) ===
                 let table = $('#trackingpathtable').DataTable({
-                    "processing": true,
-                    "serverSide": true,
-                    "ajax": {
-                        "url": "{{ route('tracking-path.list') }}",
-                        "type": "GET",
-                        "data": function(d) {
-                            // Mengirim informasi sorting ke server
-                            d.order = [{
-                                column: d.order[0].column,
-                                dir: d.order[0].dir
-                            }];
+                    processing: true,
+                    serverSide: true,
+                    ajax: {
+                        url: "{{ route('tracking-path.list') }}",
+                        type: "GET",
+                        data: function(d) {
+                            d.order = [{ column: d.order[0].column, dir: d.order[0].dir }];
                             d.columns = d.columns.map(col => ({
-                                data: col.data,
-                                name: col.name,
-                                searchable: col.searchable,
-                                orderable: col.orderable,
-                                search: col.search
+                                data: col.data, name: col.name, searchable: col.searchable, orderable: col.orderable, search: col.search
                             }));
                         }
                     },
-                    "columns": [{
-                            "data": null,
-                            "className": 'details-control',
-                            "orderable": false,
-                            "defaultContent": '<i class="ph ph-caret-right"></i>',
-                            "width": "5%"
-                        },
+                    columns: [
                         {
-                            "data": "category",
-                            "name": "category"
-                        },
-                        {
-                            "data": "sub_category",
-                            "name": "sub_category"
-                        },
-                        {
-                            "data": "sequence_approvers",
-                            "name": "sequence_approvers",
-                            "orderable": false,
-                            "render": function(data, type, row) {
-                                if (!data) return '';
-                                return data.map(approver =>
-                                    `<span class="badge bg-secondary-custom">${approver}</span>`
-                                ).join(' ');
+                            // Render No dengan Lingkaran
+                            data: null, orderable: false, searchable: false, className: "text-center",
+                            render: function (data, type, row, meta) {
+                                return `<div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-light text-secondary fw-bold" style="width: 30px; height: 30px;">${meta.row + meta.settings._iDisplayStart + 1}</div>`;
                             }
                         },
                         {
-                            "data": "print_batch",
-                            "name": "print_batch"
+                            // Render Category dengan Icon
+                            data: "category", name: "category",
+                            render: function(data) {
+                                return `<span class="fw-bold text-primary"><i class="ph ph-files me-2"></i>${data}</span>`;
+                            }
                         },
                         {
-                            "data": "created_at",
-                            "name": "created_at",
-                            "visible": false
-                        }, // Sembunyikan kolom ini
+                            // Render Sub-Category dengan Badge Cyan
+                            data: "sub_category", name: "sub_category",
+                            render: function(data) {
+                                if (!data || data === '-') return '<span class="badge bg-label-secondary">General</span>';
+                                return `<span class="badge rounded-pill badge-sub-category"><i class="ph ph-tag me-1"></i>${data}</span>`;
+                            }
+                        },
                         {
-                            "data": "id",
-                            "orderable": false,
-                            "className": "text-center",
-                            "render": function(data, type, row) {
+                            // Render Approver List Vertikal
+                            data: "sequence_approvers", name: "sequence_approvers", orderable: false,
+                            render: function(data) {
+                                if (!data) return '';
+                                return data.map(approver =>
+                                    `<div class="approver-item"><i class="ph ph-user-circle approver-icon"></i> ${approver}</div>`
+                                ).join('');
+                            }
+                        },
+                        {
+                            // Render Print Batch Badge
+                            data: "print_batch", name: "print_batch",
+                            render: function(data) {
+                                return (data == 1) 
+                                    ? '<span class="badge badge-print-yes rounded-pill"><i class="ph ph-check me-1"></i>Yes</span>' 
+                                    : '<span class="badge badge-print-no rounded-pill"><i class="ph ph-x me-1"></i>No</span>';
+                            }
+                        },
+                        {
+                            // Render Action Buttons (Kotak Emas & Merah)
+                            data: "id", orderable: false, className: "text-center",
+                            render: function(data) {
                                 return `
-                                <div class="d-flex justify-content-center">
-                                    <button class="action-btn-hover me-2" data-id="${data}" data-action="edit" title="Edit Path">
-                                        <i class="ph ph-pencil-simple"></i>
+                                <div class="d-flex justify-content-center gap-2">
+                                    <button class="btn-action-box btn-gold action-btn-hover" data-id="${data}" data-action="edit" title="Edit">
+                                        <i class="ph ph-pencil-simple fs-5"></i>
                                     </button>
-                                    <button class="action-btn-hover text-danger" data-id="${data}" data-action="delete" title="Delete Path">
-                                        <i class="ph ph-trash"></i>
+                                    <button class="btn-action-box btn-red action-btn-hover" data-id="${data}" data-action="delete" title="Delete">
+                                        <i class="ph ph-trash fs-5"></i>
                                     </button>
                                 </div>`;
                             }
                         }
                     ],
-                    "order": [
-                        [5, 'desc']
-                    ], // Default sort by 'created_at' descending
-                    "responsive": true,
-                    "autoWidth": false,
-                    "lengthMenu": [
-                        [10, 25, 50, -1],
-                        [10, 25, 50, "All"]
-                    ],
-                    "pageLength": 10,
-                    "language": {
-                        "search": "_INPUT_",
-                        "searchPlaceholder": "Search...",
-                        "lengthMenu": "Show _MENU_ entries",
-                        "paginate": {
-                            "first": "<i class='ph ph-caret-double-left'></i>",
-                            "last": "<i class='ph ph-caret-double-right'></i>",
-                            "next": "<i class='ph ph-caret-right'></i>",
-                            "previous": "<i class='ph ph-caret-left'></i>"
-                        }
-                    },
-                    "columnDefs": [{
-                        "targets": 'no-sort',
-                        "orderable": false,
-                    }],
-                    "dom": '<"top"l<"custom-search"f>>rt<"bottom"ip><"clear">'
+                    order: [[1, 'asc']],
+                    responsive: true,
+                    autoWidth: false,
+                    language: { search: "", searchPlaceholder: "Search..." },
+                    dom: '<"row mx-2"<"col-md-2"<"me-3"l>><"col-md-10"<"dt-action-buttons text-xl-end text-lg-start text-md-end text-start d-flex align-items-center justify-content-end flex-md-row flex-column mb-3 mb-md-0"f>>>t<"row mx-2"<"col-sm-12 col-md-6"i><"col-sm-12 col-md-6"p>>'
                 });
 
-                // === DataTable Search Debounce ===
-                let searchInput = $('#trackingpathtable_filter input');
-                searchInput.unbind();
-                let debounceTimer;
-                searchInput.bind('keyup', function(e) {
-                    clearTimeout(debounceTimer);
-                    debounceTimer = setTimeout(() => {
-                        table.search(this.value).draw();
-                    }, 500);
-                });
+                // Style Search Input
+                $('.dataTables_filter input').addClass('form-control rounded-pill ps-3');
 
-                // === Modal: Show for Create ===
+                // === Modal & CRUD Handlers (Tetap dipertahankan) ===
                 $('#btn-create-approver').on('click', function() {
                     resetFormState();
                     $('#modal-title').text('Create New Tracking Path');
                     $('#approver_id').val('');
-                    $('#category_id, #sub_category_id').prop('disabled', false);
                     $('#ApproverModal').modal('show');
                 });
 
-                // === Modal: Show for Edit ===
                 $('#trackingpathtable').on('click', '.action-btn-hover[data-action="edit"]', function(e) {
                     e.preventDefault();
                     var id = $(this).data('id');
@@ -432,132 +409,80 @@
                         $('#modal-title').text('Edit Tracking Path');
                         $('#btn-save').text('Save Changes');
                         $('#approver_id').val(id);
-
-                        // Set category and sub-category, then disable them
-                        $('#category_id').val(data.category_id).trigger('change').prop('disabled',
-                            true);
-                        $('#sub_category_id').val(data.sub_category_id).trigger('change').prop(
-                            'disabled', true);
-
-                        // Set approvers
+                        $('#category_id').val(data.category_id).trigger('change').prop('disabled', true);
+                        $('#sub_category_id').val(data.sub_category_id).trigger('change').prop('disabled', true);
                         $('#approvers').val(data.approver_user_ids).trigger('change');
 
-                        // Set print batch
-                        $('#print_batch').val(data.print_batch).trigger('change');
+                        if (data.print_batch == 1) $('#print_batch_yes').prop('checked', true);
+                        else if (data.print_batch == 0) $('#print_batch_no').prop('checked', true);
+                        else { $('#print_batch_yes').prop('checked', false); $('#print_batch_no').prop('checked', false); }
 
                         $('#ApproverModal').modal('show');
-                    }).fail(function() {
-                        errorMessage('Could not load data for editing.');
-                    });
+                    }).fail(function() { errorMessage('Could not load data for editing.'); });
                 });
 
                 function resetFormState() {
                     $('#ApproverForm').trigger("reset");
-                    $('#approvers, #category_id, #sub_category_id, #print_batch').val(null).trigger('change');
-                    $('#ApproverForm .is-invalid').removeClass('is-invalid');
-                    $('#ApproverForm .invalid-feedback').remove();
+                    $('#approvers, #category_id, #sub_category_id').val(null).trigger('change');
+                    $('input[name="print_batch"]').prop('checked', false);
                     $('#path-exists-warning').remove();
                     $('#btn-save').text('Save changes');
                     $('#category_id, #sub_category_id').prop('disabled', false);
                 }
 
-                // === Form Submit Handler (Create & Edit) ===
                 $('#ApproverForm').on('submit', function(e) {
                     e.preventDefault();
                     $('#btn-save').html('Sending..').prop('disabled', true);
-
                     const approverId = $('#approver_id').val();
-                    const url = approverId ?
-                        "{{ url('master/tracking-path') }}/" + approverId :
-                        "{{ route('tracking-path.store') }}";
+                    const url = approverId ? "{{ url('master/tracking-path') }}/" + approverId : "{{ route('tracking-path.store') }}";
                     const method = approverId ? 'PUT' : 'POST';
-
                     const formData = {
                         category_id: $('#category_id').val(),
                         sub_category_id: $('#sub_category_id').val(),
                         approvers: $('#approvers').val(),
-                        print_batch: $('#print_batch').val(),
+                        print_batch: $('input[name="print_batch"]:checked').val(),
                         _token: '{{ csrf_token() }}',
                         _method: method
                     };
 
                     $.ajax({
-                        url: url,
-                        type: 'POST', // Always POST, method override handles PUT
-                        data: formData,
-                        dataType: 'json',
+                        url: url, type: 'POST', data: formData, dataType: 'json',
                         success: function(response) {
                             successMessage(response.message);
                             $('#ApproverModal').modal('hide');
                             table.draw();
                         },
-                        error: function(jqXHR, textStatus, errorThrown) {
-                            let message = 'An error occurred.';
-                            if (jqXHR.responseJSON && jqXHR.responseJSON.message) {
-                                message = jqXHR.responseJSON.message;
-                            }
-                            errorMessage(message);
+                        error: function(jqXHR) {
+                            errorMessage(jqXHR.responseJSON?.message || 'An error occurred.');
                         },
-                        complete: function() {
-                            $('#btn-save').html('Save changes').prop('disabled', false);
-                        }
+                        complete: function() { $('#btn-save').html('Save changes').prop('disabled', false); }
                     });
                 });
 
-
-                // === Delete Handler ===
                 $('#trackingpathtable').on('click', '.action-btn-hover[data-action="delete"]', function(e) {
                     e.preventDefault();
                     var id = $(this).data('id');
-
-                    confirmDialog({
-                        text: "You won't be able to revert this!"
-                    }).then((result) => {
+                    confirmDialog().then((result) => {
                         if (result.isConfirmed) {
                             $.ajax({
                                 url: "{{ url('master/tracking-path') }}/" + id,
                                 type: 'DELETE',
-                                data: {
-                                    _token: '{{ csrf_token() }}'
-                                },
-                                success: function(response) {
-                                    successMessage(response.message);
-                                    table.draw();
-                                },
-                                error: function(jqXHR, textStatus, errorThrown) {
-                                    errorMessage(jqXHR.responseJSON.message ||
-                                        'Could not delete the item.');
-                                }
+                                data: { _token: '{{ csrf_token() }}' },
+                                success: function(response) { successMessage(response.message); table.draw(); },
+                                error: function(jqXHR) { errorMessage(jqXHR.responseJSON?.message || 'Could not delete.'); }
                             });
                         }
                     });
                 });
 
-
-                // Custom Tooltip Handler for Action Buttons
                 function initActionTooltips() {
-                    // Hapus tooltip yang ada untuk menghindari duplikasi
                     $('.action-btn-hover').tooltip('dispose');
-
-                    // Inisialisasi tooltip baru
                     $('.action-btn-hover').each(function() {
                         let title = $(this).attr('title');
-                        if (title) {
-                            $(this).tooltip({
-                                title: title,
-                                placement: 'top',
-                                trigger: 'hover'
-                            });
-                        }
+                        if (title) { $(this).tooltip({ title: title, placement: 'top', trigger: 'hover' }); }
                     });
                 }
-
-                // Initialize tooltips after DataTable is ready
-                table.on('draw', function() {
-                    initActionTooltips();
-                });
-
-                // Initialize tooltips for the first load
+                table.on('draw', function() { initActionTooltips(); });
                 initActionTooltips();
             });
         </script>
