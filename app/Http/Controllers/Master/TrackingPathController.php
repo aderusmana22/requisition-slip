@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Master;
 
 use App\Http\Controllers\Controller;
 use App\Models\Master\TrackingPath;
+use App\Models\Requisition\ApprovalPath; // [UPDATE] Model ini digunakan untuk mengambil list Kategori dari DB
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -15,7 +16,6 @@ class TrackingPathController extends Controller
     {
         return view('page.master.trackingPath.index');
     }
-
 
     public function store(Request $request)
     {
@@ -111,7 +111,7 @@ class TrackingPathController extends Controller
                 $approvalPath->update(['sequence_approvers' => $validated['approvers'], 'print_batch' => $validated['print_batch'] ?? null]);
             });
 
-            // [LOGGING DISEMPURNAKAN]
+            // Logging
             $logMessage = "Memperbarui alur persetujuan untuk {$approvalPath->category}" . ($approvalPath->sub_category ? " - {$approvalPath->sub_category}" : "") . ".";
             $properties = [
                 'category' => $approvalPath->category,
@@ -138,20 +138,27 @@ class TrackingPathController extends Controller
 
     public function categories()
     {
-        $categories = [
-            'Sample',
-            'Complain',
-            'Free Goods',
-        ];
-        $subCategories = [
-            'Packaging',
-            'Finished Goods',
-            'Special Order',
-        ];
+        // [UPDATE - MENGGUNAKAN DB]
+        // Mengambil kategori unik dari tabel approval_paths agar dinamis dan konsisten
+        $categories = ApprovalPath::select('category')
+            ->distinct()
+            ->pluck('category');
 
+        // Mengambil sub-kategori unik dari tabel approval_paths
+        $subCategories = ApprovalPath::select('sub_category')
+            ->whereNotNull('sub_category')
+            ->where('sub_category', '!=', '')
+            ->distinct()
+            ->pluck('sub_category');
+
+        // Mengambil path yang sudah ada di tracking_paths untuk validasi frontend (mencegah duplikasi)
         $existingPaths = TrackingPath::select('category', 'sub_category')->get();
 
-        return response()->json(['categories' => $categories, 'subCategories' => $subCategories, 'existingPaths' => $existingPaths]);
+        return response()->json([
+            'categories' => $categories,
+            'subCategories' => $subCategories,
+            'existingPaths' => $existingPaths
+        ]);
     }
 
     public function approverName()
@@ -179,7 +186,7 @@ class TrackingPathController extends Controller
         // Mulai query builder
         $query = TrackingPath::query();
 
-        // 2. Terapkan filter pencarian jika ada input dari kotak search
+        // Terapkan filter pencarian jika ada input dari kotak search
         if (!empty($searchValue)) {
             $query->where(function ($q) use ($searchValue) {
                 $q->where('category', 'like', "%{$searchValue}%")
@@ -235,7 +242,6 @@ class TrackingPathController extends Controller
                     'deleted_approvers' => $data->sequence_approvers,
                 ];
 
-                // Log dicatat SEBELUM data dihapus
                 activity()
                     ->causedBy($causer)
                     ->performedOn($data)
