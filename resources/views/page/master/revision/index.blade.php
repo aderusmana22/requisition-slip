@@ -3,8 +3,7 @@
     Revision Management
     @endsection
 
-    {{-- Include Complaint Table Styles Component --}}
-    @include('components.complaint-table-styles')
+    @include('components.master-table-styles')
 
     @push('css')
     <!-- Select2 CSS -->
@@ -22,23 +21,23 @@
             font-weight: 500;
             transition: all 0.3s ease;
         }
-    
+
         #revision-table .action-btn-group .action-btn-hover i {
             font-size: 1.1rem;
         }
-    
+
         #revision-table .action-btn-group .action-btn-hover.btn-secondary {
             background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
             border: none;
             box-shadow: 0 2px 4px rgba(108, 117, 125, 0.2);
         }
-    
+
         #revision-table .action-btn-group .action-btn-hover.btn-secondary:hover {
             background: linear-gradient(135deg, #5a6268 0%, #545b62 100%);
             box-shadow: 0 4px 8px rgba(108, 117, 125, 0.3);
             transform: translateY(-2px);
         }
-    
+
         .action-tooltip {
             background: rgba(0, 0, 0, 0.85);
             color: white;
@@ -53,12 +52,12 @@
             transition: opacity 0.2s ease, visibility 0.2s ease;
             pointer-events: none;
         }
-    
+
         .action-tooltip.show {
             opacity: 1;
             visibility: visible;
         }
-    
+
         .action-tooltip.below {
             margin-top: 8px;
         }
@@ -139,13 +138,13 @@
                     @csrf
                     <div class="modal-body modal-body-enhanced">
                         <input type="hidden" id="revision_id" name="id">
-                        
+
                         <div class="mb-3">
                             <label for="revision_number" class="form-label">
                                 <i class="ph-duotone ph-hash me-1"></i>
                                 Revision Number
                             </label>
-                            <input type="text" class="form-control" id="revision_number" name="revision_number" 
+                            <input type="text" class="form-control" id="revision_number" name="revision_number"
                                 placeholder="e.g., REV-001" required>
                             <div class="invalid-feedback" data-error-for="revision_number"></div>
                         </div>
@@ -155,7 +154,7 @@
                                 <i class="ph-duotone ph-number-square-one me-1"></i>
                                 Revision Count
                             </label>
-                            <input type="number" class="form-control" id="revision_count" name="revision_count" 
+                            <input type="number" class="form-control" id="revision_count" name="revision_count"
                                 placeholder="Enter revision count" min="0" required>
                             <div class="invalid-feedback" data-error-for="revision_count"></div>
                         </div>
@@ -298,7 +297,7 @@
                     render: function (data, type, row){
                         return `
                             <div class="action-btn-group">
-                                <button class="action-btn-hover btn-secondary btn-edit-revision" 
+                                <button class="action-btn-hover btn-secondary btn-edit-revision"
                                     data-id="${row.id}"
                                     data-revision-number="${row.revision_number}"
                                     data-revision-count="${row.revision_count}"
@@ -340,7 +339,7 @@
             // === Submit Form Update Revision ===
             $('#revisionForm').on('submit', function (e) {
                 e.preventDefault();
-                
+
                 // Clear previous validation errors
                 $('.is-invalid').removeClass('is-invalid');
                 $('.invalid-feedback').text('');
@@ -363,7 +362,7 @@
                                 if (errors.hasOwnProperty(key)) {
                                     let inputField = $(`[name="${key}"]`);
                                     let errorContainer = $(`[data-error-for="${key}"]`);
-                                    
+
                                     inputField.addClass('is-invalid');
                                     errorContainer.text(errors[key][0]);
                                 }

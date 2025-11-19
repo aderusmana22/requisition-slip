@@ -3,73 +3,77 @@
         Department List
     @endsection
 
-    <!-- Breadcrumb -->
+    @include('components.master-table-styles')
+
     <div class="row m-1">
-        <div class="col-12 ">
+        <div class="col-12">
             <h4 class="main-title">Department List</h4>
             <ul class="app-line-breadcrumbs mb-3">
-                <li>
-                    <a class="f-s-14 f-w-500" href="#">
-                        <i class="ph-duotone ph ph-address-book f-s-16"></i> Master Data
-                    </a>
-                </li>
-                <li class="active">
-                    <a class="f-s-14 f-w-500" href="#">Department List</a>
-                </li>
+                <li><a class="f-s-14 f-w-500" href="#"><i class="ph-duotone ph-address-book f-s-16"></i> Master Data</a></li>
+                <li class="active"><a class="f-s-14 f-w-500" href="#">Department List</a></li>
             </ul>
         </div>
     </div>
 
-    <!-- Table Department -->
     <div class="row">
         <div class="col-12">
-            <div class="d-flex justify-content-end mb-3">
-                <button class="btn btn-light-danger btn-md" type="button" data-bs-toggle="modal"
-                    data-bs-target="#departmentModal" id="btn-create-department">
-                    <i class="ph-bold ph-plus pe-2"></i> Add Department
-                </button>
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div></div>
+                <div>
+                    <button class="btn btn-primary-custom" type="button" data-bs-toggle="modal" data-bs-target="#departmentModal" id="btn-create-department">
+                        <i class="ph-bold ph-plus"></i>
+                        <span>Add Department</span>
+                    </button>
+                </div>
             </div>
-            <div class="card">
-                <div class="card-body p-0">
-                    <div class="app-scroll table-responsive app-datatable-default">
-                        <table class="w-100 display" id="departments-table">
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                        </table>
-                    </div>
+
+            <div class="main-table-container">
+                <div class="table-header-enhanced">
+                    <h4 class="table-title"><i class="ph-duotone ph-buildings"></i> Organization Departments</h4>
+                    <p class="table-subtitle">Manage company departments and codes</p>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="w-100 display" id="departments-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th class="text-center">Action</th>
+                            </tr>
+                        </thead>
+                    </table>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Modal Add/Edit Department -->
     <div class="modal fade" id="departmentModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header bg-primary">
-                    <h5 class="modal-title text-white" id="departmentModalLabel">Create Department</h5>
-                    <button type="button" class="btn-close m-0 fs-5" data-bs-dismiss="modal"
-                        aria-label="Close"></button>
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 15px; overflow: hidden;">
+                <div class="modal-header-enhanced p-4 d-flex justify-content-between align-items-center"
+                     style="background: linear-gradient(135deg, #584D3C 0%, #9F956C 100%); color: white;">
+                    <h5 class="modal-title fw-bold d-flex align-items-center" id="departmentModalLabel" style="font-size: 1.25rem;">
+                        <i class="ph ph-buildings me-2" style="font-size: 1.5rem;"></i>
+                        <span>Create Department</span>
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
+
                 <form id="departmentForm">
                     @csrf
-                    <div class="modal-body">
+                    <div class="modal-body p-4">
                         <div class="row g-3">
                             <div class="col-12">
-                                <label for="department_name" class="form-label">Name</label>
-                                <input type="text" class="form-control" id="department_name" name="name" required>
+                                <label for="department_name" class="form-label fw-bold text-secondary">Department Name</label>
+                                <input type="text" class="form-control" id="department_name" name="name" placeholder="e.g. Human Resources" required>
                             </div>
                         </div>
                     </div>
-                    <div class="modal-footer">
-                        <button class="badge text-light-primary fs-6" type="submit" id="saveDepartmentBtn">
-                            Save changes
+                    <div class="modal-footer border-0 px-4 pb-4">
+                        <button class="btn btn-light text-secondary fw-bold px-4" data-bs-dismiss="modal" type="button">Cancel</button>
+                        <button class="btn btn-primary-custom px-4 shadow-sm" type="submit" id="saveDepartmentBtn">
+                            <i class="ph ph-floppy-disk me-2"></i> Save Changes
                         </button>
-                        <button class="btn btn-light-secondary" data-bs-dismiss="modal" type="button">Close</button>
                     </div>
                 </form>
             </div>
