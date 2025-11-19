@@ -100,12 +100,17 @@
 
                         <div class="form-group mb-4">
                             <label for="approvers" class="form-label fw-bold text-secondary">Approvers Sequence</label>
-                            <div class="alert alert-light border border-secondary border-opacity-25 mb-2 p-2 rounded-3">
-                                <small class="text-muted d-flex align-items-center">
-                                    <i class="ph ph-info me-2 text-primary-custom"></i>
-                                    Select approvers in the order they should approve.
-                                </small>
+
+                            <div class="alert d-flex align-items-start mb-2 p-2 rounded-3"
+                                style="background-color: rgba(159, 149, 108, 0.1); border: 1px dashed #9F956C;">
+
+                                <i class="ph ph-info me-2" style="color: #584D3C; font-size: 1.1rem;"></i>
+
+                                <div style="color: #584D3C; font-size: 0.9rem; line-height: 1; font-style: italic;">
+                                    <strong>Info:</strong> Select approvers in the order they should approve (e.g., Staff first, then Manager).
+                                </div>
                             </div>
+
                             <select id="approvers" name="approvers[]" class="form-control" multiple="multiple" required>
                             </select>
                         </div>
