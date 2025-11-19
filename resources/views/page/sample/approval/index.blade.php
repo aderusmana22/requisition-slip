@@ -200,7 +200,7 @@
                         { data: 'status', name: 'requisition.status', },
                         { data: 'approver', name: 'approval_logs.approver_nik' },
                         { data: 'level', name: 'level', },
-                        { data: 'action', name: 'action', orderable: false, searchable: false,, width: '120px' }
+                        { data: 'action', name: 'action', orderable: false, searchable: false, width: '120px' }
                     ],
                     drawCallback: function () {
                         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));

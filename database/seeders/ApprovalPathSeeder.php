@@ -16,7 +16,7 @@ class ApprovalPathSeeder extends Seeder
     {
         // 1. Path untuk SnM Requester (sub_category: SNM_PATH)
         // Alur: Atasan (SnM Manager) -> Business Controller
-        $snmPathSequence = [ 
+        $snmPathSequence = [
             [
                 "level" => 1,
                 "type" => "atasan" // SnM Manager (atasan requester)
@@ -38,7 +38,7 @@ class ApprovalPathSeeder extends Seeder
                 'updated_at' => now(),
             ]
         );
-        
+
         // 2. Path untuk Non-SnM Requester (sub_category: NON_SNM_PATH)
         // Alur: HCD Dept. Head -> Business Controller (TIDAK ADA ATASAN)
         $nonSnmPathSequence = [
@@ -60,25 +60,6 @@ class ApprovalPathSeeder extends Seeder
                 'category' => 'FREE GOODS',
                 'sub_category' => 'NON_SNM_PATH',
                 'sequence_approvers' => json_encode($nonSnmPathSequence),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]
-        );
-
-        // --- TAMBAHKAN PATH DEFAULT UNTUK KATEGORI SAMPLE ---
-        $sampleDefaultSequence = [
-             [
-                "level" => 1,
-                "type" => "atasan" 
-            ],
-        ];
-
-        DB::table('approval_paths')->updateOrInsert(
-            ['category' => 'SAMPLE', 'sub_category' => 'Packaging'],
-            [
-                'category' => 'SAMPLE',
-                'sub_category' => 'Packaging',
-                'sequence_approvers' => json_encode($sampleDefaultSequence), 
                 'created_at' => now(),
                 'updated_at' => now(),
             ]

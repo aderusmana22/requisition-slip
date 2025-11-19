@@ -152,7 +152,7 @@ class SampleController extends Controller
                         $icon = 'ph-package';
                         break;
                     case 'Finished Goods':
-                        $badgeClass = 'bg-primary';
+                        $badgeClass = 'bg-warning';
                         $icon = 'ph-cube';
                         break;
                     case 'Special Order':
@@ -172,7 +172,7 @@ class SampleController extends Controller
                 switch ($status) {
                     case 'Pending':
                     case 'Submitted':
-                        $badgeClass = 'bg-warning';
+                        $badgeClass = 'bg-primary';
                         $icon = 'ph-paper-plane-tilt';
                         break;
                     case 'In Progress':
@@ -1180,7 +1180,7 @@ class SampleController extends Controller
         $approvalPath = ApprovalPath::where('category', $requisition->category)
                         ->where('sub_category', $requisition->sub_category)
                         ->first();
-        
+
         $trackingPathQuery = TrackingPath::where('category', $requisition->category)
                         ->where('sub_category', $requisition->sub_category);
 
@@ -1428,7 +1428,7 @@ class SampleController extends Controller
                         $logName = 'sample - ' . $subCategory; // Standarkan nama log
                         switch ($subCategory) {
                             case 'packaging':
-                                $badgeClass = 'bg-warning text-dark'; $icon = 'ph-package'; break;
+                                $badgeClass = 'bg-warning'; $icon = 'ph-package'; break;
                             case 'finished goods':
                                 $badgeClass = 'bg-info'; $icon = 'ph-cube'; break;
                             case 'special order':
@@ -1509,13 +1509,13 @@ class SampleController extends Controller
                 $icon = 'ph-info';
                 switch ($event) {
                     case 'create': $badgeClass = 'bg-primary'; $icon = 'ph-plus-circle'; break;
-                    case 'update': $badgeClass = 'bg-warning text-dark'; $icon = 'ph-pencil-simple'; break;
+                    case 'update': $badgeClass = 'bg-warning'; $icon = 'ph-pencil-simple'; break;
                     case 'delete': $badgeClass = 'bg-danger'; $icon = 'ph-trash'; break;
                     case 'approve': $badgeClass = 'bg-success'; $icon = 'ph-thumbs-up'; break;
                     case 'reject': $badgeClass = 'bg-danger'; $icon = 'ph-thumbs-down'; break;
                     case 'recall': $badgeClass = 'bg-danger'; $icon = 'ph-prohibit'; break;
                     case 'tracking': $badgeClass = 'bg-info'; $icon = 'ph-path'; break;
-                    case 'resend': $badgeClass = 'bg-warning text-dark'; $icon = 'ph-paper-plane-tilt'; break;
+                    case 'resend': $badgeClass = 'bg-warning'; $icon = 'ph-paper-plane-tilt'; break;
                 }
                 return '<span class="status-badge-lg ' . $badgeClass . '"><i class="ph-bold ' . $icon . ' me-1"></i>' . e(ucfirst($event)) . '</span>';
             })

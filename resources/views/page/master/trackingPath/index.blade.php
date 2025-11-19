@@ -47,7 +47,7 @@
                 <table id="trackingpathtable" class="table table-striped table-hover" style="width:100%">
                     <thead>
                         <tr>
-                            <th class="no-sort"></th>
+                            <th class="no-sort">No  </th>
                             <th>Category</th>
                             <th>Sub Category</th>
                             <th>Approvers</th>

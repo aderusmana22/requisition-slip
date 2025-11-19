@@ -845,13 +845,13 @@ body {
 }
 
 .bg-warning.status-badge-lg {
-    background: linear-gradient(135deg, #ff7b00 0%, #e68a00 100%) !important;
+    background: linear-gradient(135deg, #584D3C 0%, #9F956C 100%) !important;
     color: white !important;
     border-color: rgba(#2563eb) !important;
 }
 
 .bg-info.status-badge-lg {
-    background: linear-gradient(135deg, #2bcee7 0%, #138496 100%) !important;
+    background: linear-gradient(135deg, #50dbf1 0%, #0ba5bd 100%) !important;
     border-color: rgba(23, 162, 184, 0.3) !important;
 }
 
