@@ -44,9 +44,10 @@ trait traitTracking
                 $logs->push([
                         'requisition_id' => $requisitionId,
                         'current_position' => $users->name,
+                        'approver_nik' => $users->nik,
                         'last_updated'   => null,
-                        'token'          => bin2hex(random_bytes(16)),
                         'notes'          => null,
+                        'token'          => bin2hex(random_bytes(16)),
                         'created_at'     => now(),
                         'updated_at'     => now(),
                 ]);
