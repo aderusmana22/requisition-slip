@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('requisition_id')->constrained('requisitions')->unique();
             $table->string('current_position');
+            $table->string('approver_nik');
             $table->timestamp('last_updated')->nullable();
             $table->text('notes')->nullable();
             $table->timestamps();

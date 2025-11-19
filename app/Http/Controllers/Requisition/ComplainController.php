@@ -50,66 +50,6 @@ class ComplainController extends Controller
         return Carbon::parse($datetime)->setTimezone('Asia/Jakarta')->format($format);
     }
 
-    /**
-     * Generate warehouse tracking berdasarkan print_batch
-     */
-    private function generateWarehouseTracking($requisitionId, $printBatch)
-    {
-        if ($printBatch === true) {
-            // Jika print_batch true: WH Supervisor First -> Material Supervisor -> WH Supervisor Final
-
-            // 1. WH Supervisor First
-            Tracking::create([
-                'requisition_id' => $requisitionId,
-                'current_position' => 'WH Supervisor First',
-                'last_updated' => null,
-                'notes' => null,
-                'token' => bin2hex(random_bytes(16)),
-            ]);
-
-            // 2. Material Supervisor
-            Tracking::create([
-                'requisition_id' => $requisitionId,
-                'current_position' => 'Material Supervisor',
-                'last_updated' => null,
-                'notes' => null,
-                'token' => bin2hex(random_bytes(16)),
-            ]);
-
-            // 3. WH Supervisor Final
-            Tracking::create([
-                'requisition_id' => $requisitionId,
-                'current_position' => 'WH Supervisor Final',
-                'last_updated' => null,
-                'notes' => null,
-                'token' => bin2hex(random_bytes(16)),
-            ]);
-
-            Log::info("Generated warehouse tracking for requisition {$requisitionId}", [
-                'print_batch' => true,
-                'tracking_count' => 3,
-                'sequence' => 'WH Supervisor First -> Material Supervisor -> WH Supervisor Final'
-            ]);
-        } else {
-            // Jika print_batch false: hanya WH Supervisor Final
-            Tracking::create([
-                'requisition_id' => $requisitionId,
-                'current_position' => 'WH Supervisor Final',
-                'last_updated' => null,
-                'notes' => 'Waiting for WH Supervisor final approval',
-                'token' => bin2hex(random_bytes(16)),
-            ]);
-
-            Log::info("Generated warehouse tracking for requisition {$requisitionId}", [
-                'print_batch' => false,
-                'tracking_count' => 1,
-                'sequence' => 'WH Supervisor Final only'
-            ]);
-        }
-
-        return true;
-    }
-
     public function index()
     {
         $user = Auth::user();
@@ -175,7 +115,7 @@ class ComplainController extends Controller
                 throw new \Exception('Tidak ada approval path yang ditemukan untuk kategori Complain.');
             }
 
-            $this->generateTrackingPath($requisition->id, 'Complain', null);
+            $this->generateTrackingPath($requisition->id, 'Complain', null, $requisition->print_batch);
 
             // Convert generated logs ke format yang dibutuhkan untuk job dispatch
             foreach ($generatedLogs as $logData) {
@@ -1052,30 +992,26 @@ class ComplainController extends Controller
                 return false;
             }
 
-            // Ambil semua tracking untuk requisition ini, urutkan berdasarkan ID (urutan insert)
-            $trackings = Tracking::where('requisition_id', $requisitionId)
+            // Ambil tracking pertama yang belum diproses (masih punya token)
+            $currentTracking = Tracking::where('requisition_id', $requisitionId)
                 ->whereNotNull('token')
                 ->orderBy('id', 'asc')
-                ->get();
+                ->first();
 
-            if ($trackings->isEmpty()) {
-                Log::warning("No warehouse tracking found for requisition {$requisitionId}");
-                return false;
-            }
-
-            // Cari tracking pertama yang belum diproses
-            $currentTracking = $trackings->whereNotNull('token')->first();
+            Log::info("Processing warehouse tracking for requisition {$requisitionId}", [
+                'current_tracking_id' => $currentTracking ?? null
+            ]);
 
             if (!$currentTracking) {
                 Log::info("All warehouse tracking completed for requisition {$requisitionId}");
-                return true;
+                return true; // Semua tracking sudah selesai
             }
 
-            // Tentukan approver berdasarkan current_position
-            $approver = $this->getApproverByPosition($currentTracking->current_position);
+            // Ambil approver langsung dari data NIK yang ada di tabel tracking
+            $approver = User::where('nik', $currentTracking->approver_nik)->first();
 
             if (!$approver) {
-                Log::error("No approver found for position: {$currentTracking->current_position}");
+                Log::error("Approver with NIK {$currentTracking->approver_nik} not found for tracking ID: {$currentTracking->id}");
                 return false;
             }
 
@@ -1088,7 +1024,8 @@ class ComplainController extends Controller
 
             Log::info("Warehouse email sent for requisition {$requisitionId}", [
                 'position' => $currentTracking->current_position,
-                'approver' => $approver->name,
+                'approver_nik' => $currentTracking->approver_nik,
+                'approver_name' => $approver->name,
                 'tracking_id' => $currentTracking->id
             ]);
 
@@ -1108,27 +1045,8 @@ class ComplainController extends Controller
      */
     private function getApproverByPosition($position)
     {
-        try {
-            switch ($position) {
-                case 'WH Supervisor First':
-                case 'WH Supervisor Final':
-                    // Ambil user dengan role wh-supervisor yang pertama
-                    return User::role('wh-supervisor')->first();
-
-                case 'Material Supervisor':
-                    // Ambil user dengan role material-supervisor yang pertama
-                    return User::role('material-supervisor')->first();
-
-                default:
-                    Log::warning("Unknown position in tracking: {$position}");
-                    return null;
-            }
-        } catch (\Exception $e) {
-            Log::error("Error getting approver by position: " . $e->getMessage(), [
-                'position' => $position
-            ]);
-            return null;
-        }
+        // This function is no longer needed as the logic is now handled in processWarehouseTracking
+        return null;
     }
 
     /**

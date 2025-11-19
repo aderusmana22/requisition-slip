@@ -218,7 +218,7 @@
                                     </div>
                                     <div data-error-for="complain_images" class="text-danger mt-1 error-message"></div>
                                 </div>
-                                
+
                                 <!-- Image Preview Container -->
                                 <div id="imagePreviewContainer" class="d-none">
                                     <h6 class="mb-2"><strong>Selected Images:</strong></h6>
@@ -581,7 +581,7 @@
     </div>
 
     <!-- Image View Modal -->
-    <div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true" 
+    <div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true"
          data-bs-backdrop="static" data-bs-keyboard="false">
         <div class="modal-dialog modal-dialog-scrollable modal-xl">
             <div class="modal-content">
@@ -594,7 +594,7 @@
                 </div>
                 <div class="modal-body modal-body-enhanced text-center">
                     <div class="image-container d-flex justify-content-center align-items-center" style="min-height: 500px;">
-                        <img id="modalImage" src="" class="img-fluid shadow-lg rounded" alt="Full size image" 
+                        <img id="modalImage" src="" class="img-fluid shadow-lg rounded" alt="Full size image"
                              style="max-width: 100%; height: auto; object-fit: contain;">
                     </div>
                 </div>
@@ -632,11 +632,11 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        
+
         #loadingOverlay {
             animation: fadeIn 0.3s ease-in-out;
         }
-        
+
         @keyframes fadeIn {
             from { opacity: 0; }
             to { opacity: 1; }
@@ -770,31 +770,31 @@
                         render: function (data, type, row) {
                             // Normalize status untuk comparison
                             const status = (data || '').toLowerCase().trim();
-                            
+
                             switch(status) {
                                 case 'pending':
                                     return '<span class="badge status-badge-lg status-pending">Pending</span>';
-                                
+
                                 case 'approved':
                                     return '<span class="badge status-badge-lg status-approved">Approved</span>';
-                                
+
                                 case 'rejected':
                                 case 'failed':
                                     return '<span class="badge status-badge-lg status-rejected">Rejected</span>';
-                                
+
                                 case 'in progress':
                                     return '<span class="badge status-badge-lg status-in-progress">In Progress</span>';
-                                
+
                                 case 'completed':
                                 case 'success':
                                     return '<span class="badge status-badge-lg status-completed">Completed</span>';
-                                
+
                                 case 'cancelled':
                                     return '<span class="badge status-badge-lg status-cancelled">Cancelled</span>';
-                                
+
                                 case 'payment proof':
                                     return '<span class="badge status-badge-lg status-payment-proof">Payment Proof</span>';
-                                
+
                                 default:
                                     return '<span class="badge status-badge-lg bg-secondary">' + data + '</span>';
                             }
@@ -1516,16 +1516,16 @@
             function renderComplainImages(images) {
                 const section = $('#complainImagesSection');
                 const container = $('#detail_complain_images');
-                
+
                 container.empty();
-                
+
                 if (!images || images.length === 0) {
                     section.hide();
                     return;
                 }
-                
+
                 section.show();
-                
+
                 images.forEach((image, index) => {
                     const imageUrl = `{{ asset('storage/') }}/${image.image_path}`;
                     const imageHtml = `
@@ -1552,191 +1552,163 @@
                 const trackerContainer = $('#complain-approval-tracker-container');
                 const progressBar = $('#complain-tracker-progress');
                 const steps = trackerContainer.find('.tracker-step');
-                
-                // Reset all steps
+
+                // 1. Reset
                 steps.removeClass('active completed rejected');
-                
-                // Set status badge using the same logic as current status display
-                const status = data.status || 'Unknown';
-                let statusClass = 'status-badge-progress';
-                let statusText = status;
-
-                switch(status.toLowerCase().trim()) {
-                    case 'pending':
-                        statusClass = 'status-pending';
-                        statusText = 'Pending';
-                        break;
-                    case 'approved':
-                        statusClass = 'status-approved';
-                        statusText = 'Approved';
-                        break;
-                    case 'rejected':
-                    case 'failed':
-                        statusClass = 'status-rejected';
-                        statusText = 'Rejected';
-                        break;
-                    case 'payment proof':
-                        statusClass = 'status-payment-proof';
-                        statusText = 'Payment Proof';
-                        break;
-                    case 'in progress':
-                        statusClass = 'status-in-progress';
-                        statusText = 'In Progress';
-                        break;
-                    case 'completed':
-                    case 'success':
-                        statusClass = 'status-completed';
-                        statusText = 'Completed - Selesai';
-                        break;
-                    case 'cancelled':
-                        statusClass = 'status-cancelled';
-                        statusText = 'Cancelled';
-                        break;
-                    default:
-                        statusClass = 'bg-secondary';
-                        statusText = status;
-                }
-
-                $('#detail_status_badge').html(`<div class="current-status-badge status-badge-lg ${statusClass}">${statusText}</div>`);
-                
                 let progressPercent = 0;
-                
-                // Always mark submitted as completed
+
+                const status = data.status || 'Unknown';
+                let statusClass, statusText;
+                switch (status.toLowerCase().trim()) {
+                    case 'pending': statusClass = 'status-pending'; statusText = 'Pending'; break;
+                    case 'approved': statusClass = 'status-approved'; statusText = 'Approved'; break;
+                    case 'rejected': case 'failed': statusClass = 'status-rejected'; statusText = 'Rejected'; break;
+                    case 'payment proof': statusClass = 'status-payment-proof'; statusText = 'Payment Proof'; break;
+                    case 'in progress': statusClass = 'status-in-progress'; statusText = 'In Progress'; break;
+                    case 'completed': case 'success': statusClass = 'status-completed'; statusText = 'Completed - Selesai'; break;
+                    case 'cancelled': statusClass = 'status-cancelled'; statusText = 'Cancelled'; break;
+                    default: statusClass = 'bg-secondary'; statusText = status;
+                }
+                $('#detail_status_badge').html(`<div class="current-status-badge status-badge-lg ${statusClass}">${statusText}</div>`);
+
+                // --- 2. Submitted ---
                 steps.filter('[data-step-name="Submitted"]').addClass('completed');
-                progressPercent = 20; // 1/5 of progress
-                
-                // Check approval logs - using token null as indicator for completion
+                progressPercent = 20;
+
                 const approvalLogs = data.approval_logs || [];
                 let managerApproved = false;
                 let allApprovalsComplete = false;
                 let hasPaymentProof = data.payments && data.payments.length > 0;
-                
-                // Check for manager approval (level 1)
+
+                // --- 3. Manager Approval (Level 1) ---
                 const managerLog = approvalLogs.find(log => log.level === 1);
-                if (managerLog && managerLog.token === null) {
-                    if (managerLog.status === 'Approved') {
+                if (managerLog) {
+                    if (managerLog.token === null && managerLog.status === 'Approved') {
                         steps.filter('[data-step-name="Manager Approval"]').addClass('completed');
                         managerApproved = true;
-                        progressPercent = 40; // 2/5 of progress
-                    } else if (managerLog.status === 'Rejected') {
+                        progressPercent = 40;
+                    } else if (managerLog.token === null && managerLog.status === 'Rejected') {
                         steps.filter('[data-step-name="Manager Approval"]').addClass('rejected');
                         progressBar.css('width', '40%');
                         return; // Stop here if rejected
+                    } else if (managerLog.status === 'Pending' || managerLog.token !== null) {
+                        steps.filter('[data-step-name="Manager Approval"]').addClass('active');
                     }
-                } else if (managerLog && managerLog.status === 'Pending') {
-                    steps.filter('[data-step-name="Manager Approval"]').addClass('active');
                 }
-                
-                // Check for business controller approval (level 2 and above)
+
+
+                // --- 4. Business Controller Approval (Level 2+) ---
                 const bcLogs = approvalLogs.filter(log => log.level >= 2);
-                let lastBcLevel = 0;
                 let bcComplete = false;
-                
-                if (managerApproved && bcLogs.length > 0) {
-                    // Find the highest level approval
-                    const maxLevel = Math.max(...bcLogs.map(log => log.level));
-                    let allBcApproved = true;
-                    let hasRejected = false;
-                    let hasPending = false;
-                    
-                    // Check each level from 2 to maxLevel
-                    for (let level = 2; level <= maxLevel; level++) {
-                        const levelLog = bcLogs.find(log => log.level === level);
-                        if (levelLog && levelLog.token === null) {
-                            if (levelLog.status === 'Rejected') {
-                                hasRejected = true;
-                                lastBcLevel = level;
-                                break;
-                            } else if (levelLog.status !== 'Approved') {
-                                allBcApproved = false;
+
+                if (managerApproved) {
+                    if (bcLogs.length > 0) {
+                        const maxLevel = Math.max(...bcLogs.map(log => log.level));
+                        let allRequiredBcApproved = true;
+                        let hasRejected = false;
+                        let hasPending = false;
+
+                        for (let level = 2; level <= maxLevel; level++) {
+                            const levelLog = bcLogs.find(log => log.level === level);
+
+                            if (levelLog) {
+                                if (levelLog.token === null) {
+                                    if (levelLog.status === 'Rejected') {
+                                        hasRejected = true;
+                                        break;
+                                    } else if (levelLog.status !== 'Approved') {
+                                        allRequiredBcApproved = false;
+                                        break;
+                                    }
+                                } else if (levelLog.status === 'Pending') {
+                                    hasPending = true;
+                                    allRequiredBcApproved = false;
+                                    break;
+                                }
+                            } else {
+                                // Jika log level yang disyaratkan TIDAK DITEMUKAN (berarti dilewati/log hilang)
+                                allRequiredBcApproved = false;
                                 break;
                             }
-                        } else if (levelLog && levelLog.status === 'Pending') {
-                            hasPending = true;
-                            lastBcLevel = level;
-                            allBcApproved = false;
-                            break;
-                        } else {
-                            allBcApproved = false;
-                            break;
                         }
-                    }
-                    
-                    if (hasRejected) {
-                        // If rejected at any level, check if payment proof exists
-                        if (hasPaymentProof) {
-                            // With payment proof, show as completed (not warning)
+
+                        // --- Penentuan Status BC ---
+                        if (hasRejected) {
+                            if (hasPaymentProof) {
+                                steps.filter('[data-step-name="Business Controller Approval"]').addClass('completed');
+                                bcComplete = true;
+                                progressPercent = 60;
+                                allApprovalsComplete = true;
+                            } else {
+                                steps.filter('[data-step-name="Business Controller Approval"]').addClass('rejected');
+                                progressBar.css('width', '60%');
+                                return;
+                            }
+                        } else if (allRequiredBcApproved) {
                             steps.filter('[data-step-name="Business Controller Approval"]').addClass('completed');
                             bcComplete = true;
-                            progressPercent = 60; // 3/5 of progress
+                            progressPercent = 60;
                             allApprovalsComplete = true;
-                        } else {
-                            // Without payment proof, show as rejected
-                            steps.filter('[data-step-name="Business Controller Approval"]').addClass('rejected');
-                            progressBar.css('width', '60%');
-                            return; // Stop here if rejected without payment proof
+                        } else if (hasPending || !allRequiredBcApproved) {
+                            steps.filter('[data-step-name="Business Controller Approval"]').addClass('active');
                         }
-                    } else if (allBcApproved) {
+
+                    } else {
                         steps.filter('[data-step-name="Business Controller Approval"]').addClass('completed');
                         bcComplete = true;
-                        progressPercent = 60; // 3/5 of progress
+                        progressPercent = 60;
                         allApprovalsComplete = true;
-                    } else if (hasPending) {
-                        steps.filter('[data-step-name="Business Controller Approval"]').addClass('active');
                     }
-                } else if (managerApproved) {
-                    // If manager approved but no BC logs yet, mark as active
-                    steps.filter('[data-step-name="Business Controller Approval"]').addClass('active');
+
+                } else if (managerLog && managerLog.status === 'Pending') {
+
                 }
-                
-                // Check warehouse tracking - consolidated warehouse process
+
+
+                // --- 5. Warehouse Processing ---
                 const trackings = data.trackings || [];
                 let warehouseComplete = false;
-                
-                if (allApprovalsComplete && trackings.length > 0) {
-                    // Check if all warehouse tracking steps are completed
-                    const completedTrackings = trackings.filter(tracking => tracking.token === null);
-                    const totalTrackings = trackings.length;
-                    
-                    if (completedTrackings.length === totalTrackings && totalTrackings > 0) {
-                        // All warehouse steps completed
-                        warehouseComplete = true;
-                        steps.filter('[data-step-name="Warehouse Processing"]').addClass('completed');
-                        progressPercent = 80; // 4/5 of progress
-                    } else if (completedTrackings.length > 0) {
-                        // Some warehouse steps completed, but not all
-                        steps.filter('[data-step-name="Warehouse Processing"]').addClass('active');
+                let warehouseActive = false;
+
+                if (managerApproved && bcComplete) {
+                    if (trackings.length > 0) {
+                        const incompleteTrackings = trackings.filter(tracking => tracking.token !== null);
+
+                        if (incompleteTrackings.length === 0) {
+                            warehouseComplete = true;
+                            steps.filter('[data-step-name="Warehouse Processing"]').addClass('completed');
+                            progressPercent = 80;
+
+                        } else {
+                            steps.filter('[data-step-name="Warehouse Processing"]').addClass('active');
+                            warehouseActive = true;
+                            progressPercent = 70;
+                        }
+
                     } else {
-                        // No warehouse steps completed yet, but warehouse process is active
                         steps.filter('[data-step-name="Warehouse Processing"]').addClass('active');
-                    }
-                    
-                    // Check if ready for dispatch
-                    if (warehouseComplete) {
-                        steps.filter('[data-step-name="Ready for Dispatch"]').addClass('completed');
-                        progressPercent = 80; // 4/5 of progress
-                    } else if (completedTrackings.length > 0) {
-                        steps.filter('[data-step-name="Ready for Dispatch"]').addClass('active');
+                        warehouseActive = true;
+                        progressPercent = 60;
                     }
                 }
-                
-                // Final completion check
-                if (data.status === 'Completed' || data.status === 'completed') {
+
+                // 6a. Cek Status Data Utama
+                if (data.status.toLowerCase() === 'completed' || data.status.toLowerCase() === 'success') {
                     steps.filter('[data-step-name="Completed"]').addClass('completed');
                     progressPercent = 100;
-                } else if (warehouseComplete) {
+                }
+                else if (warehouseComplete) {
                     steps.filter('[data-step-name="Completed"]').addClass('active');
                 }
-                
+
                 // Set progress bar
                 progressBar.css('width', progressPercent + '%');
             }
-
             // Populate History Log Function
             function populateHistoryLog(data) {
                 const historyContainer = $('#complain-history-log-container');
                 const history = data.history || [];
-                
+
                 if (history.length === 0) {
                     historyContainer.html(`
                         <li class="list-group-item text-center py-4">
@@ -1747,9 +1719,9 @@
                     `);
                     return;
                 }
-                
+
                 let historyHtml = '';
-                
+
                 history.forEach((item, index) => {
                     const timestamp = new Date(item.timestamp).toLocaleDateString('en-GB', {
                         day: '2-digit',
@@ -1758,7 +1730,7 @@
                         hour: '2-digit',
                         minute: '2-digit'
                     });
-                    
+
                     historyHtml += `
                         <li class="list-group-item d-flex align-items-start">
                             <div class="history-item-icon ${item.color}">
@@ -1772,7 +1744,7 @@
                         </li>
                     `;
                 });
-                
+
                 historyContainer.html(historyHtml);
             }
 
@@ -2007,7 +1979,7 @@
                         errorMessage('Failed to fetch product list');
                     }
                 })
-                
+
                 // Handle image preview and validation
                 $('#complain_images').on('change', function(e) {
                     const files = e.target.files;
@@ -2016,17 +1988,17 @@
                     const maxSize = 1 * 1024 * 1024; // 1MB in bytes
                     const maxFiles = 10; // Maximum 10 files
                     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
-                    
+
                     // Clear previous errors
                     $('[data-error-for="complain_images"]').text('');
                     $(this).removeClass('is-invalid');
                     previewList.empty();
-                    
+
                     if (files.length === 0) {
                         previewContainer.addClass('d-none');
                         return;
                     }
-                    
+
                     // Validate number of files
                     if (files.length > maxFiles) {
                         $('[data-error-for="complain_images"]').text(`Maksimal ${maxFiles} gambar yang dapat diupload.`);
@@ -2036,13 +2008,13 @@
                         this.value = '';
                         return;
                     }
-                    
+
                     let validFiles = [];
                     let hasError = false;
-                    
+
                     for (let i = 0; i < files.length; i++) {
                         const file = files[i];
-                        
+
                         // Validate file size
                         if (file.size > maxSize) {
                             $('[data-error-for="complain_images"]').text(`File "${file.name}" terlalu besar. Ukuran maksimal adalah 1MB.`);
@@ -2050,7 +2022,7 @@
                             hasError = true;
                             break;
                         }
-                        
+
                         // Validate file type
                         if (!allowedTypes.includes(file.type)) {
                             $('[data-error-for="complain_images"]').text(`File "${file.name}" tidak didukung. Hanya file JPG, PNG, dan GIF yang diperbolehkan.`);
@@ -2058,21 +2030,21 @@
                             hasError = true;
                             break;
                         }
-                        
+
                         validFiles.push(file);
                     }
-                    
+
                     if (hasError) {
                         previewContainer.addClass('d-none');
                         // Clear the input
                         this.value = '';
                         return;
                     }
-                    
+
                     // Show previews for valid files
                     if (validFiles.length > 0) {
                         previewContainer.removeClass('d-none');
-                        
+
                         validFiles.forEach((file, index) => {
                             const reader = new FileReader();
                             reader.onload = function(e) {
@@ -2116,7 +2088,7 @@
                 }
 
                 let formData = new FormData(this);
-                
+
                 // Show print batch confirmation dialog first
                 confirmDialog({
                     title: 'Print Batch Confirmation',
@@ -2130,13 +2102,13 @@
                 }).then((result) => {
                     // Set print_batch value based on user choice
                     const printBatchValue = result.isConfirmed ? 1 : 0;
-                    
+
                     // Update the hidden input value
                     $('#print_batch').val(printBatchValue);
-                    
+
                     // Recreate FormData to include updated print_batch value
                     let updatedFormData = new FormData(document.getElementById('complineForm'));
-                
+
                 if (mode === 'edit') {
                     updatedFormData.append('_method', 'PUT'); // override
                 }
@@ -2155,26 +2127,26 @@
                     success: function (res) {
                         // Hide loading overlay
                         $('#loadingOverlay').fadeOut(300);
-                        
+
                         // Reset button state
                         $('#saveUserBtn').prop('disabled', false).html('Save changes');
-                        
+
                         $('#complineModal').modal('hide');
                         $('#complainTable').DataTable().ajax.reload(null, false);
                         qtyCache = {};
-                        
+
                         // Show success message with print batch status
                         const printStatus = printBatchValue ? 'with batch printing' : 'without batch printing';
-                        const successMsg = (mode === 'create') ? 
-                            `${res.message} (${printStatus})` : 
+                        const successMsg = (mode === 'create') ?
+                            `${res.message} (${printStatus})` :
                             `Complain updated successfully (${printStatus})`;
-                        
+
                         successMessage(successMsg);
                     },
                     error: function (xhr) {
                         // Hide loading overlay
                         $('#loadingOverlay').fadeOut(300);
-                        
+
                         // Reset button state
                         $('#saveUserBtn').prop('disabled', false).html('Save changes');
                         if (xhr.status === 422) { // Unprocessable Entity -> Error Validasi
@@ -2216,7 +2188,7 @@
                         }
                     }
                 });
-                
+
                 }); // End of confirmDialog then()
             });
 
@@ -2224,15 +2196,15 @@
             $(document).on('click', '.image-clickable', function() {
                 const imageSrc = $(this).data('image-src');
                 const imageTitle = $(this).data('image-title');
-                
+
                 $('#modalImage').attr('src', imageSrc);
                 $('#imageModalLabel').text(imageTitle);
                 $('#downloadImage').attr('href', imageSrc);
-                
+
                 // Reset scroll position and show image modal without hiding detail modal
                 $('#imageModal .modal-body').scrollTop(0);
                 $('#imageModal').modal('show');
-                
+
                 // Optional: Add loading state while image loads
                 $('#modalImage').on('load', function() {
                     $(this).addClass('loaded');
@@ -2302,7 +2274,7 @@
                 $('#requisition_product_list').empty();
                 $('#approval_history_list').empty();
                 $('#current_status_display').empty();
-                
+
                 // Clear image section
                 $('#complainImagesSection').hide();
                 $('#detail_complain_images').empty();
