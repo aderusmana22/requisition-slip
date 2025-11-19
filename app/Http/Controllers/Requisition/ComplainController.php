@@ -1378,10 +1378,12 @@ class ComplainController extends Controller
 
                 // current level
                 $currentLevel = $requisition->approvalLogs()
-                    ->where('status', 'Pending')
-                    ->orderBy('level', 'asc')
-                    ->whereNotNull('token')
+                    ->where('status', 'Rejected')
+                    ->orderBy('level', 'desc')
+                    ->whereNull('token')
                     ->value('level');
+
+                Log::info("currentLevel after payment proof upload: " . $currentLevel);
 
                 // Log activity
                 $user = Auth::user();

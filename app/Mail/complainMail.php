@@ -11,6 +11,7 @@ use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Queue\SerializesModels;
 use App\Models\Requisition\Requisition;
 use App\Models\Requisition\ApprovalLog;
+use App\Models\Requisition\ComplainImage;
 use App\Models\Requisition\Payment;
 use App\Models\User;
 use Illuminate\Support\Facades\Storage;
@@ -68,38 +69,39 @@ class complainMail extends Mailable
     public function attachments(): array
     {
         $attachments = [];
-        
-        try {
-            // Query payments berdasarkan requisition_id
-            $payment = Payment::where('requisition_id', $this->requisition->id)->first();
-            
-            Log::info('Payment query for requisition', [
-                'requisition_id' => $this->requisition->id,
-                'payment_count' => $payment ? 1 : 0
-            ]);
-            
-            // Jika ada payments, tambahkan sebagai attachment
-            if ($payment) {
-                if ($payment->document_url) {
-                    $filePath = storage_path('app/public/' . $payment->document_url);
 
-                    // Pastikan file exists sebelum menambahkan attachment
-                    if (file_exists($filePath)) {
-                        $fileName = 'payment_proof_' . $this->requisition->id . '_' . basename($payment->document_url);
+        // [PERBAIKAN] Cek dan log nilai hasRole() sebelum kondisi
+        $isHeadQA = $this->approver->hasRole('head-QA');
+        Log::info('Checking role for user ' . $this->approver->id . ': isHeadQA = ' . ($isHeadQA ? 'true' : 'false'));
 
-                        $attachments[] = Attachment::fromPath($filePath)
-                            ->as($fileName)
-                            ->withMime('application/octet-stream');
-                    }
+        if ($isHeadQA) {
+            Log::info('User is head-QA. Proceeding to find images for Requisition ID: ' . $this->requisition->id);
+
+            // 2. Ambil semua Complaint Images berdasarkan requisition_id
+            $complainImages = ComplainImage::where('requisition_id', $this->requisition->id)->get();
+
+            Log::info('Found ' . $complainImages->count() . ' complaint images.');
+
+            foreach ($complainImages as $index => $image) {
+                $imagePath = $image->image_path;
+
+                if (Storage::disk('public')->exists($imagePath)) {
+                    $fullPath = Storage::disk('public')->path($imagePath);
+                    $fileName = 'complain_' . $this->requisition->no_srs . '_' . ($index + 1);
+
+                    $attachments[] = Attachment::fromPath($fullPath)
+                        ->as($fileName)
+                        ->withMime('image/jpeg');
+                    Log::info('Successfully attached image: ' . $fileName);
+                } else {
+                    // [LOG PENTING] Jika file tidak ditemukan
+                    Log::warning('Attachment file not found in storage: ' . $imagePath);
                 }
             }
-        } catch (\Exception $e) {
-            Log::error('Error processing payment attachments', [
-                'requisition_id' => $this->requisition->id,
-                'error' => $e->getMessage()
-            ]);
+        } else {
+            Log::info('User is NOT head-QA. Skipping image attachments.');
         }
-        
+
         return $attachments;
     }
 }

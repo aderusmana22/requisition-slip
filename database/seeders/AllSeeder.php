@@ -57,13 +57,13 @@ class AllSeeder extends Seeder
         Permission::updateOrCreate(['name' => 'create customer']);
         Permission::updateOrCreate(['name' => 'update customer']);
         Permission::updateOrCreate(['name' => 'delete customer']);
-        
+
         // ! permision untuk page requisition
         Permission::updateOrCreate(['name' => 'view log']);
         Permission::updateOrCreate(['name' => 'view requisition-form']);
         Permission::updateOrCreate(['name' => 'view report']);
         Permission::updateOrCreate(['name' => 'view requisition-approval']);
-        
+
         // ! permision untuk master data (approval path dan revision)
         Permission::updateOrCreate(['name' => 'view approval-path']);
         Permission::updateOrCreate(['name' => 'view revision']);
@@ -176,8 +176,8 @@ class AllSeeder extends Seeder
             'view log',
             'view requisition-form',
             'view report',
-            'view requisition-approval', 
-            'approve requisition', 
+            'view requisition-approval',
+            'approve requisition',
             'reject requisition']);
 
         $staffWhRole = Role::create(['name' => 'wh-staff']);
@@ -185,9 +185,9 @@ class AllSeeder extends Seeder
             'view log',
             'view requisition-form',
             'view report',
-            'view requisition', 
-            'create requisition', 
-            'update requisition', 
+            'view requisition',
+            'create requisition',
+            'update requisition',
             'delete requisition']);
 
         // * material
@@ -196,8 +196,8 @@ class AllSeeder extends Seeder
             'view log',
             'view requisition-form',
             'view report',
-            'view requisition-approval', 
-            'approve requisition', 
+            'view requisition-approval',
+            'approve requisition',
             'reject requisition']);
 
         $staffMaterialRole = Role::create(['name' => 'material-staff']);
@@ -205,11 +205,11 @@ class AllSeeder extends Seeder
             'view log',
             'view requisition-form',
             'view report',
-            'view requisition', 
-            'create requisition', 
-            'update requisition', 
+            'view requisition',
+            'create requisition',
+            'update requisition',
             'delete requisition']);
-        
+
         //* Sales & Marketing
         $headSalesMarketingRole = Role::updateOrCreate(['name' => 'head-SNM']);
         $headSalesMarketingRole->givePermissionTo([
@@ -295,8 +295,8 @@ class AllSeeder extends Seeder
             'view log',
             'view requisition-form',
             'view report',
-            'view requisition-approval', 
-            'approve requisition', 
+            'view requisition-approval',
+            'approve requisition',
             'reject requisition']);
 
         //! Create Users and Assign Roles
@@ -304,56 +304,56 @@ class AllSeeder extends Seeder
         //* wh-Users
         $headWh = User::updateOrCreate([
             'email' => 'head.wh@example.com'],[
-            'name' => 'Head WH', 
-            'nik' => 'HDWH01', 
-            'username' => 'head.wh', 
+            'name' => 'Head WH',
+            'nik' => 'HDWH01',
+            'username' => 'head.wh',
             'password' => Hash::make('password'),
-            'email_verified_at' => now(), 
-            'department_id' => 9, 
-            'status' => 'active', 
+            'email_verified_at' => now(),
+            'department_id' => 9,
+            'status' => 'active',
             'atasan_nik' => 'AG1111',
             ]);
         $headWh->assignRole($headWhRole);
 
         $staffWh1 = User::updateOrCreate([
             'email' => 'staff.wh1@example.com'],[
-            'name' => 'Staff WH 1', 
-            'nik' => 'STWH01', 
-            'username' => 'staff.wh1', 
+            'name' => 'Staff WH 1',
+            'nik' => 'STWH01',
+            'username' => 'staff.wh1',
             'password' => Hash::make('password'),
-            'email_verified_at' => now(), 
-            'department_id' => 9, 
-            'status' => 'active', 
+            'email_verified_at' => now(),
+            'department_id' => 9,
+            'status' => 'active',
             'atasan_nik' => 'HDWH01',
             ]);
         $staffWh1->assignRole($staffWhRole);
 
         $headMaterial = User::updateOrCreate([
             'email' => 'head.material@example.com'],[
-            'name' => 'Head Material', 
-            'nik' => 'HDMT01', 
-            'username' => 'head.material', 
+            'name' => 'Head Material',
+            'nik' => 'HDMT01',
+            'username' => 'head.material',
             'password' => Hash::make('password'),
-            'email_verified_at' => now(), 
-            'department_id' => 8, 
-            'status' => 'active', 
+            'email_verified_at' => now(),
+            'department_id' => 8,
+            'status' => 'active',
             'atasan_nik' => 'AG1111',
             ]);
         $headMaterial->assignRole($headMaterialRole);
 
         $staffMaterial1 = User::updateOrCreate([
             'email' => 'staff.material1@example.com'],[
-            'name' => 'Staff Material 1', 
-            'nik' => 'STMT01', 
-            'username' => 'staff.material1', 
+            'name' => 'Staff Material 1',
+            'nik' => 'STMT01',
+            'username' => 'staff.material1',
             'password' => Hash::make('password'),
-            'email_verified_at' => now(), 
-            'department_id' => 8, 
-            'status' => 'active', 
+            'email_verified_at' => now(),
+            'department_id' => 8,
+            'status' => 'active',
             'atasan_nik' => 'HDMT01',
             ]);
         $staffMaterial1->assignRole($staffMaterialRole);
-        
+
         //* Sales & Marketing Users
         $headSales = User::updateOrCreate([
             'email' => 'head.sales@example.com'
@@ -541,7 +541,7 @@ class AllSeeder extends Seeder
 
         // Lets give all permission to super-admin role.
         $allPermissionNames = Permission::pluck('name')->toArray();
-        
+
         // User Requisition Role - basic permissions
         $userRequisitionRole->givePermissionTo([
             'view log',
@@ -552,7 +552,7 @@ class AllSeeder extends Seeder
             'update requisition',
             'delete requisition',
         ]);
-        
+
         // Approval Role - untuk head department (approval permissions)
         $approvalRole->givePermissionTo([
             'view log',
@@ -567,7 +567,7 @@ class AllSeeder extends Seeder
         // Super Admin - full access termasuk master data
         $superAdminRole->givePermissionTo($allPermissionNames);
         // Baris yang dihapus karena berpotensi error:
-        // $userRequisitionRole->givePermissionTo($userRequisitionRole); 
+        // $userRequisitionRole->givePermissionTo($userRequisitionRole);
         // $approvalRole->givePermissionTo($approvalRole);
 
         $superAdminUser = User::updateOrCreate(
