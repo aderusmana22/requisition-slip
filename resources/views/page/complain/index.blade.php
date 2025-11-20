@@ -29,14 +29,8 @@
             <!-- Action Bar -->
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
-                    <!-- <h5 class="mb-1" style="color: rgb(76, 61, 61); font-weight: 700;">
-                        <i class="ph-duotone ph-table me-2 text-warning"></i>
-                        Complaint Management
-                    </h5>
-                    <p class="text-muted mb-0 small">
-                        <i class="ph-duotone ph-info me-1"></i>
-                        Manage and track all complaint submissions
-                    </p> -->
+                    <label for="statusFilter" class="pl-5 font-semibold text-xl">filter status</label>
+                    <select name="statusFilter" id="statusFilter"></select>
                 </div>
                 <div>
                     <button class="btn new-complain-btn" type="button" data-bs-toggle="modal"
@@ -708,6 +702,7 @@
             let addressField = $('#customer_address');
             let productselect = $('#requisition_items');
             let materialtype = $('#material_type_wrapper');
+            const selectFilter = $('#statusFilter');
 
             // define url detail
             let detailUrlTemplate = "{{ route('get.form.detail', ['id' => ':id']) }}";
@@ -845,6 +840,43 @@
                     let searchTerm = searchInput.val();
                     table.search(searchTerm).draw();
                 }, 500);
+            });
+
+            // Populate Status Filter Dropdown
+            $.ajax({
+                url: "{{ route('get.status.filter') }}",
+                type: 'GET',
+                dataType: 'json',
+                success: function (data) {
+                    selectFilter.empty();
+                    selectFilter.append($('<option>', {
+                        value: '',
+                        text: '-- Semua Status --'
+                    }));
+                    $.each(data, function (index, status) {
+                        selectFilter.append($('<option>', {
+                            value: status,
+                            text: status
+                        }));
+                    });
+                },
+                error: function (xhr, status, error) {
+                    console.error('Error fetching customers:', error);
+                }
+            })
+
+            $(selectFilter).on('change', function() {
+                const selectedStatus = $(this).val();
+                const originalUrl = "{{ route('get.complain.data') }}";
+
+                let newUrl = originalUrl;
+
+                if (selectedStatus && selectedStatus !== "") {
+                    newUrl = originalUrl + '?status=' + selectedStatus;
+                }
+
+                table.ajax.url(newUrl).load();
+
             });
 
             // Custom Tooltip Handler for Action Buttons

@@ -147,6 +147,7 @@ Route::middleware('auth')->group(function () {
 
         // * complain data
         Route::get('/getSerial', [ComplainController::class, 'getSerial'])->name('get.serial');
+        Route::get('/getStatusFilter', [ComplainController::class, 'statusFilter'])->name('get.status.filter');
         Route::get('/getComplainData', [ComplainController::class, 'getData'])->name('get.complain.data');
         Route::get('/getProductList', [ComplainController::class, 'getProductList'])->name('get.product.list');
         Route::get('/getCostumerList', [ComplainController::class, 'getCustomerList'])->name('customers.list');

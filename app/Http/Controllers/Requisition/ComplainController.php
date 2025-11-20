@@ -239,6 +239,7 @@ class ComplainController extends Controller
         $start = $request->input('start', 0);
         $length = $request->input('length', 10);
         $searchValue = $request->input('search.value');
+        $statusFilter = $request->input('status');
         $orderColumnIndex = $request->input('order.0.column');
         $orderDirection = $request->input('order.0.dir', 'asc');
 
@@ -246,10 +247,14 @@ class ComplainController extends Controller
         $orderColumnName = $request->input("columns.{$orderColumnIndex}.name");
 
         // Hitung total data tanpa filter apa pun
-        $totalData = Requisition::count();
+        $totalData = Requisition::where('category', 'Complain')->count();
 
         // Mulai query builder
-        $query = Requisition::query();
+        $query = Requisition::query()->where('category', 'Complain');
+
+        if (!empty($statusFilter)) {
+            $query->where('status', $statusFilter); // <-- TAMBAHAN INI
+        }
 
         // 2. Terapkan filter pencarian jika ada input dari kotak search
         if (!empty($searchValue)) {
@@ -274,7 +279,6 @@ class ComplainController extends Controller
         }
 
         $data = $query->with(['customer', 'revision', 'requester', 'approvalLogs'])
-            ->where('category', 'Complain')
             ->offset($start)
             ->limit($length)
             ->get();
@@ -1471,5 +1475,12 @@ class ComplainController extends Controller
             abort(403);
         }
         return view('page.complain.reports.report');
+    }
+
+    public function statusFilter()
+    {
+        $status = Requisition::where('category', 'Complain')->distinct()->pluck('status');
+
+        return response()->json($status);
     }
 }
