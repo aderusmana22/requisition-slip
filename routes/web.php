@@ -57,7 +57,7 @@ Route::get('/approval/response/{token}', [SampleController::class, 'showResponse
 Route::post('/approvals/resend/{token}', [SampleController::class, 'resendApprovalEmail'])->name('approvals.resend');
 Route::post('/approval/process', [SampleController::class, 'processApproval'])->name('approval-sample.process-form');
 Route::get('/approval/success', [SampleController::class, 'showSuccessPage'])->name('approval.success');
-Route::get('/requisition/print-email/{token}', [SampleController::class, 'printReportByEmail'])->name('approval.download.pdf');
+Route::get('/requisition/print-email/{id}', [SampleController::class, 'printReportByEmail'])->name('approval.download.pdf');
 
 // Approval Link dari Email (Free Goods Requisition)
 Route::get('/fg-approval/response/{token}', [FreeGoodsController::class, 'showResponseForm'])->name('fg.approval.response');

@@ -597,27 +597,56 @@ class SampleController extends Controller
         // Cek jika ini adalah submit form QA/QM
         if ($validated['action'] === 'qa_submit') {
             $tracking = Tracking::where('token', $validated['token'])->firstOrFail();
-            // Logika ini sudah redirect, kita biarkan saja karena dari halaman terpisah
             return $this->processQaFormSubmit($tracking, $validated);
         }
 
         // Cari log approval atau tracking
-        $approvalLog = ApprovalLog::where('token', $validated['token'])->where('status', 'Pending')->first();
+        $approvalLog = ApprovalLog::where('token', $validated['token'])->first();
+
+        // [PERBAIKAN] Uncomment bagian ini agar approval log diproses
         if ($approvalLog) {
-            // [MODIFIKASI] Kita ubah cara pemanggilan fungsi di bawah
             return $this->processApprovalStep($request, $approvalLog, $validated['action'], $validated['notes'] ?? null);
         }
 
-        $tracking = Tracking::where('token', $validated['token'])->whereNull('last_updated')->first();
+        $tracking = !$approvalLog ? Tracking::where('token', $validated['token'])->first() : null;
         if ($tracking) {
             return $this->processWarehouseStep($request, $tracking, $validated['notes'] ?? null, $validated['items'] ?? []);
         }
 
         // Jika tidak ditemukan, respons sesuai tipe request
-        if ($request->ajax()) {
-            return response()->json(['success' => false, 'message' => 'Request is invalid or has been processed.'], 422);
+        if (!$approvalLog && !$tracking) {
+            if ($request->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Token invalid.'], 422);
+            }
+            return redirect()->route('approval.success')->with('card_class', 'reject')->with('title', 'Invalid Request');
         }
-        return redirect()->route('approval.success')->with('card_class', 'reject')->with('title', 'Invalid Request');
+
+        $requisition = $approvalLog ? $approvalLog->requisition : $tracking->requisition;
+
+        if (in_array($requisition->status, ['Completed', 'Rejected', 'Recalled', 'Canceled'])) {
+             if ($request->ajax()) {
+                return response()->json(['success' => false, 'message' => 'This requisition has already been processed/completed.'], 422);
+            }
+
+            return redirect()->route('approval.success')
+                ->with('card_class', 'info')
+                ->with('title', 'Request Completed')
+                ->with('message', 'This request has already been finalized. No further action is required.')
+                ->with('no_srs', $requisition->no_srs)
+                ->with('customer_name', $requisition->customer->name ?? 'N/A')
+                ->with('action_text', $requisition->status)
+                ->with('approver_name', 'System');
+        }
+
+        if ($approvalLog && $approvalLog->status !== 'Pending') {
+             return redirect()->route('approval.success')->with('card_class', 'info')->with('title', 'Already Processed');
+        }
+        if ($tracking && $tracking->last_updated !== null) {
+             return redirect()->route('approval.success')->with('card_class', 'info')->with('title', 'Already Processed');
+        }
+
+        // [TAMBAHAN] Return default jika lolos semua pengecekan (seharusnya tidak sampai sini jika normal)
+        return redirect()->route('approval.success')->with('card_class', 'reject')->with('title', 'Unknown Error');
     }
 
     //======================================================================
@@ -657,7 +686,7 @@ class SampleController extends Controller
                 $validated
             );
             $tracking->update([
-                // 'token' => null,
+                'token' => null,
                 'last_updated' => now(),
                 'notes' => 'Form has been completed by QA.']);
 
@@ -796,7 +825,7 @@ class SampleController extends Controller
             'status'     => 'Rejected',
             'notes'      => $notes ?? 'Rejected without reason',
             'updated_at' => now(),
-            // 'token'      => null,
+            'token'      => null,
         ]);
 
         // 1. Kirim notifikasi sistem (yang sudah ada sebelumnya)
@@ -825,7 +854,7 @@ class SampleController extends Controller
             'status'     => 'Approved',
             'notes'      => $finalNotes, // Selalu ada catatan
             'updated_at' => now(),
-            // 'token'      => null,
+            'token'      => null,
         ]);
     }
 
@@ -858,7 +887,7 @@ class SampleController extends Controller
     private function notifyNextApprover(Requisition $requisition, ApprovalLog $nextApprovalLog, User $nextApprover)
     {
         $requisition->update(['status' => 'In Progress', 'route_to' => $nextApprover->name]);
-        $downloadUrl = route('approval.download.pdf', ['token' => $nextApprovalLog->token]);
+        $downloadUrl = route('approval.download.pdf', ['id' => $requisition->id]);
 
         sendSample::dispatch($requisition, $nextApprover, $nextApprovalLog->token, [
             'download_url' => $downloadUrl
@@ -942,7 +971,7 @@ class SampleController extends Controller
             $finalNotes = $notes ?: $defaultNote;
 
             $tracking->update([
-                // 'token'        => null,
+                'token'        => null,
                 'last_updated' => now(),
                 'notes'        => $notes ?: $defaultNote, // <-- BARIS INI YANG DIUBAH
             ]);
@@ -1076,7 +1105,7 @@ class SampleController extends Controller
             $userForNextStep = $this->findUserForStep($nextStep->current_position);
             if ($userForNextStep) {
                 $baseUrl = route('approval.response', ['token' => $nextStep->token]);
-                $downloadUrl = route('approval.download.pdf', ['token' => $nextStep->token]);
+                $downloadUrl = route('approval.download.pdf', ['id' => $requisition->id]);
 
                 dispatch(new sendSample($requisition, $userForNextStep, $nextStep->token, [
                     'mail_type'    => 'warehouse_process',
@@ -1101,21 +1130,21 @@ class SampleController extends Controller
      */
     private function notifyRequesterAsCompleted(Requisition $requisition)
     {
-        $requisition->load('requester', 'approvalLogs.approver'); // Eager load relasi yang dibutuhkan
+        $requisition->load('requester', 'approvalLogs.approver');
         $requisition->update(['status' => 'Completed', 'route_to' => '-']);
 
-        // Hapus sisa token yang mungkin masih aktif
-        Tracking::where('requisition_id', $requisition->id)->whereNotNull('token')->update(['token' => null]);
+        // Tracking::where('requisition_id', $requisition->id)->whereNotNull('token')->update(['token' => null]);
+
+        $downloadUrl = route('approval.download.pdf', ['id' => $requisition->id]);
 
         if ($requester = $requisition->requester) {
-            // 1. Kirim notifikasi EMAIL (ini sudah ada sebelumnya)
-            dispatch(new sendSample($requisition, $requester, null, ['mail_type' => 'completed_notification']))->delay(now()->addSeconds(3));
+            dispatch(new sendSample($requisition, $requester, null, [
+                'mail_type' => 'completed_notification',
+                'download_url' => $downloadUrl
+                ]))->delay(now()->addSeconds(3));
 
-            // 2. Kirim notifikasi SISTEM (ini yang ditambahkan)
-            // Cari approver terakhir sebagai 'causer' notifikasi
             $lastApproverLog = $requisition->approvalLogs->where('status', 'Approved')->sortByDesc('level')->first();
 
-            // Jika ada approver, gunakan dia. Jika tidak (misal: auto-complete), gunakan requester sebagai fallback.
             $causer = optional($lastApproverLog)->approver ?? $requester;
 
             $requester->notify(new RequisitionNotification([
@@ -1360,19 +1389,12 @@ class SampleController extends Controller
         return $pdf->stream('Bulk-RS-Sample-' . now()->format('Y-m-d') . '.pdf');
     }
 
-    public function printReportByEmail($token)
+    // Ganti nama function biar jelas, parameternya sekarang $id
+    public function printReportByEmail($id)
     {
-        // Cari based on ApprovalLog atau Tracking
-        $approvalLog = ApprovalLog::where('token', $token)->first();
-        $tracking = !$approvalLog ? Tracking::where('token', $token)->first() : null;
+        $requisition = Requisition::findOrFail($id);
 
-        if (!$approvalLog && !$tracking) {
-            abort(404, 'Link expired or invalid.');
-        }
-
-        $requisition = ($approvalLog) ? $approvalLog->requisition : $tracking->requisition;
-
-        // Load relasi yang dibutuhkan untuk PDF
+        // 2. Load relasi (Sama seperti sebelumnya)
         $requisition->load([
             'customer',
             'requester.department',
@@ -1382,13 +1404,16 @@ class SampleController extends Controller
             'approvalLogs.approver.roles'
         ]);
 
+        // 3. Ambil data revisi (Sama seperti sebelumnya)
         $revisionData = Revision::first();
 
+        // 4. Generate PDF (Sama seperti sebelumnya)
         $pdf = Pdf::loadView('page.sample.report.print', [
-            'requisitions' => collect([$requisition]), // Bungkus dalam collection agar loop di view print tetap jalan
+            'requisitions' => collect([$requisition]),
             'revision'     => $revisionData
         ])->setPaper('a4', 'landscape');
 
+        // 5. Download
         return $pdf->download('Requisition-'.$requisition->no_srs.'.pdf');
     }
 
