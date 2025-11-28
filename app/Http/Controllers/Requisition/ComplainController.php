@@ -153,7 +153,7 @@ class ComplainController extends Controller
                         'item_master_id'    => $itemMasterId,
                         'item_detail_id'    => $itemDetailId,
                         'quantity_required' => $detailData['qty_required'] ?? 0,
-                        'quantity_issued'   => $detailData['qty_issued'] ?? 0,
+                        'quantity_issued'   => 0,
                         'batch_number'      => !empty($detailData['batch_number']) ? $detailData['batch_number'] : null,
                         'remarks'           => !empty($detailData['remarks']) ? $detailData['remarks'] : null,
                         'created_at'        => $now,
@@ -1120,6 +1120,169 @@ class ComplainController extends Controller
         } catch (\Exception $e) {
             Log::error('Error showing warehouse review page: ' . $e->getMessage());
             return response()->json(['message' => 'Server error occurred'], 500);
+        }
+    }
+
+    /**
+     * Show warehouse update page
+     */
+    public function showWarehouseUpdatePage(Request $request)
+    {
+        try {
+            $token = $request->query('token');
+            $id = $request->query('id');
+
+            if (!$token || !$id) {
+                return response()->json(['message' => 'Invalid request parameters'], 400);
+            }
+
+            $tracking = Tracking::where('requisition_id', $id)
+                ->where('token', $token)
+                ->whereNotNull('token')
+                ->first();
+
+            if (!$tracking) {
+                $requisition = Requisition::with(['customer', 'requisitionItems'])->find($id);
+                return view('page.complain.links.warehouse-expired', compact('requisition'));
+            }
+
+            $requisition = Requisition::with(['customer', 'requester', 'requisitionItems.itemMaster'])
+                ->find($id);
+
+            return view('page.complain.links.warehouse-update', compact('requisition', 'token', 'tracking'));
+        } catch (\Exception $e) {
+            Log::error('Error showing warehouse update page: ' . $e->getMessage());
+            return response()->json(['message' => 'Server error occurred'], 500);
+        }
+    }
+
+    /**
+     * Process warehouse approval with quantity issued update
+     */
+    public function updateWarehouseApproval(Request $request)
+    {
+        $request->validate([
+            'token' => 'required|string',
+            'id' => 'required|integer',
+            'status' => 'required|in:approve',
+            'notes' => 'required|string|max:1000',
+            'items' => 'required|array',
+            'items.*.item_id' => 'required|integer|exists:requisition_items,id',
+            'items.*.quantity_issued' => 'required|integer|min:0',
+        ], [
+            'notes.required' => 'Notes are required for your decision.',
+            'notes.max' => 'Notes cannot exceed 1000 characters.',
+            'items.required' => 'Items data is required.',
+            'items.*.item_id.required' => 'Item ID is required.',
+            'items.*.item_id.exists' => 'Invalid item ID.',
+            'items.*.quantity_issued.required' => 'Quantity issued is required.',
+            'items.*.quantity_issued.integer' => 'Quantity issued must be a number.',
+            'items.*.quantity_issued.min' => 'Quantity issued cannot be negative.',
+        ]);
+
+        try {
+            $token = $request->input('token');
+            $id = $request->input('id');
+            $notes = $request->input('notes');
+            $items = $request->input('items');
+
+            // Cek apakah tracking dengan token ini masih valid
+            $tracking = Tracking::where('requisition_id', $id)
+                ->where('token', $token)
+                ->whereNotNull('token')
+                ->first();
+
+            if (!$tracking) {
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json(['message' => 'Invalid or expired approval link'], 400);
+                }
+                return view('page.complain.links.warehouse-expired');
+            }
+
+            DB::beginTransaction();
+
+            // Update quantity issued untuk setiap item
+            foreach ($items as $itemData) {
+                $requisitionItem = RequisitionItem::find($itemData['item_id']);
+                if ($requisitionItem) {
+                    // Validasi quantity issued tidak melebihi quantity required
+                    if ($itemData['quantity_issued'] > $requisitionItem->quantity_required) {
+                        $itemName = $requisitionItem->itemMaster->item_master_name ?? 'Unknown';
+                        throw new \Exception("Quantity issued cannot exceed quantity required for item: {$itemName}");
+                    }
+
+                    $requisitionItem->quantity_issued = $itemData['quantity_issued'];
+                    $requisitionItem->save();
+                }
+            }
+
+            // Update tracking - approve dengan notes
+            $tracking->notes = $notes;
+            $tracking->token = null; // Invalidate token
+            $tracking->save();
+
+            $requisition = Requisition::find($tracking->requisition_id);
+
+            // Cek apakah ada tracking berikutnya
+            $nextTracking = Tracking::where('requisition_id', $tracking->requisition_id)
+                ->where('id', '>', $tracking->id)
+                ->whereNotNull('token')
+                ->orderBy('id', 'asc')
+                ->first();
+
+            if ($nextTracking) {
+                // Ada tracking berikutnya, kirim email ke approver berikutnya
+                $this->processWarehouseTracking($tracking->requisition_id);
+            } else {
+                // Tidak ada tracking berikutnya, proses selesai
+                $requisition->status = 'Approved';
+                $requisition->route_to = null;
+                $requisition->save();
+
+                // Kirim email completion ke requester
+                $requester = User::where('nik', $requisition->requester_nik)->first();
+                if ($requester) {
+                    sendWarehouseCompletion::dispatch($requester, $requisition);
+                }
+
+                // Log activity
+                activity()
+                    ->causedBy(auth()->user() ?? User::where('nik', $tracking->approver_nik)->first())
+                    ->performedOn($requisition)
+                    ->withProperties([
+                        'action' => 'Warehouse Final Approval with Update',
+                        'position' => $tracking->current_position,
+                        'notes' => $notes,
+                        'items_updated' => count($items)
+                    ])
+                    ->log('Warehouse approval completed with quantity updates for requisition: ' . $requisition->no_srs);
+            }
+
+            DB::commit();
+
+            // Check if it's an AJAX request
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'message' => 'Warehouse approval with updates has been processed successfully.',
+                    'status' => 'approve'
+                ]);
+            }
+
+            // Untuk non-AJAX, tampilkan halaman sukses
+            return view('page.complain.links.warehouse-success', compact('requisition', 'tracking'));
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error in warehouse approval with update: ' . $e->getMessage());
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['message' => $e->getMessage()], 500);
+            }
+
+            return view('page.complain.links.approval-invalid', [
+                'message' => $e->getMessage(),
+                'errorType' => 'server_error'
+            ]);
         }
     }
 

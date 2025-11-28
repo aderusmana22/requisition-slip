@@ -22,17 +22,18 @@ class printBatchMail extends Mailable
     public $tracking;
     public $quickOkLink;
     public $okWithReviewLink;
-
+    public $okWithUpdateLink;
     /**
      * Create a new message instance.
      */
-    public function __construct(User $approver, Requisition $requisition, Tracking $tracking, $quickOkLink, $okWithReviewLink)
+    public function __construct(User $approver, Requisition $requisition, Tracking $tracking, $quickOkLink, $okWithReviewLink, $okWithUpdateLink)
     {
         $this->approver = $approver;
         $this->requisition = $requisition;
         $this->tracking = $tracking;
         $this->quickOkLink = $quickOkLink;
         $this->okWithReviewLink = $okWithReviewLink;
+        $this->okWithUpdateLink = $okWithUpdateLink;
     }
 
     /**

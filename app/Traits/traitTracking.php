@@ -16,7 +16,7 @@ trait traitTracking
      * @param string|null $subCategory
      * @param int|bool|null $printBatch
      */
-    public function generateTrackingPath($requisitionId, $category, $subCategory = null, $printBatch = null)
+    public function generateTrackingPath($requisitionId, $category, $subCategory = null, $printBatch = false)
     {
         try {
             $query = TrackingPath::where('category', $category);

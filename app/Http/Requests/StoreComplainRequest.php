@@ -44,8 +44,7 @@ class StoreComplainRequest extends FormRequest
 
             // Validasi untuk kuantitas
             'items.*.details.*.qty_required' => 'required|numeric|min:0',
-            'items.*.details.*.qty_issued'   => 'required|numeric|min:0|lte:items.*.details.*.qty_required',
-            
+
             // Validasi untuk batch_number dan remarks
             'items.*.details.*.batch_number' => 'nullable|date',
             'items.*.details.*.remarks'      => 'nullable|string|max:500',
@@ -87,10 +86,6 @@ class StoreComplainRequest extends FormRequest
             'items.*.details.*.qty_required'         => 'Kuantitas yang diminta harus diisi.',
             'items.*.details.*.qty_required.numeric' => 'Kuantitas yang diminta harus berupa angka.',
             'items.*.details.*.qty_required.min'     => 'Kuantitas yang diminta tidak boleh negatif.',
-            'items.*.details.*.qty_issued'           => 'Kuantitas yang dikeluarkan harus diisi.',
-            'items.*.details.*.qty_issued.numeric'   => 'Kuantitas yang dikeluarkan harus berupa angka.',
-            'items.*.details.*.qty_issued.min'       => 'Kuantitas yang dikeluarkan tidak boleh negatif.',
-            'items.*.details.*.qty_issued.lte'       => 'Kuantitas yang dikeluarkan tidak boleh lebih besar dari kuantitas yang diminta.',
 
             // Pesan untuk batch_number dan remarks
             'items.*.details.*.batch_number.date'    => 'Batch number harus berupa tanggal yang valid.',

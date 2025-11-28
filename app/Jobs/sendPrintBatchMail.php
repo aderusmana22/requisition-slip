@@ -52,13 +52,21 @@ class sendPrintBatchMail implements ShouldQueue
             'token' => $this->tracking->token,
         ]);
 
+        $okWithUpdateLink = route('complain.warehouse.update', [
+            'id' => $this->tracking->requisition_id,
+            'token' => $this->tracking->token,
+        ]);
+
+        Log::info('nilai dari okWithUpdateLink: ' . $okWithUpdateLink);
+
         try {
             Mail::to($this->approver->email)->send(new printBatchMail(
                 $this->approver,
                 $requisitionWithData ?? $this->requisition,
                 $this->tracking,
                 $quickOkLink,
-                $okWithReviewLink
+                $okWithReviewLink,
+                $okWithUpdateLink
             ));
 
         } catch (\Exception $e) {

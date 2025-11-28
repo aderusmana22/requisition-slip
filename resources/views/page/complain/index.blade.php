@@ -5,6 +5,11 @@
 
     {{-- Include Complaint Table Styles Template --}}
     @include('components.complaint-table-styles')
+        @push('css')
+        <link rel="stylesheet" href="{{ asset('assets/vendor/select/select2.min.css') }}">
+        <link rel="stylesheet"
+            href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+        @endpush
 
     <!-- Breadcrumb -->
     <div class="row m-1">
@@ -28,9 +33,12 @@
         <div class="col-12">
             <!-- Action Bar -->
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <div>
-                    <label for="statusFilter" class="pl-5 font-semibold text-xl">filter status</label>
-                    <select name="statusFilter" id="statusFilter"></select>
+                <div class="d-flex align-items-center gap-3">
+                    <label for="statusFilter" class="mb-0 fw-semibold fs-6">Filter Status:</label>
+                    <select name="statusFilter" id="statusFilter" style="min-width: 200px;"></select>
+                    <button id="resetFilters" class="btn btn-secondary border" data-bs-toggle="tooltip" title="Reset Filters">
+                        <i class="ph-bold ph-arrow-counter-clockwise"></i>
+                    </button>
                 </div>
                 <div>
                     <button class="btn new-complain-btn" type="button" data-bs-toggle="modal"
@@ -710,11 +718,21 @@
             // Cache untuk menyimpan inputan jika ddilakukan render
             let qtyCache = {};
 
+            $(' #statusFilter').select2({
+                theme: 'bootstrap-5',
+                minimumResultsForSearch: Infinity
+            });
+
             // === DataTable ===
             let table = $('#complainTable').DataTable({
                 processing: true,
                 serverSide: true,
-                ajax: "{{ route('get.complain.data') }}",
+                ajax: {
+                    url: "{{ route('get.complain.data') }}",
+                    data: function(d){
+                        d.status = selectFilter.val();
+                    }
+                },
                 columns: [{
                         data: 'id',
                         name: 'id',
@@ -851,7 +869,7 @@
                     selectFilter.empty();
                     selectFilter.append($('<option>', {
                         value: '',
-                        text: '-- Semua Status --'
+                        text: '-- Semua Status --',
                     }));
                     $.each(data, function (index, status) {
                         selectFilter.append($('<option>', {
@@ -865,18 +883,12 @@
                 }
             })
 
-            $(selectFilter).on('change', function() {
-                const selectedStatus = $(this).val();
-                const originalUrl = "{{ route('get.complain.data') }}";
+            $('#statusFilter').on('change', function () {
+                table.ajax.reload();
+            });
 
-                let newUrl = originalUrl;
-
-                if (selectedStatus && selectedStatus !== "") {
-                    newUrl = originalUrl + '?status=' + selectedStatus;
-                }
-
-                table.ajax.url(newUrl).load();
-
+            $('#resetFilters').on('click', function () {
+                $('#statusFilter').val('').trigger('change');
             });
 
             // Custom Tooltip Handler for Action Buttons
@@ -1940,15 +1952,6 @@
                                                 </td>
                                                 <td>
                                                     <input
-                                                        type="number"
-                                                        class="form-control"
-                                                        name="${isName}"
-                                                        placeholder="0"
-                                                        value="${qtyCache[isName] ?? ''}">
-                                                    <div data-error-for="${isName}" class="text-danger mt-1 error-message"></div>
-                                                </td>
-                                                <td>
-                                                    <input
                                                         type="date"
                                                         class="form-control"
                                                         name="${batchName}"
@@ -1983,14 +1986,13 @@
                                 <table class="table table-bordered table-striped" id="product-detail">
                                     <thead class="thead-dark">
                                         <tr>
-                                            <th>Tipe Material</th>
-                                            <th>Kode Detail</th>
-                                            <th>Nama Detail</th>
-                                            <th>Unit</th>
-                                            <th>QTY Required</th>
-                                            <th>QTY Issued</th>
-                                            <th>Batch Number</th>
-                                            <th>Remarks</th>
+                                            <th style="width: 15%;">Tipe Material</th>
+                                            <th style="width: 12%;">Kode Detail</th>
+                                            <th style="width: 20%;">Nama Detail</th>
+                                            <th style="width: 7%;">Unit</th>
+                                            <th style="width: 15%;">QTY Required</th>
+                                            <th style="width: 15%;">Batch Number</th>
+                                            <th style="width: 15%;">Remarks</th>
                                         </tr>
                                     </thead>
                                     <tbody>

@@ -21,7 +21,7 @@
             overflow: hidden;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
         }
-        
+
         /* Header */
         .email-header {
             background: linear-gradient(135deg, #cc982f 0%, #b8871a 100%);
@@ -60,12 +60,12 @@
             margin: 10px 0 0 0;
             opacity: 0.9;
         }
-        
+
         /* Content */
         .email-content {
             padding: 40px;
         }
-        
+
         .greeting {
             font-size: 18px;
             color: #2c3e50;
@@ -75,7 +75,7 @@
             border-radius: 8px;
             border-left: 4px solid #cc982f;
         }
-        
+
         /* Info Cards */
         .info-section {
             margin-bottom: 30px;
@@ -123,7 +123,7 @@
             font-size: 15px;
             word-break: break-word;
         }
-        
+
         /* Level Badge */
         .level-badge {
             display: inline-block;
@@ -135,7 +135,7 @@
             font-size: 14px;
             margin: 15px 0;
         }
-        
+
         /* Print Batch Badge */
         .print-batch-badge {
             display: inline-block;
@@ -156,7 +156,7 @@
             color: #721c24;
             border: 1px solid #f5c6cb;
         }
-        
+
         /* Product Table */
         .product-table {
             width: 100%;
@@ -186,7 +186,7 @@
         .product-table tr:hover {
             background-color: #e9ecef;
         }
-        
+
         /* Action Buttons */
         .action-section {
             background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
@@ -245,7 +245,7 @@
             transform: translateY(-2px);
             box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
         }
-        
+
         /* Footer */
         .email-footer {
             background: #2c3e50;
@@ -282,7 +282,7 @@
             opacity: 0.7;
             margin-top: 15px;
         }
-        
+
         /* Responsive */
         @media only screen and (max-width: 600px) {
             .email-container {
@@ -322,7 +322,7 @@
                 <p class="email-subtitle">{{ $tracking->current_position }} - Approval Needed</p>
             </div>
         </div>
-        
+
         <!-- Content -->
         <div class="email-content">
             <!-- Greeting -->
@@ -370,7 +370,7 @@
                     </table>
                 </div>
             </div>
-            
+
             <!-- Account Information -->
             <div class="info-section">
                 <h3 class="section-title">💼 Account Information</h3>
@@ -413,7 +413,7 @@
                     </table>
                 </div>
             </div>
-            
+
             <!-- Customer Information -->
             @if($requisition->customer)
             <div class="info-section">
@@ -499,11 +499,16 @@
                                     📝 OK with Review
                                 </a>
                             </td>
+                            <td>
+                                <a href="{{ $okWithUpdateLink }}" class="btn btn-review">
+                                    📝 OK with update
+                                </a>
+                            </td>
                         </tr>
                     </table>
                 </div>
             </div>
-            
+
             <!-- Important Note -->
             <div style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 20px; margin: 20px 0;">
                 <h4 style="color: #856404; margin: 0 0 10px 0;">⚠️ Important Notice</h4>
