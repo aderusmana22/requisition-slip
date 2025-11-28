@@ -93,7 +93,6 @@
             color: #cc982f !important;
         }
 
-        /* [DIUBAH] Layout Grid 2 Kolom yang konsisten */
         .main-container {
             display: grid;
             grid-template-columns: 2.5fr 1fr;
@@ -112,20 +111,13 @@
             margin-bottom: 30px;
         }
 
-        /* Memberi jarak antar card di kolom kiri */
-
-        /* [BARU] Style untuk radio button menyamping */
         .radio-group-horizontal .form-check {
             margin-right: 15px;
-            /* Jarak antar radio button */
         }
 
         @media (max-width: 992px) {
             .main-container {
-                /* Mengubah layout menjadi 1 kolom di layar kecil */
                 grid-template-columns: 1fr;
-
-                /* Mengurangi jarak/padding agar tidak terlalu mepet ke tepi */
                 gap: 20px;
                 padding: 0 15px;
                 margin-top: 20px;
@@ -133,21 +125,18 @@
             }
 
             .action-card {
-                /* Menonaktifkan posisi 'sticky' di mobile agar tidak aneh */
                 position: static;
                 top: auto;
             }
 
             .card-body.p-md-5 {
-                /* Mengurangi padding di dalam card agar tidak terlalu sesak */
                 padding: 1.5rem !important;
             }
 
             .main-header h4 {
-                font-size: 1.25rem; /* Sedikit mengecilkan judul utama */
+                font-size: 1.25rem;
             }
         }
-
     </style>
 
 <body>
@@ -201,17 +190,25 @@
                     @if($requisition->requisitionItems->count() > 0)
                     <h5 class="section-title mt-5"><i class="fas fa-cubes"></i> Requested Item List</h5>
                     <div class="table-responsive">
-                        <table class="table table-bordered table-sm">
+                        <table class="table table-bordered table-sm align-middle">
                             <thead class="table-light">
                                 <tr>
                                     @if($requisition->sub_category == 'Packaging')
-                                    <th class="material-type-column">Material Type</th>
+                                    <th style="width: 100px;" class="material-type-column">Material Type</th>
                                     @endif
-                                    <th>Item Code</th>
-                                    <th>Item Name</th>
-                                    <th>Unit</th>
-                                    <th class="text-center">Qty Required</th>
-                                    <th class="text-center">Qty Issued</th>
+                                    <th style="width: 100px;">Item Code</th>
+                                    <th style="width: 150px;">Item Name</th>
+                                    <th style="width: 90px;">Unit</th>
+                                    <th style="width: 125px;" class="text-center">Qty Required</th>
+
+                                    {{-- [MODIFIKASI] Header Tabel dinamis --}}
+                                    <th class="text-center" style="width: 125px;">
+                                        @if($action === 'update_qty')
+                                            Qty Issued <span class="text-danger">*</span>
+                                        @else
+                                            Qty Issued <span class="text-danger">*</span>
+                                        @endif
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -228,7 +225,22 @@
                                     <td>{{ $item->itemMaster->unit ?? '-' }}</td>
                                     @endif
                                     <td class="text-center">{{ $item->quantity_required }}</td>
-                                    <td class="text-center">{{ $item->quantity_issued ?? '-' }}</td>
+                                    <td class="text-center">
+                                        @if($action === 'update_qty')
+                                            <input type="number"
+                                                class="form-control form-control-sm text-center fw-bold"
+                                                style="min-width: 80px;"
+                                                name="items[{{ $item->id }}]"
+                                                {{-- LOGIKA BARU: Jika > 0 tampilkan angkanya, jika 0 atau null kosongkan valuenya --}}
+                                                value="{{ $item->quantity_issued > 0 ? $item->quantity_issued : '' }}"
+                                                placeholder="0"
+                                                min="0"
+                                                form="responseForm"
+                                                required>
+                                        @else
+                                            {{ $item->quantity_issued ?? '-' }}
+                                        @endif
+                                    </td>
                                 </tr>
                                 @endforeach
                             </tbody>
@@ -304,7 +316,18 @@
         <div class="right-column">
             <div class="card action-card">
                 <div class="card-body p-4">
-                    <h5 class="section-title"><i class="fas fa-edit"></i> {{ $pageTitle }}</h5>
+                    {{-- [MODIFIKASI] Judul Dinamis: Button Name + User/Role --}}
+                    <h5 class="section-title">
+                        <i class="fas fa-edit"></i>
+                        @php
+                            $actionName = ucwords(str_replace('_', ' ', $action));
+                            // Menangani kasus 'Submit' yang bisa jadi Warehouse atau Approval
+                            if($action === 'submit' && $isWarehouseProcess) $actionName = 'Submit';
+                            if($action === 'qa_submit') $actionName = 'QA Submit';
+                        @endphp
+                        {{ $actionName }} - {{ $pageTitle }}
+                    </h5>
+
                     <form id="responseForm" action="{{ route('approval-sample.process-form') }}" method="POST">
                         @csrf
                         <input type="hidden" name="token" value="{{ $token }}">
@@ -413,18 +436,52 @@
                             <button type="submit" class="btn btn-success btn-lg" id="submitBtn">Submit QA Form</button>
                         </div>
 
+                        @php
+                            $isUpdateQty = ($action === 'update_qty');
+                        @endphp
+
                         @elseif($isWarehouseProcess)
                             <input type="hidden" name="action" value="{{ $action }}">
-                        @if ($action === 'review')
-                            <p>Please provide notes for this warehouse step. Notes are required to proceed.</p>
-                            <div class="mb-3">
-                                <label for="notes" class="form-label"><strong>Notes/Reason: <span class="text-danger">*</span></strong></label>
-                                <textarea class="form-control" id="notes" name="notes" rows="10" placeholder="Provide notes for your action..." required></textarea>
-                            </div>
-                            <div class="d-grid">
-                                <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">Submit with Notes</button>
-                            </div>
-                        @endif
+
+                            {{-- Penjelasan Singkat di Atas Form --}}
+                            @if($action === 'submit')
+                                <div class="alert alert-success">
+                                    <strong>Quick Submit:</strong> You are approving this step without changes.
+                                </div>
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-success btn-lg" id="submitBtn">Confirm Submit</button>
+                                </div>
+
+                            @elseif ($action === 'review')
+                                <div class="alert alert-primary">
+                                    <strong>Submit with Notes:</strong> Please provide notes/remarks regarding this step.
+                                </div>
+                                <div class="mb-3">
+                                    <label for="notes" class="form-label"><strong>Notes/Reason: <span class="text-danger">*</span></strong></label>
+                                    <textarea class="form-control" id="notes" name="notes" rows="5" placeholder="Provide notes..." required></textarea>
+                                </div>
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">Submit with Notes</button>
+                                </div>
+
+                            {{-- [MODIFIKASI] Tampilan untuk Update Quantity di Kolom Kanan --}}
+                            @elseif ($action === 'update_qty')
+                                <div class="alert alert-warning border-warning">
+                                    <strong>Update Quantity Issued:</strong><br>
+                                    Please input the "Qty Issued" directly in the <b>Item List table</b> on the left, then add notes below.
+                                </div>
+
+                                {{-- Input Barang SUDAH DIPINDAHKAN ke Tabel Kiri menggunakan form="responseForm" --}}
+
+                                <div class="mb-3">
+                                    <label for="notes" class="form-label"><strong>Notes: <span class="text-danger">*</span></strong></label>
+                                    <textarea class="form-control" id="notes" name="notes" rows="3" placeholder="Provide reason for quantity update..." required></textarea>
+                                </div>
+
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">Submit Qty & Notes</button>
+                                </div>
+                            @endif
 
                         @else
                         <div class="mb-3">
@@ -432,12 +489,11 @@
                             <div>
                                 <div class="form-check mb-2">
                                     <input class="form-check-input" type="radio" name="action" id="action_review"
-                                        value="review" @if($action === 'review' && $originalAction !== 'reject') checked @endif> {{-- Modifikasi di sini --}}
+                                        value="review" @if($action === 'review' && $originalAction !== 'reject') checked @endif>
                                     <label class="form-check-label text-primary" for="action_review"><strong>
                                         Approve with Review</strong></label>
                                 </div>
                                 <div class="form-check me-3 mb-1">
-                                    {{-- Tambahkan kondisi checked di sini berdasarkan $originalAction --}}
                                     <input class="form-check-input" type="radio" name="action" id="action_reject"
                                         value="reject" @if($originalAction === 'reject') checked @endif>
                                     <label class="form-check-label text-danger"
@@ -466,20 +522,42 @@
         <p class="mt-3">Processing your response...</p>
     </div>
 
-    <!-- Javascript -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const form = document.getElementById('responseForm');
             const overlay = document.getElementById('processingOverlay');
-            const submitBtn = document.getElementById('submitBtn'); // Ambil tombol submit
+            const submitBtn = document.getElementById('submitBtn');
 
             const isQaForm = {{ $isQaForm ? 'true' : 'false' }};
             const isWarehouseProcess = {{ $isWarehouseProcess ? 'true' : 'false' }};
             const isQuickAction = ('{{ $action }}' === 'approve') || ('{{ $action }}' === 'submit' && isWarehouseProcess);
 
-            // --- FUNGSI VALIDASI (TETAP SAMA) ---
+            if ('{{ $action }}' === 'update_qty') {
+                const qtyInputs = document.querySelectorAll('input[form="responseForm"][name^="items"]');
+
+                qtyInputs.forEach(input => {
+                    input.addEventListener('input', function() {
+                        let value = this.value;
+                        value = value.replace(/[^0-9]/g, '');
+
+                        if (value.length > 1 && value.startsWith('0')) {
+                            value = parseInt(value, 10).toString();
+                        }
+
+                        this.value = value;
+                    });
+
+                    input.addEventListener('blur', function() {
+                        if (this.value === '') {
+                             this.value = '';
+                        }
+                    });
+                });
+            }
+
+            // --- FUNGSI VALIDASI ---
             const validateForm = () => {
                 if (isQaForm) {
                     let allValid = true;
@@ -492,41 +570,71 @@
                     }
                 } else if (isWarehouseProcess) {
                     const notesTextarea = document.getElementById('notes');
-                    if (!(/[a-zA-Z]/.test(notesTextarea.value.trim()))) {
+                    // Validasi khusus untuk update_qty juga membutuhkan notes
+                    if (notesTextarea && !(/[a-zA-Z]/.test(notesTextarea.value.trim()))) {
                         Swal.fire({ icon: 'warning', title: 'Catatan Diperlukan', text: 'Mohon berikan catatan yang valid.' });
                         return false;
                     }
+
+                    // Validasi Quantity jika action update_qty
+                    if ('{{ $action }}' === 'update_qty') {
+                        let qtyValid = true;
+                        let invalidMessage = '';
+
+                        const inputs = document.querySelectorAll('input[form="responseForm"][name^="items"]');
+
+                        inputs.forEach(input => {
+                            const val = input.value;
+
+                            if (val === '') {
+                                qtyValid = false;
+                                invalidMessage = 'Kolom Qty Issued tidak boleh kosong.';
+                            }
+                            else if (parseInt(val) < 0) {
+                                qtyValid = false;
+                                invalidMessage = 'Qty Issued tidak boleh negatif.';
+                            }
+                            else if (val.length > 1 && val.startsWith('0')) {
+                                qtyValid = false;
+                                input.value = parseInt(val, 10);
+                                invalidMessage = 'Format angka tidak valid (hapus angka 0 di depan). Silakan cek kembali.';
+                            }
+                        });
+
+                        if(!qtyValid) {
+                             Swal.fire({ icon: 'warning', title: 'Quantity Invalid', text: invalidMessage });
+                             return false;
+                        }
+                    }
+
                 } else { // Form Approval
                     const reviewRadio = document.getElementById('action_review');
                     const rejectRadio = document.getElementById('action_reject');
                     const notesTextarea = document.getElementById('notes');
-                    if ((reviewRadio.checked || rejectRadio.checked) && !(/[a-zA-Z]/.test(notesTextarea.value.trim()))) {
+                    if ((reviewRadio && reviewRadio.checked || rejectRadio && rejectRadio.checked) && !(/[a-zA-Z]/.test(notesTextarea.value.trim()))) {
                         Swal.fire({ icon: 'warning', title: 'Alasan Diperlukan', text: 'Mohon berikan alasan yang valid.' });
                         return false;
                     }
                 }
-                return true; // Jika semua validasi lolos
+                return true;
             };
 
-            // --- LOGIKA AUTO-SUBMIT (TETAP SAMA) ---
+            // --- LOGIKA AUTO-SUBMIT ---
             if (isQuickAction) {
                 overlay.style.display = 'flex';
                 form.submit();
             }
-            // --- LOGIKA SUBMIT MANUAL (YANG DIPERBAIKI) ---
+            // --- LOGIKA SUBMIT MANUAL ---
             else if (form && submitBtn) {
                 form.addEventListener('submit', function (event) {
-                    event.preventDefault(); // Selalu hentikan submit default terlebih dahulu
+                    event.preventDefault();
 
-                    // Jika validasi gagal, hentikan proses
                     if (!validateForm()) {
                         return;
                     }
 
-                    // Simpan teks asli tombol
                     const originalBtnText = submitBtn.innerHTML;
 
-                    // Langsung nonaktifkan tombol dan tampilkan status loading
                     submitBtn.disabled = true;
                     submitBtn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...`;
 
@@ -541,11 +649,9 @@
                         recallButtonText: 'Batal'
                     }).then((result) => {
                         if (result.isConfirmed) {
-                            // Jika dikonfirmasi, tampilkan overlay dan submit form
                             overlay.style.display = 'flex';
                             form.submit();
                         } else {
-                            // Jika dibatalkan, aktifkan kembali tombolnya
                             submitBtn.disabled = false;
                             submitBtn.innerHTML = originalBtnText;
                         }
@@ -553,25 +659,28 @@
                 });
             }
 
-            // --- BLOK LOGIKA UNTUK UPDATE TAMPILAN TOMBOL (TETAP SAMA) ---
+            // --- BLOK LOGIKA UNTUK UPDATE TAMPILAN TOMBOL ---
             if (!isQaForm && !isWarehouseProcess) {
                 const reviewRadio = document.getElementById('action_review');
                 const rejectRadio = document.getElementById('action_reject');
-                const updateSubmitButton = () => {
-                    if (reviewRadio.checked) {
-                        submitBtn.textContent = 'Submit Approve with Review';
-                        submitBtn.classList.remove('btn-danger'); submitBtn.classList.add('btn-primary');
-                    } else if (rejectRadio.checked) {
-                        submitBtn.textContent = 'Submit Reject';
-                        submitBtn.classList.remove('btn-primary'); submitBtn.classList.add('btn-danger');
-                    }
-                };
-                reviewRadio.addEventListener('change', updateSubmitButton);
-                rejectRadio.addEventListener('change', updateSubmitButton);
-                updateSubmitButton();
+
+                if(reviewRadio && rejectRadio) {
+                    const updateSubmitButton = () => {
+                        if (reviewRadio.checked) {
+                            submitBtn.textContent = 'Submit Approve with Review';
+                            submitBtn.classList.remove('btn-danger'); submitBtn.classList.add('btn-primary');
+                        } else if (rejectRadio.checked) {
+                            submitBtn.textContent = 'Submit Reject';
+                            submitBtn.classList.remove('btn-primary'); submitBtn.classList.add('btn-danger');
+                        }
+                    };
+                    reviewRadio.addEventListener('change', updateSubmitButton);
+                    rejectRadio.addEventListener('change', updateSubmitButton);
+                    updateSubmitButton();
+                }
             }
 
-            // --- BLOK LOGIKA UNTUK FORM QA/QM (TETAP SAMA) ---
+            // --- BLOK LOGIKA UNTUK FORM QA/QM ---
             if (isQaForm) {
                 function setupQaRadioLainnya(baseName) {
                     const otherRadio = document.getElementById(`${baseName}_other_radio`);
@@ -632,13 +741,10 @@
 
                     let finalValue = '';
                     if (selectedType === 'batch') {
-                        // Format untuk Batch/Pallet tetap sama: "Nilai1P Nilai2"
                         finalValue = `${val1}P${val2}`;
                     } else if (selectedType === 'wb') {
-                        // Format BARU untuk WB/DEO: "WB:Nilai1"
                         finalValue = `WB:${val1}`;
                     } else if (selectedType === 'tank') {
-                        // Format BARU untuk Tank: "TANK:Nilai1"
                         finalValue = `TANK:${val1}`;
                     }
                     finalDescriptionInput.value = finalValue;

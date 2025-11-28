@@ -69,7 +69,7 @@
         .btn-approve { background: linear-gradient(135deg, #28a745 0%, #20c997 100%); }
         .btn-reject { background: linear-gradient(135deg, #dc3545 0%, #e74c3c 100%); }
         .btn-review { background: linear-gradient(135deg, #007bff 0%, #0d6efd 100%); }
-        .btn-qa-form { background: linear-gradient(135deg, #fd7e14 0%, #ffc107 100%); }
+        .btn-qa-form { background: linear-gradient(135deg, #ae5812ff 0%, #934404ff 100%); }
         .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.15); }
         .email-footer { background: #343a40; color: white; padding: 30px 40px; text-align: center; }
         .copyright { font-size: 12px; opacity: .7; margin-top: 15px; }
@@ -276,7 +276,17 @@
                     </div>
                 @elseif(isset($mail_type) && $mail_type == 'warehouse_process')
                     <h3 class="action-title">📦 Warehouse Action Required</h3>
-                    <p class="action-subtitle">Process step: <strong>{{ $process_step ?? 'N/A' }}</strong>. Please choose an action.</p>
+                    <p class="action-subtitle">Process step: <strong>{{ $process_step ?? 'N/A' }}</strong>.</p>
+
+                    <div style="background-color: #e2e3e5; padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: left; font-size: 14px; color: #333;">
+                        <strong>Action Guide:</strong>
+                        <ul style="margin: 5px 0 0 20px; padding: 0;">
+                            <li><strong>✅ Submit Process:</strong> Klik jika stok sudah sesuai/tersedia. Tidak ada perubahan Qty Issued.</li>
+                            <li><strong>📝 Submit with Notes:</strong> Klik jika hanya ingin menambahkan catatan tanpa mengubah Qty Issued.</li>
+                            <li><strong>✏️ Update Qty Issued:</strong> Klik jika Anda perlu menginput <strong>Qty Issued</strong> realisasi (Wajib isi Qty Issued & Notes).</li>
+                        </ul>
+                    </div>
+
                     <table class="button-group" role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
                         <tr>
                             <td class="button-cell">
@@ -284,6 +294,9 @@
                             </td>
                             <td class="button-cell">
                                 <a href="{{ $review_url }}" class="btn btn-review">📝 Submit with Notes</a>
+                            </td>
+                            <td class="button-cell">
+                                <a href="{{ $update_qty_url }}" class="btn btn-qa-form">✏️ Update Qty Issued</a>
                             </td>
                         </tr>
                     </table>
@@ -306,9 +319,7 @@
                         Alasan: <i>"{{ $rejection_notes ?? 'Tidak ada alasan yang diberikan.' }}"</i>
                     </p>
 
-                {{-- [PERBAIKAN] Blok 'else' ini sekarang hanya akan berjalan untuk email approval biasa --}}
                 @else
-                    {{-- Pastikan variabel URL ada sebelum menampilkan tombol --}}
                     @if(isset($approve_url) && isset($review_url) && isset($reject_url))
                         <h3 class="action-title">⚡ Take Action</h3>
                         <p class="action-subtitle">Please review the request above and choose your action below</p>
@@ -331,6 +342,20 @@
                     @endif
                 @endif
             </div>
+        </div>
+
+        <div style="margin-top: 10px; background-color: #f8f9fa; border-radius: 8px; padding: 12px 15px; text-align: center; border: 1px solid #e9ecef;">
+            <p style="margin: 0 0 5px 0; font-size: 13px; color: #495057; font-weight: 700;">
+                📄 Dokumen Referensi
+            </p>
+
+            <a href="{{ $download_url ?? '#' }}" style="display: inline-block; background-color: #343a40; color: #ffffff; text-decoration: none; font-weight: 600; font-size: 13px; padding: 8px 20px; border-radius: 50px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: all 0.3s ease;">
+                <span style="margin-right: 5px;">⬇️</span> Download PDF
+            </a>
+
+            <p style="font-size: 11px; color: #868e96; margin: 5px 0 0 0; font-style: italic;">
+                *Link Download tersebut dapat diakses langsung tanpa login.
+            </p>
         </div>
 
         <div class="email-footer">

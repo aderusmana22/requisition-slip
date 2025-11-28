@@ -57,6 +57,7 @@ Route::get('/approval/response/{token}', [SampleController::class, 'showResponse
 Route::post('/approvals/resend/{token}', [SampleController::class, 'resendApprovalEmail'])->name('approvals.resend');
 Route::post('/approval/process', [SampleController::class, 'processApproval'])->name('approval-sample.process-form');
 Route::get('/approval/success', [SampleController::class, 'showSuccessPage'])->name('approval.success');
+Route::get('/requisition/print-email/{token}', [SampleController::class, 'printReportByEmail'])->name('approval.download.pdf');
 
 // Approval Link dari Email (Free Goods Requisition)
 Route::get('/fg-approval/response/{token}', [FreeGoodsController::class, 'showResponseForm'])->name('fg.approval.response');
@@ -102,7 +103,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/sample-form/reports', [SampleController::class, 'reportsPage'])->name('sample-form.reports');
     Route::get('/sample-reports/data', [SampleController::class, 'getReportsData'])->name('sample.reports.data');
     Route::post('/sample-report/print', [SampleController::class, 'printMultipleReport'])->name('report_sample.print');
-    Route::get('/sample-report/{id}', [SampleController::class, 'printReport'])->name('sample.report');
 
     Route::get('/sample-form/log', [SampleController::class, 'logPage'])->name('sample-form.log');
     Route::get('/sample-log/data', [SampleController::class, 'getLogData'])->name('sample.log.data');
@@ -122,7 +122,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/approval', [FreeGoodsController::class, 'approvalPage'])->name('approval');
         Route::get('/reports', [FreeGoodsController::class, 'reports'])->name('reports');
         Route::get('/log', [FreeGoodsController::class, 'log'])->name('log');
-        
+
         // [FIX] Menambahkan route untuk recall yang hilang
         Route::post('/{id}/recall', [FreeGoodsController::class, 'recallRequisition'])->name('recall');
 

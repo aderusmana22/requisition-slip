@@ -291,7 +291,7 @@
                                                 <th>Item Name</th>
                                                 <th>Unit</th>
                                                 <th style="width: 15%;">Qty Required</th>
-                                                <th style="width: 15%;">Qty Issued</th>
+                                                <!-- <th style="width: 15%;">Qty Issued</th> -->
                                             </tr>
                                         </thead>
                                         <tbody id="requisition-items-tbody">
@@ -1089,7 +1089,6 @@
                                         <td>${detail.item_detail_name}</td>
                                         <td>${detail.unit}</td>
                                         <td><input type="number" class="form-control" name="items[${detail.id}][quantity_required]" min="1"></td>
-                                        <td><input type="number" class="form-control" name="items[${detail.id}][quantity_issued]" min="0"></td>
                                     </tr>`;
                                 tbody.append(newRow);
                             }
@@ -1173,7 +1172,6 @@
                                             <td>${master.item_master_name}</td>
                                             <td>${master.unit}</td>
                                             <td><input type="number" class="form-control" name="items[${master.id}][quantity_required]" min="1"></td>
-                                            <td><input type="number" class="form-control" name="items[${master.id}][quantity_issued]" min="0"></td>
                                         </tr>`;
                                     tbody.append(newRow);
                                 }
@@ -1559,7 +1557,6 @@
                                         <td>${itemName}</td>
                                         <td>${unit}</td>
                                         <td><input type="number" class="form-control" name="${inputName}[quantity_required]" value="${item.quantity_required || ''}" min="1"></td>
-                                        <td><input type="number" class="form-control" name="${inputName}[quantity_issued]" value="${item.quantity_issued || ''}" min="0"></td>
                                     </tr>`;
                                 itemTbody.append(newRow);
                             }

@@ -266,7 +266,7 @@ class SampleController extends Controller
                             'item_detail_id' => $itemDetail->id,
                             'material_type' => $itemDetail->material_type,
                             'quantity_required' => $itemData['quantity_required'],
-                            'quantity_issued' => $itemData['quantity_issued'] ?? null,
+                            'quantity_issued' => 0, // Set default 0 saat pembuatan
                         ]);
                     }
                 }
@@ -277,7 +277,7 @@ class SampleController extends Controller
                         'item_master_id' => $itemMasterId,
                         'material_type' => $validated['sub_category'],
                         'quantity_required' => $itemData['quantity_required'],
-                        'quantity_issued' => $itemData['quantity_issued'] ?? null,
+                        'quantity_issued' => 0, // Set default 0 saat pembuatan
                     ]);
                 }
             }
@@ -583,8 +583,10 @@ class SampleController extends Controller
     {
         $validated = $request->validate([
             'token' => 'required|string',
-            'action' => 'required|string|in:approve,review,reject,submit,qa_submit',
-            'notes' => 'nullable|string|max:500|required_if:action,review,reject',
+            'action' => 'required|string|in:approve,review,reject,submit,qa_submit,update_qty',
+            'notes' => 'nullable|string|max:500|required_if:action,review,reject,update_qty',
+            'items' => 'required_if:action,update_qty|array',
+            'items.*' => 'required_if:action,update_qty|integer|min:0',
             'source' => 'required_if:action,qa_submit|string|max:255',
             'description' => 'required_if:action,qa_submit|string|max:255',
             'production_date' => 'required_if:action,qa_submit|date',
@@ -608,8 +610,7 @@ class SampleController extends Controller
 
         $tracking = Tracking::where('token', $validated['token'])->whereNull('last_updated')->first();
         if ($tracking) {
-            // [MODIFIKASI] Kita ubah cara pemanggilan fungsi di bawah
-            return $this->processWarehouseStep($request, $tracking, $validated['notes'] ?? null);
+            return $this->processWarehouseStep($request, $tracking, $validated['notes'] ?? null, $validated['items'] ?? []);
         }
 
         // Jika tidak ditemukan, respons sesuai tipe request
@@ -622,6 +623,7 @@ class SampleController extends Controller
     //======================================================================
     // PRIVATE FUNCTIONS (Business Logic & Helpers)
     //======================================================================
+
 
     private function notifyRelevantUsers(User $targetUser, Notification $notification)
     {
@@ -654,7 +656,10 @@ class SampleController extends Controller
                 ['requisition_id' => $tracking->requisition_id],
                 $validated
             );
-            $tracking->update(['token' => null, 'last_updated' => now(), 'notes' => 'Form has been completed by QA.']);
+            $tracking->update([
+                // 'token' => null,
+                'last_updated' => now(),
+                'notes' => 'Form has been completed by QA.']);
 
             $headQaUser = User::whereHas('department', fn ($q) => $q->where('name', 'QM & HSE'))
                               ->whereHas('roles', fn ($q) => $q->where('name', 'head-QA'))
@@ -791,7 +796,7 @@ class SampleController extends Controller
             'status'     => 'Rejected',
             'notes'      => $notes ?? 'Rejected without reason',
             'updated_at' => now(),
-            'token'      => null,
+            // 'token'      => null,
         ]);
 
         // 1. Kirim notifikasi sistem (yang sudah ada sebelumnya)
@@ -820,7 +825,7 @@ class SampleController extends Controller
             'status'     => 'Approved',
             'notes'      => $finalNotes, // Selalu ada catatan
             'updated_at' => now(),
-            'token'      => null,
+            // 'token'      => null,
         ]);
     }
 
@@ -853,7 +858,11 @@ class SampleController extends Controller
     private function notifyNextApprover(Requisition $requisition, ApprovalLog $nextApprovalLog, User $nextApprover)
     {
         $requisition->update(['status' => 'In Progress', 'route_to' => $nextApprover->name]);
-        sendSample::dispatch($requisition, $nextApprover, $nextApprovalLog->token);
+        $downloadUrl = route('approval.download.pdf', ['token' => $nextApprovalLog->token]);
+
+        sendSample::dispatch($requisition, $nextApprover, $nextApprovalLog->token, [
+            'download_url' => $downloadUrl
+        ]);
         $nextApprover->notify(new RequisitionNotification([
             'requisition_id' => $requisition->id,
             'srs_number'     => $requisition->no_srs,
@@ -915,16 +924,25 @@ class SampleController extends Controller
     /**
      * Memproses satu langkah di gudang (warehouse).
      */
-    private function processWarehouseStep(Request $request, Tracking $tracking, ?string $notes)
+    private function processWarehouseStep(Request $request, Tracking $tracking, ?string $notes, array $items = [])
     {
         DB::beginTransaction();
         try {
-            // [MODIFIKASI] Buat pesan default yang lebih dinamis
             $defaultNote = "Proses {$tracking->current_position} berhasil disubmit tanpa notes.";
+
+            if (!empty($items)) {
+                $defaultNote = "Proses {$tracking->current_position} disubmit dengan update quantity.";
+                foreach ($items as $itemId => $qty) {
+                    RequisitionItem::where('id', $itemId)
+                        ->where('requisition_id', $tracking->requisition_id)
+                        ->update(['quantity_issued' => $qty]);
+                }
+            }
+
             $finalNotes = $notes ?: $defaultNote;
 
             $tracking->update([
-                'token'        => null,
+                // 'token'        => null,
                 'last_updated' => now(),
                 'notes'        => $notes ?: $defaultNote, // <-- BARIS INI YANG DIUBAH
             ]);
@@ -1057,9 +1075,16 @@ class SampleController extends Controller
         if ($nextStep) {
             $userForNextStep = $this->findUserForStep($nextStep->current_position);
             if ($userForNextStep) {
+                $baseUrl = route('approval.response', ['token' => $nextStep->token]);
+                $downloadUrl = route('approval.download.pdf', ['token' => $nextStep->token]);
+
                 dispatch(new sendSample($requisition, $userForNextStep, $nextStep->token, [
                     'mail_type'    => 'warehouse_process',
                     'process_step' => $nextStep->current_position,
+                    'submit_url'     => $baseUrl . '?action=submit',
+                    'review_url'     => $baseUrl . '?action=review',
+                    'update_qty_url' => $baseUrl . '?action=update_qty',
+                    'download_url'   => $downloadUrl,
                 ]))->delay(now()->addSeconds(3));
 
                 $requisition->update(['status' => 'Approved', 'route_to' => $nextStep->current_position]);
@@ -1333,6 +1358,38 @@ class SampleController extends Controller
         ])->setPaper('a4', 'landscape');
 
         return $pdf->stream('Bulk-RS-Sample-' . now()->format('Y-m-d') . '.pdf');
+    }
+
+    public function printReportByEmail($token)
+    {
+        // Cari based on ApprovalLog atau Tracking
+        $approvalLog = ApprovalLog::where('token', $token)->first();
+        $tracking = !$approvalLog ? Tracking::where('token', $token)->first() : null;
+
+        if (!$approvalLog && !$tracking) {
+            abort(404, 'Link expired or invalid.');
+        }
+
+        $requisition = ($approvalLog) ? $approvalLog->requisition : $tracking->requisition;
+
+        // Load relasi yang dibutuhkan untuk PDF
+        $requisition->load([
+            'customer',
+            'requester.department',
+            'requisitionItems.itemMaster',
+            'requisitionItems.itemDetail',
+            'requisitionSpecial',
+            'approvalLogs.approver.roles'
+        ]);
+
+        $revisionData = Revision::first();
+
+        $pdf = Pdf::loadView('page.sample.report.print', [
+            'requisitions' => collect([$requisition]), // Bungkus dalam collection agar loop di view print tetap jalan
+            'revision'     => $revisionData
+        ])->setPaper('a4', 'landscape');
+
+        return $pdf->download('Requisition-'.$requisition->no_srs.'.pdf');
     }
 
     public function getReportsData(Request $request)
