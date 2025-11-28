@@ -22,7 +22,6 @@ use App\Models\Requisition\RequisitionItem;
 use App\Models\Requisition\Tracking;
 use App\Models\User;
 use App\Notifications\RequisitionNotification;
-use App\Traits\approvalTrait;
 use App\Traits\traitRequisition;
 use App\Traits\traitTracking;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -1597,6 +1596,32 @@ class ComplainController extends Controller
 
             return response()->json(['message' => $errorMessage], $statusCode);
         }
+    }
+
+    public function warehouseReport($id)
+    {
+        Log::info("Generating warehouse report for requisition ID: {$id}");
+        $requisitions = Requisition::with([
+            'customer',
+            'requester.department',
+            'requisitionItems.itemMaster',
+            'requisitionItems.itemDetail',
+            'requisitionSpecial',
+            'approvalLogs' => fn($q) => $q->orderBy('level', 'asc'),
+            'approvalLogs.approver.roles'
+        ])->find( $id );
+
+        $requisitions = collect([$requisitions]);
+
+        // Ambil data revision pertama (atau bisa disesuaikan dengan kebutuhan)
+        $revision = Revision::first();
+
+        $pdf = Pdf::loadView('page.complain.reports.report-template', [
+            'requisitions' => $requisitions,
+            'revision' => $revision
+        ])->setPaper('a4', 'landscape');
+
+        return $pdf->stream('warehouse-tracking-' . now()->format('Y-m-d') . '.pdf');
     }
 
     public function printBulkReport(Request $request)

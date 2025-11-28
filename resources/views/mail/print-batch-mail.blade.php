@@ -509,6 +509,17 @@
                 </div>
             </div>
 
+            <!-- Download Report -->
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="{{ route('complain.warehouse.report', ['id' => $requisition->id]) }}"
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   class="btn"
+                   style="display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, #17a2b8 0%, #138496 100%); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; min-width: 200px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);">
+                    📄 Download Report
+                </a>
+            </div>
+
             <!-- Important Note -->
             <div style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 20px; margin: 20px 0;">
                 <h4 style="color: #856404; margin: 0 0 10px 0;">⚠️ Important Notice</h4>
