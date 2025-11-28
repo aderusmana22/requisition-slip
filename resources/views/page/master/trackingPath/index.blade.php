@@ -23,7 +23,7 @@
         <div class="col-12 text-end">
             <button id="btn-create-approver" class="btn btn-primary-custom shadow-sm">
                 <i class="ph ph-plus fw-bold"></i>
-                <span class="d-none d-sm-inline ms-1">Create New Path</span>
+                <span class="d-none d-sm-inline ms-1">New Tracking</span>
             </button>
         </div>
     </div>
@@ -371,7 +371,7 @@
                             "render": function(data, type, row) {
                                 if (!data) return '';
                                 return data.map((approver, index) =>
-                                    `<span class="badge bg-secondary border border-secondary text-dark bg-opacity-10 me-1 mb-1">${index + 1}. ${approver}</span>`
+                                    `<span class="badge bg-secondary border border-dark text-dark bg-opacity-10 me-1 mb-1">${index + 1}. ${approver}</span>`
                                 ).join(' ');
                             }
                         },
@@ -382,7 +382,7 @@
                                 if (data == 1 || data === true) {
                                     return '<span class="badge bg-success"><i class="ph ph-check"></i> Yes</span>';
                                 } else {
-                                    return '<span class="badge bg-secondary">No</span>';
+                                    return '<span class="badge bg-danger"><i class="ph ph-x"></i> No</span>';
                                 }
                             }
                         },
@@ -468,12 +468,19 @@
                         $('#btn-save').text('Save Changes');
                         $('#approver_id').val(id);
 
-                        $('#category_id').val(data.category_id).trigger('change').prop('disabled',
-                            true);
-                        $('#sub_category_id').val(data.sub_category_id).trigger('change').prop(
-                            'disabled', true);
+                        $('#category_id').val(data.category_id).trigger('change').prop('disabled', true);
+                        $('#sub_category_id').val(data.sub_category_id).trigger('change').prop('disabled', true);
+                        $('#approvers').val(null).trigger('change');
 
-                        $('#approvers').val(data.approver_user_ids).trigger('change');
+                        if (data.approver_user_ids && Array.isArray(data.approver_user_ids)) {
+                            data.approver_user_ids.forEach(function(role) {
+                                var newOption = new Option(role, role, true, true);
+
+                                $('#approvers').append(newOption);
+                            });
+                        }
+
+                        $('#approvers').trigger('change');
 
                         if (data.print_batch == 1) {
                             $('#print_batch_yes').prop('checked', true);
