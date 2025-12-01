@@ -585,8 +585,8 @@ class SampleController extends Controller
             'token' => 'required|string',
             'action' => 'required|string|in:approve,review,reject,submit,qa_submit,update_qty',
             'notes' => 'nullable|string|max:500|required_if:action,review,reject,update_qty',
-            'items' => 'required_if:action,update_qty|array',
-            'items.*' => 'required_if:action,update_qty|integer|min:0',
+            'items' => 'nullable|array',
+            'items.*' => 'nullable|integer|min:0',
             'source' => 'required_if:action,qa_submit|string|max:255',
             'description' => 'required_if:action,qa_submit|string|max:255',
             'production_date' => 'required_if:action,qa_submit|date',
@@ -685,6 +685,17 @@ class SampleController extends Controller
                 ['requisition_id' => $tracking->requisition_id],
                 $validated
             );
+
+            if (isset($validated['items']) && is_array($validated['items'])) {
+                foreach ($validated['items'] as $itemId => $qty) {
+                    $qtyValue = is_numeric($qty) ? $qty : 0;
+                    
+                    RequisitionItem::where('id', $itemId)
+                        ->where('requisition_id', $tracking->requisition_id)
+                        ->update(['quantity_issued' => $qtyValue]);
+                }
+            }
+
             $tracking->update([
                 'token' => null,
                 'last_updated' => now(),
@@ -1039,44 +1050,50 @@ class SampleController extends Controller
                 return $this->notifyRequesterAsCompleted($requisition);
             }
 
-            // [PERBAIKAN] Cek apakah langkah pertama adalah 'Waiting for QA/QM Form'
-            // Ini untuk mereplikasi logika notifikasi khusus ke Head QA
             $firstStepLog = $createdTrackingLogs->first();
-            if ($firstStepLog && $firstStepLog['current_position'] === 'Waiting for QA/QM Form') {
 
-                $headQaUser = User::whereHas('department', fn ($q) => $q->where('name', 'QM & HSE'))
-                                ->whereHas('roles', fn ($q) => $q->where('name', 'head-QA'))
-                                ->first();
+            if ($firstStepLog) {
+                $nextActor = User::where('name', $firstStepLog['current_position'])->first();
 
-                if ($headQaUser) {
-                    // Ambil record tracking yang baru saja dibuat oleh trait
+                if ($nextActor && $nextActor->hasRole('head-QA')) {
+
+                    // Ambil tracking record
                     $firstTrackingRecord = Tracking::where('requisition_id', $requisition->id)
-                                                ->where('current_position', 'Waiting for QA/QM Form')
+                                                ->where('current_position', $firstStepLog['current_position']) // Gunakan value dinamis
                                                 ->whereNull('last_updated')
                                                 ->first();
 
                     if ($firstTrackingRecord) {
-                        $token = $firstTrackingRecord->token; // Ambil token yang di-generate trait
-                        $firstTrackingRecord->update(['notes' => "Waiting for form to be filled by {$headQaUser->name}"]);
-                        $requisition->update(['status' => 'Approved', 'route_to' => 'Waiting for QA/QM Form']);
+                        $token = $firstTrackingRecord->token; 
 
-                        // Kirim Notifikasi SISTEM
+                        // Update notes
+                        $firstTrackingRecord->update(['notes' => "Waiting for form to be filled by {$nextActor->name}"]);
+                        
+                        // Update requisition status
+                        $requisition->update([
+                            'status' => 'Approved', 
+                            'route_to' => $nextActor->name // Route to nama user dinamis
+                        ]);
+
+                        // Kirim Notifikasi SISTEM ke user tersebut
                         $notificationData = [
                             'requisition_id' => $requisition->id,
                             'srs_number'     => $requisition->no_srs,
                             'message'        => "Form QA/QM untuk Requisition #{$requisition->no_srs} perlu dilengkapi.",
                             'url'            => route('sample-form.index', ['open_form' => $requisition->id]),
                         ];
-                        $headQaUser->notify(new RequisitionNotification($notificationData, $requisition->requester));
+                        $nextActor->notify(new RequisitionNotification($notificationData, $requisition->requester));
 
-                        // Kirim Notifikasi EMAIL
+                        // Kirim Notifikasi EMAIL (Tipe 'qa_form_notification')
                         $formUrl = route('approval.response', ['token' => $token, 'action' => 'qa_form']);
-                        dispatch(new sendSample($requisition, $headQaUser, $token, [
+                        
+                        dispatch(new sendSample($requisition, $nextActor, $token, [
                             'mail_type' => 'qa_form_notification',
                             'form_url'  => $formUrl
                         ]))->delay(now()->addSeconds(3));
 
-                        return 'Waiting for QA/QM Form'; // Selesai, jangan lanjut ke advanceWarehouseStep
+                        // Return nama step agar tidak lanjut ke warehouse
+                        return $firstTrackingRecord->current_position; 
                     }
                 }
             }

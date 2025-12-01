@@ -370,7 +370,7 @@
                                 @endif
 
                                 <td class="text-center">{{ $item->quantity_required }}</td>
-                                <td class="text-center">{{ $item->quantity_issued }}</td>
+                                <td class="text-center">{{ $item->quantity_issued > 0 ? $item->quantity_issued : '' }}</td>
 
                                 {{-- Kolom Objectives dan Estimasi tetap sama, digabung dengan rowspan --}}
                                 @if($loop->first)

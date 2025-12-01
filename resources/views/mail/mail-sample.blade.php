@@ -271,9 +271,16 @@
                 @if(isset($mail_type) && $mail_type == 'qa_form_notification')
                     <h3 class="action-title">📝 Complete QA Form</h3>
                     <p class="action-subtitle">Please click the button below to open the form and complete the required fields.</p>
-                    <div>
-                        <tr><td><a href="{{ $form_url }}" class="btn btn-qa-form">Open QA Form</a></td></tr>
-                    </div>
+                    
+                    <table class="button-group" role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+                        <tr>
+                            <td class="button-cell" align="center" style="text-align: center;">
+                                <a href="{{ $form_url }}" class="btn btn-qa-form" style="width: auto !important; display: inline-block; min-width: 150px;">
+                                    Open QA Form
+                                </a>
+                            </td>
+                        </tr>
+                    </table>
                 @elseif(isset($mail_type) && $mail_type == 'warehouse_process')
                     <h3 class="action-title">📦 Warehouse Action Required</h3>
                     <p class="action-subtitle">Process step: <strong>{{ $process_step ?? 'N/A' }}</strong>.</p>
