@@ -60,6 +60,7 @@
                                 <th>Requester</th>
                                 <th>Status</th>
                                 <th>Customer</th>
+                                <th>Route to</th>
                                 <th>Requested at</th>
                                 <th>Actions</th>
                             </tr>
@@ -325,16 +326,16 @@
                         </div>
 
                         <!-- Notes Section -->
-                        <div class="mb-4">
+                        <div class="mb-4" id="notes_section" style="display: none;">
                             <label for="review_notes" class="form-label fw-bold">
                                 <i class="ph-duotone ph-note-pencil me-2"></i>
                                 Notes/Comments
-                                <span class="text-danger" id="notes_required_indicator" style="display: none;">*</span>
+                                <span class="text-danger" id="notes_required_indicator">*</span>
                             </label>
                             <textarea class="form-control" id="review_notes" name="notes" rows="4" 
                                 placeholder="Enter your notes or comments here..."></textarea>
                             <div class="form-text">
-                                <span id="notes_help_text">Optional for approve, required for approve with review and reject.</span>
+                                <span id="notes_help_text">Notes are required for this action.</span>
                             </div>
                         </div>
                     </form>
@@ -352,6 +353,30 @@
             </div>
         </div>
     </div>
+
+    @push('styles')
+    <style>
+        #notes_section {
+            transition: all 0.3s ease-in-out;
+            overflow: hidden;
+        }
+        
+        #notes_section.fade-in {
+            animation: fadeInSlide 0.3s ease-in-out;
+        }
+        
+        @keyframes fadeInSlide {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+    @endpush
 
     @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -605,25 +630,29 @@
 
         const updateNotesRequirement = () => {
             const selectedDecision = $('input[name="status"]:checked').val();
+            const notesSection = $('#notes_section');
             const notesField = $('#review_notes');
-            const requiredIndicator = $('#notes_required_indicator');
             const helpText = $('#notes_help_text');
             
             if (selectedDecision === 'reject') {
+                // Tampilkan notes section untuk reject
+                notesSection.addClass('fade-in').slideDown(300);
                 notesField.prop('required', true);
-                requiredIndicator.show();
                 helpText.text('Notes are required for rejection.');
                 notesField.attr('placeholder', 'Please provide reason for rejection...');
             } else if (selectedDecision === 'approve_with_review') {
+                // Tampilkan notes section untuk approve with review
+                notesSection.addClass('fade-in').slideDown(300);
                 notesField.prop('required', true);
-                requiredIndicator.show();
                 helpText.text('Notes are required for approve with review.');
                 notesField.attr('placeholder', 'Please provide your review notes...');
             } else {
+                // Sembunyikan notes section untuk approve (default)
+                notesSection.slideUp(300, function() {
+                    notesSection.removeClass('fade-in');
+                });
                 notesField.prop('required', false);
-                requiredIndicator.hide();
-                helpText.text('Notes are optional for approval.');
-                notesField.attr('placeholder', 'Enter your notes or comments here...');
+                notesField.val(''); // Clear nilai notes
             }
         };
 
@@ -681,13 +710,18 @@
                 }
             });
 
+            let isAdmin = false; // Variable to store admin status
+
             const table = $('#approvalTable').DataTable({
                 processing: false,
                 serverSide: false,
                 ajax: {
                     url: approvalDataUrl,
                     type: 'GET',
-                    dataSrc: (json) => json.data && Array.isArray(json.data) ? json.data : [],
+                    dataSrc: (json) => {
+                        isAdmin = json.is_admin || false; // Store admin status
+                        return json.data && Array.isArray(json.data) ? json.data : [];
+                    },
                     error: () => showErrorMessage('Failed to load approval data')
                 },
                 columns: [
@@ -716,6 +750,10 @@
                     {
                         data: 'requisition_details.customer_name',
                         render: (data, type, row) => data || row.requisition_details?.customer?.name || 'N/A'
+                    },
+                    {
+                        data: 'requisition_details.route_to',
+                        render: (data, type, row) => `<span class="badge bg-info">${data}</span>` || 'N/A',
                     },
                     {
                         data: 'requisition_details.updated_at',
@@ -749,18 +787,39 @@
                         searchable: false,
                         render: (data, type, row) => {
                             const token = row.requisition_details?.token || row.token || '';
-                            return `
-                                <div class="action-btn-group">
-                                    <button type="button" class="btn btn-info btn-sm detail-button action-btn-hover" 
-                                            data-id="${row.requisition_id}" data-tooltip="View Details">
-                                        <i class="ph-duotone ph-eye"></i>
-                                    </button>
-                                    <button type="button" class="btn btn-primary btn-sm review-button action-btn-hover" 
-                                            data-token="${token}" data-tooltip="Review with Notes">
-                                        <i class="ph-duotone ph-note"></i>
-                                    </button>
-                                </div>
+                            
+                            // Jika token null, tampilkan icon checklist
+                            if (data.token == null) {
+                                return `
+                                    <div class="text-center">
+                                        <i class="ph-duotone ph-check-circle text-success fs-4 action-btn-hover" data-tooltip="Already Processed"></i>
+                                    </div>
+                                `;
+                            }
+                            
+                            // Jika ada token, tampilkan button actions
+                            let buttons = `
+                                <button type="button" class="btn btn-info btn-sm detail-button action-btn-hover" 
+                                        data-id="${row.requisition_id}" data-tooltip="View Details">
+                                    <i class="ph-duotone ph-eye"></i>
+                                </button>
+                                <button type="button" class="btn btn-primary btn-sm review-button action-btn-hover" 
+                                        data-token="${token}" data-tooltip="Review with Notes">
+                                    <i class="ph-duotone ph-note"></i>
+                                </button>
                             `;
+                            
+                            // Jika user adalah admin, tambahkan tombol resend
+                            if (isAdmin) {
+                                buttons += `
+                                    <button type="button" class="btn btn-warning btn-sm resend-button action-btn-hover" 
+                                            data-token="${token}" data-tooltip="Resend Email">
+                                        <i class="ph-duotone ph-paper-plane-tilt"></i>
+                                    </button>
+                                `;
+                            }
+                            
+                            return `<div class="action-btn-group">${buttons}</div>`;
                         },
                         width: '15%'
                     }
@@ -827,6 +886,27 @@
             initTooltips();
 
             // === Event Handlers ===
+            // === Resend Email Handler ===
+            $('#approvalTable tbody').on('click', '.resend-button', function() {
+                const token = $(this).data('token');
+                const resendUrl = "{{ route('complain.approval.resend', ['token' => ':token']) }}".replace(':token', token);
+                
+                showConfirmDialog({
+                    title: 'Resend Approval Email?',
+                    text: 'This will generate a new approval link and send it to the approver.',
+                    confirmButtonText: 'Yes, Resend',
+                    cancelButtonText: 'Cancel',
+                    icon: 'question'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        makeApprovalRequest(resendUrl, {}, (response) => {
+                            showSuccessMessage(response.message || 'Approval email has been resent successfully!', 'Email Sent');
+                            table.ajax.reload(null, false);
+                        });
+                    }
+                });
+            });
+
             $('#approvalTable tbody').on('click', '.detail-button', function() {
                     const complainId = $(this).data('id');
                     const finalUrl = detailUrl.replace(':id', complainId);
@@ -842,7 +922,7 @@
                             $('#detail_account').text(data.account || '-');
                             $('#detail_cost_center').text(data.cost_center || '-');
                             $('#detail_rs_number').text(data.no_srs || data.requisition_number || '-');
-                            $('#detail_objectives').text(data.objectives || 'No reason specified');
+                            $('#detail_objectives').text(data.reason_for_replacement || 'No reason specified');
 
                             // Format and set date
                             const date = data.request_date || data.created_at;

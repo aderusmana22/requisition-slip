@@ -61,7 +61,6 @@
                                 <th>Requisition No</th>
                                 <th>Requester</th>
                                 <th>Status</th>
-                                <th>Current Level</th>
                                 <th>Request Date</th>
                                 <th>Actions</th>
                             </tr>
@@ -157,18 +156,6 @@
                                 <div class="objectives-container">
                                     <div class="objectives-text" id="detail_description">
                                         <!-- Description will be populated here -->
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="detail-section">
-                                <div class="section-header">
-                                    <i class="ph-duotone ph-note"></i>
-                                    Approval Notes
-                                </div>
-                                <div class="user-agent-container">
-                                    <div class="user-agent-text" id="detail_notes">
-                                        <!-- Notes will be populated here -->
                                     </div>
                                 </div>
                             </div>
@@ -465,7 +452,7 @@
                         name: 'no_srs',
                         width: '15%',
                         render: function (data, type, row) {
-                            return data ? `<code class="small"><strong>${data}</strong></code>` : '-';
+                            return data ? `<span class="fw-bold text-primary">${data}</span>` : '-';
                         }
                     },
                     {
@@ -506,23 +493,6 @@
                                 default:
                                     return '<span class="badge status-badge-lg bg-secondary">' + data + '</span>';
                             }
-                        }
-                    },
-                    {
-                        data: 'approval_logs',
-                        name: 'approval_logs',
-                        width: '15%',
-                        render: function (data, type, row) {
-                            // Check if approval_logs is an array and get the last approved one
-                            if (data && Array.isArray(data)) {
-                                const lastApproved = data.filter(log => log.status === 'Approved').pop();
-                                if (lastApproved && lastApproved.level) {
-                                    return `<span class="fw-medium">level ${lastApproved.level}</span>`;
-                                }
-                            } else if (data && data.level) {
-                                return `<span class="fw-medium">level ${data.level}</span>`;
-                            }
-                            return '<span class="text-muted">-</span>';
                         }
                     },
                     {
@@ -626,15 +596,10 @@
                     $('#detail_status').html(getStatusBadge(approvalData.status));
                     
                     // Handle approver from approval_logs
-                    if (approvalData.approval_logs && approvalData.approval_logs.level) {
-                        $('#detail_approver').text(approvalData.approval_logs.level);
-                    } else {
-                        $('#detail_approver').text('-');
-                    }
+                    $('#detail_approver').text(approvalData.route_to);
                     
                     $('#detail_approval_date').text(formatDate(approvalData.updated_at));
-                    $('#detail_description').text(approvalData.description || '-');
-                    $('#detail_notes').text(approvalData.notes || 'No notes available');
+                    $('#detail_description').text(approvalData.reason_for_replacement || '-');
 
                     // Handle Items if available
                     if (approvalData.items && approvalData.items.length > 0) {

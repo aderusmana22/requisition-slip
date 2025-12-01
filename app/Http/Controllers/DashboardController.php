@@ -18,7 +18,7 @@ class DashboardController extends Controller
     {
         // Get available years from requisition table
         $availableYears = $this->getAvailableYears();
-        
+
         return view('dashboard', compact('availableYears'));
     }
 
@@ -77,12 +77,13 @@ class DashboardController extends Controller
 
         $query = Requisition::select(
             DB::raw('MONTH(request_date) as month'),
-            DB::raw("COUNT(CASE WHEN status IN ('Pending', 'In Progress', 'Approved', 'Completed', 'Rejected', 'Cancelled') THEN 1 ELSE NULL END) as created"),
+            DB::raw("COUNT(CASE WHEN status IN ('Pending', 'In Progress', 'Approved', 'Completed', 'Rejected', 'Cancelled', 'Recalled') THEN 1 ELSE NULL END) as created"),
             DB::raw("SUM(CASE WHEN status = 'Approved' THEN 1 ELSE 0 END) as approved"),
             DB::raw("SUM(CASE WHEN status = 'Pending' THEN 1 ELSE 0 END) as pending"),
             DB::raw("SUM(CASE WHEN status = 'In Progress' THEN 1 ELSE 0 END) as in_progress"),
             DB::raw("SUM(CASE WHEN status = 'Completed' THEN 1 ELSE 0 END) as completed"),
-            DB::raw("SUM(CASE WHEN status IN ('Rejected', 'Cancelled') THEN 1 ELSE 0 END) as rejected_cancelled")
+            DB::raw("SUM(CASE WHEN status IN ('Rejected', 'Cancelled') THEN 1 ELSE 0 END) as rejected"),
+            DB::raw("SUM(CASE WHEN status = 'Recalled' THEN 1 ELSE 0 END) as recalled")
         );
 
         if (!$user->hasRole('super-admin')) {
@@ -94,24 +95,25 @@ class DashboardController extends Controller
             ->orderBy(DB::raw('MONTH(request_date)'), 'ASC')
             ->get();
 
-        // [MODIFIKASI] Sesuaikan array untuk data chart
         $chartData = [
-            'created'            => array_fill(0, 12, 0),
-            'approved'           => array_fill(0, 12, 0),
-            'pending'            => array_fill(0, 12, 0),
-            'in_progress'        => array_fill(0, 12, 0),
-            'completed'          => array_fill(0, 12, 0),
-            'rejected_cancelled' => array_fill(0, 12, 0),
+            'created'     => array_fill(0, 12, 0),
+            'approved'    => array_fill(0, 12, 0),
+            'pending'     => array_fill(0, 12, 0),
+            'in_progress' => array_fill(0, 12, 0),
+            'completed'   => array_fill(0, 12, 0),
+            'rejected'    => array_fill(0, 12, 0),
+            'recalled'    => array_fill(0, 12, 0),
         ];
 
         foreach ($stats as $stat) {
             $monthIndex = $stat->month - 1;
-            $chartData['created'][$monthIndex]            = (int)$stat->created;
-            $chartData['approved'][$monthIndex]           = (int)$stat->approved;
-            $chartData['pending'][$monthIndex]            = (int)$stat->pending;
-            $chartData['in_progress'][$monthIndex]        = (int)$stat->in_progress;
-            $chartData['completed'][$monthIndex]          = (int)$stat->completed;
-            $chartData['rejected_cancelled'][$monthIndex] = (int)$stat->rejected_cancelled; // <-- Diubah
+            $chartData['created'][$monthIndex]     = (int)$stat->created;
+            $chartData['approved'][$monthIndex]    = (int)$stat->approved;
+            $chartData['pending'][$monthIndex]     = (int)$stat->pending;
+            $chartData['in_progress'][$monthIndex] = (int)$stat->in_progress;
+            $chartData['completed'][$monthIndex]   = (int)$stat->completed;
+            $chartData['rejected'][$monthIndex]    = (int)$stat->rejected;
+            $chartData['recalled'][$monthIndex]    = (int)$stat->recalled;
         }
 
         return response()->json($chartData);
@@ -164,7 +166,7 @@ class DashboardController extends Controller
 
         // [PERBAIKAN] Menggunakan 'customers.id as code' karena tidak ada kolom 'customer_code'
         $query->select(
-                'customers.name as name', 
+                'customers.name as name',
                 'customers.id as code', // <-- BARIS INI YANG DIPERBAIKI
                 DB::raw('COUNT(requisitions.id) as total')
             )

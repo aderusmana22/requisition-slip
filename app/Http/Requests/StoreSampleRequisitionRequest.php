@@ -57,7 +57,7 @@ class StoreSampleRequisitionRequest extends FormRequest
 
             'items'                         => 'required|array|min:1',
             'items.*.quantity_required'     => 'required|integer|min:1',
-            'items.*.quantity_issued'       => 'required|integer|min:0',
+            // 'items.*.quantity_issued'       => 'required|integer|min:0',
 
             'end_date'              => 'required_if:sub_category,Special Order|nullable|date',
             'weight_selection'      => 'required_if:sub_category,Special Order|nullable|string|max:255',

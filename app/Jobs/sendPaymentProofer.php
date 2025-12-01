@@ -14,17 +14,13 @@ class sendPaymentProofer implements ShouldQueue
 {
     use Queueable;
     protected Requisition $requisition;
-    protected $payment;
-    protected $emailType;
 
     /**
      * Create a new job instance.
      */
-    public function __construct(Requisition $requisition, $payment = null, $emailType = 'rejection_warning')
+    public function __construct(Requisition $requisition)
     {
         $this->requisition = $requisition;
-        $this->payment = $payment;
-        $this->emailType = $emailType;
     }
 
     /**
@@ -40,18 +36,9 @@ class sendPaymentProofer implements ShouldQueue
                 return;
             }
 
-            // menentukan jenis email
-            if ($this->payment === null && $this->emailType === 'rejection_warning') {
-                // Kirim email peringatan rejection
-                Log::info("Sending rejection warning email to: {$requester->email} for requisition: {$this->requisition->id}");
-                Mail::to($requester->email)->send(new paymentProoferMail($this->requisition, null, 'rejection_warning'));
-            } elseif ($this->payment !== null && $this->emailType === 'payment_confirmation') {
-                // Kirim email konfirmasi payment dengan attachment
-                Log::info("Sending payment confirmation email to: {$requester->email} for requisition: {$this->requisition->id}");
-                Mail::to($requester->email)->send(new paymentProoferMail($this->requisition, $this->payment, 'payment_confirmation'));
-            } else {
-                Log::warning("Invalid email type or payment combination for requisition: {$this->requisition->id}");
-            }
+            // Kirim email peringatan payment proof required
+            Log::info("Sending payment proof required email to: {$requester->email} for requisition: {$this->requisition->id}");
+            Mail::to($requester->email)->send(new paymentProoferMail($this->requisition));
             
         } catch (\Exception $e) {
             Log::error("Failed to send payment proofer email: " . $e->getMessage());

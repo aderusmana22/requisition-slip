@@ -840,18 +840,18 @@ body {
 }
 
 .bg-primary.status-badge-lg {
-    background: linear-gradient(135deg, #ac83f9 0%, #6629d9 100%) !important;
+    background: linear-gradient(135deg,  #e4b047 0%, #9d6400 100%) !important;
     border-color: rgba(23, 162, 184, 0.3) !important;
 }
 
 .bg-warning.status-badge-lg {
-    background: linear-gradient(135deg, #ff7b00 0%, #e68a00 100%) !important;
+    background: linear-gradient(135deg, #584D3C 0%, #9F956C 100%) !important;
     color: white !important;
     border-color: rgba(#2563eb) !important;
 }
 
 .bg-info.status-badge-lg {
-    background: linear-gradient(135deg, #2bcee7 0%, #138496 100%) !important;
+    background: linear-gradient(135deg, #50dbf1 0%, #0ba5bd 100%) !important;
     border-color: rgba(23, 162, 184, 0.3) !important;
 }
 
@@ -876,7 +876,7 @@ body {
 }
 
 .bg-info.route-to-badge-lg {
-    background: linear-gradient(135deg, #e4b047 0%, #9d6400 100%) !important;
+    background: linear-gradient(135deg, #b04b0c 0%, #fd721c 100%) !important;
     border-color: rgb(68, 90, 0) !important;
 }
 
@@ -1234,4 +1234,167 @@ STYLES MOVED FROM index.blade.php
 
 #select-all-checkbox {
     cursor: pointer;
+}
+
+/* ========================================
+   ATURAN WRAPPING TABEL
+   ======================================== */
+
+.dt-no-wrap {
+    white-space: nowrap;
+    vertical-align: middle; /* Jaga agar tetap di tengah secara vertikal */
+}
+
+.dt-wrap {
+    white-space: normal !important; /* Paksa wrapping */
+    word-wrap: break-word;         /* Pecah kata jika terlalu panjang */
+    vertical-align: middle;        /* Jaga agar tetap di tengah */
+    min-width: 150px;              /* Beri lebar minimum agar tidak terlalu sempit */
+}
+
+.dt-wrap .route-to-badge-lg {
+    white-space: normal; /* Izinkan teks di dalam badge untuk wrap */
+    height: auto;        /* Izinkan tinggi badge bertambah sesuai konten */
+    display: inline-block;
+    line-height: 1.4;    /* Atur jarak baris agar mudah dibaca */
+}
+
+/* ========================================
+   DARK MODE OVERRIDES
+   ======================================== */
+
+/* Mengasumsikan Anda menggunakan <html class="dark"> atau <body class="dark"> */
+.dark .main-table-container {
+    background: #1f2937; /* Latar belakang container utama (gelap) */
+    border-color: #374151; /* Border gelap */
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.dark .main-table-container:hover {
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+}
+
+/* 1. Perbaikan Header Tabel (Permintaan Anda #1) */
+.dark .table-title,
+.dark .table-subtitle {
+    color: #ffffff; /* Teks header jadi putih */
+}
+
+/* 2. Perbaikan Teks Filter, Info, dan Length (Permintaan Anda #2) */
+.dark .dataTables_filter label,
+.dark .dataTables_length label {
+    color: #d1d5db; /* Teks label "Search:" dan "Show..." */
+}
+
+.dark .dataTables_info {
+    color: #9ca3af; /* Teks "Showing 1 to 3..." */
+}
+
+/* 3. Perbaikan Input */
+.dark .dataTables_filter input,
+.dark .dataTables_length select {
+    background: #374151 !important; /* Latar belakang input gelap */
+    border-color: #4b5563 !important;
+    color: #ffffff !important; /* Teks di dalam input jadi putih */
+}
+
+.dark .dataTables_filter input:focus,
+.dark .dataTables_length select:focus {
+    background: #4b5563 !important; /* Latar belakang input saat fokus */
+    border-color: #3b82f6 !important; /* Border biru (sesuai tema) */
+}
+
+/* 4. Perbaikan Badan Tabel */
+.dark #sampleTable {
+    border-color: #374151 !important;
+}
+
+.dark #sampleTable tbody td {
+    color: #d1d5db; /* Teks di dalam tabel */
+    border-bottom-color: #374151 !important;
+}
+
+/* 5. Perbaikan Baris Ganjil-Genap */
+.dark #sampleTable tbody tr:nth-child(even) {
+    background: #374151 !important; /* Latar belakang baris genap */
+}
+
+.dark #sampleTable tbody tr:hover {
+    /* Hover dengan warna biru transparan (sesuai tema) */
+    background: linear-gradient(90deg, rgba(59, 130, 246, 0.2) 0%, rgba(56, 119, 230, 0.2) 100%) !important;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2) !important;
+}
+
+.dark #sampleTable tbody tr:nth-child(even):hover {
+    background: linear-gradient(90deg, rgba(59, 130, 246, 0.25) 0%, rgba(56, 119, 230, 0.25) 100%) !important;
+}
+
+/* 6. Perbaikan Paginasi */
+.dark .dataTables_paginate .paginate_button {
+    border-color: #374151 !important;
+    color: #d1d5db !important;
+    background: #374151 !important;
+}
+
+.dark .dataTables_paginate .paginate_button:hover {
+    background: #4b5563 !important;
+    border-color: #4b5563 !important;
+}
+
+/* Tombol "current" paginasi (biru) sudah oke, tidak perlu diubah */
+
+.dark .dataTables_paginate .paginate_button.disabled {
+    color: #5a6370 !important;
+    border-color: #2b333e !important;
+    background: #2b333e !important;
+}
+
+/* ========================================
+   DARK MODE OVERRIDES - SELECT2 FILTERS
+   ======================================== */
+
+/* 1. Mengubah teks label "Filter by:" */
+.dark .d-flex.align-items-center.gap-2 > .text-muted {
+    color: #d1d5db !important; /* Membuat teks "Filter by:" jadi terang */
+}
+
+/* 2. Mengubah kotak filter utama (sebelum diklik) */
+.dark .select2-container--bootstrap-5 .select2-selection {
+    background-color: #374151 !important; /* Latar belakang kotak filter */
+    border-color: #4b5563 !important;
+}
+
+/* 3. Mengubah teks di dalam kotak filter (cth: "All Sub Categories") */
+.dark .select2-container--bootstrap-5 .select2-selection-rendered {
+    color: #d1d5db !important; /* Teks jadi terang */
+}
+
+/* 4. Mengubah panah dropdown */
+.dark .select2-container--bootstrap-5 .select2-selection__arrow b {
+    border-color: #d1d5db transparent transparent transparent !important;
+}
+
+/* 5. (INI PERBAIKAN UTAMA) Mengubah menu dropdown yang muncul */
+.dark .select2-dropdown {
+    background-color: #1f2937; /* Latar belakang dropdown (gelap) */
+    border-color: #374151;
+}
+
+/* 6. (INI PERBAIKAN UTAMA) Mengubah teks opsi di dalam dropdown */
+.dark .select2-results__option {
+    color: #d1d5db; /* Teks opsi jadi terang */
+    background-color: #1f2937;
+}
+
+/* 7. Mengubah opsi yang di-highlight (saat mouse di atasnya) */
+.dark .select2-results__option--highlighted {
+    background-color: #3b82f6; /* Latar belakang highlight (biru) */
+    color: #ffffff; /* Teks jadi putih */
+}
+
+/* 8. Mengubah kotak search di dalam dropdown (jika ada) */
+.dark .select2-search--dropdown .select2-search__field {
+    background-color: #374151;
+    border-color: #4b5563;
+    color: #ffffff;
 }

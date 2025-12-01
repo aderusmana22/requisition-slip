@@ -246,7 +246,7 @@
             <div class="countdown-text">
                 <i class="fas fa-stopwatch"></i> 
                 Auto-close in 
-                <span class="countdown-number" id="countdown">10</span> 
+                <span class="countdown-number" id="countdown">5</span> 
                 sec
             </div>
             <button class="btn btn-cancel" onclick="cancelAutoClose()">
@@ -259,7 +259,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     
     <script>
-        let countdown = 10;
+        let countdown = 5;
         let countdownInterval;
         let autoCloseActive = true;
         

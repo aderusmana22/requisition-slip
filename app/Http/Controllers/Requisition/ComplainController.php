@@ -23,18 +23,20 @@ use App\Models\Requisition\Tracking;
 use App\Models\User;
 use App\Notifications\RequisitionNotification;
 use App\Traits\approvalTrait;
+use App\Traits\traitRequisition;
+use App\Traits\traitTracking;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;    
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-
+use App\Models\Master\Revision;
 use function Pest\Laravel\json;
 
 class ComplainController extends Controller
 {
-    use ApprovalTrait;
+    use traitRequisition, traitTracking;
 
     /**
      * Helper method to format datetime to Indonesian timezone
@@ -44,72 +46,16 @@ class ComplainController extends Controller
         if (!$datetime) {
             return 'Unknown';
         }
-        
+
         return Carbon::parse($datetime)->setTimezone('Asia/Jakarta')->format($format);
-    }
-
-    /**
-     * Generate warehouse tracking berdasarkan print_batch
-     */
-    private function generateWarehouseTracking($requisitionId, $printBatch)
-    {
-        if ($printBatch === true) {
-            // Jika print_batch true: WH Supervisor First -> Material Supervisor -> WH Supervisor Final
-            
-            // 1. WH Supervisor First
-            Tracking::create([
-                'requisition_id' => $requisitionId,
-                'current_position' => 'WH Supervisor First',
-                'last_updated' => null,
-                'notes' => null,
-                'token' => bin2hex(random_bytes(16)),
-            ]);
-
-            // 2. Material Supervisor
-            Tracking::create([
-                'requisition_id' => $requisitionId,
-                'current_position' => 'Material Supervisor',
-                'last_updated' => null,
-                'notes' => null,
-                'token' => bin2hex(random_bytes(16)),
-            ]);
-
-            // 3. WH Supervisor Final
-            Tracking::create([
-                'requisition_id' => $requisitionId,
-                'current_position' => 'WH Supervisor Final',
-                'last_updated' => null,
-                'notes' => null,
-                'token' => bin2hex(random_bytes(16)),
-            ]);
-
-            Log::info("Generated warehouse tracking for requisition {$requisitionId}", [
-                'print_batch' => true,
-                'tracking_count' => 3,
-                'sequence' => 'WH Supervisor First -> Material Supervisor -> WH Supervisor Final'
-            ]);
-        } else {
-            // Jika print_batch false: hanya WH Supervisor Final
-            Tracking::create([
-                'requisition_id' => $requisitionId,
-                'current_position' => 'WH Supervisor Final',
-                'last_updated' => null,
-                'notes' => 'Waiting for WH Supervisor final approval',
-                'token' => bin2hex(random_bytes(16)),
-            ]);
-
-            Log::info("Generated warehouse tracking for requisition {$requisitionId}", [
-                'print_batch' => false,
-                'tracking_count' => 1,
-                'sequence' => 'WH Supervisor Final only'
-            ]);
-        }
-
-        return true;
     }
 
     public function index()
     {
+        $user = Auth::user();
+        if(!$user->can('view requisition-form')){
+            abort(403);
+        }
         return view('page.complain.index');
     }
 
@@ -138,16 +84,16 @@ class ComplainController extends Controller
 
         // Debug log untuk print_batch dengan null safety
         Log::info('validasi dari print_batch', [
-            'value' => $validated['print_batch'] ?? 'null', 
+            'value' => $validated['print_batch'] ?? 'null',
             'type' => gettype($validated['print_batch'] ?? null),
             'boolean_conversion' => isset($validated['print_batch']) ? (bool) $validated['print_batch'] : false
         ]);
 
         try{
             $approvalLogs = [];
-            
+
             DB::transaction(function () use ($validated, $user, &$approvalLogs) {
-        
+
             $requisition = Requisition::create([
                 'requester_nik' => $user->nik,
                 'customer_id' => $validated['customer_id'],
@@ -169,8 +115,7 @@ class ComplainController extends Controller
                 throw new \Exception('Tidak ada approval path yang ditemukan untuk kategori Complain.');
             }
 
-            // Generate additional warehouse tracking berdasarkan print_batch
-            $this->generateWarehouseTracking($requisition->id, $requisition->print_batch);
+            $this->generateTrackingPath($requisition->id, 'Complain', null, $requisition->print_batch);
 
             // Convert generated logs ke format yang dibutuhkan untuk job dispatch
             foreach ($generatedLogs as $logData) {
@@ -180,7 +125,7 @@ class ComplainController extends Controller
                         ->where('approver_nik', $logData['approver_nik'])
                         ->where('level', $logData['level'])
                         ->first();
-                    
+
                     if ($approvalLog) {
                         $approvalLogs[] = [
                             'approval_log' => $approvalLog,
@@ -200,7 +145,7 @@ class ComplainController extends Controller
 
             $requisitionitems = [];
             $now = Carbon::now();
-    
+
             foreach ($validated['items'] as $itemMasterId => $masterData) {
                 foreach ($masterData['details'] as $itemDetailId => $detailData) {
                     $requisitionitems[] = [
@@ -228,10 +173,10 @@ class ComplainController extends Controller
                 foreach ($validated['complain_images'] as $image) {
                     // Generate unique filename
                     $fileName = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
-                    
+
                     // Store image in storage/app/public/complain_images
                     $imagePath = $image->storeAs('complain_images', $fileName, 'public');
-                    
+
                     // Save to database
                     ComplainImage::create([
                         'requisition_id' => $requisition->id,
@@ -260,7 +205,7 @@ class ComplainController extends Controller
             );
 
             // Kirim notifikasi ke approver
-            $approveWithReviewLink = route('approval.index');
+            $approveWithReviewLink = route('complain.approval');
 
             $notificationData = [
                 'requisition_id' => $firstApprover['requisition']->id,
@@ -277,10 +222,10 @@ class ComplainController extends Controller
             return response()->json(['message' => 'Form Requisition complain berhasil dibuat.'], 201);
         } catch (\Exception $e) {
             $errorMessage = $e->getMessage();
-        
+
             $statusCode = 500;
-            if (str_contains($errorMessage, 'tidak ditemukan') || 
-                str_contains($errorMessage, 'not found') || 
+            if (str_contains($errorMessage, 'tidak ditemukan') ||
+                str_contains($errorMessage, 'not found') ||
                 str_contains($errorMessage, 'kosong')) {
                 $statusCode = 400;
             }
@@ -393,10 +338,10 @@ class ComplainController extends Controller
     {
         try {
             $complain = Requisition::with([
-                'customer', 
+                'customer',
                 'requester',
-                'requisitionItems.itemMaster.ItemDetails', 
-                'approvalLogs.approver', 
+                'requisitionItems.itemMaster.ItemDetails',
+                'approvalLogs.approver',
                 'payments',
                 'complainImages',
                 'trackings' => function($query) {
@@ -424,7 +369,7 @@ class ComplainController extends Controller
                         'type' => 'approved',
                         'timestamp' => $log->approved_at ?? $log->updated_at,
                         'title' => 'Approved by ' . ($log->approver->name ?? 'Unknown'),
-                        'description' => 'Level ' . $log->level . ' approval completed' . 
+                        'description' => 'Level ' . $log->level . ' approval completed' .
                                        ($log->notes ? '. Notes: ' . $log->notes : ''),
                         'icon' => 'ph-check-circle',
                         'color' => 'success'
@@ -459,7 +404,7 @@ class ComplainController extends Controller
                         'type' => 'warehouse_processed',
                         'timestamp' => $tracking->last_updated ?? $tracking->updated_at,
                         'title' => $tracking->current_position . ' Completed',
-                        'description' => 'Warehouse process completed' . 
+                        'description' => 'Warehouse process completed' .
                                        ($tracking->notes ? '. Notes: ' . $tracking->notes : ''),
                         'icon' => 'ph-package',
                         'color' => 'info'
@@ -533,7 +478,7 @@ class ComplainController extends Controller
 
         // Cek apakah requisition ID ada terlebih dahulu
         $requisitionExists = ApprovalLog::where('requisition_id', $id)->exists();
-        
+
         // Jika requisition ID tidak ditemukan sama sekali
         if (!$requisitionExists) {
             return view('page.complain.links.approval-invalid', [
@@ -572,7 +517,7 @@ class ComplainController extends Controller
 
         // Jika approval log ditemukan tapi sudah diproses (bukan Pending)
         $requisition = Requisition::with('customer')->find($id);
-        
+
         return view('page.complain.links.approval-expired', compact('requisition', 'approvalLog'));
     }
 
@@ -609,7 +554,7 @@ class ComplainController extends Controller
                     throw new \Exception('Invalid or expired approval link.');
                 }
 
-                // Update status approval log 
+                // Update status approval log
                 if ($status === 'approve' || $status === 'approve_with_review') {
                     $approvalLog->status = 'Approved';
                 } else {
@@ -630,7 +575,7 @@ class ComplainController extends Controller
                     // simpan perubahan status requisition karna diapprove
                     $requisition->status = 'In Progress';
                     $requisition->save();
-                    
+
                     // Kirim notifikasi approval ke requester
                     $approver = User::where('nik', $approvalLog->approver_nik)->first();
                     $requester = User::where('nik', $requisition->requester_nik)->first();
@@ -639,36 +584,36 @@ class ComplainController extends Controller
                             'requisition_id' => $requisition->id,
                             'srs_number' => $requisition->no_srs,
                             'message' => "Requisition {$requisition->no_srs} telah di-approve oleh {$approver->name}",
-                            'url' => route('complain-form.show', $requisition->id)
+                            'url' => route('complain-form.index')
                         ];
                         $requester->notify(new RequisitionNotification($notificationData, $approver));
                     }
-                    
+
                     $this->mailOtherLevel($approvalLog->requisition_id, $approvalLog->level, $requisition->print_batch);
                 } else {
                     // Jika direject, langsung set status requisition ke Rejected
                     if (!$requisition) {
                         throw new \Exception('Requisition not found.');
                     }
-                
+
                     $requisition->status = 'Rejected';
                     $requisition->save();
 
                     $rejectedBy = User::where('nik', $approvalLog->approver_nik)->first();
                     $requester = User::where('nik', $requisition->requester_nik)->first();
-                    
+
                     if ($approvalLog->approver->hasRole('head-QA')) {
                         $requisition->status = 'payment proof';
                         $requisition->save();
-                        sendPaymentProofer::dispatch($requisition, null, 'rejection_warning');
-                        
+                        sendPaymentProofer::dispatch($requisition);
+
                         // Kirim notifikasi payment proof required ke requester
                         if ($rejectedBy && $requester) {
                             $notificationData = [
                                 'requisition_id' => $requisition->id,
                                 'srs_number' => $requisition->no_srs,
                                 'message' => "Requisition {$requisition->no_srs} memerlukan bukti pembayaran untuk proses ulang",
-                                'url' => route('complain-form.show', $requisition->id)
+                                'url' => route('complain-form.index')
                             ];
                             $requester->notify(new RequisitionNotification($notificationData, $rejectedBy));
                         }
@@ -681,10 +626,10 @@ class ComplainController extends Controller
 
                         foreach ($getApproverAfters as $approverAfter) {
                             $approverAfter->token = null;
-                            $approverAfter->status = 'Cancelled';
+                            $approverAfter->status = 'Rejected';
                             $approverAfter->save();
                         }
-                    
+
                         // Send rejection notification to requester
                         if ($rejectedBy) {
                             sendRejectionNotification::dispatch(
@@ -694,14 +639,14 @@ class ComplainController extends Controller
                                 'approval',
                                 now()
                             );
-                        
+
                             // Kirim notifikasi rejection ke requester
                             if ($requester) {
                                 $notificationData = [
                                     'requisition_id' => $requisition->id,
                                     'srs_number' => $requisition->no_srs,
                                     'message' => "Requisition {$requisition->no_srs} telah di-reject oleh {$rejectedBy->name}",
-                                    'url' => route('complain-form.show', $requisition->id)
+                                    'url' => route('complain-form.index')
                                 ];
                                 $requester->notify(new RequisitionNotification($notificationData, $rejectedBy));
                             }
@@ -733,7 +678,7 @@ class ComplainController extends Controller
 
         } catch (\Exception $e) {
             $errorMessage = $e->getMessage();
-            
+
             // Check if it's an AJAX request for error handling
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
@@ -742,7 +687,7 @@ class ComplainController extends Controller
                     'error' => 'approval_failed'
                 ], 400);
             }
-            
+
             // Untuk non-AJAX error, redirect ke halaman error dengan pesan
             if (str_contains($errorMessage, 'Invalid approval link') || str_contains($errorMessage, 'expired')) {
                 return view('page.complain.links.approval-invalid', [
@@ -755,7 +700,7 @@ class ComplainController extends Controller
                     'errorType' => 'not_found'
                 ]);
             }
-            
+
             return view('page.complain.links.approval-invalid', [
                 'message' => 'Terjadi kesalahan saat memproses approval.',
                 'errorType' => 'server_error'
@@ -792,7 +737,7 @@ class ComplainController extends Controller
                     throw new \Exception('Invalid or expired approval link.');
                 }
 
-                // Update status approval log 
+                // Update status approval log
                 $approvalLog->status = ($status === 'approve') ? 'Approved' : 'Rejected';
                 $approvalLog->notes = null;
                 $approvalLog->token = null;
@@ -809,7 +754,7 @@ class ComplainController extends Controller
                     // simpan perubahan status requisition karna diapprove
                     $requisition->status = 'In Progress';
                     $requisition->save();
-                    
+
                     // Kirim notifikasi approval ke requester
                     $approver = User::where('nik', $approvalLog->approver_nik)->first();
                     $requester = User::where('nik', $requisition->requester_nik)->first();
@@ -818,18 +763,18 @@ class ComplainController extends Controller
                             'requisition_id' => $requisition->id,
                             'srs_number' => $requisition->no_srs,
                             'message' => "Requisition {$requisition->no_srs} telah di-approve oleh {$approver->name}",
-                            'url' => route('complain-form.show', $requisition->id)
+                            'url' => route('complain-form.index')
                         ];
                         $requester->notify(new RequisitionNotification($notificationData, $approver));
                     }
-                    
+
                     $this->mailOtherLevel($approvalLog->requisition_id, $approvalLog->level, $requisition->print_batch);
                 } else {
-                
+
                     if (!$requisition) {
                         throw new \Exception('Requisition not found.');
                     }
-                
+
                     // Jika direject, langsung set status requisition ke Rejected
                     $requisition->status = 'Rejected';
                     $requisition->save();
@@ -840,15 +785,15 @@ class ComplainController extends Controller
                     if ($approvalLog->approver->hasRole('head-QA')) {
                         $requisition->status = 'payment proof';
                         $requisition->save();
-                        sendPaymentProofer::dispatch($requisition, null, 'rejection_warning');
-                        
+                        sendPaymentProofer::dispatch($requisition);
+
                         // Kirim notifikasi payment proof required ke requester
                         if ($rejectedBy && $requester) {
                             $notificationData = [
                                 'requisition_id' => $requisition->id,
                                 'srs_number' => $requisition->no_srs,
                                 'message' => "Requisition {$requisition->no_srs} memerlukan bukti pembayaran untuk proses ulang",
-                                'url' => route('complain-form.show', $requisition->id)
+                                'url' => route('complain-form.index')
                             ];
                             $requester->notify(new RequisitionNotification($notificationData, $rejectedBy));
                         }
@@ -858,31 +803,31 @@ class ComplainController extends Controller
                             ->where('level', '>', $approvalLog->level)
                             ->where('status', 'Pending')
                             ->get();
-                        
+
                         foreach ($getApproverAfters as $approverAfter) {
                             // Set token null untuk membatalkan approval selanjutnya
                             $approverAfter->token = null;
-                            $approverAfter->status = 'Cancelled';
+                            $approverAfter->status = 'Rejected';
                             $approverAfter->save();
                         }
-                    
+
                         // Send rejection notification to requester
                         if ($rejectedBy) {
                             sendRejectionNotification::dispatch(
-                                $requisition, 
-                                $rejectedBy, 
-                                null, 
+                                $requisition,
+                                $rejectedBy,
+                                null,
                                 'approval',
                                 now()
                             );
-                            
+
                             // Kirim notifikasi rejection ke requester
                             if ($requester) {
                                 $notificationData = [
                                     'requisition_id' => $requisition->id,
                                     'srs_number' => $requisition->no_srs,
                                     'message' => "Requisition {$requisition->no_srs} telah di-reject oleh {$rejectedBy->name}",
-                                    'url' => route('complain-form.show', $requisition->id)
+                                    'url' => route('complain-form.index')
                                 ];
                                 $requester->notify(new RequisitionNotification($notificationData, $rejectedBy));
                             }
@@ -904,10 +849,10 @@ class ComplainController extends Controller
 
         } catch (\Exception $e) {
             $errorMessage = $e->getMessage();
-            
+
             // Untuk semua error, tampilkan halaman error yang sesuai
             if (str_contains($errorMessage, 'Invalid approval link') || str_contains($errorMessage, 'expired')) {
-                return view('page.complain.links.approval-invalid', [
+                return view('page.complain.links.approval-expired', [
                     'message' => $errorMessage,
                     'errorType' => 'token_expired'
                 ]);
@@ -917,7 +862,7 @@ class ComplainController extends Controller
                     'errorType' => 'not_found'
                 ]);
             }
-            
+
             return view('page.complain.links.approval-invalid', [
                 'message' => 'Terjadi kesalahan saat memproses approval.',
                 'errorType' => 'server_error'
@@ -1001,11 +946,11 @@ class ComplainController extends Controller
                     if ($requisition) {
                         $requisition->route_to = $approver->name;
                         $requisition->save();
-                        
+
                         sendMailComplain::dispatch($approver, $requisition, $nextApprovalLog);
-                        
+
                         // Kirim notifikasi ke approver level berikutnya
-                        $approveWithReviewLink = route('approval.index');
+                        $approveWithReviewLink = route('complain.approval');
 
                         $notificationData = [
                             'requisition_id' => $requisition->id,
@@ -1018,7 +963,7 @@ class ComplainController extends Controller
                         if ($causer) {
                             $approver->notify(new RequisitionNotification($notificationData, $causer));
                         }
-                        
+
                         Log::info("Email approval dikirim ke level {$nextApprovalLog->level} - {$approver->name}");
                         return true;
                     }
@@ -1047,30 +992,26 @@ class ComplainController extends Controller
                 return false;
             }
 
-            // Ambil semua tracking untuk requisition ini, urutkan berdasarkan ID (urutan insert)
-            $trackings = Tracking::where('requisition_id', $requisitionId)
+            // Ambil tracking pertama yang belum diproses (masih punya token)
+            $currentTracking = Tracking::where('requisition_id', $requisitionId)
                 ->whereNotNull('token')
                 ->orderBy('id', 'asc')
-                ->get();
+                ->first();
 
-            if ($trackings->isEmpty()) {
-                Log::warning("No warehouse tracking found for requisition {$requisitionId}");
-                return false;
-            }
-
-            // Cari tracking pertama yang belum diproses
-            $currentTracking = $trackings->whereNotNull('token')->first();
+            Log::info("Processing warehouse tracking for requisition {$requisitionId}", [
+                'current_tracking_id' => $currentTracking ?? null
+            ]);
 
             if (!$currentTracking) {
                 Log::info("All warehouse tracking completed for requisition {$requisitionId}");
-                return true;
+                return true; // Semua tracking sudah selesai
             }
 
-            // Tentukan approver berdasarkan current_position
-            $approver = $this->getApproverByPosition($currentTracking->current_position);
-            
+            // Ambil approver langsung dari data NIK yang ada di tabel tracking
+            $approver = User::where('nik', $currentTracking->approver_nik)->first();
+
             if (!$approver) {
-                Log::error("No approver found for position: {$currentTracking->current_position}");
+                Log::error("Approver with NIK {$currentTracking->approver_nik} not found for tracking ID: {$currentTracking->id}");
                 return false;
             }
 
@@ -1083,7 +1024,8 @@ class ComplainController extends Controller
 
             Log::info("Warehouse email sent for requisition {$requisitionId}", [
                 'position' => $currentTracking->current_position,
-                'approver' => $approver->name,
+                'approver_nik' => $currentTracking->approver_nik,
+                'approver_name' => $approver->name,
                 'tracking_id' => $currentTracking->id
             ]);
 
@@ -1103,27 +1045,8 @@ class ComplainController extends Controller
      */
     private function getApproverByPosition($position)
     {
-        try {
-            switch ($position) {
-                case 'WH Supervisor First':
-                case 'WH Supervisor Final':
-                    // Ambil user dengan role wh-supervisor yang pertama
-                    return User::role('wh-supervisor')->first();
-                    
-                case 'Material Supervisor':
-                    // Ambil user dengan role material-supervisor yang pertama
-                    return User::role('material-supervisor')->first();
-                    
-                default:
-                    Log::warning("Unknown position in tracking: {$position}");
-                    return null;
-            }
-        } catch (\Exception $e) {
-            Log::error("Error getting approver by position: " . $e->getMessage(), [
-                'position' => $position
-            ]);
-            return null;
-        }
+        // This function is no longer needed as the logic is now handled in processWarehouseTracking
+        return null;
     }
 
     /**
@@ -1220,7 +1143,7 @@ class ComplainController extends Controller
             if ($nextTracking) {
                 // Masih ada tracking berikutnya, lanjutkan ke level berikutnya
                 $this->processWarehouseTracking($tracking->requisition_id);
-                
+
                 Log::info("Warehouse tracking approved, proceeding to next level", [
                     'tracking_id' => $tracking->id,
                     'next_tracking_id' => $nextTracking->id,
@@ -1239,7 +1162,7 @@ class ComplainController extends Controller
                         $completedBy,
                         now()
                     );
-                    
+
                     // Kirim notifikasi completion ke requester
                     $requester = User::where('nik', $requisition->requester_nik)->first();
                     if ($requester) {
@@ -1247,7 +1170,7 @@ class ComplainController extends Controller
                             'requisition_id' => $requisition->id,
                             'srs_number' => $requisition->no_srs,
                             'message' => "Requisition {$requisition->no_srs} telah selesai diproses - Status: Completed",
-                            'url' => route('complain-form.show', $requisition->id)
+                            'url' => route('complain-form.index')
                         ];
                         $requester->notify(new RequisitionNotification($notificationData, $completedBy));
                     }
@@ -1265,7 +1188,7 @@ class ComplainController extends Controller
                     ->performedOn($requisition)
                     ->event('warehouse approval')
                     ->withProperties([
-                        'ip' => request()->ip(), 
+                        'ip' => request()->ip(),
                         'user_agent' => request()->userAgent(),
                         'complain' => true,
                         'warehouse_position' => $tracking->current_position,
@@ -1301,7 +1224,7 @@ class ComplainController extends Controller
 
             // Update tracking - selalu approve dalam validasi form
             $tracking->notes = $notes ?? 'Approved via review form';
-            
+
             // Invalidate token untuk menandai tracking sudah selesai
             $tracking->token = null;
             $tracking->save();
@@ -1331,7 +1254,7 @@ class ComplainController extends Controller
                         $completedBy,
                         now()
                     );
-                    
+
                     // Kirim notifikasi completion ke requester
                     $requester = User::where('nik', $requisition->requester_nik)->first();
                     if ($requester) {
@@ -1339,7 +1262,7 @@ class ComplainController extends Controller
                             'requisition_id' => $requisition->id,
                             'srs_number' => $requisition->no_srs,
                             'message' => "Requisition {$requisition->no_srs} telah selesai diproses - Status: Completed",
-                            'url' => route('complain-form.show', $requisition->id)
+                            'url' => route('complain-form.index')
                         ];
                         $requester->notify(new RequisitionNotification($notificationData, $completedBy));
                     }
@@ -1355,7 +1278,7 @@ class ComplainController extends Controller
                     ->performedOn($requisition)
                     ->event('warehouse approval')
                     ->withProperties([
-                        'ip' => request()->ip(), 
+                        'ip' => request()->ip(),
                         'user_agent' => request()->userAgent(),
                         'warehouse_position' => $tracking->current_position,
                         'requisition_no' => $requisition->no_srs,
@@ -1390,12 +1313,12 @@ class ComplainController extends Controller
     {
         try {
             Log::info("Testing warehouse tracking for requisition: {$requisitionId}");
-            
+
             // Test apakah ada tracking untuk requisition ini
             $trackings = Tracking::where('requisition_id', $requisitionId)
                 ->orderBy('id', 'asc')
                 ->get();
-                
+
             if ($trackings->isEmpty()) {
                 return response()->json([
                     'status' => 'error',
@@ -1403,17 +1326,17 @@ class ComplainController extends Controller
                     'requisition_id' => $requisitionId
                 ]);
             }
-            
+
             // Test process warehouse tracking
             $result = $this->processWarehouseTracking($requisitionId);
-            
+
             return response()->json([
                 'status' => $result ? 'success' : 'error',
                 'message' => $result ? 'Warehouse tracking processed successfully' : 'Failed to process warehouse tracking',
                 'trackings' => $trackings,
                 'requisition_id' => $requisitionId
             ]);
-            
+
         } catch (\Exception $e) {
             Log::error('Error testing warehouse tracking: ' . $e->getMessage());
             return response()->json([
@@ -1453,6 +1376,15 @@ class ComplainController extends Controller
                 $requisition->status = 'In Progress';
                 $requisition->save();
 
+                // current level
+                $currentLevel = $requisition->approvalLogs()
+                    ->where('status', 'Rejected')
+                    ->orderBy('level', 'desc')
+                    ->whereNull('token')
+                    ->value('level');
+
+                Log::info("currentLevel after payment proof upload: " . $currentLevel);
+
                 // Log activity
                 $user = Auth::user();
                 if ($user) {
@@ -1466,8 +1398,8 @@ class ComplainController extends Controller
                 }
 
                 // Send payment confirmation email with attachment
-                $this->mailOtherLevel($validated['complain_id'], 1, false);
-                
+                $this->mailOtherLevel($validated['complain_id'], $currentLevel, false);
+
                 // Kirim notifikasi payment proof uploaded
                 $requester = User::where('nik', $requisition->requester_nik)->first();
                 if ($user && $requester) {
@@ -1475,7 +1407,7 @@ class ComplainController extends Controller
                         'requisition_id' => $requisition->id,
                         'srs_number' => $requisition->no_srs,
                         'message' => "Bukti pembayaran untuk requisition {$requisition->no_srs} telah berhasil diupload",
-                        'url' => route('complain-form.show', $requisition->id)
+                        'url' => route('complain-form.index')
                     ];
                     $requester->notify(new RequisitionNotification($notificationData, $user));
                 }
@@ -1487,15 +1419,15 @@ class ComplainController extends Controller
 
         } catch (\Exception $e) {
             Log::error('Failed to upload payment proof: ' . $e->getMessage());
-            
+
             $errorMessage = $e->getMessage();
             $statusCode = 500;
-            
-            if (str_contains($errorMessage, 'does not require payment proof') || 
+
+            if (str_contains($errorMessage, 'does not require payment proof') ||
                 str_contains($errorMessage, 'Invalid complain ID')) {
                 $statusCode = 400;
             }
-            
+
             return response()->json(['message' => $errorMessage], $statusCode);
         }
     }
@@ -1521,8 +1453,12 @@ class ComplainController extends Controller
             return redirect()->back()->with('error', 'Tidak ada data yang dipilih untuk dicetak.');
         }
 
+        // Ambil data revision pertama (atau bisa disesuaikan dengan kebutuhan)
+        $revision = Revision::first();
+
         $pdf = Pdf::loadView('page.complain.reports.report-template', [
-            'requisitions' => $requisitions
+            'requisitions' => $requisitions,
+            'revision' => $revision
         ])->setPaper('a4', 'landscape');
 
         return $pdf->stream('Bulk-RS-Complain-' . now()->format('Y-m-d') . '.pdf');
@@ -1530,6 +1466,10 @@ class ComplainController extends Controller
 
     public function reports()
     {
+        $user = Auth::user();
+        if(!$user->can('view report')){
+            abort(403);
+        }
         return view('page.complain.reports.report');
     }
 }

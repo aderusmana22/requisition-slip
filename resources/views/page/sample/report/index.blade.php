@@ -449,6 +449,13 @@
             });
         }
 
+        function formatStepName(name) {
+            if (!name) return 'Unknown';
+            return name
+                .replace(/-/g, ' ') // Ganti 'wh-supervisor' -> 'wh supervisor'
+                .replace(/\b\w/g, char => char.toUpperCase()); // Ubah -> 'Wh Supervisor'
+        }
+
         $(document).ready(function () {
             $('#dateFilter').select2({
                 width: 'style',
@@ -773,7 +780,7 @@
             });
 
             function populateViewForm(data) {
-                // --- (Bagian atas fungsi yang mengisi detail tidak berubah) ---
+                // --- (Bagian atas fungsi yang mengisi detail dasar tidak berubah) ---
                 $('#view_sub_category').text(data.sub_category || '-');
                 $('#view_customer_name').text(data.customer ? data.customer.name : '-');
                 $('#view_customer_address').text(data.customer ? data.customer.address : '-');
@@ -809,6 +816,8 @@
                     const colspan = isPackaging ? 6 : 5;
                     viewItemTbody.html(`<tr><td colspan="${colspan}" class="text-center">No items have been added.</td></tr>`);
                 }
+
+                // --- Special Order & QA Section ---
                 const specialOrderSection = $('#view-special-order-section');
                 const qaSection = $('#view-qa-section');
                 if (data.sub_category === 'Special Order' && data.requisition_special) {
@@ -834,19 +843,23 @@
                     specialOrderSection.hide();
                     qaSection.hide();
                 }
+
+                // --- Status Badge ---
                 const status = data.status;
                 let badgeClass = 'bg-secondary';
                 if (['Submitted', 'Pending'].includes(status)) badgeClass = 'bg-primary';
                 else if (status.includes('Approved') || status === 'Completed') badgeClass = 'bg-success';
                 else if (['Rejected', 'Recalled'].includes(status)) badgeClass = 'bg-danger';
-                else if (status === 'Processing' || status === 'In Progress') badgeClass = 'bg-warning text-dark';
+                else if (status === 'Processing' || status === 'In Progress') badgeClass = 'bg-info';
                 $('#view_status_badge').html(`<span class="badge fs-6 rounded-pill ${badgeClass}">${status}</span>`);
 
+                // --- [UPDATED] TRACKER LOGIC ---
                 const trackerContainer = $('#approval-tracker-container');
                 trackerContainer.empty();
 
                 let steps = [{ id: 'submitted', label: 'Request Submit', icon: 'ph-file-arrow-up' }];
 
+                // 1. Approval Steps
                 if (data.sequence_approvers) {
                     data.sequence_approvers.forEach((role, index) => {
                         const level = index + 1;
@@ -855,23 +868,34 @@
                     });
                 }
 
+                let trackingSteps = []; // Variabel untuk menyimpan ID step tracking
+
+                // 2. Tracking Steps (Dynamic)
+                if (data.sequence_tracking && data.status !== 'Rejected' && data.status !== 'Recalled') {
+                    data.sequence_tracking.forEach((stepName, index) => {
+                        let icon = 'ph-package'; // Icon default
+                        const stepNameLower = stepName.toLowerCase();
+
+                        // Coba buat icon lebih relevan
+                        if (stepNameLower.includes('material')) icon = 'ph-printer';
+                        if (stepNameLower.includes('outward')) icon = 'ph-truck';
+                        if (stepNameLower.includes('qa') || stepNameLower.includes('qm')) icon = 'ph-clipboard-text';
+
+                        // Buat stepId unik berdasarkan index
+                        const stepId = `tracking_${index}`; // cth: tracking_0, tracking_1
+
+                        // [PERBAIKAN] Gunakan formatStepName untuk label
+                        steps.push({ id: stepId, label: formatStepName(stepName), icon: icon });
+                        trackingSteps.push(stepId); // Simpan ID untuk pemetaan nanti
+                    });
+                }
+
+                // 3. Completed Step
                 if (data.status !== 'Rejected' && data.status !== 'Recalled') {
-                    if (data.sub_category === 'Packaging') {
-                        if (data.print_batch == 1) {
-                            steps.push({ id: 'inward_initial', label: 'Inward (Initial)', icon: 'ph-package' });
-                            steps.push({ id: 'material', label: 'Material Support', icon: 'ph-printer' });
-                            steps.push({ id: 'inward_final', label: 'Inward (Final)', icon: 'ph-package' });
-                        } else {
-                            steps.push({ id: 'inward_final', label: 'Inward Check', icon: 'ph-package' });
-                        }
-                    } else if (data.sub_category === 'Finished Goods') {
-                        steps.push({ id: 'outward', label: 'Outward', icon: 'ph-truck' });
-                    } else if (data.sub_category === 'Special Order') {
-                        steps.push({ id: 'qa_form', label: 'QA/QM Form', icon: 'ph-clipboard-text' });
-                    }
                     steps.push({ id: 'completed', label: 'Completed', icon: 'ph-check-circle' });
                 }
 
+                // Render Steps HTML
                 let trackerHtml = '<div class="tracker-line"><div class="tracker-line-progress" id="tracker-progress"></div></div>';
                 steps.forEach(step => {
                     trackerHtml += `<div class="tracker-step" data-step-id="${step.id}"><div class="tracker-icon"><i class="ph-bold ${step.icon} fs-6"></i></div><div class="tracker-label">${step.label}</div><div class="tracker-details"></div></div>`;
@@ -881,6 +905,7 @@
                 let lastCompletedIndex = -1;
                 const isRejected = ['Rejected', 'Recalled'].includes(data.status);
 
+                // Populate Submitted Step
                 if (data.requester && data.created_at) {
                     const submittedStep = $(`.tracker-step[data-step-id="submitted"]`);
                     const creationDate = new Date(data.created_at).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).replace(',', '');
@@ -888,6 +913,7 @@
                     lastCompletedIndex = 0;
                 }
 
+                // Populate Approval Steps
                 if (data.approval_logs) {
                     data.approval_logs.forEach(log => {
                         const stepElement = $(`.tracker-step[data-step-id="approver_${log.level}"]`);
@@ -905,23 +931,28 @@
                     });
                 }
 
+                // Populate Tracking Steps (Dynamic)
                 if (data.trackings && data.trackings.length > 0) {
-                    const positionToStepId = {
-                        'Inward WH Supervisor (Initial Check)': 'inward_initial',
-                        'Material Support Supervisor': 'material',
-                        'Inward WH Supervisor (Final Check)': 'inward_final',
-                        'Outward WH Supervisor': 'outward',
-                        'Waiting for QA/QM Form': 'qa_form'
-                    };
-                    data.trackings.forEach(tracking => {
-                        // [FIX 1] Hanya proses tracking jika tanggalnya valid (bukan 1970)
+                    data.trackings.forEach((tracking, index) => {
+                        // Hanya proses tracking jika tanggalnya valid
                         if (tracking.last_updated && new Date(tracking.last_updated).getFullYear() > 1970) {
-                            const stepId = positionToStepId[tracking.current_position];
+
+                            // Ambil stepId dari array trackingSteps berdasarkan index
+                            const stepId = trackingSteps[index];
+
                             if (stepId) {
                                 const stepElement = $(`.tracker-step[data-step-id="${stepId}"]`);
-                                const userName = (stepId === 'qa_form') ? 'QA/QM HSE Team' : tracking.current_position;
+                                const stepLabel = stepElement.find('.tracker-label').text(); // Ambil nama role dari label
+
+                                // Tentukan nama user
+                                let userName = tracking.current_position; // Ini adalah Nama User
+                                if (stepLabel.toLowerCase().includes('qa') || stepLabel.toLowerCase().includes('qm')) {
+                                    userName = 'QA/QM HSE Team';
+                                }
+
                                 const completionDate = new Date(tracking.last_updated).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).replace(',', '');
                                 stepElement.addClass('completed').find('.tracker-details').html(`<div class="tracker-user text-primary">${userName}</div><div class="tracker-date text-dark">${completionDate}</div>`);
+
                                 const stepIndex = steps.findIndex(s => s.id === stepId);
                                 lastCompletedIndex = Math.max(lastCompletedIndex, stepIndex);
                             }
@@ -929,6 +960,7 @@
                     });
                 }
 
+                // Populate Final Steps
                 if (data.status === 'Completed') {
                     const completedStep = $(`.tracker-step[data-step-id="completed"]`);
                     const completionDate = new Date(data.updated_at).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).replace(',', '');
@@ -945,7 +977,6 @@
                         const activeStepElement = trackerContainer.find('.tracker-step').eq(nextStepIndex);
                         activeStepElement.addClass('active');
 
-                        // [FIX 2] Mengubah teks pada langkah aktif agar lebih informatif
                         if (data.route_to) {
                             activeStepElement.find('.tracker-details').html(
                                 `<div class="tracker-user" style="color: #ffc107; font-weight: 500;">
@@ -962,7 +993,7 @@
                     $('#tracker-progress').css('width', progressPercentage + '%');
                 }
 
-                // --- (Bagian history log tidak berubah) ---
+                // --- (Bagian History Log - Tidak Perlu Diubah) ---
                 const historyContainer = $('#history-log-container');
                 historyContainer.empty();
                 if (data.history && data.history.length > 0) {
@@ -971,7 +1002,7 @@
                         const action = log.action.toLowerCase();
                         if (action.includes('approved not review')) { badgeClass = 'badge-approved'; avatarClass = 'avatar-approved'; }
                         else if (action.includes('approved with review')) { badgeClass = 'badge-review'; avatarClass = 'avatar-review'; }
-                        else if (action.includes('rejected') || action.includes('Recalled')) { badgeClass = 'badge-rejected'; avatarClass = 'avatar-rejected'; }
+                        else if (action.includes('rejected') || action.includes('recalled')) { badgeClass = 'badge-rejected'; avatarClass = 'avatar-rejected'; }
                         else if (action.includes('completed step')) { badgeClass = 'badge-process'; avatarClass = 'avatar-process'; }
                         let avatarHtml = '', actorInitial = log.actor ? log.actor.charAt(0).toUpperCase() : '?';
                         if (log.avatar) {

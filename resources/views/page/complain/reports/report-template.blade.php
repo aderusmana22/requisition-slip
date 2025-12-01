@@ -277,15 +277,15 @@
                                 <table class="bordered" style="width: 100%;">
                                     <tr>
                                         <td><strong>FORM NO.:</strong></td>
-                                        <td>FA-INV-05</td>
+                                        <td>{{ $revision ? $revision->revision_count : '-' }}</td>
                                     </tr>
                                     <tr>
                                         <td><strong>REVISION:</strong></td>
-                                        <td>3</td>
+                                        <td>{{ $revision ? $revision->revision_number : '-' }}</td>
                                     </tr>
                                     <tr>
                                         <td><strong>DATE:</strong></td>
-                                        <td>19 FEBRUARY 2021</td>
+                                        <td>{{ $revision ? $revision->revision_date : '-' }}</td>
                                     </tr>
                                 </table>
                             </td>

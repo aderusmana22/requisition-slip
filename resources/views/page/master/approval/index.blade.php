@@ -4,7 +4,7 @@
     @endsection
 
     {{-- Include Complaint Table Styles Component --}}
-    @include('components.complaint-table-styles')
+    @include('components.master-table-styles')
 
     <div class="row m-1">
         <div class="col-12 ">
@@ -78,29 +78,29 @@
 
     <!-- modal create approver -->
     <div class="modal fade" id="ApproverModal" aria-hidden="true" tabindex="-1">
-        <div class="modal-dialog modal-dialog-scrollable modal-lg">
-            <div class="modal-content">
-                <div class="modal-header-enhanced d-flex align-items-center justify-content-between">
-                    <h5 class="modal-title-enhanced mb-0" id="ApproverModalLabel">
-                        <i class="ph-duotone ph-user-plus"></i>
-                        Create Approver
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 15px; overflow: hidden;">
+                <div class="modal-header-enhanced p-4 d-flex justify-content-between align-items-center"
+                     style="background: linear-gradient(135deg, #584D3C 0%, #9F956C 100%); color: white;">
+                    <h5 class="modal-title fw-bold d-flex align-items-center" id="ApproverModalLabel" style="font-size: 1.25rem;">
+                        <i class="ph ph-user-plus me-2" style="font-size: 1.5rem;"></i>
+                        <span>Create Approver</span>
                     </h5>
-                    <button type="button" class="btn-close btn-close-white fs-5" data-bs-dismiss="modal"
-                        aria-label="Close"></button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body modal-body-enhanced">
-                    <form action="#" method="POST" data-mode="create" id="ApproverForm">
-                        @csrf
 
+                <form action="#" method="POST" data-mode="create" id="ApproverForm">
+                    @csrf
+                    <div class="modal-body p-4">
                         <div class="mb-3">
-                            <label for="category_id" class="form-label">Category</label>
+                            <label for="category_id" class="form-label fw-bold text-secondary">Category</label>
                             <select class="form-select" id="category_id" name="category_id" required>
                             </select>
                             <div class="invalid-feedback" data-error-for="category_id"></div>
                         </div>
 
                         <div class="mb-3">
-                            <label for="sub_category_id" class="form-label">Sub Category</label>
+                            <label for="sub_category_id" class="form-label fw-bold text-secondary">Sub Category</label>
                             <select class="form-select" id="sub_category_id" name="sub_category_id">
                             </select>
                             <input type="hidden" name="sub_category_id" id="hidden_sub_category_id" disabled>
@@ -108,20 +108,19 @@
                         </div>
 
                         <div class="mb-3">
-                            <label for="approvers" class="form-label">Approver Sequence</label>
+                            <label for="approvers" class="form-label fw-bold text-secondary">Approver Sequence</label>
                             <select class="form-select" id="approvers" name="approvers[]" multiple="multiple" required>
                             </select>
                             <div class="invalid-feedback" data-error-for="approvers"></div>
                         </div>
-
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button class="btn btn-secondary" type="submit" id="saveApproverBtn" form="ApproverForm">
-                        Save Changes
-                    </button>
-                    <button class="btn btn-danger" data-bs-dismiss="modal" type="button">Close</button>
-                </div>
+                    </div>
+                    <div class="modal-footer border-0 px-4 pb-4">
+                        <button class="btn btn-light text-secondary fw-bold px-4" data-bs-dismiss="modal" type="button">Close</button>
+                        <button class="btn btn-primary-custom px-4 shadow-sm" type="submit" id="saveApproverBtn" form="ApproverForm">
+                            <i class="ph ph-floppy-disk me-2"></i> Save Changes
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -222,7 +221,7 @@
                     approversSelect.prop('disabled', false);
                 } else if (selectedCategory === 'Sample') {
                     subCategorySelect.prop('disabled', false); // Aktifkan sub-category
-                    
+
                     const subCategoryData = allSubCategories.map(subCat => {
                         const pathExists = existingPaths.some(path =>
                             path.category === selectedCategory && path.sub_category === subCat.value
@@ -243,7 +242,7 @@
             $('#sub_category_id').on('change', function() {
                 let selectedSubCategory = $(this).val();
                 let approversSelect = $('#approvers');
-                
+
                 // Aktifkan approver hanya jika sub-category sudah dipilih
                 if (selectedSubCategory) {
                     approversSelect.prop('disabled', false);
@@ -342,10 +341,10 @@
                     data: 'sub_category',
                     name: 'sub_category',
                     render: function (data, type, row) {
-                        return data ? 
+                        return data ?
                             `<span class="badge bg-info-subtle text-info rounded-2 px-2 py-1" style="font-size:1rem;">
                                 <i class="ph-duotone ph-tag me-1" style="font-size:1.05rem;"></i>${data}
-                             </span>` : 
+                             </span>` :
                             `<span class="badge bg-light-subtle text-secondary rounded-2 px-2 py-1" style="font-size:1rem;">
                                 <i class="ph-duotone ph-minus-circle me-1" style="font-size:1.05rem;"></i>Non Sub-category
                              </span>`;
@@ -405,7 +404,7 @@
                 // [MODIFIKASI] Atur state awal saat modal create dibuka
                 $('#sub_category_id').prop('disabled', true);
                 $('#approvers').prop('disabled', true);
-                
+
                 $('#ApproverModalLabel').html('<i class="ph-duotone ph-user-plus"></i> Create New Approver');
                 $('#ApproverModal').modal('show');
             });
@@ -424,13 +423,13 @@
                         method: 'GET',
                         success: function (data) {
                             resetFormState();
-                            
+
                             $('#ApproverForm').attr('data-mode', 'edit');
                             $('#ApproverForm').attr('action', updateUrl);
-                            
+
                             $('#category_id').val(data.category_id).trigger('change').prop('disabled', true);
                             $('#sub_category_id').val(data.sub_category_id).trigger('change').prop('disabled', true);
-                            
+
                             // [MODIFIKASI] Pastikan field approver SELALU aktif saat mode edit
                             $('#approvers').prop('disabled', false).val(data.approver_user_ids).trigger('change');
 
@@ -477,10 +476,10 @@
                 form[0].reset();
                 form.find('.is-invalid').removeClass('is-invalid');
                 form.find('.invalid-feedback').text('');
-                
+
                 // Aktifkan kembali field yang mungkin di-disable saat edit
                 $('#category_id, #sub_category_id').prop('disabled', false);
-                
+
                 // Reset dan disable field secara berurutan
                 $('#category_id').val(null).trigger('change');
                 $('#sub_category_id').val(null).trigger('change').prop('disabled', true);
@@ -516,7 +515,7 @@
                         if (mode === 'create') {
                             const newCategory = formData.get('category_id');
                             const newSubCategory = formData.get('sub_category_id');
-                            
+
                             // Tambahkan path baru ke array di sisi klien
                             existingPaths.push({
                                 category: newCategory,

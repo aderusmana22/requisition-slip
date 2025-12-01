@@ -12,6 +12,7 @@ class Tracking extends Model
     protected $fillable = [
         'requisition_id',
         'current_position',
+        'approver_nik',
         'last_updated',
         'notes',
         'token',

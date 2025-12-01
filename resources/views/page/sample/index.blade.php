@@ -291,7 +291,7 @@
                                                 <th>Item Name</th>
                                                 <th>Unit</th>
                                                 <th style="width: 15%;">Qty Required</th>
-                                                <th style="width: 15%;">Qty Issued</th>
+                                                <!-- <th style="width: 15%;">Qty Issued</th> -->
                                             </tr>
                                         </thead>
                                         <tbody id="requisition-items-tbody">
@@ -754,6 +754,13 @@
             });
         }
 
+        function formatStepName(name) {
+            if (!name) return 'Unknown';
+            return name
+                .replace(/-/g, ' ')
+                .replace(/\b\w/g, char => char.toUpperCase());
+        }
+
         $(document).ready(function () {
             let isPopulatingForm = false;
             const userDepartmentName = @json($userDepartmentName ?? '');
@@ -834,41 +841,49 @@
                         orderable: false,
                         searchable: false,
                         width: '20px',
-                        className: 'text-center'
+                        className: 'text-center dt-no-wrap'
                     },
                     {
                         data: 'no_srs',
-                        name: 'requisitions.no_srs'
+                        name: 'requisitions.no_srs',
+                        className: 'dt-no-wrap'
                     },
                     {
                         data: 'requester_info',
-                        name: 'users.name'
+                        name: 'users.name',
+                        className: 'dt-no-wrap'
                     },
                     {
                         data: 'customer_name',
-                        name: 'customers.name'
+                        name: 'customers.name',
+                        className: 'dt-wrap'
                     },
                     {
                         data: 'request_date',
-                        name: 'requisitions.request_date'
+                        name: 'requisitions.request_date',
+                        className: 'dt-no-wrap'
                     },
                     {
                         data: 'sub_category',
-                        name: 'requisitions.sub_category'
+                        name: 'requisitions.sub_category',
+                        className: 'dt-no-wrap'
                     },
                     {
                         data: 'route_to',
-                        name: 'requisitions.route_to'
+                        name: 'requisitions.route_to',
+                        className: 'dt-wrap'
                     },
                     {
                         data: 'status',
-                        name: 'requisitions.status'
+                        name: 'requisitions.status',
+                        className: 'dt-no-wrap'
                     },
                     {
                         data: 'action',
                         name: 'action',
                         orderable: false,
-                        searchable: false
+                        searchable: false,
+                        className: 'dt-no-wrap'
                     }
                 ]
             });
@@ -1074,7 +1089,6 @@
                                         <td>${detail.item_detail_name}</td>
                                         <td>${detail.unit}</td>
                                         <td><input type="number" class="form-control" name="items[${detail.id}][quantity_required]" min="1"></td>
-                                        <td><input type="number" class="form-control" name="items[${detail.id}][quantity_issued]" min="0"></td>
                                     </tr>`;
                                 tbody.append(newRow);
                             }
@@ -1158,7 +1172,6 @@
                                             <td>${master.item_master_name}</td>
                                             <td>${master.unit}</td>
                                             <td><input type="number" class="form-control" name="items[${master.id}][quantity_required]" min="1"></td>
-                                            <td><input type="number" class="form-control" name="items[${master.id}][quantity_issued]" min="0"></td>
                                         </tr>`;
                                     tbody.append(newRow);
                                 }
@@ -1544,7 +1557,6 @@
                                         <td>${itemName}</td>
                                         <td>${unit}</td>
                                         <td><input type="number" class="form-control" name="${inputName}[quantity_required]" value="${item.quantity_required || ''}" min="1"></td>
-                                        <td><input type="number" class="form-control" name="${inputName}[quantity_issued]" value="${item.quantity_issued || ''}" min="0"></td>
                                     </tr>`;
                                 itemTbody.append(newRow);
                             }
@@ -1734,20 +1746,28 @@
                     });
                 }
 
+                let trackingSteps = []; // Variabel untuk menyimpan ID step tracking
+
+                if (data.sequence_tracking && data.status !== 'Rejected' && data.status !== 'Recalled') {
+                    data.sequence_tracking.forEach((stepName, index) => {
+                        let icon = 'ph-package'; // Icon default
+                        const stepNameLower = stepName.toLowerCase();
+
+                        // Coba buat icon lebih relevan
+                        if (stepNameLower.includes('material')) icon = 'ph-printer';
+                        if (stepNameLower.includes('outward')) icon = 'ph-truck';
+                        if (stepNameLower.includes('qa') || stepNameLower.includes('qm')) icon = 'ph-clipboard-text';
+
+                        // Buat stepId unik berdasarkan index
+                        const stepId = `tracking_${index}`; // cth: tracking_0, tracking_1
+
+                        steps.push({ id: stepId, label: formatStepName(stepName), icon: icon });
+                        trackingSteps.push(stepId); // Simpan ID untuk pemetaan nanti
+                    });
+                }
+
+                // Tambahkan 'Completed' HANYA jika tidak ditolak
                 if (data.status !== 'Rejected' && data.status !== 'Recalled') {
-                    if (data.sub_category === 'Packaging') {
-                        if (data.print_batch == 1) {
-                            steps.push({ id: 'inward_initial', label: 'Inward WH Supervisor (Initial)', icon: 'ph-package' });
-                            steps.push({ id: 'material', label: 'Material Support', icon: 'ph-printer' });
-                            steps.push({ id: 'inward_final', label: 'Inward WH Supervisor (Final)', icon: 'ph-package' });
-                        } else {
-                            steps.push({ id: 'inward_final', label: 'Inward WH Supervisor Check', icon: 'ph-package' });
-                        }
-                    } else if (data.sub_category === 'Finished Goods') {
-                        steps.push({ id: 'outward', label: 'Outward', icon: 'ph-truck' });
-                    } else if (data.sub_category === 'Special Order') {
-                        steps.push({ id: 'qa_form', label: 'QA/QM Form', icon: 'ph-clipboard-text' });
-                    }
                     steps.push({ id: 'completed', label: 'Completed', icon: 'ph-check-circle' });
                 }
 
@@ -1785,22 +1805,26 @@
                 }
 
                 if (data.trackings && data.trackings.length > 0) {
-                    const positionToStepId = {
-                        'Inward WH Supervisor (Initial Check)': 'inward_initial',
-                        'Material Support Supervisor': 'material',
-                        'Inward WH Supervisor (Final Check)': 'inward_final',
-                        'Outward WH Supervisor': 'outward',
-                        'Waiting for QA/QM Form': 'qa_form'
-                    };
-                    data.trackings.forEach(tracking => {
-                        // [FIX 1] Hanya proses tracking jika tanggalnya valid (bukan 1970)
+                    data.trackings.forEach((tracking, index) => {
+                        // Hanya proses tracking jika tanggalnya valid
                         if (tracking.last_updated && new Date(tracking.last_updated).getFullYear() > 1970) {
-                            const stepId = positionToStepId[tracking.current_position];
+
+                            // Ambil stepId dari array trackingSteps berdasarkan index
+                            const stepId = trackingSteps[index];
+
                             if (stepId) {
                                 const stepElement = $(`.tracker-step[data-step-id="${stepId}"]`);
-                                const userName = (stepId === 'qa_form') ? 'QA/QM HSE Team' : tracking.current_position;
+                                const stepLabel = stepElement.find('.tracker-label').text(); // Ambil nama role dari label
+
+                                // Tentukan nama user
+                                let userName = tracking.current_position; // Ini adalah Nama User (cth: "Head WH")
+                                if (stepLabel.toLowerCase().includes('qa') || stepLabel.toLowerCase().includes('qm')) {
+                                    userName = 'QA/QM HSE Team';
+                                }
+
                                 const completionDate = new Date(tracking.last_updated).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).replace(',', '');
                                 stepElement.addClass('completed').find('.tracker-details').html(`<div class="tracker-user text-primary">${userName}</div><div class="tracker-date text-dark">${completionDate}</div>`);
+
                                 const stepIndex = steps.findIndex(s => s.id === stepId);
                                 lastCompletedIndex = Math.max(lastCompletedIndex, stepIndex);
                             }

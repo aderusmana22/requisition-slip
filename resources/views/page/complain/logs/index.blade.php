@@ -57,12 +57,10 @@
                     <table class="w-100 display" id="complainLogTable">
                         <thead>
                             <tr>
-                                <th><i class="ph-duotone ph-hash me-1"></i>No</th>
                                 <th><i class="ph-duotone ph-user me-1"></i>User</th>
                                 <th><i class="ph-duotone ph-chat-text me-1"></i>Description</th>
                                 <th><i class="ph-duotone ph-file-text me-1"></i>event</th>
                                 <th><i class="ph-duotone ph-globe me-1"></i>Requisition</th>
-                                <th><i class="ph-duotone ph-device-mobile me-1"></i>User Agent</th>
                                 <th class="text-center"><i class="ph-duotone ph-calendar me-1"></i>Date</th>
                                 <th><i class="ph-duotone ph-gear me-1"></i>Actions</th>
                             </tr>
@@ -170,16 +168,6 @@
                                     </div>
                                 </div>
                             </div>
-
-                            <div class="detail-section" id="propertiesSection" style="display: none;">
-                                <div class="section-header">
-                                    <i class="ph-duotone ph-gear"></i>
-                                    Additional Properties
-                                </div>
-                                <div class="properties-container">
-                                    <pre id="detail_properties" class="bg-light p-3 rounded"></pre>
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -237,19 +225,6 @@
             return text.substring(0, maxLength) + '...';
         }
 
-        function parseUserAgent(userAgent) {
-            if (!userAgent) return 'Unknown';
-
-            // Simple user agent parsing
-            if (userAgent.includes('Chrome')) return 'Chrome';
-            if (userAgent.includes('Firefox')) return 'Firefox';
-            if (userAgent.includes('Safari')) return 'Safari';
-            if (userAgent.includes('Edge')) return 'Edge';
-            if (userAgent.includes('Opera')) return 'Opera';
-
-            return 'Other';
-        }
-
         function refreshTable() {
             $('#complainLogTable').DataTable().ajax.reload(null, false);
             successMessage('Table refreshed successfully!', 'Refreshed', 1000);
@@ -266,15 +241,6 @@
                     dataSrc: 'data'
                 },
                 columns: [
-                    {
-                        data: null,
-                        orderable: false,
-                        searchable: false,
-                        width: '4%',
-                        render: function (data, type, row, meta) {
-                            return meta.row + 1;
-                        }
-                    },
                     {
                         data: 'causer',
                         name: 'causer',
@@ -317,18 +283,6 @@
                         }
                     },
                     {
-                        data: 'properties',
-                        name: 'user_agent',
-                        width: '9%',
-                        render: function (data, type, row) {
-                            if (data && data.user_agent) {
-                                const browser = parseUserAgent(data.user_agent);
-                                return `<span class="badge bg-secondary">${browser}</span>`;
-                            }
-                            return '<span class="text-muted">-</span>';
-                        }
-                    },
-                    {
                         data: 'created_at',
                         name: 'created_at',
                         width: '15%',
@@ -355,7 +309,7 @@
                         }
                     }
                 ],
-                order: [[6, 'desc']], // Order by created_at descending
+                order: [[5, 'desc']],
                 pageLength: 25,
                 responsive: true
             });

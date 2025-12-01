@@ -5,7 +5,9 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Master\DepartmentController;
 use App\Http\Controllers\Master\CustomerController;
 use App\Http\Controllers\Master\PermissionController;
+use App\Http\Controllers\Master\RevisionController;
 use App\Http\Controllers\Master\RoleController;
+use App\Http\Controllers\Master\TrackingPathController;
 use App\Http\Controllers\Master\UserController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
@@ -29,6 +31,17 @@ Route::get('/dashboard', function () {
     return view('dashboard', compact('availableYears'));
 })->middleware(['auth', 'verified'])->name('dashboard');
 
+Route::get('/tes-404', function () {
+    abort(404); // Menampilkan halaman resources/views/errors/404.blade.php
+});
+
+Route::get('/tes-500', function () {
+    abort(500); // Menampilkan halaman resources/views/errors/500.blade.php
+});
+
+Route::get('/tes-403', function () {
+    abort(403, 'Akses Ditolak'); // Menampilkan halaman 403 dengan pesan kustom
+});
 
 // --- mailing dan approval proses complain ---
 Route::get('/approval', [ComplainController::class, 'processApproval'])->name('approval.process');
@@ -44,6 +57,7 @@ Route::get('/approval/response/{token}', [SampleController::class, 'showResponse
 Route::post('/approvals/resend/{token}', [SampleController::class, 'resendApprovalEmail'])->name('approvals.resend');
 Route::post('/approval/process', [SampleController::class, 'processApproval'])->name('approval-sample.process-form');
 Route::get('/approval/success', [SampleController::class, 'showSuccessPage'])->name('approval.success');
+Route::get('/requisition/print-email/{id}', [SampleController::class, 'printReportByEmail'])->name('approval.download.pdf');
 
 // Approval Link dari Email (Free Goods Requisition)
 Route::get('/fg-approval/response/{token}', [FreeGoodsController::class, 'showResponseForm'])->name('fg.approval.response');
@@ -71,6 +85,16 @@ Route::middleware('auth')->group(function () {
     Route::post('/notifications/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.read.all');
 
+    // ROUTE MASTER TRACKING PATH
+    Route::get('/master/tracking-path', [TrackingPathController::class, 'index'])->name('tracking-path.index');
+    Route::get('/master/tracking-path/list', [TrackingPathController::class, 'approverList'])->name('tracking-path.list');
+    Route::post('/master/tracking-path', [TrackingPathController::class, 'store'])->name('tracking-path.store');
+    Route::get('/master/tracking-path/{id}/edit', [TrackingPathController::class, 'edit'])->name('tracking-path.edit');
+    Route::put('/master/tracking-path/{id}', [TrackingPathController::class, 'update'])->name('tracking-path.update');
+    Route::delete('/master/tracking-path/{id}', [TrackingPathController::class, 'destroy'])->name('tracking-path.destroy');
+    Route::get('/master/tracking-path/categories', [TrackingPathController::class, 'categories'])->name('tracking-path.categories');
+    Route::get('/master/tracking-path/approver-name', [TrackingPathController::class, 'approverName'])->name('tracking-path.approverName');
+
 
     // --- SAMPLE REQUISITION ROUTES ---
     Route::get('/sample-form/approval', [SampleController::class, 'approvalPage'])->name('sample-form.approval');
@@ -79,7 +103,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/sample-form/reports', [SampleController::class, 'reportsPage'])->name('sample-form.reports');
     Route::get('/sample-reports/data', [SampleController::class, 'getReportsData'])->name('sample.reports.data');
     Route::post('/sample-report/print', [SampleController::class, 'printMultipleReport'])->name('report_sample.print');
-    Route::get('/sample-report/{id}', [SampleController::class, 'printReport'])->name('sample.report');
 
     Route::get('/sample-form/log', [SampleController::class, 'logPage'])->name('sample-form.log');
     Route::get('/sample-log/data', [SampleController::class, 'getLogData'])->name('sample.log.data');
@@ -99,7 +122,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/approval', [FreeGoodsController::class, 'approvalPage'])->name('approval');
         Route::get('/reports', [FreeGoodsController::class, 'reports'])->name('reports');
         Route::get('/log', [FreeGoodsController::class, 'log'])->name('log');
-        
+
         // [FIX] Menambahkan route untuk recall yang hilang
         Route::post('/{id}/recall', [FreeGoodsController::class, 'recallRequisition'])->name('recall');
 
@@ -136,6 +159,7 @@ Route::middleware('auth')->group(function () {
         // * complain approval
         Route::get('/approval', [ComplainApprovalController::class, 'index'])->name('complain.approval');
         Route::get('/getapproverdata/{id?}', [ComplainApprovalController::class, 'getData'])->name('get.approver.data');
+        Route::post('/approval/resend/{token}', [ComplainApprovalController::class, 'resendApprovalEmail'])->name('complain.approval.resend');
 
         // * complain reports
         Route::get('/reports', [ComplainController::class, 'reports'])->name('complain.reports');
@@ -161,11 +185,18 @@ Route::group(['middleware' => ['role:super-admin|admin']], function () {
     Route::post('roles/{roleId}/give-permissions', [RoleController::class, 'givePermissionToRole'])->name('roles.give-permission');
 
     // --- Requisition Path (Approvers) ---
-    Route::get('/requistion/path', [RequisitionPath::class, 'index'])->name('requistion.path');
+    Route::get('/requisition/path', [RequisitionPath::class, 'index'])->name('requisition.path');
     Route::get('/getapproverlist', [RequisitionPath::class, 'approverList'])->name('get.approverlist');
     Route::resource('/approvers', RequisitionPath::class);
     Route::get('/categories', [RequisitionPath::class, 'categories'])->name('get.categories');
     Route::get('/approver-name', [RequisitionPath::class, 'approverName'])->name('get.approver.name');
+
+    Route::get('/master/tracking-path', [TrackingPathController::class, 'index'])->name('master.tracking-path.index');
+    Route::put('/master/tracking-path/', [TrackingPathController::class, 'edit'])->name('master.tracking-path.update');
+
+    Route::get('/master/revision', [RevisionController::class, 'index'])->name('master.revision.index');
+    Route::post('/master/revision/update', [RevisionController::class, 'update'])->name('master.revision.update');
+    Route::get('/master/revision/getdata', [RevisionController::class, 'getrevisiondata'])->name('master.revision.getdata');
 
 });
 

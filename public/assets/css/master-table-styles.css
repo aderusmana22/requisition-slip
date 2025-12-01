@@ -1,0 +1,444 @@
+/* ========================================
+    MASTER THEME VARIABLES (Earth Tone: Olive/Gold)
+    ======================================== */
+:root {
+    --master-primary: #584D3C;       /* Dark Olive/Brown */
+    --master-primary-light: #6b5e49; /* Lighter version for hover */
+    --master-accent: #9F956C;        /* Gold/Beige Accent */
+    --master-accent-light: #b0a67e;  /* Lighter accent for hover */
+    --master-surface: #ffffff;
+    --master-border: #e2e8f0;
+
+    /* Dark Mode Vars */
+    --dark-bg: #0f172a;
+    --dark-surface: #1e293b;
+    --dark-border: #374151;
+    --dark-text: #cbd5e1;
+}
+
+/* ========================================
+    CORE LAYOUT & CONTAINER
+    ======================================== */
+
+.app-line-breadcrumbs li.active a {
+    color: var(--master-primary) !important;
+    font-weight: 700;
+}
+
+.main-title {
+    color: rgb(76, 61, 61);
+    font-weight: 800;
+    letter-spacing: -0.5px;
+}
+
+/* Main Card Container */
+.main-table-container {
+    background: var(--master-surface);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    transition: all 0.3s ease;
+    animation: fadeInUp 1s ease-out forwards;
+}
+
+.main-table-container:hover {
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+    transform: translateY(-2px);
+}
+
+/* Header Gradient */
+.table-header-enhanced {
+    background: linear-gradient(135deg, #584D3C 0%, #9F956C 100%);
+    padding: 20px 25px;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Pattern Dots Overlay */
+.table-header-enhanced::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 20"><defs><pattern id="dots" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="1.5" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="20" fill="url(%23dots)"/></svg>');
+    opacity: 0.4;
+}
+
+.table-title {
+    color: white;
+    font-weight: 700;
+    font-size: 1.4em;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: relative;
+    z-index: 2;
+    margin-bottom: 0;
+}
+
+.table-subtitle {
+    color: rgba(255, 255, 255, 0.8);
+    margin-top: 4px;
+    font-size: 0.9rem;
+    position: relative;
+    z-index: 2;
+    margin-bottom: 0;
+}
+
+/* ========================================
+    BUTTONS (Gradient Styles)
+    ======================================== */
+
+/* Tombol Add New / Primary Actions */
+.btn-light-danger, .new-complain-btn, .btn-primary-custom, .new-sample-btn {
+    background: linear-gradient(135deg, #584D3C 0%, #9F956C 100%) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 6px rgba(88, 77, 60, 0.2); /* Shadow disesuaikan dengan warna tema */
+}
+
+/* [PERBAIKAN] Hover sekarang selaras (sedikit lebih terang/gold), bukan biru */
+.btn-light-danger:hover, .new-complain-btn:hover, .btn-primary-custom:hover, .new-sample-btn:hover {
+    background: linear-gradient(135deg, #6b5e49 0%, #b0a67e 100%) !important; /* Versi lebih terang dari tema */
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(88, 77, 60, 0.3);
+}
+
+/* Secondary Buttons */
+.btn-secondary {
+    background: linear-gradient(135deg, #584D3C 0%, #9F956C 100%) !important;
+    border: none !important;
+    color: white !important;
+}
+
+/* [PERBAIKAN] Secondary hover selaras */
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #6b5e49 0%, #b0a67e 100%) !important;
+}
+
+/* Action Buttons Group */
+.action-btn-group {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    align-items: center;
+}
+
+.action-btn-group .btn {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    border: none;
+    color: white;
+    position: relative;
+    overflow: hidden;
+}
+
+.action-btn-group .btn:hover {
+    transform: translateY(-2px);
+}
+
+/* Specific Action Colors */
+.action-btn-group .btn-info {
+    background: linear-gradient(135deg, #584D3C 0%, #9F956C 100%);
+    box-shadow: 0 2px 8px rgba(88, 77, 60, 0.3); /* Shadow kecoklatan */
+}
+
+/* [PERBAIKAN] Edit button (Secondary) diganti dari Biru ke Abu-abu hangat/Netral agar masuk tema */
+.action-btn-group .btn-secondary {
+    background: linear-gradient(135deg, #78716c 0%, #a8a29e 100%); /* Warm Grey */
+    box-shadow: 0 2px 8px rgba(120, 113, 108, 0.3);
+}
+
+.action-btn-group .btn-secondary:hover {
+    background: linear-gradient(135deg, #57534e 0%, #78716c 100%);
+}
+
+.action-btn-group .btn-danger {
+    background: linear-gradient(135deg, rgb(220, 53, 69) 0%, rgb(187, 45, 59) 100%);
+    box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+}
+
+/* ========================================
+    TABLE STYLING
+    ======================================== */
+
+table.dataTable {
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+    width: 100% !important;
+    margin-top: 0 !important;
+    border-radius: 10px !important;
+    overflow: hidden !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06) !important;
+}
+
+/* Table Header */
+table.dataTable thead th {
+    background: linear-gradient(135deg, #584D3C 0%, #9F956C 100%) !important;
+    color: white !important;
+    text-transform: uppercase;
+    font-size: 0.9em !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.5px !important;
+    border: none !important;
+    padding: 16px 15px !important;
+    position: relative !important;
+    vertical-align: middle;
+}
+
+/* Separator Line in Header */
+table.dataTable thead th::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 25%;
+    height: 50%;
+    width: 1px;
+    background: rgba(255, 255, 255, 0.2);
+}
+table.dataTable thead th:last-child::after { display: none; }
+
+/* Table Body */
+table.dataTable tbody tr {
+    background: #ffffff;
+    transition: all 0.3s ease !important;
+}
+
+table.dataTable tbody tr:nth-child(even) {
+    background: rgba(248, 249, 250, 0.6) !important;
+}
+
+table.dataTable tbody td {
+    padding: 18px 15px !important;
+    border-right: none !important;
+    vertical-align: middle !important;
+    color: #495057;
+    font-weight: 500 !important;
+    font-size: 15px !important;
+    transition: all 0.2s ease !important;
+}
+
+table.dataTable tbody tr td:first-child { border-left: none; }
+table.dataTable tbody tr td:last-child { border-right: none; }
+
+/* Hover Effect */
+table.dataTable tbody tr:hover {
+    transform: scale(1.01);
+    position: relative;
+    z-index: 10;
+    /* Optional: Tambahkan highlight tipis warna tema pada hover */
+    background-color: rgba(159, 149, 108, 0.05) !important;
+}
+
+/* ========================================
+    DATATABLES CONTROLS LAYOUT
+    ======================================== */
+
+.dataTables_wrapper {
+    padding: 25px !important;
+    position: relative;
+}
+
+/* Search Input Styling */
+.dataTables_filter {
+    text-align: right !important;
+    margin-top: 0 !important;
+}
+
+.dataTables_filter label {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 600;
+    color: rgb(76, 61, 61);
+    font-size: 1em;
+}
+
+.dataTables_filter input {
+    border-radius: 10px !important;
+    padding: 10px 15px !important;
+    font-size: 0.95em !important;
+    transition: all 0.3s ease !important;
+    min-width: 200px;
+    border: 1px solid #ccc; /* Fallback border */
+}
+
+.dataTables_filter input:focus {
+    border-color: #9F956C !important; /* Warna Tema */
+    box-shadow: 0 0 0 0.2rem rgba(159, 149, 108, 0.25) !important; /* Glow tema, bukan biru */
+    background: white !important;
+    outline: none;
+}
+
+/* Length Select Styling */
+.dataTables_length label {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    color: rgb(76, 61, 61);
+}
+
+.dataTables_length select {
+    border-radius: 8px !important;
+    padding: 8px 12px 8px 12px !important;
+    border: 1px solid #ccc;
+}
+
+.dataTables_length select:focus {
+    border-color: #9F956C !important;
+    box-shadow: 0 0 0 0.2rem rgba(159, 149, 108, 0.25) !important;
+}
+
+/* Info Text */
+.dataTables_info {
+    font-weight: 600;
+    color: rgb(76, 61, 61);
+    padding: 15px 0;
+}
+
+/* Pagination Buttons */
+.dataTables_paginate .paginate_button {
+    padding: 8px 12px !important;
+    margin: 0 2px !important;
+    border-radius: 8px !important;
+    color: #584D3C !important; /* Primary dark text */
+    background: white !important;
+    transition: all 0.3s ease !important;
+}
+
+.dataTables_paginate .paginate_button:hover {
+    transform: translateY(-1px) !important;
+    background: rgba(159, 149, 108, 0.1) !important; /* Hover background halus */
+    color: #584D3C !important;
+}
+
+.dataTables_paginate .paginate_button.current {
+    background: linear-gradient(135deg, #584D3C 0%, #9F956C 100%) !important;
+    border-color: #9F956C !important;
+    color: white !important;
+}
+
+/* ========================================
+    ANIMATIONS
+    ======================================== */
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ========================================
+    DARK MODE OVERRIDES (Color Fixed)
+    ======================================== */
+
+.dark .main-table-container {
+    background: #1f2937;
+    border-color: #374151;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.dark .main-title { color: #f1f5f9 !important; }
+.dark .table-title, .dark .table-subtitle { color: #ffffff !important; }
+
+.dark .dataTables_filter label,
+.dark .dataTables_length label,
+.dark .dataTables_info {
+    color: #d1d5db !important;
+}
+
+.dark .dataTables_filter input,
+.dark .dataTables_length select {
+    background: #374151 !important;
+    border-color: #4b5563 !important;
+    color: #ffffff !important;
+}
+
+/* [PERBAIKAN] Focus pada dark mode diganti dari Biru ke Gold/Olive */
+.dark .dataTables_filter input:focus,
+.dark .dataTables_length select:focus {
+    background: #4b5563 !important;
+    border-color: #9F956C !important;
+    box-shadow: 0 0 0 0.2rem rgba(159, 149, 108, 0.25) !important;
+}
+
+.dark table.dataTable {
+    border-color: #374151 !important;
+}
+
+.dark table.dataTable thead th {
+    border-bottom-color: #374151 !important;
+}
+
+.dark table.dataTable tbody tr {
+    background: #1f2937 !important;
+}
+.dark table.dataTable tbody tr:nth-child(even) {
+    background: #374151 !important;
+}
+
+.dark table.dataTable tbody td {
+    color: #d1d5db !important;
+    border-bottom-color: #374151 !important;
+}
+
+/* [PERBAIKAN] Row hover pada dark mode diganti dari biru ke warm/neutral */
+.dark table.dataTable tbody tr:hover {
+    background: linear-gradient(90deg, rgba(159, 149, 108, 0.15) 0%, rgba(88, 77, 60, 0.15) 100%) !important;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2) !important;
+    transform: none;
+}
+
+/* Pagination Dark */
+.dark .dataTables_paginate .paginate_button {
+    border-color: #374151 !important;
+    color: #d1d5db !important;
+    background: #374151 !important;
+}
+.dark .dataTables_paginate .paginate_button.current {
+    background: #584D3C !important;
+    color: white !important;
+    border-color: #584D3C !important;
+}
+.dark .dataTables_paginate .paginate_button:hover:not(.current) {
+    background: #4b5563 !important;
+    color: white !important;
+}
+
+/* Select2 Dark Mode Fixes */
+.dark .select2-container--bootstrap-5 .select2-selection {
+    background-color: #374151 !important;
+    border-color: #4b5563 !important;
+}
+.dark .select2-container--bootstrap-5 .select2-selection__rendered {
+    color: #d1d5db !important;
+}
+.dark .select2-dropdown {
+    background-color: #1f2937 !important;
+    border-color: #374151 !important;
+}
+.dark .select2-results__option {
+    color: #d1d5db !important;
+    background-color: #1f2937 !important;
+}
+/* [PERBAIKAN] Highlight dropdown item dari biru ke tema */
+.dark .select2-results__option--highlighted {
+    background-color: #584D3C !important;
+    color: #ffffff !important;
+}
+.dark .select2-search__field {
+    background-color: #374151 !important;
+    border-color: #4b5563 !important;
+    color: white !important;
+}

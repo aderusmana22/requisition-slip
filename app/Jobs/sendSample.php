@@ -47,6 +47,7 @@ class sendSample implements ShouldQueue
             } elseif ($mailType === 'warehouse_process') {
                 $dataForMail['submit_url'] = route('approval.response', ['token' => $this->token, 'action' => 'submit']);
                 $dataForMail['review_url'] = route('approval.response', ['token' => $this->token, 'action' => 'review']);
+                $dataForMail['update_qty_url'] = route('approval.response', ['token' => $this->token, 'action' => 'update_qty']);
             }
 
             Mail::to($this->recipient->email)->send(new mailSample($requisition, $this->recipient, $dataForMail));

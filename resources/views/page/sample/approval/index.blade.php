@@ -192,15 +192,15 @@
                     serverSide: true,
                     ajax: "{{ route('sample.approval.data') }}",
                     columns: [
-                        { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false, width: '20px', className: 'text-center' },
+                        { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false, width: '20px', },
                         { data: 'no_srs', name: 'requisition.no_srs' },
                         { data: 'requester', name: 'requisition.requester.name' },
                         { data: 'request_date', name: 'requisition.request_date' },
-                        { data: 'sub_category', name: 'requisition.sub_category', className: 'text-center' },
-                        { data: 'status', name: 'requisition.status', className: 'text-center' },
+                        { data: 'sub_category', name: 'requisition.sub_category', },
+                        { data: 'status', name: 'requisition.status', },
                         { data: 'approver', name: 'approval_logs.approver_nik' },
-                        { data: 'level', name: 'level', className: 'text-center' },
-                        { data: 'action', name: 'action', orderable: false, searchable: false, className: 'text-center', width: '120px' }
+                        { data: 'level', name: 'level', },
+                        { data: 'action', name: 'action', orderable: false, searchable: false, width: '120px' }
                     ],
                     drawCallback: function () {
                         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
