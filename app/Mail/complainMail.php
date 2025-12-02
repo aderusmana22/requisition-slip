@@ -70,14 +70,12 @@ class complainMail extends Mailable
     {
         $attachments = [];
 
-        // [PERBAIKAN] Cek dan log nilai hasRole() sebelum kondisi
         $isHeadQA = $this->approver->hasRole('head-QA');
         Log::info('Checking role for user ' . $this->approver->id . ': isHeadQA = ' . ($isHeadQA ? 'true' : 'false'));
 
         if ($isHeadQA) {
             Log::info('User is head-QA. Proceeding to find images for Requisition ID: ' . $this->requisition->id);
 
-            // 2. Ambil semua Complaint Images berdasarkan requisition_id
             $complainImages = ComplainImage::where('requisition_id', $this->requisition->id)->get();
 
             Log::info('Found ' . $complainImages->count() . ' complaint images.');
@@ -94,7 +92,6 @@ class complainMail extends Mailable
                         ->withMime('image/jpeg');
                     Log::info('Successfully attached image: ' . $fileName);
                 } else {
-                    // [LOG PENTING] Jika file tidak ditemukan
                     Log::warning('Attachment file not found in storage: ' . $imagePath);
                 }
             }
