@@ -19,7 +19,6 @@
             box-shadow: 0 8px 30px rgba(0, 0, 0, .05);
         }
 
-        /* [DIKEMBALIKAN] Warna Coklat Emas untuk Header */
         .card-header.main-header {
             background: linear-gradient(135deg, #cc982f 0%, #b8871a 100%);
             color: white;
@@ -27,7 +26,6 @@
             border-radius: 16px 16px 0 0 !important;
         }
 
-        /* [DIKEMBALIKAN] Warna Coklat Emas untuk Judul Section */
         .section-title {
             font-size: 1.1rem;
             font-weight: 700;
@@ -77,7 +75,6 @@
             opacity: 1;
         }
         
-        /* [DIKEMBALIKAN] Palet Warna Coklat Emas */
         .text-primary {
             color: #b8871a !important;
         }
@@ -263,7 +260,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Logika validasi dan fungsionalitas lain tetap dipertahankan
+
         document.addEventListener('DOMContentLoaded', function () {
             const form = document.getElementById('responseForm');
             const overlay = document.getElementById('processingOverlay');

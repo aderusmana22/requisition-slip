@@ -42,7 +42,6 @@
             color: #fff;
         }
 
-        /* [DIKEMBALIKAN] Warna Coklat Emas untuk Success */
         .response-card.success {
             border-color: #cc982f;
         }
@@ -51,7 +50,6 @@
             background-color: #cc982f;
         }
 
-        /* Warna Merah untuk Reject (tetap) */
         .response-card.reject {
             border-color: #dc3545;
         }
@@ -105,7 +103,6 @@
             margin-top: 25px;
         }
         
-        /* [DIKEMBALIKAN] Style untuk Tombol Close agar konsisten */
         .btn-primary {
             background-color: #cc982f;
             border-color: #cc982f;
@@ -158,7 +155,6 @@
     </div>
 
     <script>
-        // Hitung mundur tetap 5 detik
         let seconds = 5;
         const countdownElement = document.getElementById('countdown');
         const interval = setInterval(() => {

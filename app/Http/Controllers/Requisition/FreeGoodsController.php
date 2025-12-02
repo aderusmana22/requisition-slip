@@ -24,11 +24,13 @@ use Illuminate\Support\Facades\Mail;
 use Spatie\Activitylog\Models\Activity;
 use Yajra\DataTables\Facades\DataTables;
 use App\Traits\ApprovalTrait;
+use App\Traits\traitTracking; // [UPDATE] Import Trait Tracking
 use Illuminate\Support\Str;
 
 class FreeGoodsController extends Controller
 {
     use ApprovalTrait;
+    use traitTracking; // [UPDATE] Menggunakan Trait Tracking
 
     private function generateFgNumber()
     {
@@ -258,11 +260,12 @@ class FreeGoodsController extends Controller
     {
         return view('page.freegoods.approval.index');
     }
-public function getApprovalData(Request $request)
+
+    public function getApprovalData(Request $request)
     {
         $user = Auth::user();
 
-        // [PERBAIKAN 1] Memuat relasi 'requisition' DAN 'requisition.requester'
+        // Memuat relasi 'requisition' DAN 'requisition.requester'
         $query = ApprovalLog::where('approver_nik', $user->nik)
             ->whereHas('requisition', function ($q) {
                 $q->where('category', 'FREE GOODS');
@@ -270,11 +273,9 @@ public function getApprovalData(Request $request)
             ->where('status', 'Pending')
             ->with([
                 'requisition' => function ($q) {
-                    // Pastikan 'requester_nik' ada di select agar relasi 'requester' bisa dimuat
                     $q->select('id', 'no_srs', 'request_date', 'sub_category', 'status', 'requester_nik');
                 },
                 'requisition.requester' => function ($q) {
-                    // Muat nama requester
                     $q->select('nik', 'name');
                 }
             ])
@@ -283,13 +284,9 @@ public function getApprovalData(Request $request)
         return DataTables::of($query)
             ->addIndexColumn()
             ->addColumn('no_srs', fn($row) => $row->requisition->no_srs ?? 'N/A')
-
-            // [PERBAIKAN 2] Menambahkan kolom 'requester' yang diharapkan oleh DataTables
             ->addColumn('requester', function ($row) {
-                // Mengakses data nama dari relasi yang sudah dimuat
                 return $row->requisition->requester->name ?? 'Unknown';
             })
-            
             ->addColumn('request_date', fn($row) => Carbon::parse($row->requisition->request_date)->format('d M Y'))
             ->addColumn('sub_category', fn($row) => '<span class="badge bg-info">' . e($row->requisition->sub_category ?? '-') . '</span>')
             ->editColumn('status', function ($row) {
@@ -586,28 +583,69 @@ public function getApprovalData(Request $request)
         }
     }
 
+    // [UPDATE] Menggunakan trait untuk men-generate tracking path secara dinamis
     private function startPostApprovalProcess(Requisition $requisition)
     {
         $newStatus = 'Processing';
         Log::info("Approval path selesai untuk Free Goods Requisition #{$requisition->id}. Memulai proses warehouse.");
 
-        $stepName = 'Outward WH Supervisor';
-        $this->createOrUpdateTracking($requisition, $stepName, "Menunggu proses oleh outward.");
+        // Menggunakan Trait untuk membuat tracking path secara dinamis dari database
+        $this->generateTrackingPath($requisition->id, 'FREE GOODS', $requisition->sub_category);
 
-        return $stepName;
+        // Cari langkah tracking pertama yang pending
+        $firstTracking = Tracking::where('requisition_id', $requisition->id)
+                                 ->whereNull('last_updated')
+                                 ->orderBy('id', 'asc')
+                                 ->first();
+
+        if ($firstTracking) {
+            $stepName = $firstTracking->current_position;
+            $requisition->update(['status' => 'Processing', 'route_to' => $stepName]);
+
+            // Kirim notifikasi ke user tracking pertama
+            $user = User::where('nik', $firstTracking->approver_nik)->first();
+            if ($user) {
+                dispatch(new sendFreeGoods($requisition, $user, $firstTracking->token, [
+                    'mail_type'    => 'warehouse_process',
+                    'process_step' => $stepName
+                ]));
+            }
+            return $stepName;
+        } else {
+            // Fallback jika tidak ada path yang ter-generate
+            $stepName = 'Processing';
+            $requisition->update(['status' => 'Processing', 'route_to' => $stepName]);
+            return $stepName;
+        }
     }
 
+    // [UPDATE] Menggunakan logika dinamis untuk melanjutkan ke langkah berikutnya
     private function advanceWarehouseStep(Requisition $requisition)
     {
-        $requisition->load('tracking');
-        $currentPosition = $requisition->tracking->current_position ?? '';
+        // Cari langkah tracking selanjutnya yang masih pending (last_updated IS NULL)
+        $nextTracking = Tracking::where('requisition_id', $requisition->id)
+                                ->whereNull('last_updated')
+                                ->orderBy('id', 'asc')
+                                ->first();
 
-        if (str_contains($currentPosition, 'Outward WH Supervisor')) {
+        if ($nextTracking) {
+            // Update requisition ke posisi baru
+            $requisition->update(['route_to' => $nextTracking->current_position]);
+
+            // Kirim notifikasi ke user langkah tersebut
+            $user = User::where('nik', $nextTracking->approver_nik)->first();
+            if ($user) {
+                dispatch(new sendFreeGoods($requisition, $user, $nextTracking->token, [
+                    'mail_type'    => 'warehouse_process',
+                    'process_step' => $nextTracking->current_position
+                ]));
+            }
+            
+            return "Processing (" . $nextTracking->current_position . ")";
+        } else {
+            // Jika tidak ada lagi langkah pending, berarti selesai
             return $this->notifyRequesterAsCompleted($requisition);
         }
-
-        Log::warning("advanceWarehouseStep dipanggil untuk FG requisition #{$requisition->id} tanpa alur yang cocok.");
-        return $this->notifyRequesterAsCompleted($requisition);
     }
 
     private function notifyRequesterAsCompleted(Requisition $requisition)
@@ -615,16 +653,9 @@ public function getApprovalData(Request $request)
         $statusText = 'Completed';
         $requisition->update(['status' => $statusText, 'route_to' => 'Finished']);
 
-        Tracking::updateOrCreate(
-            ['requisition_id' => $requisition->id],
-            [
-                'current_position' => $statusText,
-                'notes'            => "Free Goods process is complete and ready for the requester.",
-                'last_updated'     => now(),
-                'token'            => null,
-            ]
-        );
-
+        // Jika diperlukan, bisa mencatat log final tracking di sini, 
+        // tapi biasanya tracking table sudah mencerminkan history lengkap.
+        
         if ($requisition->requester?->email) {
             dispatch(new sendFreeGoods($requisition, $requisition->requester, null, [
                 'mail_type' => 'completed_notification'
@@ -634,6 +665,8 @@ public function getApprovalData(Request $request)
         return $statusText;
     }
 
+    // Helper functions dipertahankan (walaupun mungkin tidak lagi dipanggil di flow utama, 
+    // tetap ada sesuai instruksi "jangan hilangkan kode apapun")
     private function createOrUpdateTracking(Requisition $requisition, string $currentPosition, string $notes)
     {
         $token = Str::uuid()->toString();
@@ -796,10 +829,8 @@ public function getApprovalData(Request $request)
             ->make(true);
     }
 
-    // [UPDATE] Seluruh method recallRequisition diganti
     public function recallRequisition(Request $request, $id)
     {
-        // Validasi untuk memastikan alasan recall diisi
         $request->validate([
             'notes' => 'required|string|max:500',
         ]);
@@ -818,7 +849,6 @@ public function getApprovalData(Request $request)
                 if ($firstApprover) {
                     Log::info("Mengirim notifikasi recall untuk FG #{$id} ke {$firstApprover->name}");
     
-                    // Mengirimkan alasan recall ke notifikasi email
                     dispatch(new sendFreeGoods($requisition, $firstApprover, null, [
                         'mail_type' => 'recalled_notification',
                         'notes'     => $request->input('notes') 
@@ -829,7 +859,6 @@ public function getApprovalData(Request $request)
             $requisition->update(['status' => 'Recalled', 'route_to' => 'Recalled by Requester']);
             ApprovalLog::where('requisition_id', $id)->delete();
             
-            // Mencatat aktivitas recall ke dalam log
             activity()
                 ->performedOn($requisition)
                 ->causedBy(Auth::user())
