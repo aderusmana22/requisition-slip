@@ -323,148 +323,148 @@
                             </div>
 
                             {{-- [PERBAIKAN LAYOUT] Form QA Super Compact --}}
-<div class="qa-input-section mt-3 p-3" style="background-color: #fff8e6; border: 1px solid #e0cda5; border-radius: 8px;">
-    <h6 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="fas fa-pencil-alt me-2"></i>Complete QA Form</h6>
-    
-    <input type="hidden" name="action" value="qa_submit">
-    
-    {{-- 1. ASAL SAMPLE --}}
-    <div class="row mb-2">
-        <label class="col-md-3 col-form-label col-form-label-sm fw-bold d-flex justify-content-between">
-            <span>Asal sample <span class="text-danger">*</span></span>
-            <span>:</span>
-        </label>
-        <div class="col-md-9">
-            {{-- Radio Buttons Baris --}}
-            <div class="d-flex flex-wrap gap-3 align-items-center pt-1">
-                <div class="form-check mb-0">
-                    <input class="form-check-input" type="radio" name="source_option" value="WH" id="source_wh">
-                    <label class="form-check-label small" for="source_wh">WH</label>
-                </div>
-                <div class="form-check mb-0">
-                    <input class="form-check-input" type="radio" name="source_option" value="Reference Sample" id="source_ref">
-                    <label class="form-check-label small" for="source_ref">Reference Sample</label>
-                </div>
-                <div class="form-check mb-0">
-                    <input class="form-check-input" type="radio" name="source_option" value="Batch Refinery" id="source_batch">
-                    <label class="form-check-label small" for="source_batch">Batch Refinery</label>
-                </div>
-                <div class="form-check mb-0">
-                    <input class="form-check-input" type="radio" name="source_option" value="Packing Room" id="source_packing">
-                    <label class="form-check-label small" for="source_packing">Packing Room</label>
-                </div>
-                {{-- Opsi Lainnya sejajar di sini --}}
-                <div class="form-check mb-0">
-                    <input class="form-check-input" type="radio" id="source_other_radio" name="source_option" value="Lainnya">
-                    <label class="form-check-label small" for="source_other_radio">Lainnya...</label>
-                </div>
-            </div>
-            {{-- Input Text muncul di bawahnya --}}
-            <input type="text" class="form-control form-control-sm mt-1" id="source_other_input" style="display: none; max-width: 100%;" placeholder="Sebutkan asal sample...">
-            <input type="hidden" name="source" id="source" required>
-        </div>
-    </div>
+                            <div class="qa-input-section mt-3 p-3" style="background-color: #fff8e6; border: 1px solid #e0cda5; border-radius: 8px;">
+                                <h6 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="fas fa-pencil-alt me-2"></i>Complete QA Form</h6>
 
-    {{-- 2. KETERANGAN SAMPLE --}}
-    <div class="row mb-2">
-        <label class="col-md-3 col-form-label col-form-label-sm fw-bold d-flex justify-content-between">
-            <span>Keterangan sample <span class="text-danger">*</span></span>
-            <span>:</span>
-        </label>
-        <div class="col-md-9">
-            <div class="d-flex flex-wrap gap-3 align-items-center pt-1">
-                <div class="form-check mb-0">
-                    <input class="form-check-input" type="radio" name="description_option" value="batch" id="desc_batch">
-                    <label class="form-check-label small" for="desc_batch">Batch/Pallet No</label>
-                </div>
-                <div class="form-check mb-0">
-                    <input class="form-check-input" type="radio" name="description_option" value="wb" id="desc_wb">
-                    <label class="form-check-label small" for="desc_wb">WB/DEO No</label>
-                </div>
-                <div class="form-check mb-0">
-                    <input class="form-check-input" type="radio" name="description_option" value="tank" id="desc_tank">
-                    <label class="form-check-label small" for="desc_tank">Tank No</label>
-                </div>
-            </div>
-            
-            <div class="input-group input-group-sm mt-1" id="keterangan_sample_input_wrapper" style="display: none; max-width: 350px;">
-                <input type="text" class="form-control" id="keterangan_sample_input_1" placeholder="Nomor...">
-                <span class="input-group-text py-0" id="batch_suffix_p" style="display: none;">P</span>
-                <input type="text" class="form-control" id="keterangan_sample_input_2" style="display: none;" placeholder="No Pallet...">
-            </div>
-            <input type="hidden" name="description" id="description" required>
-        </div>
-    </div>
+                                <input type="hidden" name="action" value="qa_submit">
 
-    {{-- 3. TGL PRODUKSI --}}
-    <div class="row mb-2">
-        <label class="col-md-3 col-form-label col-form-label-sm fw-bold d-flex justify-content-between">
-            <span>Tgl Produksi <span class="text-danger">*</span></span>
-            <span>:</span>
-        </label>
-        <div class="col-md-9">
-            <input type="date" class="form-control form-control-sm" name="production_date" style="max-width: 200px;" required>
-        </div>
-    </div>
+                                {{-- 1. ASAL SAMPLE --}}
+                                <div class="row mb-2">
+                                    <label class="col-md-3 col-form-label col-form-label-sm fw-bold d-flex justify-content-between">
+                                        <span>Asal sample <span class="text-danger">*</span></span>
+                                        <span>:</span>
+                                    </label>
+                                    <div class="col-md-9">
+                                        {{-- Radio Buttons Baris --}}
+                                        <div class="d-flex flex-wrap gap-3 align-items-center pt-1">
+                                            <div class="form-check mb-0">
+                                                <input class="form-check-input" type="radio" name="source_option" value="WH" id="source_wh">
+                                                <label class="form-check-label small" for="source_wh">WH</label>
+                                            </div>
+                                            <div class="form-check mb-0">
+                                                <input class="form-check-input" type="radio" name="source_option" value="Reference Sample" id="source_ref">
+                                                <label class="form-check-label small" for="source_ref">Reference Sample</label>
+                                            </div>
+                                            <div class="form-check mb-0">
+                                                <input class="form-check-input" type="radio" name="source_option" value="Batch Refinery" id="source_batch">
+                                                <label class="form-check-label small" for="source_batch">Batch Refinery</label>
+                                            </div>
+                                            <div class="form-check mb-0">
+                                                <input class="form-check-input" type="radio" name="source_option" value="Packing Room" id="source_packing">
+                                                <label class="form-check-label small" for="source_packing">Packing Room</label>
+                                            </div>
+                                            {{-- Opsi Lainnya sejajar di sini --}}
+                                            <div class="form-check mb-0">
+                                                <input class="form-check-input" type="radio" id="source_other_radio" name="source_option" value="Lainnya">
+                                                <label class="form-check-label small" for="source_other_radio">Lainnya...</label>
+                                            </div>
+                                        </div>
+                                        {{-- Input Text muncul di bawahnya --}}
+                                        <input type="text" class="form-control form-control-sm mt-1" id="source_other_input" style="display: none; max-width: 100%;" placeholder="Sebutkan asal sample...">
+                                        <input type="hidden" name="source" id="source" required>
+                                    </div>
+                                </div>
 
-    {{-- 4. PERSIAPAN SAMPLE --}}
-    <div class="row mb-2">
-        <label class="col-md-3 col-form-label col-form-label-sm fw-bold d-flex justify-content-between">
-            <span>Persiapan sample <span class="text-danger">*</span></span>
-            <span>:</span>
-        </label>
-        <div class="col-md-9">
-            <div class="d-flex flex-wrap gap-3 align-items-center pt-1">
-                <div class="form-check mb-0">
-                    <input class="form-check-input" type="radio" name="preparation_method_option" value="Tidak berubah" id="prep_no_change">
-                    <label class="form-check-label small" for="prep_no_change">Tidak berubah</label>
-                </div>
-                <div class="form-check mb-0">
-                    <input class="form-check-input" type="radio" name="preparation_method_option" value="Rework Karton" id="prep_karton">
-                    <label class="form-check-label small" for="prep_karton">Rework Karton</label>
-                </div>
-                <div class="form-check mb-0">
-                    <input class="form-check-input" type="radio" name="preparation_method_option" value="Rework Stencill" id="prep_stencil">
-                    <label class="form-check-label small" for="prep_stencil">Rework Stencill</label>
-                </div>
-                <div class="form-check mb-0">
-                    <input class="form-check-input" type="radio" name="preparation_method_option" value="Rework Label" id="prep_label">
-                    <label class="form-check-label small" for="prep_label">Rework Label</label>
-                </div>
-                {{-- Lainnya sejajar --}}
-                <div class="form-check mb-0">
-                    <input class="form-check-input" type="radio" id="preparation_method_other_radio" name="preparation_method_option" value="Lainnya">
-                    <label class="form-check-label small" for="preparation_method_other_radio">Lainnya...</label>
-                </div>
-            </div>
-            {{-- Input di bawah --}}
-            <input type="text" class="form-control form-control-sm mt-1" id="preparation_method_other_input" style="display: none; max-width: 100%;" placeholder="Sebutkan metode lain...">
-            <input type="hidden" name="preparation_method" id="preparation_method" required>
-        </div>
-    </div>
+                                {{-- 2. KETERANGAN SAMPLE --}}
+                                <div class="row mb-2">
+                                    <label class="col-md-3 col-form-label col-form-label-sm fw-bold d-flex justify-content-between">
+                                        <span>Keterangan sample <span class="text-danger">*</span></span>
+                                        <span>:</span>
+                                    </label>
+                                    <div class="col-md-9">
+                                        <div class="d-flex flex-wrap gap-3 align-items-center pt-1">
+                                            <div class="form-check mb-0">
+                                                <input class="form-check-input" type="radio" name="description_option" value="batch" id="desc_batch">
+                                                <label class="form-check-label small" for="desc_batch">Batch/Pallet No</label>
+                                            </div>
+                                            <div class="form-check mb-0">
+                                                <input class="form-check-input" type="radio" name="description_option" value="wb" id="desc_wb">
+                                                <label class="form-check-label small" for="desc_wb">WB/DEO No</label>
+                                            </div>
+                                            <div class="form-check mb-0">
+                                                <input class="form-check-input" type="radio" name="description_option" value="tank" id="desc_tank">
+                                                <label class="form-check-label small" for="desc_tank">Tank No</label>
+                                            </div>
+                                        </div>
 
-    {{-- 5. KETERANGAN --}}
-    <div class="row mb-1">
-        <label class="col-md-3 col-form-label col-form-label-sm fw-bold d-flex justify-content-between">
-            <span>Keterangan <span class="text-danger">*</span></span>
-            <span>:</span>
-        </label>
-        <div class="col-md-9">
-            <div class="d-flex flex-wrap gap-3 align-items-center pt-1">
-                <div class="form-check mb-0">
-                    <input class="form-check-input" type="radio" name="sample_notes_option" value="Tempel sticker" id="note_sticker">
-                    <label class="form-check-label small" for="note_sticker">Tempel sticker</label>
-                </div>
-                <div class="form-check mb-0">
-                    <input class="form-check-input" type="radio" id="sample_notes_other_radio" name="sample_notes_option" value="Lainnya">
-                    <label class="form-check-label small" for="sample_notes_other_radio">Lainnya...</label>
-                </div>
-            </div>
-            <input type="text" class="form-control form-control-sm mt-1" id="sample_notes_other_input" style="display: none; max-width: 100%;" placeholder="Sebutkan keterangan lain...">
-            <input type="hidden" name="sample_notes" id="sample_notes" required>
-        </div>
-    </div>
-</div>
+                                        <div class="input-group input-group-sm mt-1" id="keterangan_sample_input_wrapper" style="display: none; max-width: 350px;">
+                                            <input type="text" class="form-control" id="keterangan_sample_input_1" placeholder="Nomor...">
+                                            <span class="input-group-text py-0" id="batch_suffix_p" style="display: none;">P</span>
+                                            <input type="text" class="form-control" id="keterangan_sample_input_2" style="display: none;" placeholder="No Pallet...">
+                                        </div>
+                                        <input type="hidden" name="description" id="description" required>
+                                    </div>
+                                </div>
+
+                                {{-- 3. TGL PRODUKSI --}}
+                                <div class="row mb-2">
+                                    <label class="col-md-3 col-form-label col-form-label-sm fw-bold d-flex justify-content-between">
+                                        <span>Tgl Produksi <span class="text-danger">*</span></span>
+                                        <span>:</span>
+                                    </label>
+                                    <div class="col-md-9">
+                                        <input type="date" class="form-control form-control-sm" name="production_date" style="max-width: 200px;" required>
+                                    </div>
+                                </div>
+
+                                {{-- 4. PERSIAPAN SAMPLE --}}
+                                <div class="row mb-2">
+                                    <label class="col-md-3 col-form-label col-form-label-sm fw-bold d-flex justify-content-between">
+                                        <span>Persiapan sample <span class="text-danger">*</span></span>
+                                        <span>:</span>
+                                    </label>
+                                    <div class="col-md-9">
+                                        <div class="d-flex flex-wrap gap-3 align-items-center pt-1">
+                                            <div class="form-check mb-0">
+                                                <input class="form-check-input" type="radio" name="preparation_method_option" value="Tidak berubah" id="prep_no_change">
+                                                <label class="form-check-label small" for="prep_no_change">Tidak berubah</label>
+                                            </div>
+                                            <div class="form-check mb-0">
+                                                <input class="form-check-input" type="radio" name="preparation_method_option" value="Rework Karton" id="prep_karton">
+                                                <label class="form-check-label small" for="prep_karton">Rework Karton</label>
+                                            </div>
+                                            <div class="form-check mb-0">
+                                                <input class="form-check-input" type="radio" name="preparation_method_option" value="Rework Stencill" id="prep_stencil">
+                                                <label class="form-check-label small" for="prep_stencil">Rework Stencill</label>
+                                            </div>
+                                            <div class="form-check mb-0">
+                                                <input class="form-check-input" type="radio" name="preparation_method_option" value="Rework Label" id="prep_label">
+                                                <label class="form-check-label small" for="prep_label">Rework Label</label>
+                                            </div>
+                                            {{-- Lainnya sejajar --}}
+                                            <div class="form-check mb-0">
+                                                <input class="form-check-input" type="radio" id="preparation_method_other_radio" name="preparation_method_option" value="Lainnya">
+                                                <label class="form-check-label small" for="preparation_method_other_radio">Lainnya...</label>
+                                            </div>
+                                        </div>
+                                        {{-- Input di bawah --}}
+                                        <input type="text" class="form-control form-control-sm mt-1" id="preparation_method_other_input" style="display: none; max-width: 100%;" placeholder="Sebutkan metode lain...">
+                                        <input type="hidden" name="preparation_method" id="preparation_method" required>
+                                    </div>
+                                </div>
+
+                                {{-- 5. KETERANGAN --}}
+                                <div class="row mb-1">
+                                    <label class="col-md-3 col-form-label col-form-label-sm fw-bold d-flex justify-content-between">
+                                        <span>Keterangan <span class="text-danger">*</span></span>
+                                        <span>:</span>
+                                    </label>
+                                    <div class="col-md-9">
+                                        <div class="d-flex flex-wrap gap-3 align-items-center pt-1">
+                                            <div class="form-check mb-0">
+                                                <input class="form-check-input" type="radio" name="sample_notes_option" value="Tempel sticker" id="note_sticker">
+                                                <label class="form-check-label small" for="note_sticker">Tempel sticker</label>
+                                            </div>
+                                            <div class="form-check mb-0">
+                                                <input class="form-check-input" type="radio" id="sample_notes_other_radio" name="sample_notes_option" value="Lainnya">
+                                                <label class="form-check-label small" for="sample_notes_other_radio">Lainnya...</label>
+                                            </div>
+                                        </div>
+                                        <input type="text" class="form-control form-control-sm mt-1" id="sample_notes_other_input" style="display: none; max-width: 100%;" placeholder="Sebutkan keterangan lain...">
+                                        <input type="hidden" name="sample_notes" id="sample_notes" required>
+                                    </div>
+                                </div>
+                            </div>
                         @endif
                     </div>
                 </div>
@@ -483,7 +483,7 @@
                             @endphp
                             {{ $actionName }}
                         </h5>
-                        
+
                         {{-- Hidden inputs yang diperlukan --}}
                         @if($action === 'approve' || ($action === 'submit' && $isWarehouseProcess))
                             <input type="hidden" name="action" value="{{ $action }}">
@@ -515,6 +515,14 @@
                                 </div>
                                 <div class="mb-3">
                                     <label for="notes" class="form-label"><strong>Notes/Reason: <span class="text-danger">*</span></strong></label>
+
+                                    <div class="alert alert-warning d-flex align-items-start p-2 mb-2" role="alert" style="font-size: 0.8rem;">
+                                        <i class="fas fa-exclamation-triangle mt-1 me-2"></i>
+                                        <div>
+                                            <strong>Validation:</strong> Please provide a clear sentence. Inputs consisting solely of <b>numbers</b> or <b>punctuation</b> are not allowed.
+                                        </div>
+                                    </div>
+
                                     <textarea class="form-control" id="notes" name="notes" rows="5" placeholder="Provide notes..." required></textarea>
                                 </div>
                                 <div class="d-grid">
@@ -529,6 +537,14 @@
 
                                 <div class="mb-3">
                                     <label for="notes" class="form-label"><strong>Notes: <span class="text-danger">*</span></strong></label>
+
+                                    <div class="alert alert-warning d-flex align-items-start p-2 mb-2" role="alert" style="font-size: 0.8rem;">
+                                        <i class="fas fa-exclamation-triangle mt-1 me-2"></i>
+                                        <div>
+                                            <strong>Validation:</strong> Please provide a clear sentence explaining the quantity change. <b>Numbers only</b> are not accepted here.
+                                        </div>
+                                    </div>
+
                                     <textarea class="form-control" id="notes" name="notes" rows="3" placeholder="Provide reason for quantity update..." required></textarea>
                                 </div>
 
@@ -558,12 +574,20 @@
                             </div>
                             <div class="mb-3">
                                 <label for="notes" class="form-label"><strong>Notes/Reason:</strong></label>
+
+                                <div class="alert alert-warning d-flex align-items-start p-2 mb-2" role="alert" style="font-size: 0.8rem;">
+                                    <i class="fas fa-exclamation-triangle mt-1 me-2"></i>
+                                    <div>
+                                        <strong>Validation:</strong> Please provide a clear explanation. Inputs consisting solely of <b>numbers</b> or <b>symbols</b> will be rejected by the system.
+                                    </div>
+                                </div>
+
                                 <textarea class="form-control" id="notes" name="notes" rows="8"
                                     placeholder="Provide notes for your decision..."></textarea>
-                                <div class="form-text">Notes are required for rejection or review.</div>
+                                <div class="form-text text-muted">Notes are required for rejection or review.</div>
                             </div>
                             <div class="d-grid">
-                                <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">Submit Decision</button>
+                                <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">Submit Notes</button>
                             </div>
                         @endif
                     </div>
@@ -614,12 +638,12 @@
                     document.querySelectorAll('.qa-input-section [required]').forEach(input => {
                         if (!input.value.trim()) { allValid = false; }
                     });
-                    
+
                     if (!allValid) {
                         Swal.fire({ icon: 'warning', title: 'Form Tidak Lengkap', text: 'Mohon isi semua kolom Form QA yang wajib diisi (*).' });
                         return false;
                     }
-                    
+
                     // Validasi Qty Issued untuk QA (Opsional tapi disarankan)
                     let qtyFilled = true;
                     // Uncomment jika Qty Issued Wajib diisi > 0
@@ -743,7 +767,7 @@
                 const keteranganInput2 = document.getElementById('keterangan_sample_input_2');
                 const batchSuffix = document.getElementById('batch_suffix_p');
                 const finalDescriptionInput = document.getElementById('description');
-                
+
                 document.querySelectorAll('input[name="description_option"]').forEach(radio => {
                     radio.addEventListener('change', function() {
                         const selectedType = this.value;
