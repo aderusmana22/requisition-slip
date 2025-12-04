@@ -472,7 +472,7 @@
                                 <td>{{ $item->itemMaster->item_master_code ?? 'N/A' }}</td>
                                 <td>{{ $item->quantity_required ?? 0 }}</td>
                                 <td>{{ $item->quantity_issued ?? 0 }}</td>
-                                <td>{{ date('j/n/y', strtotime($item->batch_number)) ?? 'N/A' }}</td>
+                                <td>{{ $item->batch_number ?? 'N/A' }}</td>
                                 <td>{{ $item->remarks ?? '-' }}</td>
                             </tr>
                             @endforeach

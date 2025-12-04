@@ -12,7 +12,6 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('requisition_items', function (Blueprint $table) {
-            $table->date('batch_number')->nullable()->change();
             $table->text('remarks')->nullable()->change();
         });
     }
@@ -23,7 +22,6 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('requisition_items', function (Blueprint $table) {
-            $table->string('batch_number')->nullable()->change();
             $table->string('remarks')->nullable()->change();
         });
     }

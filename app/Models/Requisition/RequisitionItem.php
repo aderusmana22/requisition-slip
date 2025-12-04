@@ -22,10 +22,11 @@ class RequisitionItem extends Model
         'remarks',
     ];
 
+    // Remove date cast for batch_number since it's now a string
     protected $casts = [
-        'batch_number' => 'date',
+        // 'batch_number' => 'date', // Commented out - batch_number is now string
     ];
-    
+
     public function requisition()
     {
         return $this->belongsTo(Requisition::class, 'requisition_id');
