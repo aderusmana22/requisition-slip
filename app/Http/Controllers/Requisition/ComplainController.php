@@ -1613,7 +1613,6 @@ class ComplainController extends Controller
 
         $requisitions = collect([$requisitions]);
 
-        // Ambil data revision pertama (atau bisa disesuaikan dengan kebutuhan)
         $revision = Revision::first();
 
         $pdf = Pdf::loadView('page.complain.reports.report-template', [

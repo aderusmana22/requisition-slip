@@ -20,17 +20,17 @@
         body { font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif; font-size: 10pt; margin: 0; }
         .page { width: 93%; padding: 1cm; }
         .page-break { page-break-before: always; }
-        
+
         /* CSS khusus untuk bulk report */
         .bulk-page-break {
             page-break-before: always;
         }
-        
+
         /* Pastikan setiap report dimulai di halaman baru */
         .report-section {
             page-break-after: always;
         }
-        
+
         .report-section:last-child {
             page-break-after: auto;
         }
@@ -234,11 +234,11 @@
                 } elseif ($log->status === 'Rejected') {
                     $statusText = 'NOT APPROVED';
                 }
-                
+
                 // Get role display
                 $roleNames = $log->approver && $log->approver->roles ? $log->approver->roles->pluck('name')->toArray() : [];
                 $roleDisplay = !empty($roleNames) ? implode(', ', $roleNames) : ($log->level ? $log->level : 'Unknown');
-                
+
                 return (object) [
                     'name' => $log->approver ? $log->approver->name : 'Unknown',
                     'position' => $roleDisplay,
@@ -247,7 +247,7 @@
                     'notes' => $log->notes
                 ];
             });
-            
+
             $requester = $currentRequisition->requester ? $currentRequisition->requester : (object) ['name' => 'Unknown', 'department' => (object) ['name' => 'Unknown']];
         @endphp
 
@@ -358,7 +358,7 @@
                                 @else
                                 <th style="width: 15%;">Estimasi Potensi (Remarks in Carton)</th>
                                 @endif
-                            
+
                             </tr>
                         </thead>
 
@@ -385,7 +385,7 @@
                                 @endif
 
                                 <td class="text-center">{{ $item->quantity_required }}</td>
-                                <td class="text-center">{{ $item->quantity_issued }}</td>
+                                <td class="text-center">{{ $item->quantity_issued ?? '-' }}</td>
 
                                 {{-- Kolom Objectives dan Estimasi tetap sama, digabung dengan rowspan --}}
                                 @if($loop->first)
