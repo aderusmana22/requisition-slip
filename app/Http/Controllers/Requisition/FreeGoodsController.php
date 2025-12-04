@@ -24,13 +24,13 @@ use Illuminate\Support\Facades\Mail;
 use Spatie\Activitylog\Models\Activity;
 use Yajra\DataTables\Facades\DataTables;
 use App\Traits\ApprovalTrait;
-use App\Traits\traitTracking; // [UPDATE] Import Trait Tracking
+use App\Traits\traitTracking;
 use Illuminate\Support\Str;
 
 class FreeGoodsController extends Controller
 {
     use ApprovalTrait;
-    use traitTracking; // [UPDATE] Menggunakan Trait Tracking
+    use traitTracking;
 
     private function generateFgNumber()
     {
@@ -398,17 +398,19 @@ class FreeGoodsController extends Controller
     {
         $action = $request->query('action');
         $originalAction = $action;
-        $validActions = ['approve', 'review', 'reject', 'submit'];
+        $validActions = ['approve', 'review', 'reject', 'submit', 'update_qty'];
 
         if (!in_array($action, $validActions)) {
-            return view('page.freegoods.invalid', ['message' => 'Invalid action.']);
+            // [UPDATED PATH] Menunjuk ke folder links
+            return view('page.freegoods.links.invalid', ['message' => 'Invalid action.']);
         }
 
         $approvalLog = ApprovalLog::where('token', $token)->where('status', 'Pending')->first();
         $tracking = !$approvalLog ? Tracking::where('token', $token)->whereNull('last_updated')->first() : null;
 
         if (!$approvalLog && !$tracking) {
-            return view('page.freegoods.invalid', ['message' => 'This request is invalid or has been processed.']);
+            // [UPDATED PATH] Menunjuk ke folder links
+            return view('page.freegoods.links.invalid', ['message' => 'This request is invalid or has been processed.']);
         }
 
         if ($action === 'approve' && !$tracking) {
@@ -435,7 +437,8 @@ class FreeGoodsController extends Controller
             'originalAction' => $originalAction,
         ];
 
-        return view('page.freegoods.response-form', $viewData);
+        // [UPDATED PATH] Menunjuk ke folder links
+        return view('page.freegoods.links.response-form', $viewData);
     }
 
     public function processApproval(Request $request)
@@ -447,8 +450,10 @@ class FreeGoodsController extends Controller
         } else {
             $validated = $request->validate([
                 'token' => 'required|string',
-                'action' => 'required|string|in:approve,review,reject,submit',
-                'notes' => 'nullable|string|max:500|required_if:action,review,reject',
+                'action' => 'required|string|in:approve,review,reject,submit,update_qty',
+                'notes' => 'nullable|string|max:500|required_if:action,review,reject,update_qty',
+                'items' => 'nullable|array',
+                'items.*' => 'nullable|integer|min:0',
             ]);
         }
 
@@ -470,9 +475,22 @@ class FreeGoodsController extends Controller
                 $requisition = $tracking->requisition;
                 Log::info("Processing warehouse step for Free Goods Requisition #{$requisition->id}. Current position: {$tracking->current_position}.");
 
+                if (!empty($validated['items']) && is_array($validated['items'])) {
+                    foreach ($validated['items'] as $itemId => $qty) {
+                         RequisitionItem::where('id', $itemId)
+                            ->where('requisition_id', $requisition->id) // Security Check
+                            ->update(['quantity_issued' => $qty]);
+                    }
+                }
+
                 $updateData = ['token' => null, 'last_updated' => now()];
 
                 $defaultNote = "Proses {$tracking->current_position} berhasil disubmit tanpa notes.";
+                
+                if ($action === 'update_qty' && empty($notes)) {
+                     $defaultNote = "Quantity updated via warehouse process.";
+                }
+
                 $updateData['notes'] = $notes ?: $defaultNote;
 
                 $tracking->update($updateData);
@@ -487,7 +505,8 @@ class FreeGoodsController extends Controller
                     ->with('card_class', 'success')->with('title', 'Warehouse Step Completed')
                     ->with('message', 'Warehouse process step has been recorded.')
                     ->with('no_srs', $requisition->no_srs)->with('customer_name', $requisition->customer->name ?? 'N/A')
-                    ->with('action_text', 'Processed')->with('approver_name', $tracking->current_position)
+                    ->with('action_text', $action === 'update_qty' ? 'Qty Updated' : 'Processed')
+                    ->with('approver_name', $tracking->current_position)
                     ->with('new_status', $newStatus);
 
             } catch (\Exception $e) {
@@ -583,16 +602,13 @@ class FreeGoodsController extends Controller
         }
     }
 
-    // [UPDATE] Menggunakan trait untuk men-generate tracking path secara dinamis
     private function startPostApprovalProcess(Requisition $requisition)
     {
         $newStatus = 'Processing';
         Log::info("Approval path selesai untuk Free Goods Requisition #{$requisition->id}. Memulai proses warehouse.");
 
-        // Menggunakan Trait untuk membuat tracking path secara dinamis dari database
         $this->generateTrackingPath($requisition->id, 'FREE GOODS', $requisition->sub_category);
 
-        // Cari langkah tracking pertama yang pending
         $firstTracking = Tracking::where('requisition_id', $requisition->id)
                                  ->whereNull('last_updated')
                                  ->orderBy('id', 'asc')
@@ -602,48 +618,49 @@ class FreeGoodsController extends Controller
             $stepName = $firstTracking->current_position;
             $requisition->update(['status' => 'Processing', 'route_to' => $stepName]);
 
-            // Kirim notifikasi ke user tracking pertama
             $user = User::where('nik', $firstTracking->approver_nik)->first();
             if ($user) {
+                $baseUrl = route('fg.approval.response', ['token' => $firstTracking->token]);
                 dispatch(new sendFreeGoods($requisition, $user, $firstTracking->token, [
                     'mail_type'    => 'warehouse_process',
-                    'process_step' => $stepName
+                    'process_step' => $stepName,
+                    'submit_url'     => $baseUrl . '?action=submit',
+                    'review_url'     => $baseUrl . '?action=review',
+                    'update_qty_url' => $baseUrl . '?action=update_qty',
                 ]));
             }
             return $stepName;
         } else {
-            // Fallback jika tidak ada path yang ter-generate
             $stepName = 'Processing';
             $requisition->update(['status' => 'Processing', 'route_to' => $stepName]);
             return $stepName;
         }
     }
 
-    // [UPDATE] Menggunakan logika dinamis untuk melanjutkan ke langkah berikutnya
     private function advanceWarehouseStep(Requisition $requisition)
     {
-        // Cari langkah tracking selanjutnya yang masih pending (last_updated IS NULL)
         $nextTracking = Tracking::where('requisition_id', $requisition->id)
                                 ->whereNull('last_updated')
                                 ->orderBy('id', 'asc')
                                 ->first();
 
         if ($nextTracking) {
-            // Update requisition ke posisi baru
             $requisition->update(['route_to' => $nextTracking->current_position]);
 
-            // Kirim notifikasi ke user langkah tersebut
             $user = User::where('nik', $nextTracking->approver_nik)->first();
             if ($user) {
+                $baseUrl = route('fg.approval.response', ['token' => $nextTracking->token]);
                 dispatch(new sendFreeGoods($requisition, $user, $nextTracking->token, [
                     'mail_type'    => 'warehouse_process',
-                    'process_step' => $nextTracking->current_position
+                    'process_step' => $nextTracking->current_position,
+                    'submit_url'     => $baseUrl . '?action=submit',
+                    'review_url'     => $baseUrl . '?action=review',
+                    'update_qty_url' => $baseUrl . '?action=update_qty',
                 ]));
             }
             
             return "Processing (" . $nextTracking->current_position . ")";
         } else {
-            // Jika tidak ada lagi langkah pending, berarti selesai
             return $this->notifyRequesterAsCompleted($requisition);
         }
     }
@@ -652,9 +669,6 @@ class FreeGoodsController extends Controller
     {
         $statusText = 'Completed';
         $requisition->update(['status' => $statusText, 'route_to' => 'Finished']);
-
-        // Jika diperlukan, bisa mencatat log final tracking di sini, 
-        // tapi biasanya tracking table sudah mencerminkan history lengkap.
         
         if ($requisition->requester?->email) {
             dispatch(new sendFreeGoods($requisition, $requisition->requester, null, [
@@ -665,8 +679,6 @@ class FreeGoodsController extends Controller
         return $statusText;
     }
 
-    // Helper functions dipertahankan (walaupun mungkin tidak lagi dipanggil di flow utama, 
-    // tetap ada sesuai instruksi "jangan hilangkan kode apapun")
     private function createOrUpdateTracking(Requisition $requisition, string $currentPosition, string $notes)
     {
         $token = Str::uuid()->toString();
@@ -786,7 +798,8 @@ class FreeGoodsController extends Controller
         if (!session('title')) {
             return redirect('/');
         }
-        return view('page.freegoods.response-success');
+        // [UPDATED PATH] Menunjuk ke folder links
+        return view('page.freegoods.links.response-success');
     }
 
     public function log()
