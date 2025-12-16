@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('nik')->unique();
             $table->string('username')->unique();
-            $table->string('email')->unique();
+            $table->string('email');
             $table->string('name');
             $table->string('avatar')->nullable();
             $table->unsignedBigInteger('department_id');

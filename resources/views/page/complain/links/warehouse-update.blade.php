@@ -372,7 +372,7 @@
                                     <td>{{ $item->itemMaster->item_master_name ?? 'N/A' }}</td>
                                     <td>
                                         @if($item->batch_number)
-                                            {{ \Carbon\Carbon::parse($item->batch_number)->format('d/m/y') }}
+                                            {{ $item->batch_number }}
                                         @else
                                             N/A
                                         @endif

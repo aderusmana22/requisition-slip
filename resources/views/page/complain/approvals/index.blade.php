@@ -92,13 +92,13 @@
                             </div>
                         </div>
                     </div>
-                
+
                     <!-- Title Section -->
                     <div class="slip-title-enhanced">
                         <h4><strong>REQUISITION SLIP</strong></h4>
                         <p class="">SALES & MARKETING<br>SAMPLE PRODUCT</p>
                     </div>
-                
+
                     <!-- Customer & Basic Info Section -->
                     <div class="detail-section">
                         <div class="section-header">
@@ -189,7 +189,7 @@
                             </div>
                         </div>
                     </div>
-                
+
                     <!-- Product Details Section -->
                     <div class="detail-section">
                         <div class="section-header">
@@ -202,7 +202,7 @@
                             </div>
                         </div>
                     </div>
-                
+
                     <!-- Complain Images Section -->
                     <div class="detail-section" id="complainImagesSection" style="display: none;">
                         <div class="section-header">
@@ -213,7 +213,7 @@
                             <!-- Images will be populated here -->
                         </div>
                     </div>
-                
+
                     <!-- Status & Approval History Section -->
                     <div class="detail-section">
                         <div class="section-header">
@@ -271,7 +271,7 @@
                     <form id="reviewForm">
                         <input type="hidden" id="review_token" name="token">
                         <input type="hidden" id="review_id" name="id">
-                        
+
                         <!-- Request Info Display -->
                         <div class="card mb-4">
                             <div class="card-header bg-light">
@@ -332,7 +332,7 @@
                                 Notes/Comments
                                 <span class="text-danger" id="notes_required_indicator">*</span>
                             </label>
-                            <textarea class="form-control" id="review_notes" name="notes" rows="4" 
+                            <textarea class="form-control" id="review_notes" name="notes" rows="4"
                                 placeholder="Enter your notes or comments here..."></textarea>
                             <div class="form-text">
                                 <span id="notes_help_text">Notes are required for this action.</span>
@@ -360,11 +360,11 @@
             transition: all 0.3s ease-in-out;
             overflow: hidden;
         }
-        
+
         #notes_section.fade-in {
             animation: fadeInSlide 0.3s ease-in-out;
         }
-        
+
         @keyframes fadeInSlide {
             from {
                 opacity: 0;
@@ -408,19 +408,19 @@
         const populateStatusAndHistory = (data) => {
             const statusContainer = $('#current_status_display');
             const status = data.status || 'Unknown';
-            
+
             const statusMap = {
                 'pending': { class: 'status-badge-pending', text: 'Pending Review' },
                 'approved': { class: 'status-badge-approved', text: 'Approved' },
                 'rejected': { class: 'status-badge-rejected', text: 'Rejected' },
                 'in progress': { class: 'status-badge-progress', text: 'In Progress' }
             };
-            
+
             const statusInfo = statusMap[status.toLowerCase()] || { class: 'status-badge-progress', text: status };
             statusContainer.html(`<div class="current-status-badge ${statusInfo.class}">${statusInfo.text}</div>`);
 
             const historyContainer = $('#approval_history_list');
-            const filteredLogs = (data.approval_logs || []).filter(log => 
+            const filteredLogs = (data.approval_logs || []).filter(log =>
                 log.status && log.status.toLowerCase() !== 'pending'
             );
 
@@ -443,9 +443,9 @@
                     day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
                 }) : 'Unknown date';
 
-                const statusClass = logStatus.toLowerCase() === 'approved' ? 'approval-level-approved' : 
+                const statusClass = logStatus.toLowerCase() === 'approved' ? 'approval-level-approved' :
                                   logStatus.toLowerCase() === 'rejected' ? 'approval-level-rejected' : 'approval-level-default';
-                const itemClass = logStatus.toLowerCase() === 'approved' ? 'approval-item approval-item-approved' : 
+                const itemClass = logStatus.toLowerCase() === 'approved' ? 'approval-item approval-item-approved' :
                                 logStatus.toLowerCase() === 'rejected' ? 'approval-item approval-item-rejected' : 'approval-item';
 
                 return `
@@ -467,7 +467,7 @@
 
         const renderDetailProductTable = (items) => {
             const container = $('#detail_productDetailsContainer');
-            
+
             if (!items?.length) {
                 container.html(`
                     <div class="text-center py-5">
@@ -503,7 +503,7 @@
 
                 const materialType = specificDetail.material_type || '-';
                 const badgeClass = materialTypeMap[materialType] || materialTypeMap.default;
-                
+
                 return `
                     <tr class="animate-row" style="animation-delay: ${index * 0.1}s">
                         <td class="text-center"><span class="badge bg-${badgeClass}">${materialType}</span></td>
@@ -519,8 +519,8 @@
                                 style="background: rgba(25, 135, 84, 0.1); border-color: rgba(25, 135, 84, 0.3);">
                         </td>
                         <td class="text-center">
-                            <input type="date" class="form-control text-center" readonly
-                                value="${item.batch_number ? new Date(item.batch_number).toISOString().split('T')[0] : ''}"
+                            <input type="text" class="form-control text-center" readonly
+                                value="${item.batch_number ?? ''}"
                                 style="background: rgba(13, 110, 253, 0.1); border-color: rgba(13, 110, 253, 0.3);">
                         </td>
                         <td class="text-center">
@@ -563,15 +563,15 @@
         const renderComplainImages = (images) => {
             const section = $('#complainImagesSection');
             const container = $('#detail_complain_images');
-            
+
             if (!images?.length) {
                 section.hide();
                 return;
             }
-            
+
             section.show();
             container.empty();
-            
+
             images.forEach((image, index) => {
                 const imageUrl = `{{ asset('storage/') }}/${image.image_path}`;
                 container.append(`
@@ -594,7 +594,7 @@
         // === Review Modal Functions ===
         const showReviewModal = (requisitionId, token) => {
             const detailUrl = "{{ route('get.form.detail', ['id' => ':id']) }}".replace(':id', requisitionId);
-            
+
             $.ajax({
                 url: detailUrl,
                 method: 'GET',
@@ -604,7 +604,7 @@
                     $('#review_requisition_id').text(data.no_srs || data.requisition_number || 'N/A');
                     $('#review_customer').text(data.customer?.name || 'N/A');
                     $('#review_status').text(data.status || 'Pending');
-                    
+
                     const date = data.request_date || data.created_at;
                     if (date) {
                         const formattedDate = new Date(date).toLocaleDateString('en-GB', {
@@ -614,10 +614,10 @@
                     } else {
                         $('#review_date').text('N/A');
                     }
-                    
+
                     $('#reviewForm')[0].reset();
                     updateNotesRequirement();
-                    
+
                     try {
                         new bootstrap.Modal(document.getElementById('reviewModal')).show();
                     } catch (e) {
@@ -633,7 +633,7 @@
             const notesSection = $('#notes_section');
             const notesField = $('#review_notes');
             const helpText = $('#notes_help_text');
-            
+
             if (selectedDecision === 'reject') {
                 // Tampilkan notes section untuk reject
                 notesSection.addClass('fade-in').slideDown(300);
@@ -759,7 +759,7 @@
                         data: 'requisition_details.updated_at',
                         render: (data) => {
                             if (!data) return 'N/A';
-                            
+
                             const diffInSeconds = Math.floor((new Date() - new Date(data)) / 1000);
                             const timeUnits = [
                                 { unit: 'year', seconds: 31536000 },
@@ -768,9 +768,9 @@
                                 { unit: 'hour', seconds: 3600 },
                                 { unit: 'minute', seconds: 60 }
                             ];
-                            
+
                             if (diffInSeconds < 60) return 'Just now';
-                            
+
                             for (const { unit, seconds } of timeUnits) {
                                 const value = Math.floor(diffInSeconds / seconds);
                                 if (value >= 1) {
@@ -787,7 +787,7 @@
                         searchable: false,
                         render: (data, type, row) => {
                             const token = row.requisition_details?.token || row.token || '';
-                            
+
                             // Jika token null, tampilkan icon checklist
                             if (data.token == null) {
                                 return `
@@ -796,7 +796,7 @@
                                     </div>
                                 `;
                             }
-                            
+
                             // Jika ada token, tampilkan button actions
                             let buttons = `
                                 <button type="button" class="btn btn-info btn-sm detail-button action-btn-hover" 
@@ -808,7 +808,7 @@
                                     <i class="ph-duotone ph-note"></i>
                                 </button>
                             `;
-                            
+
                             // Jika user adalah admin, tambahkan tombol resend
                             if (isAdmin) {
                                 buttons += `
@@ -818,7 +818,7 @@
                                     </button>
                                 `;
                             }
-                            
+
                             return `<div class="action-btn-group">${buttons}</div>`;
                         },
                         width: '15%'
@@ -862,7 +862,7 @@
 
                         $btn.data('tooltip-element', $tooltip);
                         setTimeout(() => $tooltip.css({ opacity: 1, transform: 'translateX(-50%) translateY(0)' }), 10);
-                        
+
                         const hideTimer = setTimeout(() => {
                             $tooltip.css({ opacity: 0, transform: 'translateX(-50%) translateY(5px)' });
                             setTimeout(() => { $tooltip.remove(); $btn.removeData('tooltip-element'); }, 200);
@@ -873,7 +873,7 @@
                         const $btn = $(this);
                         const $tooltip = $btn.data('tooltip-element');
                         const timer = $btn.data('tooltip-timer');
-                        
+
                         if (timer) clearTimeout(timer);
                         if ($tooltip) {
                             $tooltip.css({ opacity: 0, transform: 'translateX(-50%) translateY(5px)' });
@@ -890,7 +890,7 @@
             $('#approvalTable tbody').on('click', '.resend-button', function() {
                 const token = $(this).data('token');
                 const resendUrl = "{{ route('complain.approval.resend', ['token' => ':token']) }}".replace(':token', token);
-                
+
                 showConfirmDialog({
                     title: 'Resend Approval Email?',
                     text: 'This will generate a new approval link and send it to the approver.',
@@ -933,12 +933,12 @@
                             // Populate product list
                             const items = data.requisition_items || [];
                             const selectedProductsDiv = $('#requisition_product_list');
-                            
+
                             if (items.length > 0) {
                                 const uniqueMasters = [...new Map(items.filter(item => item.item_master)
                                     .map(item => [item.item_master.id, item.item_master])).values()];
-                                
-                                const productListHtml = uniqueMasters.map(master => 
+
+                                const productListHtml = uniqueMasters.map(master =>
                                     `<div class="product-item">
                                         <i class="ph-duotone ph-package"></i>
                                         <span class="fw-medium">${master.item_master_code} - ${master.item_master_name}</span>
@@ -993,26 +993,26 @@
                     form.reportValidity();
                     return;
                 }
-                
+
                 const formData = {
                     token: $('#review_token').val(),
                     id: $('#review_id').val(),
                     status: $('input[name="status"]:checked').val(),
                     notes: $('#review_notes').val()
                 };
-                
+
                 // Validasi notes berdasarkan status
                 if ((formData.status === 'reject' || formData.status === 'approve_with_review') && !formData.notes.trim()) {
                     showErrorMessage('Notes are required for this action.');
                     return;
                 }
-                
+
                 $('#submitReview').prop('disabled', true).html('<i class="spinner-border spinner-border-sm me-1"></i>Processing...');
-                
+
                 makeApprovalRequest(approvalProcessUrl, formData, () => {
                     $('#reviewModal').modal('hide');
                     let message, title;
-                    
+
                     switch(formData.status) {
                         case 'approve':
                             message = 'Request approved successfully!';

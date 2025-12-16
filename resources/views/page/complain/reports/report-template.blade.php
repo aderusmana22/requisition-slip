@@ -391,7 +391,7 @@
                                 @if($loop->first)
                                     <td class="notes-column text-center" rowspan="{{ $totalRows }}">{{ $currentRequisition->objectives }}</td>
                                 @endif
-                                <td class="text-center">{{ $item->batch_number ? strtoupper($item->batch_number->format('d M y')) : '-' }} . {{ $item->remarks ?? '-'}}</td>
+                                <td class="text-center">{{ $item->batch_number ?? '-' }} . {{ $item->remarks ?? '-'}}</td>
                             </tr>
                             @endforeach
 
