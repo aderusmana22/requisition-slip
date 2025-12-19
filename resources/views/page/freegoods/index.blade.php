@@ -7,7 +7,7 @@
     @include('components.freegoods-table-styles')
 
     @push('css')
-    {{-- [DITAMBAHKAN] CSS untuk Select2 agar filter terlihat rapi --}}
+    {{-- CSS untuk Select2 agar filter terlihat rapi --}}
     <link rel="stylesheet" href="{{ asset('assets/vendor/select/select2.min.css') }}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
 
@@ -64,7 +64,7 @@
 
     <div class="row">
         <div class="col-12">
-             {{-- [UPDATE] Layout Filter & Tombol disesuaikan seperti Sample --}}
+             {{-- Layout Filter & Tombol disesuaikan seperti Sample --}}
             <div class="d-flex justify-content-between align-items-center mb-4">
                 {{-- Grup Filter di Kiri --}}
                 <div class="d-flex align-items-center gap-2">
@@ -93,7 +93,7 @@
                 </div>
             </div>
     
-            {{-- [UPDATE] Container tabel disesuaikan seperti Sample --}}
+            {{-- Container tabel disesuaikan seperti Sample --}}
             <div class="main-table-container">
                 <div class="table-header-enhanced">
                     <h4 class="table-title">
@@ -126,7 +126,7 @@
 
 
     {{-- ========================================================== --}}
-    {{-- MODAL & SCRIPT (Isi modal tidak diubah) --}}
+    {{-- MODAL & SCRIPT --}}
     {{-- ========================================================== --}}
     <div class="modal fade" id="fgModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static"
         data-bs-keyboard="false">
@@ -239,12 +239,12 @@
                                                 <th>Item Name</th>
                                                 <th>Unit</th>
                                                 <th style="width: 15%;">Qty Required</th>
-                                                <th style="width: 15%;">Qty Issued</th>
+                                                {{-- Qty Issued Dihapus dari Form Input --}}
                                             </tr>
                                         </thead>
                                         <tbody id="requisition-items-tbody-fg"> 
                                             <tr id="no-items-row">
-                                                <td colspan="5" class="text-center">No items have been added yet.</td>
+                                                <td colspan="4" class="text-center">No items have been added yet.</td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -439,10 +439,9 @@
             }
             initSelect2();
 
-            // [UPDATE] Inisialisasi Select2 untuk filter
             $('#statusFilter').select2({
                 theme: 'bootstrap-5',
-                minimumResultsForSearch: Infinity // Sembunyikan kotak pencarian
+                minimumResultsForSearch: Infinity 
             });
 
             const table = $('#fgTable').DataTable({
@@ -451,7 +450,6 @@
                 ajax: {
                     url: "{{ route('freegoods.data') }}",
                     data: function (d) {
-                        // [UPDATE] Menggunakan ID filter yang baru
                         d.status = $('#statusFilter').val();
                     }
                 },
@@ -481,12 +479,10 @@
                 ]
             });
 
-            // [UPDATE] Event listener untuk filter status yang baru
             $('#statusFilter').on('change', function() {
                 table.ajax.reload();
             });
 
-            // [UPDATE] Tombol reset untuk filter yang baru
             $('#resetFilters').on('click', function() {
                 $('#statusFilter').val('all').trigger('change');
             });
@@ -518,8 +514,9 @@
                 $('#fgForm')[0].reset(); 
                 $('#fgForm').removeAttr('data-mode data-id'); 
                 $('#customer_id, #product_select_fg').val(null).trigger('change');
+                // [UPDATE] Colspan menjadi 4 karena kolom Qty Issued dihapus
                 $('#requisition-items-tbody-fg').html(
-                    '<tr id="no-items-row"><td colspan="5" class="text-center">No items have been added yet.</td></tr>'
+                    '<tr id="no-items-row"><td colspan="4" class="text-center">No items have been added yet.</td></tr>'
                 );
 
                 clearValidationErrors();
@@ -557,14 +554,14 @@
 
                             selectedMasters.forEach(master => {
                                 if ($(`#item-row-master-${master.id}`).length === 0) {
+                                    // [UPDATE] Menghapus kolom input Qty Issued
                                     const newRow = `
-                                        <tr id="item-row-master-${master.id}" data-master-id="${master.id}">
-                                            <td>${master.item_master_code}</td>
-                                            <td>${master.item_master_name}</td>
-                                            <td>${master.unit}</td>
-                                            <td><input type="number" class="form-control" name="items[${master.id}][quantity_required]" min="1"></td>
-                                            <td><input type="number" class="form-control" name="items[${master.id}][quantity_issued]" min="0"></td>
-                                        </tr>`;
+                                            <tr id="item-row-master-${master.id}" data-master-id="${master.id}">
+                                                <td>${master.item_master_code}</td>
+                                                <td>${master.item_master_name}</td>
+                                                <td>${master.unit}</td>
+                                                <td><input type="number" class="form-control" name="items[${master.id}][quantity_required]" min="1"></td>
+                                            </tr>`;
                                     tbody.append(newRow);
                                 }
                             });
@@ -577,8 +574,9 @@
                 $(`tr[data-master-id="${unselectedMasterId}"][id^="item-row-master-"]`).remove();
 
                 if ($('#requisition-items-tbody-fg tr').length === 0) { 
+                    // [UPDATE] Colspan 4
                     $('#requisition-items-tbody-fg').html( 
-                        '<tr id="no-items-row"><td colspan="5" class="text-center">No items have been added yet.</td></tr>'
+                        '<tr id="no-items-row"><td colspan="4" class="text-center">No items have been added yet.</td></tr>'
                         );
                 }
             });
@@ -707,7 +705,7 @@
 
                 const itemTbody = $('#requisition-items-tbody-fg'); 
                 itemTbody.empty();
-                const colspan = 5;
+                const colspan = 4; // [UPDATE] Colspan 4
 
                 if (data.requisition_items && data.requisition_items.length > 0) {
                     data.requisition_items.forEach(item => {
@@ -719,13 +717,13 @@
                             unit = item.item_master.unit;
                         }
 
+                        // [UPDATE] Menghapus kolom input Qty Issued
                         const newRow = `
                             <tr id="item-row-master-${item.item_master_id}" data-master-id="${item.item_master_id}">
                                 <td>${itemCode}</td>
                                 <td>${itemName}</td>
                                 <td>${unit}</td>
                                 <td><input type="number" class="form-control" name="items[${item.item_master_id}][quantity_required]" value="${item.quantity_required || ''}" min="1"></td>
-                                <td><input type="number" class="form-control" name="items[${item.item_master_id}][quantity_issued]" value="${item.quantity_issued || ''}" min="0"></td>
                             </tr>`;
                         itemTbody.append(newRow);
                     });
@@ -865,7 +863,7 @@
                      if(stepIndex > -1) {
                          $(`.tracker-step`).addClass('completed');
                          lastCompletedIndex = stepIndex;
-                     }
+                      }
                 }
                 
                 if (lastCompletedIndex >= 0 && !isRejected) {
@@ -914,16 +912,14 @@
                 });
             });
 
-            // [UPDATE] Event listener untuk tombol recall disesuaikan seperti Sample
             $(document).on('click', '.btn-recall-requisition', function() {
                 const requisitionId = $(this).data('id');
                 const row = $(this).closest('tr');
                 const rowData = table.row(row).data();
-                const fgNumber = rowData.no_srs; // Mengambil nomor FG dari data baris
+                const fgNumber = rowData.no_srs; 
                 const button = $(this);
                 const originalHtml = button.html();
 
-                // Langkah 1: Meminta input alasan recall
                 Swal.fire({
                     title: `Recall Requisition ${fgNumber}`,
                     width: '600px',
@@ -947,11 +943,9 @@
                         return notes;
                     }
                 }).then((result) => {
-                    // Lanjutkan jika langkah 1 di-konfirmasi
                     if (result.isConfirmed && result.value) {
                         const notes = result.value;
 
-                        // Langkah 2: Konfirmasi alasan
                         Swal.fire({
                             title: 'Konfirmasi Alasan Recall',
                             html: `
@@ -967,14 +961,13 @@
                             confirmButtonText: 'Ya, Data Benar & Recall!',
                             cancelButtonText: 'Batal'
                         }).then((confirmResult) => {
-                            // Lanjutkan jika langkah 2 di-konfirmasi
                             if (confirmResult.isConfirmed) {
                                 $.ajax({
                                     url: `/freegoods-form/${requisitionId}/recall`,
                                     type: 'POST',
                                     data: {
                                         _token: '{{ csrf_token() }}',
-                                        notes: notes // Kirim notes ke controller
+                                        notes: notes 
                                     },
                                     beforeSend: function() {
                                         button.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>').prop('disabled', true);
@@ -999,7 +992,6 @@
             });
 
 
-            // Event listener untuk tombol duplicate (tidak diubah)
             $(document).on('click', '.btn-duplicate-requisition', function() {
                 const id = $(this).data('id');
                 const button = $(this);

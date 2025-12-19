@@ -20,7 +20,8 @@
         }
 
         .card-header.main-header {
-            background: linear-gradient(135deg, #cc982f 0%, #b8871a 100%);
+            /* Free Goods Green Gradient */
+            background: linear-gradient(135deg, #2d5a27 0%, #1e3c1a 100%);
             color: white;
             padding: 20px 30px;
             border-radius: 16px 16px 0 0 !important;
@@ -29,7 +30,7 @@
         .section-title {
             font-size: 1.1rem;
             font-weight: 700;
-            color: #b8871a;
+            color: #2d5a27;
             margin-bottom: 20px;
             padding-bottom: 10px;
             border-bottom: 2px solid #eef2f9;
@@ -76,21 +77,21 @@
         }
 
         .text-primary {
-            color: #b8871a !important;
+            color: #2d5a27 !important;
         }
 
         .btn-primary {
-            background-color: #cc982f;
-            border-color: #cc982f;
+            background-color: #2d5a27;
+            border-color: #2d5a27;
         }
 
         .btn-primary:hover {
-            background-color: #b8871a;
-            border-color: #b8871a;
+            background-color: #1e3c1a;
+            border-color: #1e3c1a;
         }
 
         .processing-overlay .spinner-border {
-            color: #cc982f !important;
+            color: #2d5a27 !important;
         }
 
         .main-container {
@@ -203,6 +204,8 @@
                                         <th>Item Name</th>
                                         <th style="width: 90px;">Unit</th>
                                         <th style="width: 125px;" class="text-center">Qty Required</th>
+                                        
+                                        {{-- Header Qty Issued --}}
                                         <th class="text-center" style="width: 125px;">
                                             Qty Issued 
                                             @if($action === 'update_qty')
@@ -228,6 +231,7 @@
                                                     value="{{ $item->quantity_issued > 0 ? $item->quantity_issued : '' }}" 
                                                     placeholder="0"
                                                     min="0"
+                                                    max="{{ $item->quantity_required }}"
                                                 >
                                             @else
                                                 {{ $item->quantity_issued ?? '-' }}
@@ -239,6 +243,8 @@
                             </table>
                         </div>
                         @endif
+                        
+                        {{-- Bagian Marketing/QA dihapus karena tidak relevan untuk Free Goods --}}
                     </div>
                 </div>
             </div>

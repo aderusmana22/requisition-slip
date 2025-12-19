@@ -57,7 +57,7 @@
             line-height: 1.6;
         }
         .button {
-            background-color: #004a99;
+            background-color: #2d5a27; /* Free Goods Green */
             color: white;
             border: none;
             padding: 14px 30px;
@@ -69,9 +69,9 @@
             margin-top: 30px;
         }
         .button:hover {
-            background-color: #003b7a;
+            background-color: #1e3c1a;
             transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(0, 74, 153, 0.2);
+            box-shadow: 0 4px 15px rgba(45, 90, 39, 0.2);
         }
     </style>
 </head>

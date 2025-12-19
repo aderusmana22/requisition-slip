@@ -3,10 +3,8 @@
 
 <head>
     <meta charset="UTF-8">
-    {{-- [DIUBAH] Judul dinamis untuk Free Goods --}}
     <title>FG FREE GOODS - {{ $requisitions->pluck('no_srs')->join(', ') }}</title>
     <style>
-        /* CSS Sebagian besar tetap sama karena generik */
         @page { margin: 0.5cm; }
         body { font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif; font-size: 10pt; margin: 0; }
         .page { width: 93%; padding: 1cm; }
@@ -20,12 +18,14 @@
         .header-info { font-size: 8pt; }
         .main-title { font-size: 16pt; }
         .sub-title { font-size: 12pt; }
-        .notes-column { vertical-align: top; }
+        .notes-column { vertical-align: top; text-align: center; }
+        
         .status-indicator { padding: 3px 10px; border-radius: 12px; font-size: 8pt; font-weight: bold; display: inline-block; text-align: center; border-width: 1.5px; border-style: solid; background-color: transparent !important; }
         .status-approved { border-color: #28a745; color: #28a745; }
         .status-review { border-color: #E8A903; color: #E8A903; }
         .status-rejected { border-color: #dc3545; color: #dc3545; }
         .status-pending { border-color: #6c757d; color: #6c757d; }
+        
         .striped-table thead th { background-color: #ffffffff; border-bottom: 1px solid #333; font-size: 10pt; padding: 5px 3px; text-transform: uppercase; }
         .striped-table tbody tr:nth-child(even) { background-color: #f8f9fa; }
         .striped-table td { padding: 4px 6px; }
@@ -33,7 +33,6 @@
 </head>
 
 <body>
-    {{-- [DITAMBAHKAN] Loop untuk mencetak setiap requisition yang dipilih --}}
     @foreach($requisitions as $requisition)
         {{-- ======================================================= --}}
         {{-- ========= HALAMAN 1: SLIP REQUISITION UTAMA ========= --}}
@@ -52,11 +51,9 @@
                                     </span>
                                 </td>
                                 <td style="width: 50%;" class="text-center">
-                                    {{-- [DIUBAH] Judul disesuaikan untuk Free Goods --}}
                                     <div class="font-bold main-title" style="margin-bottom: 4px;">REQUISITION SLIP</div>
                                     <div class="sub-title" style="margin-bottom: 1px;">FREE GOODS</div>
                                 </td>
-                                {{-- [DIHAPUS] Kotak Form No./Revisi dihapus --}}
                                 <td style="width: 25%;"></td>
                             </tr>
                         </table>
@@ -66,7 +63,6 @@
                         {{-- CUSTOMER & FG INFO --}}
                         <table class="no-border" style="vertical-align: top;">
                             <tr>
-                                {{-- Info Customer --}}
                                 <td style="width: 50%; vertical-align: top;">
                                     <table class="no-border">
                                         <tr>
@@ -79,7 +75,6 @@
                                         </tr>
                                     </table>
                                 </td>
-                                {{-- Info FG --}}
                                 <td style="width: 50%; vertical-align: top;">
                                     <table class="no-border" style="float: right;">
                                         <tr>
@@ -95,8 +90,7 @@
                                             <td>: {{ \Carbon\Carbon::parse($requisition->request_date)->format('d F Y') }}</td>
                                         </tr>
                                         <tr>
-                                            {{-- [DIUBAH] "Nomor RS" menjadi "Nomor FG" --}}
-                                            <td style="text-align: right; padding-right: 5px;"><strong>Nomor FG</strong></td>
+                                            <td style="text-align: right; padding-right: 5px;"><strong>FG No.</strong></td>
                                             <td>: <strong style="font-size: 14pt;">{{ $requisition->no_srs }}</strong></td>
                                         </tr>
                                     </table>
@@ -106,10 +100,10 @@
 
                         <div style="height: 10px;"></div>
 
+                        {{-- TABEL ITEM --}}
                         <table class="bordered">
                             <thead>
                                 <tr>
-                                    {{-- [DIUBAH] Kolom disederhanakan untuk Free Goods --}}
                                     <th style="width: 15%;">PRODUCT CODE</th>
                                     <th>PRODUCT NAME</th>
                                     <th style="width: 8%;">UNIT</th>
@@ -125,20 +119,22 @@
                                     $minRows = 15;
                                     $totalRows = max($itemCount, $minRows);
                                 @endphp
+
                                 @foreach($requisition->requisitionItems as $item)
                                 <tr>
-                                    {{-- [DIUBAH] Struktur disederhanakan --}}
                                     <td class="text-center">{{ $item->itemMaster->item_master_code ?? '-' }}</td>
                                     <td>{{ $item->itemMaster->item_master_name ?? '-' }}</td>
                                     <td class="text-center">{{ $item->itemMaster->unit ?? '-' }}</td>
                                     <td class="text-center">{{ $item->quantity_required }}</td>
-                                    <td class="text-center">{{ $item->quantity_issued }}</td>
+                                    <td class="text-center">{{ $item->quantity_issued > 0 ? $item->quantity_issued : '' }}</td>
+                                    
                                     @if($loop->first)
                                         <td class="notes-column" rowspan="{{ $totalRows }}">{{ $requisition->objectives }}</td>
                                         <td class="notes-column" rowspan="{{ $totalRows }}">{{ $requisition->estimated_potential }}</td>
                                     @endif
                                 </tr>
                                 @endforeach
+
                                 @for ($i = $itemCount; $i < $minRows; $i++)
                                 <tr>
                                     <td>&nbsp;</td> <td></td> <td></td> <td></td> <td></td>
@@ -154,11 +150,6 @@
                 </tr>
             </table>
         </div>
-
-        {{-- =================================================================== --}}
-        {{-- ========= HALAMAN 2: KHUSUS JIKA TIPE SPECIAL ORDER (DIHAPUS) ========= --}}
-        {{-- =================================================================== --}}
-        {{-- Bagian ini telah dihapus seluruhnya --}}
 
         {{-- ======================================================= --}}
         {{-- ============== HALAMAN 2: APPROVAL STATUS ============= --}}
@@ -176,7 +167,6 @@
                                     </span>
                                 </td>
                                 <td style="width: 60%;" class="text-center">
-                                    {{-- [DIUBAH] Judul disesuaikan --}}
                                     <div class="font-bold main-title" style="margin-bottom: 4px;">REQUISITION SLIP STATUS</div>
                                     <div class="sub-title">FREE GOODS: <strong>{{ $requisition->no_srs }}</strong></div>
                                 </td>
@@ -185,18 +175,18 @@
                                         <tr>
                                             <td style="white-space: nowrap; padding-right: 3px;"><strong>Requester</strong></td>
                                             <td style="width: 5px;">:</td>
-                                            {{-- [DIUBAH] Mengambil relasi dari objek requisition saat ini --}}
-                                            <td>{{ $requisition->requester->name }}</td>
+                                            <td>{{ $requisition->requester->name ?? 'Unknown' }}</td>
                                         </tr>
                                         <tr>
                                             <td style="white-space: nowrap; padding-right: 3px;"><strong>Dept</strong></td>
                                             <td style="width: 5px;">:</td>
-                                            <td>{{ $requisition->requester->department->name }}</td>
+                                            <td>{{ $requisition->requester->department->name ?? 'Unknown' }}</td>
                                         </tr>
                                     </table>
                                 </td>
                             </tr>
                         </table>
+
                         <table class="bordered striped-table">
                             <thead>
                                 <tr>
@@ -208,34 +198,41 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {{-- [DIUBAH] Mengambil data approval dari relasi --}}
                                 @php
-                                    $approvals = $requisition->approvals ?? collect();
+                                    $logs = $requisition->approvalLogs ?? collect();
                                 @endphp
-                                @forelse($approvals as $approval)
-                                <tr>
-                                    <td>{{ $approval->approver->name ?? '-' }}</td>
-                                    <td>{{ $approval->approver->position ?? '-' }}</td>
-                                    <td class="text-center">
-                                        @if($approval->status == 'Approved')
-                                            <span class="status-indicator status-approved">APPROVED</span>
-                                        @elseif($approval->status == 'Review')
-                                            <span class="status-indicator status-review">REVIEW</span>
-                                        @elseif($approval->status == 'Rejected')
-                                            <span class="status-indicator status-rejected">REJECTED</span>
-                                        @else
-                                            <span class="status-indicator status-pending">PENDING</span>
-                                        @endif
-                                    </td>
-                                    <td class="text-center">
-                                        @if($approval->updated_at && $approval->status != 'Pending')
-                                            {{ \Carbon\Carbon::parse($approval->updated_at)->format('d M Y H:i') }}
-                                        @else
-                                            -
-                                        @endif
-                                    </td>
-                                    <td>{{ $approval->notes ?? '' }}</td>
-                                </tr>
+                                @forelse($logs as $log)
+                                    @php
+                                        $statusText = 'PENDING';
+                                        $statusClass = 'status-pending';
+
+                                        if ($log->status === 'Approved') {
+                                            if (!empty($log->notes) && !str_contains($log->notes, 'Approved without Review')) {
+                                                $statusText = 'APPROVED WITH REVIEW';
+                                                $statusClass = 'status-review';
+                                            } else {
+                                                $statusText = 'APPROVED';
+                                                $statusClass = 'status-approved';
+                                            }
+                                        } elseif ($log->status === 'Rejected') {
+                                            $statusText = 'REJECTED';
+                                            $statusClass = 'status-rejected';
+                                        }
+
+                                        $roleNames = $log->approver && $log->approver->roles ? $log->approver->roles->pluck('name')->toArray() : [];
+                                        $roleDisplay = !empty($roleNames) ? implode(', ', $roleNames) : ($log->level ?? '-');
+                                    @endphp
+                                    <tr>
+                                        <td>{{ $log->approver->name ?? '-' }}</td>
+                                        <td>{{ $roleDisplay }}</td>
+                                        <td class="text-center">
+                                            <span class="status-indicator {{ $statusClass }}">{{ $statusText }}</span>
+                                        </td>
+                                        <td class="text-center">
+                                            {{ $log->updated_at ? \Carbon\Carbon::parse($log->updated_at)->format('d M Y H:i') : '-' }}
+                                        </td>
+                                        <td>{{ $log->notes ?? '' }}</td>
+                                    </tr>
                                 @empty
                                     <tr>
                                         <td colspan="5" class="text-center" style="padding: 20px;">No approval history found.</td>
@@ -248,7 +245,6 @@
             </table>
         </div>
 
-        {{-- Menambahkan page break jika ini bukan requisition terakhir dalam batch --}}
         @if (!$loop->last)
             <div class="page-break"></div>
         @endif

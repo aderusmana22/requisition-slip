@@ -24,8 +24,8 @@
             border-radius: 16px;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
             text-align: center;
-            padding: 40px 50px;
-            max-width: 550px;
+            padding: 50px 50px 40px;
+            max-width: 650px;
             width: 100%;
             border-top: 8px solid;
         }
@@ -37,17 +37,17 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 25px;
+            margin: 0 auto 30px;
             font-size: 36px;
             color: #fff;
         }
 
         .response-card.success {
-            border-color: #cc982f;
+            border-color: #28a745;
         }
 
         .response-card.success .icon-circle {
-            background-color: #cc982f;
+            background-color: #28a745;
         }
 
         .response-card.reject {
@@ -61,11 +61,12 @@
         h3 {
             font-weight: 600;
             color: #333;
+            margin-bottom: 15px;
         }
 
         .message {
             color: #6c757d;
-            margin-bottom: 30px;
+            margin-bottom: 40px;
         }
 
         .details-box {
@@ -73,14 +74,15 @@
             border-radius: 8px;
             padding: 20px;
             text-align: left;
-            margin-bottom: 30px;
+            margin-bottom: 35px;
             border: 1px solid #e9ecef;
         }
 
         .detail-item {
             display: flex;
             justify-content: space-between;
-            padding: 8px 0;
+            align-items: start;
+            padding: 10px 0;
             border-bottom: 1px dashed #dee2e6;
         }
 
@@ -91,10 +93,14 @@
         .detail-label {
             font-weight: 600;
             color: #495057;
+            white-space: nowrap;
+            margin-right: 20px;
         }
 
         .detail-value {
             color: #212529;
+            text-align: right;
+            word-break: break-word;
         }
 
         .countdown-text {
@@ -104,15 +110,14 @@
         }
         
         .btn-primary {
-            background-color: #cc982f;
-            border-color: #cc982f;
+            background-color: #28a745;
+            border-color: #28a745;
         }
 
         .btn-primary:hover {
-            background-color: #b8871a;
-            border-color: #b8871a;
+            background-color: #1e3c1a;
+            border-color: #1e3c1a;
         }
-
     </style>
 </head>
 
@@ -137,7 +142,7 @@
             </div>
             @if(session('action_text') && session('approver_name'))
             <div class="detail-item">
-                <span class="detail-label">Action Taken:</span>
+                <span class="detail-label">Approver:</span>
                 <span class="detail-value">{{ session('action_text') }} by {{ session('approver_name') }}</span>
             </div>
             @endif
@@ -167,5 +172,4 @@
         }, 1000);
     </script>
 </body>
-
 </html>

@@ -17,9 +17,6 @@
             padding: 20px;
         }
         .container {
-            background: #fff;
-            padding: 50px 40px;
-            border-radius: 16px;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
             text-align: center;
             max-width: 550px;
@@ -27,7 +24,10 @@
             border-top: 5px solid #e53e3e;
         }
         .icon {
-            font-size: 64px;
+            font-size: 
+            background: #fff;
+            padding: 50px 40px;
+            border-radius: 16px;64px;
             color: #e53e3e;
             margin-bottom: 20px;
         }
