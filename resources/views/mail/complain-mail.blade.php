@@ -1,382 +1,500 @@
 <!DOCTYPE html
     PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml"
-    xmlns:o="urn:schemas-microsoft-com:office:office" lang="en">
+<html xmlns="http://www.w3.org/1999/xhtml">
 
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="x-apple-disable-message-reformatting" />
     <title>Requisition Approval Request</title>
-    <style>
-        /* CSS Reset dan Gaya Universal */
-        body,
-        table,
-        td,
-        a {
-            -webkit-text-size-adjust: 100%;
-            -ms-text-size-adjust: 100%;
-        }
-
-        table,
-        td {
-            mso-table-lspace: 0pt;
-            mso-table-rspace: 0pt;
-        }
-
-        img {
-            -ms-interpolation-mode: bicubic;
-            border: 0;
-            height: auto;
-            line-height: 100%;
-            outline: none;
-            text-decoration: none;
-        }
-
-        a[x-apple-data-detectors] {
-            color: inherit !important;
-            text-decoration: none !important;
-            font-size: inherit !important;
-            font-family: inherit !important;
-            font-weight: inherit !important;
-            line-height: inherit !important;
-        }
-
-        /* Perbaikan untuk background-color pada baris ganjil */
-        .tr-odd {
-            background-color: #eeeeee !important;
-        }
-
-        .bg-f0 {
-            background-color: #f0f0f0 !important;
-        }
-    </style>
 </head>
 
-<body style="margin: 0; word-spacing: normal; background-color: #f4f4f4;">
-    <div role="article" aria-label="Permintaan Persetujuan Requisition" lang="en"
-        style="font-size: 1px; line-height: 1px; mso-line-height-rule: exactly; background-color: #f4f4f4;">
+<body
+    style="margin: 0; padding: 0; background-color: #f3f4f6; font-family: Arial, sans-serif; color: #333; line-height: 1.6; height: 100% !important; width: 100% !important; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%;">
 
-        <table role="presentation" align="center" border="0" cellpadding="0" cellspacing="0" width="100%"
-            style="border-collapse: collapse;">
-            <tr>
-                <td align="center">
-                    <table role="presentation" align="center" border="0" cellpadding="0" cellspacing="0" width="600"
-                        style="max-width: 800px; width: 100%; margin: auto; border: 1px solid #dddddd; border-collapse: collapse; background-color: #ffffff;">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%"
+        style="border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt;">
+        <tr>
+            <td align="center" style="padding: 20px 0;">
 
-                        <thead>
-                            <tr class="header-style">
-                                <td colspan="2"
-                                    style="background-color: #ffc107; border: 1px solid #dddddd; border-bottom: none; font-family: Arial, sans-serif; color: #333333; mso-line-height-rule: exactly;">
-                                    <h2
-                                        style="margin: 0.3em 0; font-size: 24px; line-height: 1.2; font-weight: bold;">
-                                        Requisition approval request</h2>
-                                    <h5
-                                        style="margin: 0.3em 0; font-size: 16px; line-height: 1.2; font-weight: normal;">
-                                        {{ $requisition->department ?? 'Sales & Marketing' }}
-                                        - {{ $requisition->type ?? 'Packaging Replacement Request' }}</h5>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td colspan="2"
-                                    style="border: 1px solid #dddddd; border-top: none; font-family: Arial, sans-serif; font-size: 14px; color: #333333; mso-line-height-rule: exactly;">
-                                    <p style="margin: 0.3em 0; line-height: 1.4;">Dear <strong
-                                            style="font-weight: bold;">{{ $approver->name ?? 'Approver' }}</strong>,</p>
-                                    <p style="margin: 0.3em 0; line-height: 1.4;">
-                                        You have received a new requisition approval request. Please review the details
-                                        below and
-                                        provide your decision.
-                                    </p>
-                                </td>
-                            </tr>
-                        </thead>
+                <table border="0" cellpadding="0" cellspacing="0" width="100%" align="center"
+                    style="max-width: 700px; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); border-collapse: collapse;"
+                    class="email-container">
 
-                        <tbody>
-                            <tr>
-                                <th colspan="2"
-                                    style="text-align: center; background-color: #e0e0e0; border: 1px solid #dddddd; font-family: Arial, sans-serif; font-size: 14px; color: #333333; mso-line-height-rule: exactly;">
-                                    <h5
-                                        style="margin: 0.3em 0; font-size: 14px; font-weight: bold;">
-                                        REQUEST DETAILS ({{ $requisition->no_srs ?? 'REQ-XXXXXX' }})</h5>
-                                </th>
-                            </tr>
+                    <tr>
+                        <td bgcolor="#b8871a" style="padding: 30px 40px; text-align: center;">
+                            <img src="{{ asset('storage/logo.png') }}" alt="{{ config('app.name') }}"
+                                style="max-height: 50px; width: auto; margin-bottom: 15px; display: block; margin: 0 auto 15px; border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic;">
+                            <h1
+                                style="font-size: 24px; font-weight: 700; margin: 0; color: white; mso-line-height-alt: 30px;">
+                                Requisition Approval Request</h1>
+                            <p style="font-size: 14px; margin: 10px 0 0 0; opacity: 0.9; color: #f9f9f9;">
+                                Sales & Marketing - Packaging Replacement Request</p>
+                        </td>
+                    </tr>
 
-                            <tr style="background-color: #eeeeee;" class="tr-odd">
-                                <td width="20%"
-                                    style="font-weight: bold; background-color: #f0f0f0; border: 1px solid #dddddd; font-family: Arial, sans-serif; color: #333333; font-size: 14px;"
-                                    class="bg-f0">
-                                    <span style="display: block; margin: 8px 15px;">Request Number:</span>
-                                </td>
-                                <td width="80%"
-                                    style="border: 1px solid #dddddd; font-family: Arial, sans-serif; color: #333333; font-size: 14px;">
-                                    <span style="font-weight: bold; display: block; margin: 8px 15px;">{{
-                                        $requisition->no_srs ?? 'N/A' }}</span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td width="20%"
-                                    style="font-weight: bold; background-color: #f0f0f0; border: 1px solid #dddddd; font-family: Arial, sans-serif; color: #333333; font-size: 14px;"
-                                    class="bg-f0">
-                                    <span style="display: block; margin: 8px 15px;">Request Date:</span>
-                                </td>
-                                <td width="80%"
-                                    style="border: 1px solid #dddddd; font-family: Arial, sans-serif; color: #333333; font-size: 14px;">
-                                    <span style="display: block; margin: 8px 15px;">{{
-                                        \Carbon\Carbon::parse($requisition->request_date)->format('d F Y') ?? 'N/A'
-                                        }}</span>
-                                </td>
-                            </tr>
-                            <tr style="background-color: #eeeeee;" class="tr-odd">
-                                <td width="20%"
-                                    style="font-weight: bold; background-color: #f0f0f0; border: 1px solid #dddddd; font-family: Arial, sans-serif; color: #333333; font-size: 14px;"
-                                    class="bg-f0">
-                                    <span style="display: block; margin: 8px 15px;">Requester:</span>
-                                </td>
-                                <td width="80%"
-                                    style="border: 1px solid #dddddd; font-family: Arial, sans-serif; color: #333333; font-size: 14px;">
-                                    <span style="display: block; margin: 8px 15px;">{{ $requisition->requester->name ??
-                                        'N/A' }} (Dept: {{ $requisition->requester->department->name ?? 'N/A' }})</span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td width="20%"
-                                    style="font-weight: bold; background-color: #f0f0f0; border: 1px solid #dddddd; font-family: Arial, sans-serif; color: #333333; font-size: 14px;"
-                                    class="bg-f0">
-                                    <span style="display: block; margin: 8px 15px;">Cost Center:</span>
-                                </td>
-                                <td width="80%"
-                                    style="border: 1px solid #dddddd; font-family: Arial, sans-serif; color: #333333; font-size: 14px;">
-                                    <span style="display: block; margin: 8px 15px;">{{ $requisition->cost_center ??
-                                        'N/A' }}</span>
-                                </td>
-                            </tr>
+                    <tr>
+                        <td style="padding: 30px 40px;">
 
-                            <tr>
-                                <th colspan="2"
-                                    style="text-align: center; background-color: #e0e0e0; border: 1px solid #dddddd; font-family: Arial, sans-serif; font-size: 14px; color: #333333; mso-line-height-rule: exactly;">
-                                    <h5
-                                        style="margin: 0.3em 0; font-size: 14px; font-weight: bold;">
-                                        CUSTOMER/ACCOUNT INFORMATION</h5>
-                                </th>
-                            </tr>
-                            <tr style="background-color: #eeeeee;" class="tr-odd">
-                                <td width="20%"
-                                    style="font-weight: bold; background-color: #f0f0f0; border: 1px solid #dddddd; font-family: Arial, sans-serif; color: #333333; font-size: 14px;"
-                                    class="bg-f0">
-                                    <span style="display: block; margin: 8px 15px;">Customer Name:</span>
-                                </td>
-                                <td width="80%"
-                                    style="border: 1px solid #dddddd; font-family: Arial, sans-serif; color: #333333; font-size: 14px;">
-                                    <span style="display: block; margin: 8px 15px;">{{ $requisition->customer->name ??
-                                        'N/A (Internal Request)' }}</span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td width="20%"
-                                    style="font-weight: bold; background-color: #f0f0f0; border: 1px solid #dddddd; font-family: Arial, sans-serif; color: #333333; font-size: 14px;"
-                                    class="bg-f0">
-                                    <span style="display: block; margin: 8px 15px;">Customer Address:</span>
-                                </td>
-                                <td width="80%"
-                                    style="border: 1px solid #dddddd; font-family: Arial, sans-serif; color: #333333; font-size: 14px;">
-                                    <span style="display: block; margin: 8px 15px;">{{ $requisition->customer->address
-                                        ?? '-' }}</span>
-                                </td>
-                            </tr>
-                            <tr style="background-color: #eeeeee;" class="tr-odd">
-                                <td width="20%"
-                                    style="font-weight: bold; background-color: #f0f0f0; border: 1px solid #dddddd; font-family: Arial, sans-serif; color: #333333; font-size: 14px;"
-                                    class="bg-f0">
-                                    <span style="display: block; margin: 8px 15px;">Account/Project:</span>
-                                </td>
-                                <td width="80%"
-                                    style="border: 1px solid #dddddd; font-family: Arial, sans-serif; color: #333333; font-size: 14px;">
-                                    <span style="display: block; margin: 8px 15px;">{{ $requisition->account ?? '-'
-                                        }}</span>
-                                </td>
-                            </tr>
+                            <div
+                                style="font-size: 15px; color: #2c3e50; margin-bottom: 25px; padding: 15px; background-color: #f8f9fa; border-radius: 4px; border-left: 4px solid #cc982f;">
+                                <strong>Hello {{ $approver->name }},</strong><br>
+                                You have received a new requisition approval request. Please review the details below
+                                and
+                                provide your decision.
+                                <div
+                                    style="display: inline-block; background-color: #cc982f; color: white; padding: 6px 12px; border-radius: 15px; font-weight: 600; font-size: 12px; margin-top: 10px; mso-padding-alt: 6px 12px;">
+                                    📋 Approval Level: {{ $tracking->current_position ?? 'N/A' }}
+                                </div>
+                            </div>
 
-                            <tr>
-                                <th colspan="2"
-                                    style="text-align: center; background-color: #e0e0e0; border: 1px solid #dddddd; font-family: Arial, sans-serif; font-size: 14px; color: #333333; mso-line-height-rule: exactly;">
-                                    <h5
-                                        style="margin: 0.3em 0; font-size: 14px; font-weight: bold;">
-                                        PRODUCT/MATERIAL DETAILS</h5>
-                                </th>
-                            </tr>
+                            <div style="margin-bottom: 30px;">
+                                <table width="100%" cellpadding="0" cellspacing="0" border="0" align="center"
+                                    style="border-collapse: collapse; font-size: 13px;">
+                                    <tr>
+                                        <td colspan="2" style="padding: 0 0 5px 0;">
+                                            <p
+                                                style="font-size: 12px; font-weight: 700; color: #4b5563; text-transform: uppercase; border-bottom: 2px solid #e5e7eb; padding-bottom: 5px; margin: 0;">
+                                                📄 Request Information</p>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td width="50%" style="padding: 7px 7px 7px 0;" valign="top">
+                                            <table width="100%" cellpadding="0" cellspacing="0"
+                                                style="border-collapse: collapse;">
+                                                <tr>
+                                                    <td
+                                                        style="background: white; padding: 12px; border-radius: 6px; border: 1px solid #e9ecef;">
+                                                        <div
+                                                            style="font-weight: 600; color: #495057; font-size: 12px; margin-bottom: 5px;">
+                                                            Request Number</div>
+                                                        <div
+                                                            style="color: #2c3e50; font-size: 14px; font-weight: bold; word-break: break-word;">
+                                                            {{ $requisition->no_srs }}</div>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                        <td width="50%" style="padding: 7px 0 7px 7px;" valign="top">
+                                            <table width="100%" cellpadding="0" cellspacing="0"
+                                                style="border-collapse: collapse;">
+                                                <tr>
+                                                    <td
+                                                        style="background: white; padding: 12px; border-radius: 6px; border: 1px solid #e9ecef;">
+                                                        <div
+                                                            style="font-weight: 600; color: #495057; font-size: 12px; margin-bottom: 5px;">
+                                                            Request Date</div>
+                                                        <div
+                                                            style="color: #2c3e50; font-size: 14px; word-break: break-word;">
+                                                            {{
+                                                            \Carbon\Carbon::parse($requisition->request_date)->format('d M Y') }}
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td width="50%" style="padding: 7px 7px 7px 0;" valign="top">
+                                            <table width="100%" cellpadding="0" cellspacing="0"
+                                                style="border-collapse: collapse;">
+                                                <tr>
+                                                    <td
+                                                        style="background: white; padding: 12px; border-radius: 6px; border: 1px solid #e9ecef;">
+                                                        <div
+                                                            style="font-weight: 600; color: #495057; font-size: 12px; margin-bottom: 5px;">
+                                                            Requester</div>
+                                                        <div
+                                                            style="color: #2c3e50; font-size: 14px; word-break: break-word;">
+                                                            {{ $requisition->requester->name ?? 'N/A' }}</div>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                        <td width="50%" style="padding: 7px 0 7px 7px;" valign="top">
+                                            <table width="100%" cellpadding="0" cellspacing="0"
+                                                style="border-collapse: collapse;">
+                                                <tr>
+                                                    <td
+                                                        style="background: white; padding: 12px; border-radius: 6px; border: 1px solid #e9ecef;">
+                                                        <div
+                                                            style="font-weight: 600; color: #495057; font-size: 12px; margin-bottom: 5px;">
+                                                            Category</div>
+                                                        <div
+                                                            style="color: #2c3e50; font-size: 14px; word-break: break-word;">
+                                                            {{ $requisition->category }}</div>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td width="50%" style="padding: 7px 7px 7px 0;" valign="top">
+                                            <table width="100%" cellpadding="0" cellspacing="0"
+                                                style="border-collapse: collapse;">
+                                                <tr>
+                                                    <td
+                                                        style="background: white; padding: 12px; border-radius: 6px; border: 1px solid #e9ecef;">
+                                                        <div
+                                                            style="font-weight: 600; color: #495057; font-size: 12px; margin-bottom: 5px;">
+                                                            Current Position</div>
+                                                        <div
+                                                            style="color: #2c3e50; font-size: 14px; word-break: break-word;">
+                                                            {{ $tracking->current_position ?? 'N/A' }}</div>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                        <td width="50%" style="padding: 7px 0 7px 7px;" valign="top">
+                                            <table width="100%" cellpadding="0" cellspacing="0"
+                                                style="border-collapse: collapse;">
+                                                <tr>
+                                                    <td
+                                                        style="background: white; padding: 12px; border-radius: 6px; border: 1px solid #e9ecef;">
+                                                        <div
+                                                            style="font-weight: 600; color: #495057; font-size: 12px; margin-bottom: 5px;">
+                                                            Current Status</div>
+                                                        <div
+                                                            style="color: #2c3e50; font-size: 14px; word-break: break-word;">
+                                                            @php
+                                                            $status = $requisition->status;
+                                                            $style = '';
+                                                            if($status == 'Pending') { $style = 'background: #fff3cd;
+                                                            color: #856404; border: 1px solid #ffeaa7;'; $text = '⏳
+                                                            Pending'; }
+                                                            elseif($status == 'In Progress') { $style = 'background:
+                                                            #cce7ff; color: #0066cc; border: 1px solid #99d6ff;'; $text
+                                                            = '🔄 In Progress'; }
+                                                            elseif($status == 'Approved') { $style = 'background:
+                                                            #d4edda; color: #155724; border: 1px solid #c3e6cb;'; $text
+                                                            = '✅ Approved'; }
+                                                            elseif($status == 'Rejected') { $style = 'background:
+                                                            #f8d7da; color: #721c24; border: 1px solid #f1b0b7;'; $text
+                                                            = '❌ Rejected'; }
+                                                            else { $style = 'background: #e9ecef; color: #333;'; $text =
+                                                            $status; }
+                                                            @endphp
+                                                            <span
+                                                                style="display: inline-block; padding: 6px 12px; border-radius: 15px; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; {{ $style }} mso-padding-alt: 6px 12px;">
+                                                                {{ $text }}
+                                                            </span>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
 
-                            <tr>
-                                <td colspan="2" style="border: none;">
-                                    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%"
-                                        style="width: 100%; border-collapse: collapse; border: none;">
-                                        <thead>
-                                            <tr style="background-color: #cccccc;">
-                                                <th width="15%"
-                                                    style="text-align: left; font-size: 12px; font-weight: bold; border: 1px solid #dddddd; font-family: Arial, sans-serif; color: #333333;">
-                                                    <span style="display: block; margin: 8px 15px;">Material Type</span>
-                                                </th>
-                                                <th width="15%"
-                                                    style="text-align: left; font-size: 12px; font-weight: bold; border: 1px solid #dddddd; font-family: Arial, sans-serif; color: #333333;">
-                                                    <span style="display: block; margin: 8px 15px;">Product Code</span>
-                                                </th>
-                                                <th width="30%"
-                                                    style="text-align: left; font-size: 12px; font-weight: bold; border: 1px solid #dddddd; font-family: Arial, sans-serif; color: #333333;">
-                                                    <span style="display: block; margin: 8px 15px;">Product Name</span>
-                                                </th>
-                                                <th width="5%"
-                                                    style="text-align: center; font-size: 12px; font-weight: bold; border: 1px solid #dddddd; font-family: Arial, sans-serif; color: #333333;">
-                                                    <span style="display: block; margin: 8px 15px;">Unit</span>
-                                                </th>
-                                                <th width="10%"
-                                                    style="text-align: center; font-size: 12px; font-weight: bold; border: 1px solid #dddddd; font-family: Arial, sans-serif; color: #333333;">
-                                                    <span style="display: block; margin: 8px 15px;">QTY Req</span>
-                                                </th>
-                                                <th width="10%"
-                                                    style="text-align: center; font-size: 12px; font-weight: bold; border: 1px solid #dddddd; font-family: Arial, sans-serif; color: #333333;">
-                                                    <span style="display: block; margin: 8px 15px;">QTY Issued</span>
-                                                </th>
-                                                <th width="15%"
-                                                    style="text-align: center; font-size: 12px; font-weight: bold; border: 1px solid #dddddd; font-family: Arial, sans-serif; color: #333333;">
-                                                    <span style="display: block; margin: 8px 15px;">Batch Number</span>
-                                                </th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @forelse($requisition->requisitionItems as $item)
-                                            @php
-                                            $detail = $item->itemMaster->ItemDetails->firstWhere('id',
-                                            $item->item_detail_id) ??
-                                            (object)['material_type' => 'N/A', 'item_detail_code' => 'N/A',
-                                            'item_detail_name' => 'N/A',
-                                            'unit' => 'N/A'];
-                                            @endphp
-                                            <tr style="background-color: {{ $loop->odd ? '#eeeeee' : '#ffffff' }};"
-                                                class="{{ $loop->odd ? 'tr-odd' : '' }}">
-                                                <td
-                                                    style="border: 1px solid #dddddd; font-family: Arial, sans-serif; font-size: 13px; color: #333333;">
-                                                    <span style="display: block; margin: 8px 15px;">{{
-                                                        $detail->material_type }}</span>
-                                                </td>
-                                                <td
-                                                    style="border: 1px solid #dddddd; font-family: Arial, sans-serif; font-size: 13px; color: #333333;">
-                                                    <span style="display: block; margin: 8px 15px;">{{
-                                                        $detail->item_detail_code }}</span>
-                                                </td>
-                                                <td
-                                                    style="border: 1px solid #dddddd; font-family: Arial, sans-serif; font-size: 13px; color: #333333;">
-                                                    <span style="display: block; margin: 8px 15px;">{{
-                                                        $detail->item_detail_name }}</span>
-                                                </td>
-                                                <td
-                                                    style="border: 1px solid #dddddd; font-family: Arial, sans-serif; font-size: 13px; color: #333333; text-align: center;">
-                                                    <span style="display: block; margin: 8px 15px;">{{ $detail->unit
-                                                        }}</span>
-                                                </td>
-                                                <td
-                                                    style="border: 1px solid #dddddd; font-family: Arial, sans-serif; font-size: 13px; color: #333333; text-align: center; font-weight: bold;">
-                                                    <span style="display: block; margin: 8px 15px;">{{
-                                                        $item->quantity_required }}</span>
-                                                </td>
-                                                <td
-                                                    style="border: 1px solid #dddddd; font-family: Arial, sans-serif; font-size: 13px; color: #333333; text-align: center; font-weight: bold;">
-                                                    <span style="display: block; margin: 8px 15px;">{{
-                                                        $item->quantity_issued }}</span>
-                                                </td>
-                                                <td
-                                                    style="border: 1px solid #dddddd; font-family: Arial, sans-serif; font-size: 13px; color: #333333; text-align: center;">
-                                                    <span style="display: block; margin: 8px 15px;">{{ $item->batch_number ?? '-' }}</span>
-                                                </td>
-                                            </tr>
-                                            @empty
-                                            <tr style="background-color: #eeeeee;" class="tr-odd">
-                                                <td colspan="7"
-                                                    style="text-align: center; border: 1px solid #dddddd; font-family: Arial, sans-serif; font-size: 13px; color: #333333;">
-                                                    <span style="display: block; margin: 8px 15px;">No product details
-                                                        available.</span>
-                                                </td>
-                                            </tr>
-                                            @endforelse
-                                        </tbody>
-                                    </table>
-                                </td>
-                            </tr>
+                            @if($requisition->customer)
+                            <div style="margin-bottom: 30px;">
+                                <table width="100%" cellpadding="0" cellspacing="0" border="0" align="center"
+                                    style="border-collapse: collapse; font-size: 13px;">
+                                    <tr>
+                                        <td colspan="2" style="padding: 0 0 5px 0;">
+                                            <p
+                                                style="font-size: 12px; font-weight: 700; color: #4b5563; text-transform: uppercase; border-bottom: 2px solid #e5e7eb; padding-bottom: 5px; margin: 0;">
+                                                👤 Customer Information</p>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td width="50%" style="padding: 7px 7px 7px 0;" valign="top">
+                                            <table width="100%" cellpadding="0" cellspacing="0"
+                                                style="border-collapse: collapse;">
+                                                <tr>
+                                                    <td
+                                                        style="background: white; padding: 12px; border-radius: 6px; border: 1px solid #e9ecef;">
+                                                        <div
+                                                            style="font-weight: 600; color: #495057; font-size: 12px; margin-bottom: 5px;">
+                                                            Customer Name</div>
+                                                        <div
+                                                            style="color: #2c3e50; font-size: 14px; word-break: break-word;">
+                                                            {{ $requisition->customer->name }}</div>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                        <td width="50%" style="padding: 7px 0 7px 7px;" valign="top">
+                                            <table width="100%" cellpadding="0" cellspacing="0"
+                                                style="border-collapse: collapse;">
+                                                <tr>
+                                                    <td
+                                                        style="background: white; padding: 12px; border-radius: 6px; border: 1px solid #e9ecef;">
+                                                        <div
+                                                            style="font-weight: 600; color: #495057; font-size: 12px; margin-bottom: 5px;">
+                                                            Customer Address</div>
+                                                        <div
+                                                            style="color: #2c3e50; font-size: 14px; word-break: break-word;">
+                                                            {{ $requisition->customer->address ?? 'N/A' }}</div>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td width="50%" style="padding: 7px 7px 7px 0;" valign="top">
+                                            <table width="100%" cellpadding="0" cellspacing="0"
+                                                style="border-collapse: collapse;">
+                                                <tr>
+                                                    <td
+                                                        style="background: white; padding: 12px; border-radius: 6px; border: 1px solid #e9ecef;">
+                                                        <div
+                                                            style="font-weight: 600; color: #495057; font-size: 12px; margin-bottom: 5px;">
+                                                            Account</div>
+                                                        <div
+                                                            style="color: #2c3e50; font-size: 14px; word-break: break-word;">
+                                                            {{ $requisition->account ?? 'N/A' }}</div>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                        <td width="50%" style="padding: 7px 0 7px 7px;" valign="top">
+                                            <table width="100%" cellpadding="0" cellspacing="0"
+                                                style="border-collapse: collapse;">
+                                                <tr>
+                                                    <td
+                                                        style="background: white; padding: 12px; border-radius: 6px; border: 1px solid #e9ecef;">
+                                                        <div
+                                                            style="font-weight: 600; color: #495057; font-size: 12px; margin-bottom: 5px;">
+                                                            Cost Center</div>
+                                                        <div
+                                                            style="color: #2c3e50; font-size: 14px; word-break: break-word;">
+                                                            {{ $requisition->cost_center }}</div>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                            @endif
 
-                            <tr>
-                                <th colspan="2"
-                                    style="text-align: center; background-color: #e0e0e0; border: 1px solid #dddddd; font-family: Arial, sans-serif; font-size: 14px; color: #333333; mso-line-height-rule: exactly;">
-                                    <h5
-                                        style="margin: 0.3em 0; font-size: 14px; font-weight: bold;">
-                                        REMARKS / OBJECTIVES</h5>
-                                </th>
-                            </tr>
-                            <tr style="background-color: #eeeeee;" class="tr-odd">
-                                <td width="20%"
-                                    style="font-weight: bold; background-color: #f0f0f0; border: 1px solid #dddddd; font-family: Arial, sans-serif; color: #333333; font-size: 14px;"
-                                    class="bg-f0">
-                                    <span style="display: block; margin: 8px 15px;">Alasan / Objectives:</span>
-                                </td>
-                                <td width="80%"
-                                    style="border: 1px solid #dddddd; font-family: Arial, sans-serif; color: #333333; font-size: 14px;">
-                                    <span style="display: block; margin: 8px 15px;">{{ $requisition->objectives ??
-                                        $item->remarks ?? 'No specific reason provided.' }}</span>
-                                </td>
-                            </tr>
+                            @if($requisition->objectives)
+                            <div style="margin-bottom: 30px;">
+                                <table width="100%" cellpadding="0" cellspacing="0" border="0" align="center"
+                                    style="border-collapse: collapse;">
+                                    <tr>
+                                        <td style="padding: 0 0 5px 0;">
+                                            <p
+                                                style="font-size: 12px; font-weight: 700; color: #4b5563; text-transform: uppercase; border-bottom: 2px solid #e5e7eb; padding-bottom: 5px; margin: 0;">
+                                                🎯 Objectives</p>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 7px 0;">
+                                            <div
+                                                style="background: #f8f9fa; padding: 15px; border-radius: 4px; border: 1px solid #e9ecef;">
+                                                <p
+                                                    style="margin: 0; color: #2c3e50; font-size: 14px; line-height: 1.6;">
+                                                    {{ $requisition->objectives }}</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                            @endif
 
-                            <tr>
-                                <th colspan="2"
-                                    style="text-align: center; border: 1px solid #dddddd; background-color: #ffffff;">
+                            @if($requisition->requisitionItems && $requisition->requisitionItems->count() > 0)
+                            <div style="margin-bottom: 30px;">
+                                <table width="100%" cellpadding="0" cellspacing="0" border="0" align="center"
+                                    style="border-collapse: collapse;">
+                                    <tr>
+                                        <td style="padding: 0 0 5px 0;">
+                                            <p
+                                                style="font-size: 12px; font-weight: 700; color: #4b5563; text-transform: uppercase; border-bottom: 2px solid #e5e7eb; padding-bottom: 5px; margin: 0;">
+                                                📦 Product Details</p>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 7px 0;">
+                                            <div style="overflow-x: auto;">
+                                                <table width="100%" cellpadding="0" cellspacing="0" border="0"
+                                                    align="center"
+                                                    style="width: 100%; border-collapse: collapse; margin-top: 0; border: 1px solid #e9ecef;">
+                                                    <thead>
+                                                        <tr>
+                                                            <th
+                                                                style="background-color: #b8871a; color: white; padding: 10px 8px; text-align: left; font-weight: 600; font-size: 12px; border: 1px solid #b8871a;">
+                                                                Material Type</th>
+                                                            <th
+                                                                style="background-color: #b8871a; color: white; padding: 10px 8px; text-align: left; font-weight: 600; font-size: 12px; border: 1px solid #b8871a;">
+                                                                Product Code</th>
+                                                            <th
+                                                                style="background-color: #b8871a; color: white; padding: 10px 8px; text-align: left; font-weight: 600; font-size: 12px; border: 1px solid #b8871a;">
+                                                                Product Name</th>
+                                                            <th
+                                                                style="background-color: #b8871a; color: white; padding: 10px 8px; text-align: center; font-weight: 600; font-size: 12px; border: 1px solid #b8871a;">
+                                                                Unit</th>
+                                                            <th
+                                                                style="background-color: #b8871a; color: white; padding: 10px 8px; text-align: center; font-weight: 600; font-size: 12px; border: 1px solid #b8871a;">
+                                                                QTY Req</th>
+                                                            <th
+                                                                style="background-color: #b8871a; color: white; padding: 10px 8px; text-align: center; font-weight: 600; font-size: 12px; border: 1px solid #b8871a;">
+                                                                QTY Iss</th>
+                                                            <th
+                                                                style="background-color: #b8871a; color: white; padding: 10px 8px; text-align: center; font-weight: 600; font-size: 12px; border: 1px solid #b8871a;">
+                                                                Batch No.</th>
+                                                            <th
+                                                                style="background-color: #b8871a; color: white; padding: 10px 8px; text-align: center; font-weight: 600; font-size: 12px; border: 1px solid #b8871a;">
+                                                                Remarks</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach($requisition->requisitionItems as $item)
+                                                        @php
+                                                        $detail = $item->itemMaster->ItemDetails->firstWhere('id',
+                                                        $item->item_detail_id);
+                                                        $row_bg = $loop->even ? '#f8f9fa' : 'white';
+                                                        @endphp
+                                                        @if($detail)
+                                                        <tr style="background-color: {{ $row_bg }};">
+                                                            <td
+                                                                style="padding: 10px 8px; border: 1px solid #e9ecef; font-size: 12px;">
+                                                                {{ $detail->material_type ?? '-' }}</td>
+                                                            <td
+                                                                style="padding: 10px 8px; border: 1px solid #e9ecef; font-size: 12px;">
+                                                                {{ $detail->item_detail_code ?? '-' }}</td>
+                                                            <td
+                                                                style="padding: 10px 8px; border: 1px solid #e9ecef; font-size: 12px;">
+                                                                {{ $detail->item_detail_name ?? '-' }}</td>
+                                                            <td
+                                                                style="padding: 10px 8px; border: 1px solid #e9ecef; font-size: 12px; text-align: center;">
+                                                                {{ $detail->unit ?? '-' }}</td>
+                                                            <td
+                                                                style="padding: 10px 8px; border: 1px solid #e9ecef; font-size: 12px; text-align: center; font-weight: 600;">
+                                                                {{ $item->quantity_required }}</td>
+                                                            <td
+                                                                style="padding: 10px 8px; border: 1px solid #e9ecef; font-size: 12px; text-align: center; font-weight: 600;">
+                                                                {{ $item->quantity_issued }}</td>
+                                                            <td
+                                                                style="padding: 10px 8px; border: 1px solid #e9ecef; font-size: 12px; text-align: center;">
+                                                                {{ date('j/n/y', strtotime($item->batch_number)) ?? '-'
+                                                                }}</td>
+                                                            <td
+                                                                style="padding: 10px 8px; border: 1px solid #e9ecef; font-size: 12px; text-align: center;">
+                                                                {{ $item->remarks ?? '-' }}</td>
+                                                        </tr>
+                                                        @endif
+                                                        @endforeach
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                            @endif
 
-                                    <table role="presentation" border="0" cellpadding="0" cellspacing="0" align="center"
-                                        style="border-collapse: collapse; margin: 0 auto;">
-                                        <tr>
-                                            <td align="center">
-                                                <a href="{{ $approveLink }}" target="_blank"
-                                                    style="background-color: #28a745; color: white; text-decoration: none; font-size: 18px; font-family: Arial, sans-serif; font-weight: bold; display: inline-block; border-radius: 5px; mso-hide: all;">
-                                                    ✅ Quick Approve
-                                                </a>
-                                            </td>
 
-                                            <td align="center">
-                                                <a href="{{ $approveWithReviewLink }}" target="_blank"
-                                                    style="background-color: #007bff; color: white; text-decoration: none; font-size: 18px; font-family: Arial, sans-serif; font-weight: bold; display: inline-block; border-radius: 5px; mso-hide: all;">
-                                                    📝 Approve with Review
-                                                </a>
-                                            </td>
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0" align="center"
+                                style="border-collapse: collapse; margin: 30px 0; border: 1px solid #ffeaa7; border-radius: 4px; background: #fff3cd;">
+                                <tr>
+                                    <td style="padding: 15px; background: #fff3cd; border-radius: 4px;">
 
-                                            <td align="center">
-                                                <a href="{{ $rejectLink }}" target="_blank"
-                                                    style="background-color: #dc3545; color: white; text-decoration: none; font-size: 18px; font-family: Arial, sans-serif; font-weight: bold; display: inline-block; border-radius: 5px; mso-hide: all;">
-                                                    ❌ Quick Reject
-                                                </a>
-                                            </td>
+                                        <div style="text-align: center;">
+                                            <h4 style="color: #856404; margin: 0 0 8px 0; font-size: 14px;">⚠️ Important
+                                                Notice</h4>
 
-                                        </tr>
-                                    </table>
+                                            <table border="0" cellpadding="0" cellspacing="0" align="center"
+                                                style="border-collapse: collapse; max-width: 450px; margin: 0 auto 20px auto; color: #856404; font-size: 13px;">
+                                                <tr>
+                                                    <td align="left" style="padding: 0;">
+                                                        <ul
+                                                            style="color: #856404; margin: 0; padding-left: 20px; font-size: 13px; list-style-type: disc; text-align: left;">
+                                                            <li style="margin-bottom: 5px;">This approval request is
+                                                                time-sensitive</li>
+                                                            <li style="margin-bottom: 5px;">Quick actions
+                                                                (Approve/Reject) will be processed immediately</li>
+                                                            <li style="margin-bottom: 5px;">Use "Review with Notes" if
+                                                                you need to add comments</li>
+                                                            <li>Contact the requester directly if you need additional
+                                                                information</li>
+                                                        </ul>
+                                                    </td>
+                                                </tr>
+                                            </table>
 
-                                </th>
-                            </tr>
+                                        </div>
 
-                            <tr>
-                                <td colspan="2"
-                                    style="text-align: center; background-color: #f0f0f0; border: 1px solid #dddddd; font-family: Arial, sans-serif; font-size: 14px; color: #333333; mso-line-height-rule: exactly;">
-                                    <p style="margin: 0.3em 0; line-height: 1.4;">Kindly approve
-                                        it at your earliest convenience so we can proceed.</p>
-                                    <p style="margin: 0.3em 0; line-height: 1.4;">Thank you for your
-                                        attention.</p>
-                                    <br>
-                                    <p style="margin: 0.3em 0; font-weight: bold; line-height: 1.4;">
-                                        Best regards,</p>
-                                    <p style="margin: 0.3em 0; line-height: 1.4;">PT Sinar Meadow
-                                        International Indonesia
-                                    </p>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </td>
-            </tr>
-        </table>
-    </div>
+                                        <div
+                                            style="background-color: transparent; padding: 20px 0 0 0; border-radius: 8px; text-align: center; margin-top: 20px;">
+                                            <h3
+                                                style="font-size: 18px; font-weight: 700; color: #2c3e50; margin-bottom: 10px;">
+                                                ⚡
+                                                Take Action</h3>
+
+                                            <table align="center" border="0" cellpadding="0" cellspacing="0"
+                                                style="margin: 0 auto; border-collapse: collapse;">
+                                                <tr>
+                                                    <td style="padding: 0 5px;">
+                                                        <table border="0" cellpadding="0" cellspacing="0"
+                                                            style="border-collapse: collapse;">
+                                                            <tr>
+                                                                <td align="center" bgcolor="#28a745"
+                                                                    style="border-radius: 4px;">
+                                                                    <a href="{{ $approveLink }}"
+                                                                        style="display: inline-block; padding: 12px 25px; font-family: Arial, sans-serif; font-size: 14px; color: #ffffff; text-decoration: none; font-weight: bold; border: 1px solid #28a745; border-radius: 4px; mso-padding-alt: 12px 25px;">✅
+                                                                        Quick Approve</a>
+                                                                </td>
+                                                            </tr>
+                                                        </table>
+                                                    </td>
+                                                    <td style="padding: 0 5px;">
+                                                        <table border="0" cellpadding="0" cellspacing="0"
+                                                            style="border-collapse: collapse;">
+                                                            <tr>
+                                                                <td align="center" bgcolor="#dc3545"
+                                                                    style="border-radius: 4px;">
+                                                                    <a href="{{ $rejectLink }}"
+                                                                        style="display: inline-block; padding: 12px 25px; font-family: Arial, sans-serif; font-size: 14px; color: #ffffff; text-decoration: none; font-weight: bold; border: 1px solid #dc3545; border-radius: 4px; mso-padding-alt: 12px 25px;">❌
+                                                                        Quick Reject</a>
+                                                                </td>
+                                                            </tr>
+                                                        </table>
+                                                    </td>
+                                                    <td style="padding: 0 5px;">
+                                                        <table border="0" cellpadding="0" cellspacing="0"
+                                                            style="border-collapse: collapse;">
+                                                            <tr>
+                                                                <td align="center" bgcolor="#007bff"
+                                                                    style="border-radius: 4px;">
+                                                                    <a href="{{ $approveWithReviewLink }}"
+                                                                        style="display: inline-block; padding: 12px 25px; font-family: Arial, sans-serif; font-size: 14px; color: #ffffff; text-decoration: none; font-weight: bold; border: 1px solid #007bff; border-radius: 4px; mso-padding-alt: 12px 25px;">📝
+                                                                        Review with Notes</a>
+                                                                </td>
+                                                            </tr>
+                                                        </table>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td align="center" bgcolor="#2c3e50" style="padding: 20px; font-size: 11px; color: #9ca3af;">
+                            <div style="font-size: 14px; font-weight: 600; color: white; margin-bottom: 5px;">
+                                {{ config('app.name') }}</div>
+                            <div style="font-size: 12px; opacity: 0.8; margin-bottom: 10px;">Sales & Marketing
+                                Department</div>
+                            <div style="height: 1px; background: rgba(255, 255, 255, 0.2); margin: 10px 0;"></div>
+                            <div style="font-size: 12px; opacity: 0.9; line-height: 1.6;">
+                                <strong>Need Help?</strong><br>
+                                Contact IT Support:
+                            </div>
+                            <div style="font-size: 10px; opacity: 0.7; margin-top: 10px;">
+                                © {{ date('Y') }} {{ config('app.name') }}. All rights reserved.<br>
+                                This is an automated message, please do not reply directly to this email.
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
 </body>
 
 </html>

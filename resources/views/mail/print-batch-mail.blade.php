@@ -1,553 +1,511 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html
+    PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Warehouse Approval Request</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f8f9fa;
-            color: #333;
-            line-height: 1.6;
-        }
-        .email-container {
-            max-width: 800px;
-            margin: 20px auto;
-            background: white;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        }
-
-        /* Header */
-        .email-header {
-            background: linear-gradient(135deg, #cc982f 0%, #b8871a 100%);
-            color: white;
-            padding: 30px 40px;
-            text-align: center;
-            position: relative;
-        }
-        .email-header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 20"><defs><pattern id="dots" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="1.5" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="20" fill="url(%23dots)"/></svg>');
-            opacity: 0.3;
-        }
-        .header-content {
-            position: relative;
-            z-index: 1;
-        }
-        .company-logo {
-            max-height: 50px;
-            width: auto;
-            margin-bottom: 15px;
-        }
-        .email-title {
-            font-size: 28px;
-            font-weight: 700;
-            margin: 0;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        .email-subtitle {
-            font-size: 16px;
-            margin: 10px 0 0 0;
-            opacity: 0.9;
-        }
-
-        /* Content */
-        .email-content {
-            padding: 40px;
-        }
-
-        .greeting {
-            font-size: 18px;
-            color: #2c3e50;
-            margin-bottom: 25px;
-            padding: 20px;
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            border-radius: 8px;
-            border-left: 4px solid #cc982f;
-        }
-
-        /* Info Cards */
-        .info-section {
-            margin-bottom: 30px;
-        }
-        .section-title {
-            background: linear-gradient(135deg, #cc982f 0%, #b8871a 100%);
-            color: white;
-            padding: 12px 20px;
-            margin: 0 0 15px 0;
-            border-radius: 8px 8px 0 0;
-            font-weight: 600;
-            font-size: 16px;
-        }
-        .info-grid {
-            width: 100%;
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 0 0 8px 8px;
-            border: 1px solid #e9ecef;
-            border-top: none;
-        }
-        .info-grid table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        .info-grid td {
-            width: 50%;
-            vertical-align: top;
-            padding: 7px;
-        }
-        .info-item {
-            background: white;
-            padding: 15px;
-            border-radius: 6px;
-            border: 1px solid #e9ecef;
-        }
-        .info-label {
-            font-weight: 600;
-            color: #495057;
-            font-size: 14px;
-            margin-bottom: 5px;
-        }
-        .info-value {
-            color: #2c3e50;
-            font-size: 15px;
-            word-break: break-word;
-        }
-
-        /* Level Badge */
-        .level-badge {
-            display: inline-block;
-            background: linear-gradient(45deg, #cc982f, #b8871a);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-weight: 600;
-            font-size: 14px;
-            margin: 15px 0;
-        }
-
-        /* Print Batch Badge */
-        .print-batch-badge {
-            display: inline-block;
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-weight: 600;
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        .print-batch-yes {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        .print-batch-no {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-
-        /* Product Table */
-        .product-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-            border-radius: 8px;
-            overflow: hidden;
-            overflow-x: scroll;
-            border: 1px solid #e9ecef;
-        }
-        .product-table th {
-            background: linear-gradient(135deg, #cc982f 0%, #b8871a 100%);
-            color: white;
-            padding: 12px;
-            text-align: left;
-            font-weight: 600;
-            font-size: 14px;
-        }
-        .product-table td {
-            padding: 12px;
-            border-bottom: 1px solid #e9ecef;
-            font-size: 14px;
-        }
-        .product-table tr:nth-child(even) {
-            background-color: #f8f9fa;
-        }
-        .product-table tr:hover {
-            background-color: #e9ecef;
-        }
-
-        /* Action Buttons */
-        .action-section {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            padding: 30px;
-            border-radius: 12px;
-            text-align: center;
-            margin: 30px 0;
-            border: 2px solid #cc982f;
-        }
-        .action-title {
-            font-size: 20px;
-            font-weight: 700;
-            color: #2c3e50;
-            margin-bottom: 15px;
-        }
-        .action-subtitle {
-            color: #6c757d;
-            margin-bottom: 25px;
-            font-size: 16px;
-        }
-        .button-group {
-            text-align: center;
-        }
-        .button-group table {
-            margin: 0 auto;
-            border-collapse: collapse;
-        }
-        .button-group td {
-            padding: 7px;
-        }
-        .btn {
-            display: inline-block;
-            padding: 12px 24px;
-            text-decoration: none;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 16px;
-            text-align: center;
-            min-width: 140px;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-        .btn-approve {
-            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-            color: white;
-        }
-        .btn-reject {
-            background: linear-gradient(135deg, #dc3545 0%, #e74c3c 100%);
-            color: white;
-        }
-        .btn-review {
-            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
-            color: white;
-        }
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
-        }
-
-        /* Footer */
-        .email-footer {
-            background: #2c3e50;
-            color: white;
-            padding: 30px 40px;
-            text-align: center;
-        }
-        .footer-content {
-            max-width: 600px;
-            margin: 0 auto;
-        }
-        .company-info {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 10px;
-        }
-        .company-tagline {
-            font-size: 14px;
-            opacity: 0.8;
-            margin-bottom: 20px;
-        }
-        .contact-info {
-            font-size: 14px;
-            opacity: 0.9;
-            line-height: 1.8;
-        }
-        .footer-divider {
-            height: 1px;
-            background: rgba(255, 255, 255, 0.2);
-            margin: 20px 0;
-        }
-        .copyright {
-            font-size: 12px;
-            opacity: 0.7;
-            margin-top: 15px;
-        }
-
-        /* Responsive */
-        @media only screen and (max-width: 600px) {
-            .email-container {
-                margin: 10px !important;
-                border-radius: 8px !important;
-            }
-            .email-content, .email-header, .email-footer {
-                padding: 20px !important;
-            }
-            .info-grid td {
-                width: 100% !important;
-                display: block !important;
-            }
-            .button-group td {
-                display: block !important;
-                width: 100% !important;
-            }
-            .btn {
-                width: 100% !important;
-            }
-            .product-table {
-                font-size: 12px !important;
-            }
-            .product-table th, .product-table td {
-                padding: 8px !important;
-            }
-        }
-    </style>
 </head>
-<body>
-    <div class="email-container">
-        <!-- Header -->
-        <div class="email-header">
-            <div class="header-content">
-                <img src="{{ asset('storage/logo.png') }}" alt="{{ config('app.name') }}" class="company-logo">
-                <h1 class="email-title">Warehouse Approval Request</h1>
-                <p class="email-subtitle">{{ $tracking->current_position }} - Approval Needed</p>
-            </div>
-        </div>
 
-        <!-- Content -->
-        <div class="email-content">
-            <!-- Greeting -->
-            <div class="greeting">
-                <strong>Hello {{ $approver->name }},</strong><br>
-                You have received a warehouse approval request. Please review the details below and provide your decision.
-                <div class="level-badge">
-                    📦 {{ $tracking->current_position }}
-                </div>
-            </div>
+<body
+    style="margin: 0; padding: 0; background-color: #f3f4f6; font-family: Arial, sans-serif; color: #333; line-height: 1.6; height: 100% !important; width: 100% !important; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%;">
 
-            <!-- Basic Information -->
-            <div class="info-section">
-                <h3 class="section-title">📄 Request Information</h3>
-                <div class="info-grid">
-                    <table>
-                        <tr>
-                            <td>
-                                <div class="info-item">
-                                    <div class="info-label">No. SRS</div>
-                                    <div class="info-value">{{ $requisition->no_srs }}</div>
-                                </div>
-                            </td>
-                            <td>
-                                <div class="info-item">
-                                    <div class="info-label">Category</div>
-                                    <div class="info-value">{{ $requisition->category }}</div>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div class="info-item">
-                                    <div class="info-label">Position</div>
-                                    <div class="info-value">{{ $tracking->current_position }}</div>
-                                </div>
-                            </td>
-                            <td>
-                                <div class="info-item">
-                                    <div class="info-label">Request Date</div>
-                                    <div class="info-value">{{ \Carbon\Carbon::parse($requisition->request_date)->format('d M Y') }}</div>
-                                </div>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-            </div>
+    <table border="0" cellpadding="0" cellspacing="0" width="100%"
+        style="border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt;">
+        <tr>
+            <td align="center" style="padding: 20px 0;">
 
-            <!-- Account Information -->
-            <div class="info-section">
-                <h3 class="section-title">💼 Account Information</h3>
-                <div class="info-grid">
-                    <table>
-                        <tr>
-                            <td>
-                                <div class="info-item">
-                                    <div class="info-label">Account</div>
-                                    <div class="info-value">{{ $requisition->account ?? 'N/A' }}</div>
+                <table border="0" cellpadding="0" cellspacing="0" width="100%" align="center"
+                    style="max-width: 700px; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); border-collapse: collapse;"
+                    class="email-container">
+
+                    <tr>
+                        <td bgcolor="#b8871a" style="padding: 30px 40px; text-align: center;">
+                            <img src="{{ asset('storage/logo.png') }}" alt="{{ config('app.name') }}"
+                                style="max-height: 50px; width: auto; margin-bottom: 15px; display: block; margin: 0 auto 15px; border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic;">
+                            <h1
+                                style="font-size: 24px; font-weight: 700; margin: 0; color: white; mso-line-height-alt: 30px;">
+                                Warehouse Approval Request</h1>
+                            <p style="font-size: 14px; margin: 10px 0 0 0; opacity: 0.9; color: #f9f9f9;">
+                                {{ $tracking->current_position }} - Approval Needed</p>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td style="padding: 30px 40px;">
+
+                            <div
+                                style="font-size: 15px; color: #2c3e50; margin-bottom: 25px; padding: 15px; background-color: #f8f9fa; border-radius: 4px; border-left: 4px solid #cc982f;">
+                                <strong>Hello {{ $approver->name }},</strong><br>
+                                You have received a warehouse approval request. Please review the details below and
+                                provide your decision.
+                                <div
+                                    style="display: inline-block; background-color: #cc982f; color: white; padding: 6px 12px; border-radius: 15px; font-weight: 600; font-size: 12px; margin-top: 10px; mso-padding-alt: 6px 12px;">
+                                    📦 Approval Level: {{ $tracking->current_position ?? 'N/A' }}
                                 </div>
-                            </td>
-                            <td>
-                                <div class="info-item">
-                                    <div class="info-label">Requester</div>
-                                    <div class="info-value">{{ $requisition->requester->name ?? 'N/A' }}</div>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div class="info-item">
-                                    <div class="info-label">Print Batch</div>
-                                    <div class="info-value">
-                                        @if($requisition->print_batch == 1)
-                                            <span class="print-batch-badge print-batch-yes">Yes</span>
-                                        @else
-                                            <span class="print-batch-badge print-batch-no">No</span>
-                                        @endif
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <div class="info-item">
-                                    <div class="info-label">Current Position</div>
-                                    <div class="info-value">{{ $tracking->current_position }}</div>
-                                </div>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-            </div>
+                            </div>
 
-            <!-- Customer Information -->
-            @if($requisition->customer)
-            <div class="info-section">
-                <h3 class="section-title">👤 Customer Information</h3>
-                <div class="info-grid">
-                    <table>
-                        <tr>
-                            <td>
-                                <div class="info-item">
-                                    <div class="info-label">Customer Name</div>
-                                    <div class="info-value">{{ $requisition->customer->name ?? 'N/A' }}</div>
-                                </div>
-                            </td>
-                            <td>
-                                <div class="info-item">
-                                    <div class="info-label">Customer Address</div>
-                                    <div class="info-value">{{ $requisition->customer->address ?? 'N/A' }}</div>
-                                </div>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-            </div>
-            @endif
+                            <div style="margin-bottom: 30px;">
+                                <table width="100%" cellpadding="0" cellspacing="0" border="0" align="center"
+                                    style="border-collapse: collapse; font-size: 13px;">
+                                    <tr>
+                                        <td colspan="2" style="padding: 0 0 5px 0;">
+                                            <p
+                                                style="font-size: 12px; font-weight: 700; color: #4b5563; text-transform: uppercase; border-bottom: 2px solid #e5e7eb; padding-bottom: 5px; margin: 0;">
+                                                📄 Request Information</p>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td width="50%" style="padding: 7px 7px 7px 0;" valign="top">
+                                            <table width="100%" cellpadding="0" cellspacing="0"
+                                                style="border-collapse: collapse;">
+                                                <tr>
+                                                    <td
+                                                        style="background: white; padding: 12px; border-radius: 6px; border: 1px solid #e9ecef;">
+                                                        <div
+                                                            style="font-weight: 600; color: #495057; font-size: 12px; margin-bottom: 5px;">
+                                                            No. SRS</div>
+                                                        <div
+                                                            style="color: #2c3e50; font-size: 14px; font-weight: bold; word-break: break-word;">
+                                                            {{ $requisition->no_srs }}</div>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                        <td width="50%" style="padding: 7px 0 7px 7px;" valign="top">
+                                            <table width="100%" cellpadding="0" cellspacing="0"
+                                                style="border-collapse: collapse;">
+                                                <tr>
+                                                    <td
+                                                        style="background: white; padding: 12px; border-radius: 6px; border: 1px solid #e9ecef;">
+                                                        <div
+                                                            style="font-weight: 600; color: #495057; font-size: 12px; margin-bottom: 5px;">
+                                                            Category</div>
+                                                        <div
+                                                            style="color: #2c3e50; font-size: 14px; word-break: break-word;">
+                                                            {{ $requisition->category }}
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td width="50%" style="padding: 7px 7px 7px 0;" valign="top">
+                                            <table width="100%" cellpadding="0" cellspacing="0"
+                                                style="border-collapse: collapse;">
+                                                <tr>
+                                                    <td
+                                                        style="background: white; padding: 12px; border-radius: 6px; border: 1px solid #e9ecef;">
+                                                        <div
+                                                            style="font-weight: 600; color: #495057; font-size: 12px; margin-bottom: 5px;">
+                                                            Position</div>
+                                                        <div
+                                                            style="color: #2c3e50; font-size: 14px; word-break: break-word;">
+                                                            {{ $tracking->current_position ?? 'N/A' }}</div>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                        <td width="50%" style="padding: 7px 0 7px 7px;" valign="top">
+                                            <table width="100%" cellpadding="0" cellspacing="0"
+                                                style="border-collapse: collapse;">
+                                                <tr>
+                                                    <td
+                                                        style="background: white; padding: 12px; border-radius: 6px; border: 1px solid #e9ecef;">
+                                                        <div
+                                                            style="font-weight: 600; color: #495057; font-size: 12px; margin-bottom: 5px;">
+                                                            Request Date</div>
+                                                        <div
+                                                            style="color: #2c3e50; font-size: 14px; word-break: break-word;">
+                                                            {{
+                                                            \Carbon\Carbon::parse($requisition->request_date)->format('d M Y') }}
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
 
-            <!-- Objectives -->
-            @if($requisition->reason_for_replacement)
-            <div class="info-section">
-                <h3 class="section-title">🎯 Objectives</h3>
-                <div style="background: #f8f9fa; padding: 20px; border-radius: 0 0 8px 8px; border: 1px solid #e9ecef; border-top: none;">
-                    <p style="margin: 0; color: #2c3e50; line-height: 1.6;">{{ $requisition->reason_for_replacement }}</p>
-                </div>
-            </div>
-            @endif
+                            <div style="margin-bottom: 30px;">
+                                <table width="100%" cellpadding="0" cellspacing="0" border="0" align="center"
+                                    style="border-collapse: collapse; font-size: 13px;">
+                                    <tr>
+                                        <td colspan="2" style="padding: 0 0 5px 0;">
+                                            <p
+                                                style="font-size: 12px; font-weight: 700; color: #4b5563; text-transform: uppercase; border-bottom: 2px solid #e5e7eb; padding-bottom: 5px; margin: 0;">
+                                                💼 Account Information</p>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td width="50%" style="padding: 7px 7px 7px 0;" valign="top">
+                                            <table width="100%" cellpadding="0" cellspacing="0"
+                                                style="border-collapse: collapse;">
+                                                <tr>
+                                                    <td
+                                                        style="background: white; padding: 12px; border-radius: 6px; border: 1px solid #e9ecef;">
+                                                        <div
+                                                            style="font-weight: 600; color: #495057; font-size: 12px; margin-bottom: 5px;">
+                                                            Account</div>
+                                                        <div
+                                                            style="color: #2c3e50; font-size: 14px; word-break: break-word;">
+                                                            {{ $requisition->account ?? 'N/A' }}</div>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                        <td width="50%" style="padding: 7px 0 7px 7px;" valign="top">
+                                            <table width="100%" cellpadding="0" cellspacing="0"
+                                                style="border-collapse: collapse;">
+                                                <tr>
+                                                    <td
+                                                        style="background: white; padding: 12px; border-radius: 6px; border: 1px solid #e9ecef;">
+                                                        <div
+                                                            style="font-weight: 600; color: #495057; font-size: 12px; margin-bottom: 5px;">
+                                                            Requester</div>
+                                                        <div
+                                                            style="color: #2c3e50; font-size: 14px; word-break: break-word;">
+                                                            {{ $requisition->requester->name ?? 'N/A' }}</div>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td width="50%" style="padding: 7px 7px 7px 0;" valign="top">
+                                            <table width="100%" cellpadding="0" cellspacing="0"
+                                                style="border-collapse: collapse;">
+                                                <tr>
+                                                    <td
+                                                        style="background: white; padding: 12px; border-radius: 6px; border: 1px solid #e9ecef;">
+                                                        <div
+                                                            style="font-weight: 600; color: #495057; font-size: 12px; margin-bottom: 5px;">
+                                                            Print Batch</div>
+                                                        <div
+                                                            style="color: #2c3e50; font-size: 14px; word-break: break-word;">
+                                                            @if($requisition->print_batch == 1)
+                                                            <span
+                                                                style="display: inline-block; background: #d4edda; color: #155724; border: 1px solid #c3e6cb; padding: 6px 12px; border-radius: 15px; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; mso-padding-alt: 6px 12px;">
+                                                                ✅ Yes
+                                                            </span>
+                                                            @else
+                                                            <span
+                                                                style="display: inline-block; background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; padding: 6px 12px; border-radius: 15px; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; mso-padding-alt: 6px 12px;">
+                                                                ❌ No
+                                                            </span>
+                                                            @endif
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                        <td width="50%" style="padding: 7px 0 7px 7px;" valign="top">
+                                            <table width="100%" cellpadding="0" cellspacing="0"
+                                                style="border-collapse: collapse;">
+                                                <tr>
+                                                    <td
+                                                        style="background: white; padding: 12px; border-radius: 6px; border: 1px solid #e9ecef;">
+                                                        <div
+                                                            style="font-weight: 600; color: #495057; font-size: 12px; margin-bottom: 5px;">
+                                                            Current Status</div>
+                                                        <div
+                                                            style="color: #2c3e50; font-size: 14px; word-break: break-word;">
+                                                            <span
+                                                                style="display: inline-block; background: #cce7ff; color: #0066cc; border: 1px solid #99d6ff; padding: 6px 12px; border-radius: 15px; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; mso-padding-alt: 6px 12px;">
+                                                                🔄 {{ $tracking->current_position }}
+                                                            </span>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
 
-            <!-- Product Details -->
-            @if($requisition->requisitionItems && $requisition->requisitionItems->count() > 0)
-            <div class="info-section">
-                <h3 class="section-title">📦 Product Details</h3>
-                <div style="background: #f8f9fa; padding: 20px; border-radius: 0 0 8px 8px; border: 1px solid #e9ecef; border-top: none;">
-                    <table class="product-table">
-                        <thead>
-                            <tr>
-                                <th>Item Name</th>
-                                <th>Item Code</th>
-                                <th>Qty Required</th>
-                                <th>Qty Issued</th>
-                                <th>Batch Number</th>
-                                <th>Remarks</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($requisition->requisitionItems as $item)
-                            <tr>
-                                <td>{{ $item->itemMaster->item_master_name ?? 'N/A' }}</td>
-                                <td>{{ $item->itemMaster->item_master_code ?? 'N/A' }}</td>
-                                <td>{{ $item->quantity_required ?? 0 }}</td>
-                                <td>{{ $item->quantity_issued ?? 0 }}</td>
-                                <td>{{ $item->batch_number ?? 'N/A' }}</td>
-                                <td>{{ $item->remarks ?? '-' }}</td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            @endif
+                            @if($requisition->customer)
+                            <div style="margin-bottom: 30px;">
+                                <table width="100%" cellpadding="0" cellspacing="0" border="0" align="center"
+                                    style="border-collapse: collapse; font-size: 13px;">
+                                    <tr>
+                                        <td colspan="2" style="padding: 0 0 5px 0;">
+                                            <p
+                                                style="font-size: 12px; font-weight: 700; color: #4b5563; text-transform: uppercase; border-bottom: 2px solid #e5e7eb; padding-bottom: 5px; margin: 0;">
+                                                👤 Customer Information</p>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td width="50%" style="padding: 7px 7px 7px 0;" valign="top">
+                                            <table width="100%" cellpadding="0" cellspacing="0"
+                                                style="border-collapse: collapse;">
+                                                <tr>
+                                                    <td
+                                                        style="background: white; padding: 12px; border-radius: 6px; border: 1px solid #e9ecef;">
+                                                        <div
+                                                            style="font-weight: 600; color: #495057; font-size: 12px; margin-bottom: 5px;">
+                                                            Customer Name</div>
+                                                        <div
+                                                            style="color: #2c3e50; font-size: 14px; word-break: break-word;">
+                                                            {{ $requisition->customer->name ?? 'N/A' }}</div>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                        <td width="50%" style="padding: 7px 0 7px 7px;" valign="top">
+                                            <table width="100%" cellpadding="0" cellspacing="0"
+                                                style="border-collapse: collapse;">
+                                                <tr>
+                                                    <td
+                                                        style="background: white; padding: 12px; border-radius: 6px; border: 1px solid #e9ecef;">
+                                                        <div
+                                                            style="font-weight: 600; color: #495057; font-size: 12px; margin-bottom: 5px;">
+                                                            Customer Address</div>
+                                                        <div
+                                                            style="color: #2c3e50; font-size: 14px; word-break: break-word;">
+                                                            {{ $requisition->customer->address ?? 'N/A' }}</div>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                            @endif
 
-            <!-- Action Buttons -->
-            <div class="action-section">
-                <h3 class="action-title">⚡ Take Action</h3>
-                <p class="action-subtitle">Please review the request above and choose your action below</p>
-                <div class="button-group">
-                    <table>
-                        <tr>
-                            <td>
-                                <a href="{{ $quickOkLink }}" class="btn btn-approve">
-                                    ✅ Quick OK
-                                </a>
-                            </td>
-                            <td>
-                                <a href="{{ $okWithReviewLink }}" class="btn btn-review">
-                                    📝 OK with Review
-                                </a>
-                            </td>
-                            <td>
-                                <a href="{{ $okWithUpdateLink }}" class="btn btn-review">
-                                    📝 OK with update
-                                </a>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-            </div>
+                            @if($requisition->reason_for_replacement)
+                            <div style="margin-bottom: 30px;">
+                                <table width="100%" cellpadding="0" cellspacing="0" border="0" align="center"
+                                    style="border-collapse: collapse;">
+                                    <tr>
+                                        <td style="padding: 0 0 5px 0;">
+                                            <p
+                                                style="font-size: 12px; font-weight: 700; color: #4b5563; text-transform: uppercase; border-bottom: 2px solid #e5e7eb; padding-bottom: 5px; margin: 0;">
+                                                🎯 Objectives</p>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 7px 0;">
+                                            <div
+                                                style="background: #f8f9fa; padding: 15px; border-radius: 4px; border: 1px solid #e9ecef;">
+                                                <p
+                                                    style="margin: 0; color: #2c3e50; font-size: 14px; line-height: 1.6;">
+                                                    {{ $requisition->reason_for_replacement }}</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                            @endif
 
-            <!-- Download Report -->
-            <div style="text-align: center; margin: 30px 0;">
-                <a href="{{ route('complain.warehouse.report', ['id' => $requisition->id]) }}"
-                   target="_blank"
-                   rel="noopener noreferrer"
-                   class="btn"
-                   style="display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, #17a2b8 0%, #138496 100%); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; min-width: 200px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);">
-                    📄 Download Report
-                </a>
-            </div>
+                            @if($requisition->requisitionItems && $requisition->requisitionItems->count() > 0)
+                            <div style="margin-bottom: 30px;">
+                                <table width="100%" cellpadding="0" cellspacing="0" border="0" align="center"
+                                    style="border-collapse: collapse;">
+                                    <tr>
+                                        <td style="padding: 0 0 5px 0;">
+                                            <p
+                                                style="font-size: 12px; font-weight: 700; color: #4b5563; text-transform: uppercase; border-bottom: 2px solid #e5e7eb; padding-bottom: 5px; margin: 0;">
+                                                📦 Product Details</p>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 7px 0;">
+                                            <div style="overflow-x: auto;">
+                                                <table width="100%" cellpadding="0" cellspacing="0" border="0"
+                                                    align="center"
+                                                    style="width: 100%; border-collapse: collapse; margin-top: 0; border: 1px solid #e9ecef;">
+                                                    <thead>
+                                                        <tr>
+                                                            <th
+                                                                style="background-color: #b8871a; color: white; padding: 10px 8px; text-align: left; font-weight: 600; font-size: 12px; border: 1px solid #b8871a;">
+                                                                Item Name</th>
+                                                            <th
+                                                                style="background-color: #b8871a; color: white; padding: 10px 8px; text-align: left; font-weight: 600; font-size: 12px; border: 1px solid #b8871a;">
+                                                                Item Code</th>
+                                                            <th
+                                                                style="background-color: #b8871a; color: white; padding: 10px 8px; text-align: center; font-weight: 600; font-size: 12px; border: 1px solid #b8871a;">
+                                                                Qty Req</th>
+                                                            <th
+                                                                style="background-color: #b8871a; color: white; padding: 10px 8px; text-align: center; font-weight: 600; font-size: 12px; border: 1px solid #b8871a;">
+                                                                Qty Iss</th>
+                                                            <th
+                                                                style="background-color: #b8871a; color: white; padding: 10px 8px; text-align: center; font-weight: 600; font-size: 12px; border: 1px solid #b8871a;">
+                                                                Batch No.</th>
+                                                            <th
+                                                                style="background-color: #b8871a; color: white; padding: 10px 8px; text-align: center; font-weight: 600; font-size: 12px; border: 1px solid #b8871a;">
+                                                                Remarks</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach($requisition->requisitionItems as $item)
+                                                        @php
+                                                        $row_bg = $loop->even ? '#f8f9fa' : 'white';
+                                                        @endphp
+                                                        <tr style="background-color: {{ $row_bg }};">
+                                                            <td
+                                                                style="padding: 10px 8px; border: 1px solid #e9ecef; font-size: 12px;">
+                                                                {{ $item->itemMaster->item_master_name ?? 'N/A' }}</td>
+                                                            <td
+                                                                style="padding: 10px 8px; border: 1px solid #e9ecef; font-size: 12px;">
+                                                                {{ $item->itemMaster->item_master_code ?? 'N/A' }}</td>
+                                                            <td
+                                                                style="padding: 10px 8px; border: 1px solid #e9ecef; font-size: 12px; text-align: center; font-weight: 600;">
+                                                                {{ $item->quantity_required ?? 0 }}</td>
+                                                            <td
+                                                                style="padding: 10px 8px; border: 1px solid #e9ecef; font-size: 12px; text-align: center; font-weight: 600;">
+                                                                {{ $item->quantity_issued ?? 0 }}</td>
+                                                            <td
+                                                                style="padding: 10px 8px; border: 1px solid #e9ecef; font-size: 12px; text-align: center;">
+                                                                {{ $item->batch_number ?? 'N/A' }}</td>
+                                                            <td
+                                                                style="padding: 10px 8px; border: 1px solid #e9ecef; font-size: 12px; text-align: center;">
+                                                                {{ $item->remarks ?? '-' }}</td>
+                                                        </tr>
+                                                        @endforeach
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                            @endif
 
-            <!-- Important Note -->
-            <div style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 20px; margin: 20px 0;">
-                <h4 style="color: #856404; margin: 0 0 10px 0;">⚠️ Important Notice</h4>
-                <ul style="color: #856404; margin: 0; padding-left: 20px;">
-                    <li>This warehouse approval is part of the requisition process</li>
-                    <li>Quick OK will process the approval immediately</li>
-                    <li>Use "OK with Review" if you need to add comments</li>
-                    <li>Your prompt action helps maintain operational efficiency</li>
-                </ul>
-            </div>
-        </div>
 
-        <!-- Footer -->
-        <div class="email-footer">
-            <div class="footer-content">
-                <div class="company-info">{{ config('app.name') }}</div>
-                <div class="company-tagline">Warehouse Department</div>
-                <div class="footer-divider"></div>
-                <div class="contact-info">
-                    <strong>Need Help?</strong><br>
-                    Contact IT Support: <br>
-                </div>
-                <div class="copyright">
-                    © {{ date('Y') }} {{ config('app.name') }}. All rights reserved.<br>
-                    This is an automated message, please do not reply directly to this email.
-                </div>
-            </div>
-        </div>
-    </div>
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0" align="center"
+                                style="border-collapse: collapse; margin: 30px 0; border: 1px solid #cc982f; border-radius: 4px; background: #f8f9fa;">
+                                <tr>
+                                    <td style="padding: 15px; background: #f8f9fa; border-radius: 4px;">
+
+                                        <div style="text-align: center;">
+                                            <h3
+                                                style="font-size: 18px; font-weight: 700; color: #2c3e50; margin-bottom: 10px;">
+                                                ⚡ Take Action</h3>
+                                            <p style="font-size: 14px; color: #6c757d; margin-bottom: 20px;">Please
+                                                review the request above and choose your action below</p>
+
+                                            <table align="center" border="0" cellpadding="0" cellspacing="0"
+                                                style="margin: 0 auto; border-collapse: collapse;">
+                                                <tr>
+                                                    <td style="padding: 0 5px;">
+                                                        <table border="0" cellpadding="0" cellspacing="0"
+                                                            style="border-collapse: collapse;">
+                                                            <tr>
+                                                                <td align="center" bgcolor="#28a745"
+                                                                    style="border-radius: 4px;">
+                                                                    <a href="{{ $quickOkLink }}"
+                                                                        style="display: inline-block; padding: 12px 25px; font-family: Arial, sans-serif; font-size: 14px; color: #ffffff; text-decoration: none; font-weight: bold; border: 1px solid #28a745; border-radius: 4px; mso-padding-alt: 12px 25px;">✅
+                                                                        Quick OK</a>
+                                                                </td>
+                                                            </tr>
+                                                        </table>
+                                                    </td>
+                                                    <td style="padding: 0 5px;">
+                                                        <table border="0" cellpadding="0" cellspacing="0"
+                                                            style="border-collapse: collapse;">
+                                                            <tr>
+                                                                <td align="center" bgcolor="#007bff"
+                                                                    style="border-radius: 4px;">
+                                                                    <a href="{{ $okWithReviewLink }}"
+                                                                        style="display: inline-block; padding: 12px 25px; font-family: Arial, sans-serif; font-size: 14px; color: #ffffff; text-decoration: none; font-weight: bold; border: 1px solid #007bff; border-radius: 4px; mso-padding-alt: 12px 25px;">📝
+                                                                        OK with Review</a>
+                                                                </td>
+                                                            </tr>
+                                                        </table>
+                                                    </td>
+                                                    <td style="padding: 0 5px;">
+                                                        <table border="0" cellpadding="0" cellspacing="0"
+                                                            style="border-collapse: collapse;">
+                                                            <tr>
+                                                                <td align="center" bgcolor="#17a2b8"
+                                                                    style="border-radius: 4px;">
+                                                                    <a href="{{ $okWithUpdateLink }}"
+                                                                        style="display: inline-block; padding: 12px 25px; font-family: Arial, sans-serif; font-size: 14px; color: #ffffff; text-decoration: none; font-weight: bold; border: 1px solid #17a2b8; border-radius: 4px; mso-padding-alt: 12px 25px;">📝
+                                                                        OK with Update</a>
+                                                                </td>
+                                                            </tr>
+                                                        </table>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <div style="text-align: center; margin: 30px 0;">
+                                <table align="center" border="0" cellpadding="0" cellspacing="0"
+                                    style="border-collapse: collapse;">
+                                    <tr>
+                                        <td align="center" bgcolor="#17a2b8" style="border-radius: 4px;">
+                                            <a href="{{ route('complain.warehouse.report', ['id' => $requisition->id]) }}"
+                                                target="_blank"
+                                                style="display: inline-block; padding: 12px 24px; background: #17a2b8; color: white; text-decoration: none; border-radius: 4px; font-weight: 600; font-size: 14px; min-width: 200px; mso-padding-alt: 12px 24px; border: 1px solid #17a2b8;">
+                                                📄 Download Report
+                                            </a>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0" align="center"
+                                style="border-collapse: collapse; margin-top: 20px; border: 1px solid #ffeaa7; border-radius: 4px; background: #fff3cd;">
+                                <tr>
+                                    <td style="padding: 15px; background: #fff3cd; border-radius: 4px;">
+
+                                        <div style="text-align: center;">
+                                            <h4 style="color: #856404; margin: 0 0 8px 0; font-size: 14px;">⚠️ Important
+                                                Notice</h4>
+
+                                            <table border="0" cellpadding="0" cellspacing="0" align="center"
+                                                style="border-collapse: collapse; max-width: 450px; margin: 0 auto 0 auto; color: #856404; font-size: 13px;">
+                                                <tr>
+                                                    <td align="left" style="padding: 0;">
+                                                        <ul
+                                                            style="color: #856404; margin: 0; padding-left: 20px; font-size: 13px; list-style-type: disc; text-align: left;">
+                                                            <li style="margin-bottom: 5px;">This warehouse approval is
+                                                                part of the requisition process</li>
+                                                            <li style="margin-bottom: 5px;">Quick OK will process the
+                                                                approval immediately</li>
+                                                            <li style="margin-bottom: 5px;">Use "OK with Review" if you
+                                                                need to add comments</li>
+                                                            <li>Your prompt action helps maintain operational efficiency
+                                                            </li>
+                                                        </ul>
+                                                    </td>
+                                                </tr>
+                                            </table>
+
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td align="center" bgcolor="#2c3e50" style="padding: 20px; font-size: 11px; color: #9ca3af;">
+                            <div style="font-size: 14px; font-weight: 600; color: white; margin-bottom: 5px;">
+                                {{ config('app.name') }}</div>
+                            <div style="font-size: 12px; opacity: 0.8; margin-bottom: 10px;">Warehouse Department</div>
+                            <div style="height: 1px; background: rgba(255, 255, 255, 0.2); margin: 10px 0;"></div>
+                            <div style="font-size: 12px; opacity: 0.9; line-height: 1.6;">
+                                <strong>Need Help?</strong><br>
+                                Contact IT Support:
+                            </div>
+                            <div style="font-size: 10px; opacity: 0.7; margin-top: 10px;">
+                                © {{ date('Y') }} {{ config('app.name') }}. All rights reserved.<br>
+                                This is an automated message, please do not reply directly to this email.
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
 </body>
+
 </html>

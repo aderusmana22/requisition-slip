@@ -269,7 +269,7 @@
                         {{ $tracking->current_position }} - Level
                         @if($tracking->current_position == 'WH Supervisor First')
                             1
-                        @elseif($tracking->current_position == 'Material Supervisor') 
+                        @elseif($tracking->current_position == 'Material Supervisor')
                             2
                         @elseif($tracking->current_position == 'WH Supervisor Final')
                             3
@@ -359,7 +359,7 @@
                                     <td>{{ $item->itemMaster->item_master_name ?? 'N/A' }}</td>
                                     <td>
                                         @if($item->batch_number)
-                                            {{ \Carbon\Carbon::parse($item->batch_number)->format('d/m/y') }}
+                                            {{ $item->batch_number }}
                                         @else
                                             N/A
                                         @endif
@@ -413,7 +413,7 @@
             <div class="card action-card">
                 <div class="card-body p-4">
                     <h5 class="section-title">
-                        <i class="fas fa-clipboard-check"></i> 
+                        <i class="fas fa-clipboard-check"></i>
                         Warehouse Approval - {{ $tracking->current_position }}
                     </h5>
                     <form action="{{ route('complain.warehouse.process') }}" method="POST" id="warehouseApprovalForm">
@@ -450,7 +450,7 @@
                                 Submit Decision
                             </button>
                         </div>
-                        
+
                         <div class="d-grid mt-2">
                             <a href="#" class="btn btn-secondary" onclick="window.close();">
                                 <i class="fas fa-times me-2"></i>Cancel
@@ -483,27 +483,27 @@
             const validateForm = () => {
                 const notesTextarea = document.getElementById('notes');
                 const notesValue = notesTextarea.value.trim();
-                
+
                 // Cek apakah notes kosong atau hanya berisi spasi
                 if (!notesValue || notesValue.length === 0) {
-                    Swal.fire({ 
-                        icon: 'warning', 
-                        title: 'Notes Required', 
-                        text: 'Please provide notes for your decision.' 
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Notes Required',
+                        text: 'Please provide notes for your decision.'
                     });
                     return false;
                 }
-                
+
                 // Cek apakah notes mengandung setidaknya satu huruf (bukan hanya angka/simbol/spasi)
                 if (!/[a-zA-Z]/.test(notesValue)) {
-                    Swal.fire({ 
-                        icon: 'warning', 
-                        title: 'Invalid Notes', 
-                        text: 'Please provide valid notes with at least some text.' 
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Invalid Notes',
+                        text: 'Please provide valid notes with at least some text.'
                     });
                     return false;
                 }
-                
+
                 return true; // Jika semua validasi lolos
             };
 
@@ -568,7 +568,7 @@
                         if (result.isConfirmed) {
                             // Jika dikonfirmasi, tampilkan overlay dan submit form
                             overlay.style.display = 'flex';
-                            
+
                             // Submit form via AJAX
                             fetch(form.action, {
                                 method: 'POST',
@@ -595,10 +595,10 @@
                             })
                             .then(data => {
                                 overlay.style.display = 'none';
-                                
+
                                 // Always treat as success if we reach this point
                                 const successMessage = data.message || 'Warehouse approval has been processed successfully.';
-                                
+
                                 // Show success message
                                 Swal.fire({
                                     icon: 'success',
@@ -660,11 +660,11 @@
                             .catch(error => {
                                 console.error('Error:', error);
                                 overlay.style.display = 'none';
-                                
+
                                 // Re-enable button first
                                 submitBtn.disabled = false;
                                 submitBtn.innerHTML = originalBtnText;
-                                
+
                                 let errorMessage = 'An error occurred while processing your request. Please try again.';
 
                                 // Handle different types of errors

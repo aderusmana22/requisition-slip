@@ -9,6 +9,38 @@
     <!-- Select2 CSS -->
     <link href="{{ asset('assets/vendor/select/select2.min.css') }}" rel="stylesheet" type="text/css">
     <style>
+        .modal-header-enhanced {
+            background: linear-gradient(135deg, #584D3C 0%, #9F956C 100%);
+            padding: 1rem;
+            border-top-left-radius: 0.3rem;
+            border-top-right-radius: 0.3rem;
+            color: white;
+        }
+
+        .modal-title-enhanced {
+            color: white;
+            margin-bottom: 0;
+            font-size: 1.25rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+        }
+
+        .modal-title-enhanced i {
+            margin-right: 0.5rem;
+            font-size: 1.5rem;
+            color: #ffc107;
+        }
+
+        .btn-close.btn-close-white {
+            filter: invert(1) grayscale(100%) brightness(200%); /* Membuat ikon X berwarna putih */
+            font-size: 1rem;
+            opacity: 1;
+        }
+
+        .btn-close.btn-close-white:hover {
+            opacity: 0.75;
+        }
         #revision-table .action-btn-group .action-btn-hover {
             padding: 8px 16px !important;
             border-radius: 8px !important;
@@ -127,7 +159,7 @@
         <div class="modal-dialog modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header-enhanced d-flex align-items-center justify-content-between">
-                    <h5 class="modal-title-enhanced mb-0" id="revisionModalLabel">
+                    <h5 class="modal-title-enhanced" id="revisionModalLabel">
                         <i class="ph-duotone ph-notebook"></i>
                         Edit Revision
                     </h5>
