@@ -59,6 +59,7 @@
                     {{-- CARD 1: MAIN REQUISITION DETAILS --}}
                     <div class="card view-modal-card">
                         <div class="card-header view-modal-card-header">
+                            {{-- [WARNA] Menggunakan text-warning (Kuning/Emas) --}}
                             <h5 class="fw-bold text-warning mb-3"><i class="ph-bold ph-identification-card me-2"></i> Requisition Details</h5>
                         </div>
                         <div class="card-body p-4">
@@ -79,6 +80,7 @@
 
                     {{-- CARD 2: REQUESTED ITEM LIST (READ ONLY) --}}
                     <div class="card view-modal-card">
+                         {{-- [WARNA] text-warning --}}
                          <div class="card-header"><h5 class="fw-bold text-warning mb-3"><i class="ph-bold  ph-list me-2"></i>Requested Item List</h5></div>
                         <div class="card-body p-1">
                             <div class="table-responsive">
@@ -89,7 +91,7 @@
                                             <th>Item Name</th>
                                             <th>Unit</th>
                                             <th class="text-center">Qty Required</th>
-                                            {{-- Kolom Qty Issued dihapus --}}
+                                            {{-- Qty Issued hidden di sini, hanya tampil di form warehouse --}}
                                         </tr>
                                     </thead>
                                     <tbody id="view-items-tbody-fg"></tbody>
@@ -101,6 +103,7 @@
                     {{-- CARD 3: APPROVAL TRACKING --}}
                     <div class="card view-modal-card">
                         <div class="card-header view-modal-card-header">
+                            {{-- [WARNA] text-warning --}}
                             <h5 class="fw-bold text-warning mb-3"><i class="ph-bold ph-path me-2"></i> Approval & Process Tracking</h5>
                         </div>
                         <div class="card-body p-4">
@@ -117,6 +120,7 @@
                     {{-- CARD 4: REQUISITION HISTORY --}}
                     <div class="card view-modal-card">
                         <div class="card-header view-modal-card-header">
+                            {{-- [WARNA] text-warning --}}
                             <h5 class="fw-bold text-warning mb-3"><i class="ph-bold ph-clock-counter-clockwise me-2"></i> Requisition History</h5>
                         </div>
                         <div class="card-body p-4">
@@ -132,7 +136,6 @@
                 
                 {{-- FOOTER MODAL --}}
                 <div class="modal-footer" id="viewModalFooter">
-                    {{-- Tombol Submit akan di-inject ke sini oleh JS --}}
                     <button class="btn btn-light-secondary" data-bs-dismiss="modal" type="button">Close</button>
                 </div>
             </div>
@@ -161,9 +164,6 @@
                     ],
                 });
 
-                //==================================================
-                // FUNGSI POPULATE VIEW (Read Only)
-                //==================================================
                 function populateViewForm(data) {
                     $('#view_sub_category').text(data.sub_category || '-');
                     $('#view_customer_name').text(data.customer ? data.customer.name : '-');
@@ -175,7 +175,6 @@
                     $('#view_objectives').text(data.objectives || '-');
                     $('#view_estimated_potential').text(data.estimated_potential || '-');
                     
-                    // [UPDATE] Mengisi tabel items (Tanpa Qty Issued)
                     const viewItemTbody = $('#view-items-tbody-fg');
                     viewItemTbody.empty();
                     if (data.requisition_items && data.requisition_items.length > 0) {
@@ -183,7 +182,8 @@
                             let itemCode = item.item_master ? item.item_master.item_master_code : 'N/A';
                             let itemName = item.item_master ? item.item_master.item_master_name : 'N/A';
                             let unit = item.item_master ? item.item_master.unit : 'N/A';
-                            // Hapus kolom Qty Issued di sini
+                            
+                            // [UPDATE] Tidak menampilkan Qty Issued di sini
                             const newRow = `<tr><td>${itemCode}</td><td>${itemName}</td><td>${unit}</td><td class="text-center">${item.quantity_required}</td></tr>`;
                             viewItemTbody.append(newRow);
                         });
@@ -191,7 +191,6 @@
                         viewItemTbody.html(`<tr><td colspan="4" class="text-center">No items have been added.</td></tr>`);
                     }
 
-                    // Status Badge Logic
                     const status = data.status;
                     let badgeClass = 'bg-secondary';
                     if (['Submitted', 'Pending'].includes(status)) badgeClass = 'bg-warning';
@@ -200,7 +199,6 @@
                     else if (status === 'Processing' || status === 'In Progress') badgeClass = 'bg-info';
                     $('#view_status_badge').html(`<span class="badge status-badge-lg fs-6 rounded-pill ${badgeClass}">${status}</span>`);
 
-                    // Tracker Logic
                     const trackerContainer = $('#approval-tracker-container-fg');
                     trackerContainer.empty();
                     
@@ -258,7 +256,6 @@
                         $('#tracker-progress').css('width', progressPercentage + '%');
                     }
                     
-                    // History Logic
                     const historyContainer = $('#history-log-container');
                     historyContainer.empty();
                     if (data.history && data.history.length > 0) {
@@ -279,11 +276,6 @@
                     }
                 }
 
-                //==================================================
-                // ACTION HANDLERS
-                //==================================================
-
-                // --- 1. Handler untuk Quick Approve (Tanpa Modal) ---
                 $('#fgApprovalTable').on('click', '.action-btn', function(e) {
                     e.preventDefault();
                     const button = $(this);
@@ -302,7 +294,7 @@
                         if (result.isConfirmed) {
                             const originalIcon = button.html();
                             $.ajax({
-                                url: "{{ route('fg.approval.process') }}",
+                                url: "{{ route('freegoods.approval.process') }}", 
                                 method: 'POST',
                                 data: {
                                     _token: '{{ csrf_token() }}',
@@ -328,7 +320,6 @@
                     });
                 });
 
-                // --- 2. Handler untuk Review & Reject (Membuka Modal) ---
                 $(document).on('click', '.action-btn-modal', function() {
                     const button = $(this);
                     const requisitionId = button.data('id');
@@ -354,13 +345,14 @@
 
                             $('#viewModalLabel').text(`${modalTitle}: ${srs}`);
 
-                            // Logic membuat tabel input Qty Issued untuk Review (Spesifik Free Goods)
+                            // Logic Tabel Input Qty Issued (Hanya muncul jika warehouse update)
+                            // [WARNA] Menggunakan text-warning (Emas)
                             let itemInputsHtml = '';
                             if (!isReject && response.requisition_items && response.requisition_items.length > 0) {
                                 itemInputsHtml += `
                                     <div class="card view-modal-card mt-3">
                                         <div class="card-header view-modal-card-header border-bottom">
-                                            <h5 class="fw-bold text-success mb-0"><i class="ph-bold ph-pencil-simple-line me-2"></i>Issue Quantities</h5>
+                                            <h5 class="fw-bold text-warning mb-0"><i class="ph-bold ph-pencil-simple-line me-2"></i>Issue Quantities</h5>
                                         </div>
                                         <div class="card-body p-0">
                                             <div class="table-responsive">
@@ -408,10 +400,9 @@
                                 `;
                             }
 
-                            // Generate Form HTML (Pemisahan tombol submit dilakukan nanti)
                             const actionFormHtml = `
                                 <hr>
-                                <form id="modalResponseForm" action="{{ route('fg.approval.process') }}" method="POST">
+                                <form id="modalResponseForm" action="{{ route('freegoods.approval.process') }}" method="POST">
                                     @csrf
                                     <input type="hidden" name="token" value="${token}">
                                     <input type="hidden" name="action" value="${action}">
@@ -420,6 +411,7 @@
 
                                     <div class="card view-modal-card mt-3">
                                         <div class="card-header view-modal-card-header border-bottom">
+                                            {{-- [WARNA] text-warning --}}
                                             <h5 class="fw-bold text-warning mb-0"><i class="ph-bold ph-note-pencil me-2"></i>Notes</h5>
                                         </div>
                                         <div class="card-body p-4">
@@ -431,11 +423,8 @@
                                 </form>
                             `;
 
-                            // Buat HTML tombol submit terpisah untuk Footer
-                            const submitButtonHtml = `<button type="submit" form="modalResponseForm" class="btn ${btnClass}">${btnText}</button>`;
-                            
-                            // Inject HTML ke Container
                             $('#viewModalActionFormContainer').html(actionFormHtml);
+                            const submitButtonHtml = `<button type="submit" form="modalResponseForm" class="btn ${btnClass}">${btnText}</button>`;
                             $('#viewModalFooter').prepend(submitButtonHtml);
 
                             $('#viewModal').modal('show');
@@ -449,14 +438,12 @@
                     });
                 });
 
-                // --- 3. Handler Submit Form Modal (Validasi & AJAX) ---
                 $(document).on('submit', '#modalResponseForm', function(e) {
                     e.preventDefault();
                     const form = $(this);
                     const notesField = $('#modal_notes');
                     const submitButton = $('#viewModalFooter button[type="submit"]');
 
-                    // Validasi Regex Notes (Mengikuti Sample)
                     if (!/[a-zA-Z]/.test(notesField.val())) {
                         Swal.fire({
                             icon: 'warning',
@@ -488,7 +475,7 @@
                             $.ajax({
                                 url: form.attr('action'),
                                 method: 'POST',
-                                data: form.serialize(), // Data input item juga akan terkirim
+                                data: form.serialize(),
                                 beforeSend: function() {
                                     submitButton.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...').prop('disabled', true);
                                 },
@@ -509,7 +496,6 @@
                     });
                 });
 
-                // --- 4. Cleanup Modal saat ditutup ---
                 $('#viewModal').on('hidden.bs.modal', function () {
                     $('#viewModalActionFormContainer').empty();
                     $('#viewModalFooter button[type="submit"]').remove();

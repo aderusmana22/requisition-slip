@@ -24,7 +24,6 @@
             border-radius: 16px;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
             text-align: center;
-            /* [MODIFIKASI] Menambah padding vertikal */
             padding: 50px 50px 40px;
             max-width: 650px;
             width: 100%;
@@ -38,18 +37,18 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            /* [MODIFIKASI] Menambah margin bawah */
             margin: 0 auto 30px;
             font-size: 36px;
             color: #fff;
         }
 
+        /* [WARNA] Tema Sample (Gold/Warning) */
         .response-card.success {
-            border-color: #28a745;
+            border-color: #cc982f;
         }
 
         .response-card.success .icon-circle {
-            background-color: #28a745;
+            background-color: #cc982f;
         }
 
         .response-card.reject {
@@ -63,13 +62,11 @@
         h3 {
             font-weight: 600;
             color: #333;
-            /* [MODIFIKASI] Menambah margin bawah */
             margin-bottom: 15px;
         }
 
         .message {
             color: #6c757d;
-            /* [MODIFIKASI] Menambah margin bawah */
             margin-bottom: 40px;
         }
 
@@ -78,7 +75,6 @@
             border-radius: 8px;
             padding: 20px;
             text-align: left;
-            /* [MODIFIKASI] Sedikit mengubah margin bawah */
             margin-bottom: 35px;
             border: 1px solid #e9ecef;
         }
@@ -113,11 +109,21 @@
             color: #6c757d;
             margin-top: 25px;
         }
+        
+        /* [WARNA] Tombol Tema Sample */
+        .btn-primary {
+            background-color: #cc982f;
+            border-color: #cc982f;
+        }
+
+        .btn-primary:hover {
+            background-color: #b8871a;
+            border-color: #b8871a;
+        }
     </style>
 </head>
 
 <body>
-    {{-- [DIPERBAIKI] Tentukan class berdasarkan data sesi --}}
     <div class="response-card {{ session('card_class', 'success') }}">
         <div class="icon-circle">
             <i class="fas {{ session('card_class') === 'reject' ? 'fa-times-circle' : 'fa-check-circle' }}"></i>
@@ -126,11 +132,10 @@
         <h3>{{ session('title', 'Action Submitted') }}</h3>
         <p class="message">{{ session('message', 'Your response has been recorded.') }}</p>
 
-        {{-- [DIPERBAIKI] Hanya tampilkan box jika ada datanya --}}
         @if(session('no_srs'))
         <div class="details-box">
             <div class="detail-item">
-                <span class="detail-label">SRS Number:</span>
+                <span class="detail-label">FG Number:</span>
                 <span class="detail-value">{{ session('no_srs') }}</span>
             </div>
             <div class="detail-item">
@@ -169,5 +174,4 @@
         }, 1000);
     </script>
 </body>
-
 </html>

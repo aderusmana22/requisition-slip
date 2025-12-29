@@ -19,18 +19,19 @@
             box-shadow: 0 8px 30px rgba(0, 0, 0, .05);
         }
 
+        /* [WARNA] Menggunakan Gradient Emas/Coklat (Sample Theme) */
         .card-header.main-header {
-            /* Free Goods Green Gradient */
-            background: linear-gradient(135deg, #2d5a27 0%, #1e3c1a 100%);
+            background: linear-gradient(135deg, #cc982f 0%, #b8871a 100%);
             color: white;
             padding: 20px 30px;
             border-radius: 16px 16px 0 0 !important;
         }
 
+        /* [WARNA] Judul Section Coklat Emas */
         .section-title {
             font-size: 1.1rem;
             font-weight: 700;
-            color: #2d5a27;
+            color: #b8871a; 
             margin-bottom: 20px;
             padding-bottom: 10px;
             border-bottom: 2px solid #eef2f9;
@@ -76,22 +77,38 @@
             opacity: 1;
         }
 
+        /* [WARNA] Text Primary jadi Coklat Emas */
         .text-primary {
-            color: #2d5a27 !important;
+            color: #b8871a !important; 
         }
 
+        /* [WARNA] Button Primary jadi Kuning Emas */
         .btn-primary {
-            background-color: #2d5a27;
-            border-color: #2d5a27;
+            background-color: #cc982f;
+            border-color: #cc982f;
+            color: white;
         }
 
         .btn-primary:hover {
-            background-color: #1e3c1a;
-            border-color: #1e3c1a;
+            background-color: #b8871a;
+            border-color: #b8871a;
+            color: white;
+        }
+
+        /* [WARNA] Button Success (untuk Submit default) disamakan ke tema Sample */
+        .btn-success {
+            background-color: #cc982f;
+            border-color: #cc982f;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background-color: #b8871a;
+            border-color: #b8871a;
         }
 
         .processing-overlay .spinner-border {
-            color: #2d5a27 !important;
+            color: #cc982f !important;
         }
 
         .main-container {
@@ -142,7 +159,7 @@
 </head>
 
 <body>
-    {{-- Form Membungkus seluruh Main Container agar input di Kiri dan Tombol di Kanan terhubung --}}
+    {{-- Form Membungkus seluruh Main Container --}}
     <form id="responseForm" action="{{ route('fg.approval.process') }}" method="POST">
         @csrf
         <input type="hidden" name="token" value="{{ $token }}">
@@ -205,7 +222,7 @@
                                         <th style="width: 90px;">Unit</th>
                                         <th style="width: 125px;" class="text-center">Qty Required</th>
                                         
-                                        {{-- Header Qty Issued --}}
+                                        {{-- Header Qty Issued (Muncul HANYA jika action = update_qty) --}}
                                         <th class="text-center" style="width: 125px;">
                                             Qty Issued 
                                             @if($action === 'update_qty')
@@ -222,7 +239,7 @@
                                         <td>{{ $item->itemMaster->unit ?? '-' }}</td>
                                         <td class="text-center">{{ $item->quantity_required }}</td>
                                         <td class="text-center">
-                                            {{-- Input Enabled untuk Update Qty --}}
+                                            {{-- [LOGIKA] Input Enabled HANYA jika action = update_qty (Warehouse) --}}
                                             @if($action === 'update_qty')
                                                 <input type="number" 
                                                     class="form-control form-control-sm text-center fw-bold"
@@ -234,7 +251,8 @@
                                                     max="{{ $item->quantity_required }}"
                                                 >
                                             @else
-                                                {{ $item->quantity_issued ?? '-' }}
+                                                {{-- Jika bukan warehouse update, tampilkan sebagai text biasa --}}
+                                                {{ $item->quantity_issued > 0 ? $item->quantity_issued : '-' }}
                                             @endif
                                         </td>
                                     </tr>
@@ -243,13 +261,10 @@
                             </table>
                         </div>
                         @endif
-                        
-                        {{-- Bagian Marketing/QA dihapus karena tidak relevan untuk Free Goods --}}
                     </div>
                 </div>
             </div>
 
-            {{-- Kolom Kanan: Tombol Submit / Form Aksi Lain --}}
             <div class="right-column">
                 <div class="card action-card">
                     <div class="card-body p-4">
@@ -271,15 +286,16 @@
                             <input type="hidden" name="action" value="{{ $action }}">
 
                             @if($action === 'submit')
-                                <div class="alert alert-success">
+                                <div class="alert alert-success" style="background-color: #d1e7dd; border-color: #badbcc; color: #0f5132;">
                                     <strong>Quick Submit:</strong> You are approving this step without changes.
                                 </div>
                                 <div class="d-grid">
+                                    {{-- Menggunakan btn-success yang sudah di-override ke warna emas --}}
                                     <button type="submit" class="btn btn-success btn-lg" id="submitBtn">Confirm Submit</button>
                                 </div>
                             
                             @elseif ($action === 'review')
-                                <div class="alert alert-primary">
+                                <div class="alert alert-primary" style="background-color: #cfe2ff; border-color: #b6d4fe; color: #084298;">
                                     <strong>Submit with Notes:</strong> Please provide notes/remarks regarding this step.
                                 </div>
                                 <div class="mb-3">
@@ -398,7 +414,6 @@
                 });
             }
 
-            // --- FUNGSI VALIDASI ---
             const validateForm = () => {
                 if (isWarehouseProcess) {
                     const notesTextarea = document.getElementById('notes');
@@ -440,19 +455,14 @@
                 return true;
             };
 
-            // --- AUTO SUBMIT (Quick Action) ---
             if (isQuickAction) {
                 overlay.style.display = 'flex';
                 form.submit();
             } 
-            // --- MANUAL SUBMIT ---
             else if (form && submitBtn) {
                 form.addEventListener('submit', function (event) {
                     event.preventDefault();
-                    
-                    if (!validateForm()) {
-                        return;
-                    }
+                    if (!validateForm()) return;
 
                     const originalBtnText = submitBtn.innerHTML;
                     submitBtn.disabled = true;
@@ -479,7 +489,6 @@
                 });
             }
             
-            // UI untuk Managerial Approval Toggle Button Color
             if (!isWarehouseProcess) {
                 const reviewRadio = document.getElementById('action_review');
                 const rejectRadio = document.getElementById('action_reject');

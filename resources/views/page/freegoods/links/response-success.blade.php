@@ -42,12 +42,13 @@
             color: #fff;
         }
 
+        /* [WARNA] Tema Sample (Gold) */
         .response-card.success {
-            border-color: #28a745;
+            border-color: #cc982f;
         }
 
         .response-card.success .icon-circle {
-            background-color: #28a745;
+            background-color: #cc982f;
         }
 
         .response-card.reject {
@@ -109,14 +110,15 @@
             margin-top: 25px;
         }
         
+        /* [WARNA] Button Sample Theme */
         .btn-primary {
-            background-color: #28a745;
-            border-color: #28a745;
+            background-color: #cc982f;
+            border-color: #cc982f;
         }
 
         .btn-primary:hover {
-            background-color: #1e3c1a;
-            border-color: #1e3c1a;
+            background-color: #b8871a;
+            border-color: #b8871a;
         }
     </style>
 </head>
