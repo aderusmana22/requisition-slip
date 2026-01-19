@@ -129,7 +129,7 @@ class FreeGoodsController extends Controller
              $query->where('requisitions.requester_nik', $user->nik);
         }
 
-        $query->orderBy('requisitions.id', 'desc');
+        //$query->orderBy('requisitions.id', 'desc');
 
         return DataTables::of($query)
             ->addIndexColumn()

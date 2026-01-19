@@ -42,6 +42,33 @@
         .requester-badge i {
             font-size: 1.2em;
         }
+
+        /* [STYLE SEARCH] Search Clear Icon (Tombol X) */
+        .search-container {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+        .search-clear-icon {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #adb5bd;
+            display: none; /* Default sembunyi, muncul via JS saat mengetik */
+            z-index: 10;
+            transition: color 0.2s;
+            font-size: 1rem;
+        }
+        .search-clear-icon:hover {
+            color: #dc3545; /* Warna merah saat hover */
+        }
+        
+        /* Memastikan header tabel cursor-nya pointer saat di-hover agar user tahu bisa diklik */
+        table.dataTable thead th {
+            cursor: pointer;
+        }
     </style>
     @endpush
 
@@ -64,7 +91,7 @@
 
     <div class="row">
         <div class="col-12">
-             {{-- Layout Filter & Tombol disesuaikan seperti Sample --}}
+             {{-- Layout Filter & Tombol --}}
             <div class="d-flex justify-content-between align-items-center mb-4">
                 {{-- Grup Filter di Kiri --}}
                 <div class="d-flex align-items-center gap-2">
@@ -93,7 +120,7 @@
                 </div>
             </div>
     
-            {{-- Container tabel disesuaikan seperti Sample --}}
+            {{-- Container Tabel --}}
             <div class="main-table-container">
                 <div class="table-header-enhanced">
                     <h4 class="table-title">
@@ -239,7 +266,6 @@
                                                 <th>Item Name</th>
                                                 <th>Unit</th>
                                                 <th style="width: 15%;">Qty Required</th>
-                                                {{-- Qty Issued Dihapus dari Form Input --}}
                                             </tr>
                                         </thead>
                                         <tbody id="requisition-items-tbody-fg"> 
@@ -261,6 +287,7 @@
         </div>
     </div>
 
+    {{-- VIEW MODAL --}}
     <div class="modal fade" id="viewModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
         <div class="modal-dialog modal-dialog-centered modal-xl">
             <div class="modal-content">
@@ -455,12 +482,18 @@
                 },
                 columns: [
                     {
-                        data: 'DT_RowIndex',
-                        name: 'DT_RowIndex',
-                        orderable: false,
+                        // [FIXED] Kolom "NO." sekarang dihubungkan ke ID untuk sorting
+                        // Pastikan di Controller baris $query->orderBy('requisitions.id', 'desc') sudah DIHAPUS
+                        data: 'id',
+                        name: 'requisitions.id', 
+                        orderable: true,         
                         searchable: false,
                         width: '20px',
-                        className: 'text-center'
+                        className: 'text-center',
+                        render: function (data, type, row, meta) {
+                            // Render Nomor Urut (1, 2, 3...) meski di-sort
+                            return meta.row + meta.settings._iDisplayStart + 1;
+                        }
                     },
                     { data: 'no_srs', name: 'requisitions.no_srs' },
                     { data: 'requester_info', name: 'users.name' },
@@ -476,7 +509,9 @@
                         searchable: false,
                         className: 'text-center',
                     }
-                ]
+                ],
+                // Default sorting terbaru (ID Descending)
+                order: [[0, 'desc']] 
             });
 
             $('#statusFilter').on('change', function() {
@@ -487,21 +522,56 @@
                 $('#statusFilter').val('all').trigger('change');
             });
 
-            let searchInput = $('#fgTable_filter input'); 
-            searchInput.unbind();
+            // [FIXED] Logika Search Input dengan Tombol 'X' (Clear)
+            // ==============================================================
+            const filterInput = $('#fgTable_filter input'); 
+            
+            // Bungkus input dengan div agar icon bisa diposisikan absolute
+            if (filterInput.parent().find('.search-container').length === 0) {
+                // Hapus binding default DataTables agar kita bisa kontrol sendiri
+                filterInput.unbind();
+                
+                // Buat wrapper baru
+                const wrapper = $('<div class="search-container"></div>');
+                filterInput.wrap(wrapper);
+                
+                // Tambahkan class styling ke input
+                filterInput.attr({ 
+                    'placeholder': 'Search Free Goods...',
+                    'class': 'form-control ps-3 pe-5' 
+                });
+
+                // Tambahkan tombol X setelah input
+                $('<i class="ph-bold ph-x search-clear-icon" title="Clear Search"></i>').insertAfter(filterInput);
+            }
+
+            const clearIcon = $('.search-clear-icon');
             let debounceTimer;
-            searchInput.bind('keyup', function (e) {
+
+            // Event saat mengetik
+            filterInput.on('keyup input', function (e) {
+                const val = $(this).val();
+                
+                // Tampilkan icon jika ada teks
+                if (val.length > 0) {
+                    clearIcon.show();
+                } else {
+                    clearIcon.hide();
+                }
+
+                // Delay pencarian 500ms (debounce) agar tidak berat di server
                 clearTimeout(debounceTimer);
                 debounceTimer = setTimeout(function () {
-                    let searchTerm = searchInput.val();
-                    table.search(searchTerm).draw();
+                    table.search(val).draw();
                 }, 500);
             });
 
-            $('#fgTable_filter input').attr({ 
-                'placeholder': 'Search Free Goods...',
-                'class': 'form-control'
+            // Event saat tombol X diklik
+            $(document).on('click', '.search-clear-icon', function() {
+                filterInput.val('').trigger('input'); // Kosongkan input & trigger event
+                table.search('').draw(); // Refresh tabel bersih
             });
+            // ==============================================================
 
             function clearValidationErrors() {
                 $('.form-control, .form-select').removeClass('is-invalid');
@@ -514,7 +584,6 @@
                 $('#fgForm')[0].reset(); 
                 $('#fgForm').removeAttr('data-mode data-id'); 
                 $('#customer_id, #product_select_fg').val(null).trigger('change');
-                // [UPDATE] Colspan menjadi 4 karena kolom Qty Issued dihapus
                 $('#requisition-items-tbody-fg').html(
                     '<tr id="no-items-row"><td colspan="4" class="text-center">No items have been added yet.</td></tr>'
                 );
@@ -554,7 +623,6 @@
 
                             selectedMasters.forEach(master => {
                                 if ($(`#item-row-master-${master.id}`).length === 0) {
-                                    // [UPDATE] Menghapus kolom input Qty Issued
                                     const newRow = `
                                             <tr id="item-row-master-${master.id}" data-master-id="${master.id}">
                                                 <td>${master.item_master_code}</td>
@@ -574,7 +642,6 @@
                 $(`tr[data-master-id="${unselectedMasterId}"][id^="item-row-master-"]`).remove();
 
                 if ($('#requisition-items-tbody-fg tr').length === 0) { 
-                    // [UPDATE] Colspan 4
                     $('#requisition-items-tbody-fg').html( 
                         '<tr id="no-items-row"><td colspan="4" class="text-center">No items have been added yet.</td></tr>'
                         );
@@ -705,7 +772,7 @@
 
                 const itemTbody = $('#requisition-items-tbody-fg'); 
                 itemTbody.empty();
-                const colspan = 4; // [UPDATE] Colspan 4
+                const colspan = 4; 
 
                 if (data.requisition_items && data.requisition_items.length > 0) {
                     data.requisition_items.forEach(item => {
@@ -717,7 +784,6 @@
                             unit = item.item_master.unit;
                         }
 
-                        // [UPDATE] Menghapus kolom input Qty Issued
                         const newRow = `
                             <tr id="item-row-master-${item.item_master_id}" data-master-id="${item.item_master_id}">
                                 <td>${itemCode}</td>
