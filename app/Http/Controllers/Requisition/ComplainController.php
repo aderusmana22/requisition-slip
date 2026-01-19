@@ -275,6 +275,8 @@ class ComplainController extends Controller
 
         if (!empty($orderColumnName)) {
             $query->orderBy($orderColumnName, $orderDirection);
+        } else {
+            $query->orderBy('requisitions.id', 'desc');
         }
 
         $data = $query->with(['customer', 'revision', 'requester', 'approvalLogs'])

@@ -828,6 +828,7 @@
             const table = $('#sampleTable').DataTable({
                 processing: true,
                 serverSide: true,
+                order: [[0, 'desc']], 
                 ajax: {
                     url: "{{ route('sample.data') }}",
                     data: function (d) {
@@ -836,12 +837,15 @@
                     }
                 },
                 columns: [{
-                        data: 'DT_RowIndex',
-                        name: 'DT_RowIndex',
-                        orderable: false,
+                        data: 'id', 
+                        name: 'requisitions.id',
+                        orderable: true,
                         searchable: false,
                         width: '20px',
-                        className: 'text-center dt-no-wrap'
+                        className: 'text-center dt-no-wrap',
+                        render: function(data, type, row, meta) {
+                            return meta.row + meta.settings._iDisplayStart + 1;
+                        }
                     },
                     {
                         data: 'no_srs',
@@ -881,34 +885,31 @@
                     {
                         data: 'action',
                         name: 'action',
-                        orderable: false,
-                        searchable: false,
                         className: 'dt-no-wrap'
                     }
                 ]
             });
 
             $('#subCategoryFilter, #statusFilter').on('change', function () {
-                table.ajax.reload(); // Muat ulang data tabel
+                table.ajax.reload();
             });
 
-            // [BARU] Event listener untuk tombol reset
             $('#resetFilters').on('click', function() {
                 $('#subCategoryFilter').val('all').trigger('change');
                 $('#statusFilter').val('all').trigger('change');
-                // Cukup trigger satu kali karena keduanya akan memuat ulang tabel
             });
 
             let searchInput = $('#sampleTable_filter input');
-            searchInput.unbind();
-            let debounceTimer;
-            searchInput.bind('keyup', function (e) {
-                clearTimeout(debounceTimer);
-                debounceTimer = setTimeout(function () {
-                    let searchTerm = searchInput.val();
-                    table.search(searchTerm).draw();
-                }, 500);
-            });
+                searchInput.unbind();
+                let debounceTimer;
+
+                searchInput.on('keyup search input', function (e) {
+                    clearTimeout(debounceTimer);
+                    debounceTimer = setTimeout(function () {
+                        let searchTerm = searchInput.val();
+                        table.search(searchTerm).draw();
+                    }, 500);
+                });
 
             $('#sampleTable_filter input').attr({
                 'placeholder': '🔍 Search sample...',

@@ -104,14 +104,9 @@ class SampleController extends Controller
             $query->where('requisitions.status', $request->status);
         }
 
-        // [FIX] Mengubah total logika filter untuk non-admin
         if (!$user->hasRole('super-admin')) {
             $query->where(function ($q) use ($user) {
-                // Kondisi 1: Tampilkan jika user adalah pembuat request
                 $q->where('requisitions.requester_nik', $user->nik);
-
-                // Kondisi 2: ATAU, tampilkan jika user adalah Head QA
-                // dan ada request Special Order yang menunggunya.
                 if ($user->hasRole('head-QA')) {
                     $q->orWhere(function ($subQuery) {
                         $subQuery->where('requisitions.sub_category', 'Special Order')
@@ -122,7 +117,7 @@ class SampleController extends Controller
             });
         }
 
-        $query->orderBy('requisitions.id', 'desc');
+        // $query->orderBy('requisitions.id', 'desc');
 
         return DataTables::of($query)
             ->addIndexColumn()
@@ -203,12 +198,10 @@ class SampleController extends Controller
 
                 $actionButtons = '';
 
-                // [MODIFIKASI] Tampilkan tombol Recall HANYA jika status Pending (Tombol Edit Dihapus)
                 if ($row->status === 'Pending' && $row->requester_nik === $user->nik) {
                     $actionButtons .= '<button type="button" class="btn btn-sm btn-danger btn-recall-modal" data-id="' . $row->id . '" data-srs="' . $row->no_srs . '" title="Recall Requisition"><i class="fa-solid fa-rotate-left text-white"></i></button>';
                 }
 
-                // Tampilkan tombol Duplicate HANYA jika status Recalled
                 if ($row->status === 'Recalled' && $row->requester_nik === $user->nik) {
                     $actionButtons = '<button type="button" class="btn btn-sm btn-warning btn-duplicate-requisition" data-id="' . $row->id . '" title="Duplicate Requisition"><i class="ph-bold ph-copy-simple text-white"></i></button>';
                 }
@@ -689,7 +682,7 @@ class SampleController extends Controller
             if (isset($validated['items']) && is_array($validated['items'])) {
                 foreach ($validated['items'] as $itemId => $qty) {
                     $qtyValue = is_numeric($qty) ? $qty : 0;
-                    
+
                     RequisitionItem::where('id', $itemId)
                         ->where('requisition_id', $tracking->requisition_id)
                         ->update(['quantity_issued' => $qtyValue]);
@@ -1064,14 +1057,14 @@ class SampleController extends Controller
                                                 ->first();
 
                     if ($firstTrackingRecord) {
-                        $token = $firstTrackingRecord->token; 
+                        $token = $firstTrackingRecord->token;
 
                         // Update notes
                         $firstTrackingRecord->update(['notes' => "Waiting for form to be filled by {$nextActor->name}"]);
-                        
+
                         // Update requisition status
                         $requisition->update([
-                            'status' => 'Approved', 
+                            'status' => 'Approved',
                             'route_to' => $nextActor->name // Route to nama user dinamis
                         ]);
 
@@ -1086,14 +1079,14 @@ class SampleController extends Controller
 
                         // Kirim Notifikasi EMAIL (Tipe 'qa_form_notification')
                         $formUrl = route('approval.response', ['token' => $token, 'action' => 'qa_form']);
-                        
+
                         dispatch(new sendSample($requisition, $nextActor, $token, [
                             'mail_type' => 'qa_form_notification',
                             'form_url'  => $formUrl
                         ]))->delay(now()->addSeconds(3));
 
                         // Return nama step agar tidak lanjut ke warehouse
-                        return $firstTrackingRecord->current_position; 
+                        return $firstTrackingRecord->current_position;
                     }
                 }
             }

@@ -727,6 +727,7 @@
             let table = $('#complainTable').DataTable({
                 processing: true,
                 serverSide: true,
+                order: [[0, 'desc']], 
                 ajax: {
                     url: "{{ route('get.complain.data') }}",
                     data: function(d){
@@ -735,16 +736,16 @@
                 },
                 columns: [{
                         data: 'id',
-                        name: 'id',
-                        orderable: false,
+                        name: 'requisitions.id', 
+                        orderable: true,
                         searchable: false,
                         render: function (data, type, row, meta) {
-                                return meta.row + meta.settings._iDisplayStart + 1;
+                            return meta.row + meta.settings._iDisplayStart + 1;
                         }
                     },
                     {
                         data: 'requester.name',
-                        name: 'requester.name',
+                        name: 'users.name',
                         orderable: true,
                         searchable: true,
                         render: function (data, type, row) {
@@ -852,7 +853,8 @@
             let searchInput = $('#complainTable_filter input');
             searchInput.unbind();
             let debounceTimer;
-            searchInput.bind('keyup', function (e) {
+
+            searchInput.on('keyup search input', function (e) {
                 clearTimeout(debounceTimer);
                 debounceTimer = setTimeout(function () {
                     let searchTerm = searchInput.val();
