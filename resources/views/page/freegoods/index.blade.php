@@ -26,22 +26,31 @@
             margin-bottom: 1rem;
         }
 
+        /* [CUSTOM STATUS COLORS] - Sesuaikan dengan Approval/Report */
+        .status-pending { background-color: #fd7e14 !important; color: #ffffff !important; border: 1px solid #fd7e14; }
+        .status-processing { background-color: #8B4513 !important; color: #ffffff !important; border: 1px solid #8B4513; } /* Coklat/Bronze */
+        .status-completed { background-color: #198754 !important; color: #ffffff !important; border: 1px solid #198754; }
+        .status-rejected { background-color: #dc3545 !important; color: #ffffff !important; border: 1px solid #dc3545; }
+        .status-default { background-color: #6c757d !important; color: #fff !important; }
+
         /* Style untuk badge Requester */
-        .requester-badge {
-            background-color: #4A5568;
+        .badge-requester {
+            background-color: #343a40; /* Dark/Black like reference */
             color: #ffffff;
-            padding: 0.35em 0.75em;
-            font-size: 0.875rem;
-            font-weight: 600;
-            border-radius: 50rem;
+            padding: 8px 16px;
+            border-radius: 50rem; /* Pill shape */
             display: inline-flex;
             align-items: center;
-            gap: 0.4rem;
-            white-space: nowrap;
+            font-weight: 500;
+            font-size: 0.9em;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+            min-width: 140px; 
         }
-        .requester-badge i {
-            font-size: 1.2em;
-        }
+
+        /* Style untuk Search X Icon */
+        .search-container { position: relative; display: inline-block; width: 100%; }
+        .search-clear-icon { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #adb5bd; display: none; z-index: 10; transition: color 0.2s; font-size: 1rem; }
+        .search-clear-icon:hover { color: #dc3545; }
     </style>
     @endpush
 
@@ -93,7 +102,7 @@
                 </div>
             </div>
     
-            {{-- Container tabel disesuaikan seperti Sample --}}
+            {{-- Container tabel --}}
             <div class="main-table-container">
                 <div class="table-header-enhanced">
                     <h4 class="table-title">
@@ -107,15 +116,15 @@
                     <table class="w-100 display" id="fgTable">
                         <thead>
                             <tr>
-                                <th>No.</th>
-                                <th>No. FG</th> 
-                                <th>Requester</th>
-                                <th>Customer</th>
-                                <th>Request Date</th>
-                                <th>Category</th>
-                                <th>Route To</th>
-                                <th>Status</th>
-                                <th>Action</th>
+                                <th class="text-center">No.</th>
+                                <th class="text-center">No. FG</th> 
+                                <th class="text-center">Requester</th>
+                                <th class="text-center">Customer</th>
+                                <th class="text-center">Request Date</th>
+                                <th class="text-center">Category</th>
+                                <th class="text-center">Route To</th>
+                                <th class="text-center">Status</th>
+                                <th class="text-center">Action</th>
                             </tr>
                         </thead>
                     </table>
@@ -460,23 +469,24 @@
                         orderable: false,
                         searchable: false,
                         width: '20px',
-                        className: 'text-center'
+                        className: 'text-center align-middle'
                     },
-                    { data: 'no_srs', name: 'requisitions.no_srs' },
-                    { data: 'requester_info', name: 'users.name' },
-                    { data: 'customer_name', name: 'customers.name' },
-                    { data: 'request_date', name: 'requisitions.created_at' },
-                    { data: 'sub_category', name: 'requisitions.sub_category' },
-                    { data: 'route_to', name: 'requisitions.route_to' },
-                    { data: 'status', name: 'requisitions.status' },
+                    { data: 'no_srs', name: 'requisitions.no_srs', className: 'text-center align-middle' },
+                    { data: 'requester_info', name: 'users.name', className: 'text-center align-middle' }, // Center & Align Middle
+                    { data: 'customer_name', name: 'customers.name', className: 'text-center align-middle' },
+                    { data: 'request_date', name: 'requisitions.request_date', className: 'text-center align-middle' },
+                    { data: 'sub_category', name: 'requisitions.sub_category', className: 'text-center align-middle' },
+                    { data: 'route_to', name: 'requisitions.route_to', className: 'text-center align-middle' },
+                    { data: 'status', name: 'requisitions.status', className: 'text-center align-middle' },
                     {
                         data: 'action',
                         name: 'action',
                         orderable: false,
                         searchable: false,
-                        className: 'text-center',
+                        className: 'text-center align-middle',
                     }
-                ]
+                ],
+                order: [[4, 'desc']] // Urutkan berdasarkan Request Date (Kolom ke-5) secara descending
             });
 
             $('#statusFilter').on('change', function() {
@@ -487,20 +497,27 @@
                 $('#statusFilter').val('all').trigger('change');
             });
 
+            // Search With Clear Icon
             let searchInput = $('#fgTable_filter input'); 
-            searchInput.unbind();
+            if (searchInput.parent().find('.search-container').length === 0) {
+                searchInput.unbind();
+                const wrapper = $('<div class="search-container"></div>');
+                searchInput.wrap(wrapper);
+                searchInput.attr({ 'placeholder': 'Search Free Goods...', 'class': 'form-control ps-3 pe-5' });
+                $('<i class="ph-bold ph-x search-clear-icon" title="Clear Search"></i>').insertAfter(searchInput);
+            }
+            
+            const clearIcon = $('.search-clear-icon');
             let debounceTimer;
-            searchInput.bind('keyup', function (e) {
+            searchInput.on('keyup input', function (e) {
+                const val = $(this).val();
+                if (val.length > 0) clearIcon.show(); else clearIcon.hide();
                 clearTimeout(debounceTimer);
-                debounceTimer = setTimeout(function () {
-                    let searchTerm = searchInput.val();
-                    table.search(searchTerm).draw();
-                }, 500);
+                debounceTimer = setTimeout(function () { table.search(val).draw(); }, 500);
             });
-
-            $('#fgTable_filter input').attr({ 
-                'placeholder': 'Search Free Goods...',
-                'class': 'form-control'
+            $(document).on('click', '.search-clear-icon', function() {
+                searchInput.val('').trigger('input');
+                table.search('').draw();
             });
 
             function clearValidationErrors() {
@@ -514,7 +531,6 @@
                 $('#fgForm')[0].reset(); 
                 $('#fgForm').removeAttr('data-mode data-id'); 
                 $('#customer_id, #product_select_fg').val(null).trigger('change');
-                // [UPDATE] Colspan menjadi 4 karena kolom Qty Issued dihapus
                 $('#requisition-items-tbody-fg').html(
                     '<tr id="no-items-row"><td colspan="4" class="text-center">No items have been added yet.</td></tr>'
                 );
@@ -554,7 +570,6 @@
 
                             selectedMasters.forEach(master => {
                                 if ($(`#item-row-master-${master.id}`).length === 0) {
-                                    // [UPDATE] Menghapus kolom input Qty Issued
                                     const newRow = `
                                             <tr id="item-row-master-${master.id}" data-master-id="${master.id}">
                                                 <td>${master.item_master_code}</td>
@@ -574,7 +589,6 @@
                 $(`tr[data-master-id="${unselectedMasterId}"][id^="item-row-master-"]`).remove();
 
                 if ($('#requisition-items-tbody-fg tr').length === 0) { 
-                    // [UPDATE] Colspan 4
                     $('#requisition-items-tbody-fg').html( 
                         '<tr id="no-items-row"><td colspan="4" class="text-center">No items have been added yet.</td></tr>'
                         );
@@ -705,7 +719,7 @@
 
                 const itemTbody = $('#requisition-items-tbody-fg'); 
                 itemTbody.empty();
-                const colspan = 4; // [UPDATE] Colspan 4
+                const colspan = 4;
 
                 if (data.requisition_items && data.requisition_items.length > 0) {
                     data.requisition_items.forEach(item => {
@@ -717,7 +731,6 @@
                             unit = item.item_master.unit;
                         }
 
-                        // [UPDATE] Menghapus kolom input Qty Issued
                         const newRow = `
                             <tr id="item-row-master-${item.item_master_id}" data-master-id="${item.item_master_id}">
                                 <td>${itemCode}</td>
@@ -773,14 +786,15 @@
                     viewItemTbody.html(`<tr><td colspan="${colspan}" class="text-center">No items have been added.</td></tr>`);
                 }
 
+                // [UPDATE] Logic Status Color di Modal View
                 const status = data.status;
-                let badgeClass = 'bg-secondary';
-                if (['Submitted', 'Pending'].includes(status)) badgeClass = 'bg-warning';
-                else if (status.includes('Approved') || status === 'Completed') badgeClass = 'bg-success';
-                else if (['Rejected', 'Recalled'].includes(status)) badgeClass = 'bg-danger'; 
-                else if (status === 'Processing' || status === 'In Progress') badgeClass = 'bg-info';
+                let badgeClass = 'status-default';
+                if (['Submitted', 'Pending'].includes(status)) badgeClass = 'status-pending';
+                else if (status.includes('Approved') || status === 'Completed') badgeClass = 'status-completed';
+                else if (['Rejected', 'Recalled'].includes(status)) badgeClass = 'status-rejected'; 
+                else if (status === 'Processing' || status === 'In Progress') badgeClass = 'status-processing';
 
-                $('#view_status_badge').html(`<span class="badge status-badge-lg fs-6 rounded-pill ${badgeClass}">${status}</span>`);
+                $('#view_status_badge').html(`<span class="badge rounded-pill ${badgeClass} text-uppercase px-3 py-2">${status}</span>`);
 
                 const trackerContainer = $('#approval-tracker-container-fg'); 
                 trackerContainer.empty();

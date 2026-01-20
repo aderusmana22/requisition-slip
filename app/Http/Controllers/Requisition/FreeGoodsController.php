@@ -26,8 +26,8 @@ use Yajra\DataTables\Facades\DataTables;
 use App\Traits\ApprovalTrait;
 use App\Traits\traitTracking;
 use Illuminate\Support\Str;
-use App\Notifications\RequisitionNotification; // Pastikan ini di-import
-use Barryvdh\DomPDF\Facade\Pdf; // Pastikan ini di-import
+use App\Notifications\RequisitionNotification;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class FreeGoodsController extends Controller
 {
@@ -40,7 +40,6 @@ class FreeGoodsController extends Controller
 
     private function generateFgNumber()
     {
-        // Format: FG YY MM XXX
         $prefix = 'FG';
         $year = date('y');
         $month = date('m');
@@ -64,17 +63,15 @@ class FreeGoodsController extends Controller
     private function findUserForStep(string $stepName)
     {
         try {
-            // Cari user berdasarkan nama yang tersimpan di current_position (Tracking Path)
             $user = User::where('name', $stepName)->first();
 
             if ($user) {
                 return $user;
             }
 
-            // Fallback khusus untuk supervisor gudang jika nama tidak exact
             if (str_contains($stepName, 'Outward WH Supervisor')) {
                 $user = User::where('name', 'like', '%' . 'Outward WH Supervisor' . '%')->first();
-                return $user ?: User::where('nik', 'WH0002')->first(); // Hardcode fallback jika perlu
+                return $user ?: User::where('nik', 'WH0002')->first();
             }
 
             Log::error("Tidak ada user yang ditemukan dengan NAMA '{$stepName}' untuk proses tracking Free Goods.");
@@ -129,29 +126,39 @@ class FreeGoodsController extends Controller
              $query->where('requisitions.requester_nik', $user->nik);
         }
 
-        $query->orderBy('requisitions.id', 'desc');
+        // $query->orderBy('requisitions.id', 'desc'); // Biarkan frontend yang handle sorting
 
         return DataTables::of($query)
             ->addIndexColumn()
             ->editColumn('no_srs', fn($req) => $req->no_srs ? '<span class="badge-custom badge-fg-no"># ' . e($req->no_srs) . '</span>' : '-')
-            ->addColumn('requester_info', fn($req) => '<div class="requester-badge"><i class="ph-bold ph-user-circle"></i><span>' . e($req->requester_name) . '</span></div>')
-            ->editColumn('request_date', fn($req) => Carbon::parse($req->created_at)->format('d M Y, H:i'))
-            ->editColumn('sub_category', fn($req) => '<span class="badge-custom badge-category">' . e($req->sub_category) . '</span>')
+            
+            ->addColumn('requester_info', function ($req) {
+                $avatarUrl = $req->avatar ? asset($req->avatar) : asset('assets/images/logo/sinarmeadow.png');
+                $name = e($req->requester_name);
+                return '
+                <div class="badge-requester">
+                    <img src="'.$avatarUrl.'" class="rounded-circle me-2" style="width: 24px; height: 24px; object-fit: cover;">
+                    <span>'.$name.'</span>
+                </div>';
+            })
+
+            ->editColumn('request_date', fn($req) => Carbon::parse($req->created_at)->format('d M Y'))
+            ->editColumn('sub_category', fn($req) => '<span class="badge rounded-pill bg-info text-white text-uppercase" style="font-size: 0.75rem; padding: 6px 12px;">' . strtoupper(e($req->sub_category)) . '</span>')
             ->editColumn('route_to', fn($req) => '<span class="badge-custom badge-route-to"><i class="ph-bold ph-user-switch me-1"></i>' . e($req->route_to) . '</span>')
             
             ->editColumn('status', function ($req) {
                 $status = $req->status;
-                $badgeClass = '';
+                $badgeClass = 'status-default';
                 if (in_array($status, ['Submitted', 'Pending'])) {
-                    $badgeClass = 'badge-status-pending';
-                } elseif ($status === 'In Progress' || $status === 'Processing') {
-                    $badgeClass = 'badge-status-progress';
+                    $badgeClass = 'status-pending';
+                } elseif (in_array($status, ['In Progress', 'Processing'])) {
+                    $badgeClass = 'status-processing';
                 } elseif (in_array($status, ['Approved', 'Completed'])) {
-                    $badgeClass = 'bg-success';
-                } elseif (in_array($status, ['Rejected', 'Recalled'])) {
-                    $badgeClass = 'bg-danger';
+                    $badgeClass = 'status-completed';
+                } elseif (in_array($status, ['Rejected', 'Recalled', 'Cancelled'])) {
+                    $badgeClass = 'status-rejected';
                 }
-                return '<span class="badge-custom ' . $badgeClass . '">' . e($status) . '</span>';
+                return '<span class="badge rounded-pill '.$badgeClass.' text-uppercase shadow-sm" style="min-width: 90px; padding: 6px 0;">' . strtoupper(e($status)) . '</span>';
             })
             
             ->addColumn('action', function ($row) use ($user) {
@@ -159,17 +166,15 @@ class FreeGoodsController extends Controller
                 $recallBtn = '';
                 $duplicateBtn = '';
 
-                // Tombol Recall hanya jika Pending dan milik user login
                 if ($row->status === 'Pending' && $row->requester_nik === $user->nik) {
                     $recallBtn = '<button type="button" class="btn btn-danger btn-sm action-btn-hover btn-recall-requisition" data-id="' . $row->id . '" data-tooltip="Recall"><i class="ph-bold ph-arrow-counter-clockwise"></i></button>';
                 }
 
-                // Tombol Duplicate hanya jika Recalled dan milik user login
                 if ($row->status === 'Recalled' && $row->requester_nik === $user->nik) {
                     $duplicateBtn = '<button type="button" class="btn btn-warning btn-sm action-btn-hover btn-duplicate-requisition" data-id="' . $row->id . '" data-tooltip="Duplicate"><i class="ph-bold ph-copy"></i></button>';
                 }
 
-                return '<div class="action-btn-group gap-1 d-flex">' . $viewBtn . $recallBtn . $duplicateBtn . '</div>';
+                return '<div class="action-btn-group gap-1 d-flex justify-content-center">' . $viewBtn . $recallBtn . $duplicateBtn . '</div>';
             })
             ->rawColumns(['no_srs', 'requester_info', 'sub_category', 'route_to', 'status', 'action'])
             ->make(true);
@@ -188,7 +193,6 @@ class FreeGoodsController extends Controller
             $user = User::with('atasan', 'department')->find(Auth::id());
             $userAccount = $user->department->code ?? null;
 
-            // Logika Sub Category otomatis berdasarkan Dept
             if ($userAccount === '5300') {
                 $pathSubCategory = 'SNM_PATH';
                 $subCategoryLabel = 'SnM Request';
@@ -216,9 +220,9 @@ class FreeGoodsController extends Controller
                 RequisitionItem::create([
                     'requisition_id' => $requisition->id,
                     'item_master_id' => $itemMasterId,
-                    'material_type' => $subCategoryLabel, // Bisa disesuaikan
+                    'material_type' => $subCategoryLabel,
                     'quantity_required' => $itemData['quantity_required'],
-                    'quantity_issued' => 0, // Default 0 saat create
+                    'quantity_issued' => 0,
                 ]);
             }
 
@@ -228,7 +232,7 @@ class FreeGoodsController extends Controller
                 $user,
                 $requisition->id,
                 'FREE GOODS',
-                $pathSubCategory // Gunakan sub_category khusus untuk path
+                $pathSubCategory
             );
 
             $firstLog = ApprovalLog::where('requisition_id', $requisition->id)->orderBy('level', 'asc')->first();
@@ -239,12 +243,10 @@ class FreeGoodsController extends Controller
                     $requisition->update(['route_to' => $firstApprover->name]);
                     sendFreeGoods::dispatch($requisition, $firstApprover, $firstLog->token, ['mail_type' => 'approval']);
                     
-                    // Notifikasi Sistem
                     $notificationData = [
                         'requisition_id' => $requisition->id,
                         'srs_number'     => $requisition->no_srs,
                         'message'        => "FG Request #{$requisition->no_srs} dari {$user->name} menunggu approval Anda.",
-                        // [FIX] Menggunakan nama route yang benar sesuai web.php
                         'url'            => route('freegoods-form.approval'), 
                     ];
                     $firstApprover->notify(new RequisitionNotification($notificationData, $user));
@@ -261,7 +263,6 @@ class FreeGoodsController extends Controller
             DB::commit();
             $nextFgNumber = $this->generateFgNumber();
 
-            // Activity Log
             activity()
                 ->causedBy($user)
                 ->performedOn($requisition)
@@ -360,7 +361,6 @@ class FreeGoodsController extends Controller
     
         $history = [];
     
-        // 1. Created
         $history[] = [
             'actor' => $requisition->requester->name ?? 'System',
             'avatar' => $requisition->requester->avatar ? asset($requisition->requester->avatar) : null,
@@ -369,7 +369,6 @@ class FreeGoodsController extends Controller
             'timestamp' => $requisition->created_at->toDateTimeString(),
         ];
     
-        // 2. Approvals
         foreach ($requisition->approvalLogs as $log) {
             if ($log->status !== 'Pending') {
                 $action_text = $log->status;
@@ -387,7 +386,6 @@ class FreeGoodsController extends Controller
             }
         }
     
-        // 3. Tracking (Warehouse)
         foreach ($requisition->trackings as $tracking) {
             if ($tracking->last_updated) {
                 $history[] = [
@@ -400,7 +398,6 @@ class FreeGoodsController extends Controller
             }
         }
 
-        // 4. Recall
         if ($requisition->status === 'Recalled') {
             $history[] = [
                 'actor' => $requisition->requester->name ?? 'Requester',
@@ -440,19 +437,15 @@ class FreeGoodsController extends Controller
             if ($firstLog) {
                 $firstApprover = User::where('nik', $firstLog->approver_nik)->first();
                 if ($firstApprover) {
-                    Log::info("Mengirim notifikasi recall untuk FG #{$id} ke {$firstApprover->name}");
-    
                     dispatch(new sendFreeGoods($requisition, $firstApprover, null, [
                         'mail_type' => 'recalled_notification',
                         'notes'     => $request->input('notes') 
                     ]));
 
-                    // Notifikasi Sistem
                     $firstApprover->notify(new RequisitionNotification([
                         'requisition_id' => $requisition->id,
                         'srs_number'     => $requisition->no_srs,
                         'message'        => "FG Request #{$requisition->no_srs} telah di-RECALL oleh {$user->name}.",
-                        // [FIX] Nama Route yang benar
                         'url'            => route('freegoods-form.approval'),
                     ], $user));
                 }
@@ -460,7 +453,6 @@ class FreeGoodsController extends Controller
     
             $requisition->update(['status' => 'Recalled', 'route_to' => 'Recalled by Requester']);
             
-            // Tandai ApprovalLog agar tidak muncul di dashboard approver
             ApprovalLog::where('requisition_id', $id)->update(['status' => 'Recalled', 'token' => null]);
             
             activity()
@@ -517,10 +509,13 @@ class FreeGoodsController extends Controller
             // Super admin melihat semua
         } else {
             $query->where('approval_logs.approver_nik', $user->nik)
-                  ->where('approval_logs.status', 'Pending')
-                  ->whereIn('requisitions.status', ['Pending', 'In Progress', 'Approved'])
                   ->where(function ($q) {
-                        // Tampilkan hanya jika level 1, ATAU level sebelumnya sudah Approved
+                        $q->where('approval_logs.status', 'Pending')
+                          ->whereIn('requisitions.status', ['Pending', 'In Progress', 'Approved']);
+                        
+                        $q->orWhere('approval_logs.status', 'Approved');
+                  })
+                  ->where(function ($q) {
                         $q->where('approval_logs.level', 1)
                         ->orWhereExists(function ($subQuery) {
                             $subQuery->select(DB::raw(1))
@@ -532,34 +527,72 @@ class FreeGoodsController extends Controller
                   });
         }
 
-        $query->select('approval_logs.*')->orderBy('approval_logs.id', 'desc');
+        $query->select('approval_logs.*');
 
         return DataTables::of($query)
             ->addIndexColumn()
             ->addColumn('no_srs', fn($row) => '<span class="badge-custom badge-fg-no"># ' . e($row->requisition->no_srs ?? 'N/A') . '</span>')
+            
             ->addColumn('requester', function ($row) {
                 $avatar = $row->requisition->requester->avatar ? asset($row->requisition->requester->avatar) : asset('assets/images/logo/sinarmeadow.png');
-                return '<div class="status-badge-lg bg-dark d-flex align-items-center"><img src="' . $avatar . '" class="img-fluid rounded-circle me-1" style="width:20px;"> ' . e($row->requisition->requester->name ?? 'Unknown') . '</div>';
+                $name = e($row->requisition->requester->name ?? 'Unknown');
+                return '
+                <div class="badge-requester">
+                    <img src="'.$avatar.'" class="rounded-circle me-2" style="width: 24px; height: 24px; object-fit: cover;">
+                    <span>'.$name.'</span>
+                </div>';
             })
+
             ->addColumn('request_date', fn($row) => Carbon::parse($row->requisition->request_date)->format('d M Y'))
-            ->addColumn('sub_category', fn($row) => '<span class="badge-custom badge-category">' . e($row->requisition->sub_category ?? '-') . '</span>')
-            ->addColumn('level', fn($row) => '<span class="status-badge-lg bg-primary">Lvl ' . $row->level . '</span>')
+            ->addColumn('sub_category', fn($row) => '<span class="badge rounded-pill bg-info text-white text-uppercase" style="font-size: 0.75rem; padding: 6px 12px;">' . strtoupper(e($row->requisition->sub_category ?? '-')) . '</span>')
+            ->addColumn('level', fn($row) => '<span class="badge badge-level"><i class="ph-fill ph-star me-1 text-warning"></i>LVL ' . $row->level . '</span>')
+            
             ->editColumn('status', function ($row) {
                 $status = $row->requisition->status ?? 'N/A';
-                return '<span class="badge-custom badge-status-pending">' . e($status) . '</span>';
+                $badgeClass = 'status-default';
+                if (in_array($status, ['Submitted', 'Pending'])) {
+                    $badgeClass = 'status-pending';
+                } elseif (in_array($status, ['In Progress', 'Processing'])) {
+                    $badgeClass = 'status-processing';
+                } elseif (in_array($status, ['Approved', 'Completed'])) {
+                    $badgeClass = 'status-completed';
+                } elseif (in_array($status, ['Rejected', 'Recalled', 'Cancelled'])) {
+                    $badgeClass = 'status-rejected';
+                }
+                return '<span class="badge rounded-pill '.$badgeClass.' text-uppercase shadow-sm" style="min-width: 90px; padding: 6px 0;">' . strtoupper(e($status)) . '</span>';
             })
+            
+            ->editColumn('approver_nik', function ($row) {
+                $nik = $row->approver_nik ?? '-';
+                return '<span class="badge-approver"><i class="ph-bold ph-user-circle me-1"></i>' . e($nik) . '</span>';
+            })
+            
             ->addColumn('action', function ($row) {
-                $token = $row->token;
-                $srs = $row->requisition->no_srs;
-                $id = $row->requisition->id;
+                if ($row->status === 'Approved') {
+                    $date = $row->responded_at ? Carbon::parse($row->responded_at)->format('d M Y, H:i') : 'N/A';
+                    return '<div class="d-flex justify-content-center align-items-center text-success" 
+                                 data-bs-toggle="tooltip" 
+                                 data-bs-placement="top" 
+                                 title="Approved on: ' . $date . '">
+                                <i class="ph-fill ph-check-circle" style="font-size: 1.8rem;"></i>
+                            </div>';
+                }
 
-                $approveBtn = '<button class="btn btn-success btn-sm action-btn" data-token="'.$token.'" data-srs="'.$srs.'" data-tooltip="Quick Approve"><i class="ph-bold ph-check-circle"></i></button>';
-                $reviewBtn = '<button class="btn btn-info btn-sm action-btn-modal" data-id="'.$id.'" data-token="'.$token.'" data-srs="'.$srs.'" data-action="review" data-tooltip="Review & Approve"><i class="ph-bold ph-pencil-simple"></i></button>';
-                $rejectBtn = '<button class="btn btn-danger btn-sm action-btn-modal" data-id="'.$id.'" data-token="'.$token.'" data-srs="'.$srs.'" data-action="reject" data-tooltip="Reject"><i class="ph-bold ph-x-circle"></i></button>';
+                if ($row->status === 'Pending') {
+                    $token = $row->token;
+                    $srs = $row->requisition->no_srs;
+                    $id = $row->requisition->id;
 
-                return '<div class="action-btn-group gap-1 d-flex justify-content-center">' . $approveBtn . $reviewBtn . $rejectBtn . '</div>';
+                    $approveBtn = '<button class="btn btn-success btn-sm action-btn" data-token="'.$token.'" data-srs="'.$srs.'" data-tooltip="Quick Approve"><i class="ph-bold ph-check-circle"></i></button>';
+                    $reviewBtn = '<button class="btn btn-info btn-sm action-btn-modal" data-id="'.$id.'" data-token="'.$token.'" data-srs="'.$srs.'" data-action="review" data-tooltip="Review & Approve"><i class="ph-bold ph-pencil-simple"></i></button>';
+                    $rejectBtn = '<button class="btn btn-danger btn-sm action-btn-modal" data-id="'.$id.'" data-token="'.$token.'" data-srs="'.$srs.'" data-action="reject" data-tooltip="Reject"><i class="ph-bold ph-x-circle"></i></button>';
+
+                    return '<div class="action-btn-group gap-1 d-flex justify-content-center">' . $approveBtn . $reviewBtn . $rejectBtn . '</div>';
+                }
+
+                return '-';
             })
-            ->rawColumns(['no_srs', 'requester', 'sub_category', 'level', 'status', 'action'])
+            ->rawColumns(['no_srs', 'requester', 'sub_category', 'level', 'status', 'approver_nik', 'action'])
             ->make(true);
     }
 
@@ -596,24 +629,34 @@ class FreeGoodsController extends Controller
             })
             ->addColumn('requester_info', function ($requisition) {
                 $name = e($requisition->requester->name ?? 'N/A');
-                return '<div class="requester-badge"><i class="ph-bold ph-user-circle"></i><span>' . $name . '</span></div>';
+                $avatar = $requisition->requester->avatar ?? null;
+                $avatarUrl = $avatar ? asset($avatar) : asset('assets/images/logo/sinarmeadow.png');
+
+                return '
+                <div class="badge-requester">
+                    <img src="'.$avatarUrl.'" class="rounded-circle me-2" style="width: 24px; height: 24px; object-fit: cover;">
+                    <span>'.$name.'</span>
+                </div>';
             })
+
             ->addColumn('customer_name', fn ($req) => e($req->customer->name ?? 'N/A'))
             ->editColumn('request_date', fn($req) => Carbon::parse($req->request_date)->format('d M Y'))
             ->editColumn('sub_category', function ($requisition) {
-                return '<span class="badge-custom badge-category">' . e($requisition->sub_category) . '</span>';
+                return '<span class="badge rounded-pill bg-info text-white text-uppercase" style="font-size: 0.75rem; padding: 6px 12px;">' . strtoupper(e($requisition->sub_category)) . '</span>';
             })
             ->editColumn('status', function ($requisition) {
                 $status = $requisition->status;
-                $badgeClass = 'bg-secondary';
-                if (in_array($status, ['Approved', 'Completed'])) {
-                    $badgeClass = 'bg-success';
-                } elseif (in_array($status, ['Rejected', 'Recalled'])) {
-                    $badgeClass = 'bg-danger';
-                } elseif (in_array($status, ['Submitted', 'Pending', 'In Progress'])) {
-                    $badgeClass = 'badge-status-pending';
+                $badgeClass = 'status-default';
+                if (in_array($status, ['Submitted', 'Pending'])) {
+                    $badgeClass = 'status-pending';
+                } elseif (in_array($status, ['In Progress', 'Processing'])) {
+                    $badgeClass = 'status-processing';
+                } elseif (in_array($status, ['Approved', 'Completed'])) {
+                    $badgeClass = 'status-completed';
+                } elseif (in_array($status, ['Rejected', 'Recalled', 'Cancelled'])) {
+                    $badgeClass = 'status-rejected';
                 }
-                return '<span class="badge-custom ' . $badgeClass . '">' . e($status) . '</span>';
+                return '<span class="badge rounded-pill ' . $badgeClass . ' text-uppercase shadow-sm" style="min-width: 90px; padding: 6px 0;">' . strtoupper(e($status)) . '</span>';
             })
             ->rawColumns(['checkbox', 'no_srs', 'requester_info', 'sub_category', 'status'])
             ->make(true);
@@ -632,7 +675,7 @@ class FreeGoodsController extends Controller
             'customer',
             'requester.department',
             'requisitionItems.itemMaster',
-            'approvalLogs.approver.roles' // Load roles for print
+            'approvalLogs.approver.roles'
         ])->whereIn('id', $requisitionIds)
           ->orderBy('no_srs', 'asc')
           ->get();
@@ -652,6 +695,7 @@ class FreeGoodsController extends Controller
         return view('page.freegoods.log.index');
     }
 
+    // [MODIFIED] LOG DATA TABLE STYLE (PILL BADGES)
     public function getLogData()
     {
         $query = Activity::with(['causer', 'subject'])
@@ -660,29 +704,55 @@ class FreeGoodsController extends Controller
 
         return DataTables::of($query)
             ->addIndexColumn()
-            ->editColumn('log_name', fn($log) => '<span class="badge-custom bg-dark"><i class="ph-bold ph-cube me-1"></i>Free Goods</span>')
+            
+            // Log Name -> Badge Dark Standard
+            ->editColumn('log_name', fn($log) => '<span class="badge rounded-pill bg-dark text-white text-uppercase" style="padding: 6px 12px;">FREE GOODS</span>')
+            
+            // Event -> Colored Pills & Uppercase (Matches Approval Colors)
             ->editColumn('event', function ($log) {
-                $event = e(ucfirst($log->event));
-                $badgeClass = 'bg-secondary';
-                if ($log->event === 'create') $badgeClass = 'bg-primary';
-                if ($log->event === 'update' || $log->event === 'approve') $badgeClass = 'bg-warning';
-                if ($log->event === 'delete' || $log->event === 'reject') $badgeClass = 'bg-danger';
-                if ($log->event === 'tracking') $badgeClass = 'bg-info';
-                return '<span class="status-badge-lg ' . $badgeClass . '">' . $event . '</span>';
+                $event = strtoupper($log->event);
+                $badgeClass = 'status-default'; // Fallback Grey
+
+                // Mapping Colors:
+                // Create/Approve -> Green (Completed)
+                if (in_array($log->event, ['create', 'created', 'approve', 'approved'])) {
+                    $badgeClass = 'status-completed'; // Green
+                } 
+                // Update/Tracking -> Brown (Processing)
+                elseif (in_array($log->event, ['update', 'updated', 'tracking'])) {
+                    $badgeClass = 'status-processing'; // Brown
+                } 
+                // Delete/Reject/Recall -> Red (Rejected)
+                elseif (in_array($log->event, ['delete', 'deleted', 'reject', 'rejected', 'recall', 'recalled'])) {
+                    $badgeClass = 'status-rejected'; // Red
+                }
+
+                return '<span class="badge rounded-pill ' . $badgeClass . ' text-uppercase shadow-sm" style="min-width: 80px; padding: 6px 0;">' . $event . '</span>';
             })
+            
+            // Subject Info -> FG Number
             ->addColumn('subject_info', function ($log) {
                 if ($log->subject && $log->subject->no_srs) {
                     return '<span class="badge-custom badge-fg-no"># ' . e($log->subject->no_srs) . '</span>';
                 }
                 return '<span class="badge bg-light text-dark">N/A</span>';
             })
+            
             ->addColumn('subject_id', fn($log) => $log->subject_id)
+            
+            // Causer -> Requester Style (Dark Pill)
             ->addColumn('causer_info', function ($log) {
                 if ($log->causer && $log->causer->name) {
-                    return '<div class="requester-badge"><i class="ph-bold ph-user-circle"></i><span>' . e($log->causer->name) . '</span></div>';
+                    $avatar = $log->causer->avatar ? asset($log->causer->avatar) : asset('assets/images/logo/sinarmeadow.png');
+                    return '
+                    <div class="badge-requester">
+                        <img src="'.$avatar.'" class="rounded-circle me-2" style="width: 24px; height: 24px; object-fit: cover;">
+                        <span>'.e($log->causer->name).'</span>
+                    </div>';
                 }
-                return '<span class="badge bg-light text-dark">System</span>';
+                return '<span class="badge bg-secondary text-white">SYSTEM</span>';
             })
+            
             ->editColumn('created_at', fn($log) => Carbon::parse($log->created_at)->format('d M Y, H:i:s'))
             ->rawColumns(['log_name', 'event', 'subject_info', 'causer_info'])
             ->make(true);
@@ -709,7 +779,6 @@ class FreeGoodsController extends Controller
             return view('page.freegoods.links.invalid', ['message' => 'This request is invalid or has been processed.']);
         }
 
-        // Quick Approve tanpa form
         if ($action === 'approve' && !$tracking) {
             $request->merge(['token' => $token, 'action' => 'approve', 'notes' => 'Approved via quick action link.']);
             return $this->processApproval($request);
@@ -722,7 +791,7 @@ class FreeGoodsController extends Controller
         $pageTitle = $isWarehouseProcess ? ($tracking->current_position ?? 'Warehouse Process') : 'Approval Action';
 
         if ($action === 'reject') {
-            $action = 'review'; // Agar form muncul
+            $action = 'review';
         }
 
         $viewData = [
@@ -807,13 +876,11 @@ class FreeGoodsController extends Controller
                     Mail::to($requisition->requester->email)->send(new MailRejectFreeGoods($requisition, $approverName, $finalNotes));
                 }
                 
-                // Notifikasi Sistem Reject
                 if($requisition->requester) {
                     $requisition->requester->notify(new RequisitionNotification([
                         'requisition_id' => $requisition->id,
                         'srs_number'     => $requisition->no_srs,
                         'message'        => "FG Request #{$requisition->no_srs} telah di-REJECT oleh {$approverName}.",
-                        // [FIX] Nama Route yang benar
                         'url'            => route('freegoods-form.index'), 
                     ], $approvalLog->approver));
                 }
@@ -821,7 +888,7 @@ class FreeGoodsController extends Controller
                 $title = 'Requisition Rejected';
                 $newStatus = 'Rejected';
 
-            } else { // Approved
+            } else {
                 if (!str_starts_with($finalNotes, 'Approved by')) {
                     $title = 'Approved with Review';
                     $actionText = 'Approved with Review';
@@ -837,12 +904,10 @@ class FreeGoodsController extends Controller
                         $requisition->update(['status' => 'In Progress', 'route_to' => $nextApprover->name]);
                         dispatch(new sendFreeGoods($requisition, $nextApprover, $nextApprovalLog->token, ['mail_type' => 'approval']));
                         
-                        // Notifikasi Sistem
                         $nextApprover->notify(new RequisitionNotification([
                             'requisition_id' => $requisition->id,
                             'srs_number'     => $requisition->no_srs,
                             'message'        => "FG Request #{$requisition->no_srs} menunggu approval Anda.",
-                            // [FIX] Nama Route yang benar
                             'url'            => route('freegoods-form.approval'), 
                         ], $requisition->requester));
 
@@ -910,7 +975,6 @@ class FreeGoodsController extends Controller
                 'notes' => $notes ?: $defaultNote
             ]);
 
-            // Mencatat siapa user yang melakukan aksi (fallback ke sistem jika tidak login)
             $causer = Auth::user() ?? $this->findUserForStep($tracking->current_position);
             activity()
                 ->causedBy($causer)
@@ -1016,7 +1080,6 @@ class FreeGoodsController extends Controller
                 'requisition_id' => $requisition->id,
                 'srs_number'     => $requisition->no_srs,
                 'message'        => "FG Request #{$requisition->no_srs} telah SELESAI diproses.",
-                // [FIX] Nama Route yang benar
                 'url'            => route('freegoods-form.index'), 
             ], $requisition->requester));
         }
