@@ -45,26 +45,48 @@
     @push('scripts')
         <script>
             $(document).ready(function() {
-                $('#sampleTable').DataTable({
+                const table = $('#sampleTable').DataTable({
                     processing: true,
                     serverSide: true,
+                    order: [[ 0, 'desc' ]],
                     ajax: "{{ route('sample.log.data') }}",
                     columns: [
-                        { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false, width: '5%', className: 'text-center' },
-                        { data: 'log_name', name: 'log_name', width: '15%', className: 'dt-no-wrap' }, // <-- LEBAR DITAMBAHKAN
+                        {
+                            data: 'id',
+                            name: 'id',
+                            orderable: true,
+                            searchable: false,
+                            width: '5%',
+                            className: 'text-center',
+                            render: function (data, type, row, meta) {
+                                return meta.row + meta.settings._iDisplayStart + 1;
+                            }
+                        },
+                        { data: 'log_name', name: 'log_name', width: '15%', className: 'dt-no-wrap' },
                         { data: 'causer_info', name: 'causer.name', width: '10%', orderable: false },
                         { data: 'description', name: 'description', width: '31%' },
                         { data: 'event', name: 'event', width: '10%', className: 'text-center' },
-                        { data: 'subject_info', name: 'subject.no_srs', width: '9%', className: 'dt-no-wrap', orderable: false },
+                        { data: 'subject_info', name: 'subject_id', width: '9%', className: 'dt-no-wrap', orderable: false },
                         { data: 'subject_id', name: 'subject_id', width: '5%', className: 'text-center', orderable: false },
                         { data: 'created_at', name: 'created_at', width: '10%' }
-                    ],
-                    order: [[ 7, 'desc' ]] // Default sort by timestamp descending (indeks kolom ke-7)
+                    ]
                 });
 
-                $('#sampleTable_filter input').attr({
-                    'placeholder': '🔍 Search sample...',
+                let searchInput = $('#sampleTable_filter input');
+                searchInput.attr({
+                    'placeholder': '🔍 Search log...',
                     'class': 'form-control'
+                });
+
+                searchInput.unbind();
+                let debounceTimer;
+
+                searchInput.on('keyup search input', function (e) {
+                    clearTimeout(debounceTimer);
+                    debounceTimer = setTimeout(function () {
+                        let searchTerm = searchInput.val();
+                        table.search(searchTerm).draw();
+                    }, 500);
                 });
             });
         </script>

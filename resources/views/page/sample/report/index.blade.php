@@ -272,7 +272,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-        // === SweetAlert2 Reusable Functions ===
+
         function successMessage(message, title = 'Success', timer = 1500) {
             Swal.fire({
                 icon: 'success',
@@ -324,7 +324,7 @@
             return text.substring(0, maxLength) + '...';
         }
 
-        // Function to update selected count and button state
+
         function updateSelectedCount() {
             const selectedCheckboxes = $('.row-selector:checked');
             const count = selectedCheckboxes.length;
@@ -332,7 +332,6 @@
             $('#selectedCount').text(count);
             $('#printSelectedBtn').prop('disabled', count === 0);
 
-            // Update select all checkbox state
             const totalCheckboxes = $('.row-selector').length;
             const selectAllCheckbox = $('#selectAll');
 
@@ -348,7 +347,7 @@
             }
         }
 
-        // Function to print selected reports
+
         function printSelectedReports() {
             const selectedIds = [];
             $('.row-selector:checked').each(function() {
@@ -360,7 +359,6 @@
                 return;
             }
 
-            // Confirm before proceeding
             Swal.fire({
                 title: 'Print Selected Reports',
                 text: `Are you sure you want to print ${selectedIds.length} selected report(s)?`,
@@ -372,7 +370,6 @@
                 recallButtonText: 'Recall'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    // Show loading
                     Swal.fire({
                         title: 'Processing...',
                         text: 'Preparing reports for printing...',
@@ -384,22 +381,19 @@
                         }
                     });
 
-                    // Create form and submit
                     const form = $('<form>', {
                         method: 'POST',
                         action: '{{ route("report_sample.print") }}',
-                        target: '_blank', // Open in new tab
+                        target: '_blank',
                         style: 'display: none;'
                     });
 
-                    // Add CSRF token
                     form.append($('<input>', {
                         type: 'hidden',
                         name: '_token',
                         value: '{{ csrf_token() }}'
                     }));
 
-                    // Add selected IDs as array
                     selectedIds.forEach(function(id) {
                         form.append($('<input>', {
                             type: 'hidden',
@@ -408,29 +402,24 @@
                         }));
                     });
 
-                    // Debug log
                     console.log('Sending selected IDs:', selectedIds);
                     console.log('Form action:', '{{ route("report_sample.print") }}');
 
-                    // Add additional data if needed
                     form.append($('<input>', {
                         type: 'hidden',
                         name: 'print_type',
                         value: 'bulk'
                     }));
 
-                    // Append form to body and submit
                     $('body').append(form);
 
                     try {
                         form.submit();
 
-                        // Close loading and show success
                         setTimeout(() => {
                             Swal.close();
                             successMessage(`${selectedIds.length} report(s) sent for printing!`);
 
-                            // Clear selections and row highlighting
                             $('.row-selector').prop('checked', false);
                             $('.selected-row').removeClass('selected-row');
                             $('#selectAll').prop('checked', false).prop('indeterminate', false);
@@ -442,7 +431,6 @@
                         Swal.close();
                         errorMessage('Error submitting form. Please try again.');
                     } finally {
-                        // Clean up form
                         form.remove();
                     }
                 }
@@ -452,8 +440,8 @@
         function formatStepName(name) {
             if (!name) return 'Unknown';
             return name
-                .replace(/-/g, ' ') // Ganti 'wh-supervisor' -> 'wh supervisor'
-                .replace(/\b\w/g, char => char.toUpperCase()); // Ubah -> 'Wh Supervisor'
+                .replace(/-/g, ' ')
+                .replace(/\b\w/g, char => char.toUpperCase());
         }
 
         $(document).ready(function () {
@@ -463,9 +451,7 @@
                 allowClear: true,
             });
 
-            // Insert date inputs inside Select2 dropdown when 'custom' is selected
             function renderCustomDateControls() {
-                // Build HTML for custom controls
                 return `
                     <div class="p-2 custom-date-controls">
                         <label class="form-label mb-1 small">Start</label>
@@ -477,23 +463,18 @@
                 `;
             }
 
-            // When the select2 dropdown opens, if custom is selected, inject date inputs
             $('#dateFilter').on('select2:open', function(e) {
                 const val = $(this).val();
                 const $dropdown = $('.select2-container--open .select2-dropdown');
-                // Remove any previous custom controls
                 $dropdown.find('.custom-date-controls').remove();
 
                 if (val === 'custom') {
-                    // Append our custom controls to the bottom of dropdown
                     $dropdown.append(renderCustomDateControls());
-                    // Populate date inputs from hidden fields
                     const s = $('#startDate').val();
                     const en = $('#endDate').val();
                     if (s) $('#select2_startDate').val(s);
                     if (en) $('#select2_endDate').val(en);
 
-                    // Wire up apply button: copy to hidden inputs and reload table
                     $('#select2_apply_dates').on('click', function() {
                         const s2 = $('#select2_startDate').val();
                         const e2 = $('#select2_endDate').val();
@@ -501,42 +482,33 @@
                             errorMessage('Please select both start and end dates.');
                             return;
                         }
-                        // set hidden inputs
                         $('#startDate').val(s2);
                         $('#endDate').val(e2);
-                        // close dropdown
                         $('#dateFilter').select2('close');
-                        // reload table
                         table.ajax.reload(null, false);
                     });
                 }
             });
 
-            // When selection changes:
             $('#dateFilter').on('change', function() {
                 const val = $(this).val();
                 if (val === 'custom') {
-                    // Open the Select2 dropdown so the date inputs are visible immediately on first selection
-                    // Use setTimeout to ensure Select2 internal state is ready
                     setTimeout(function() {
                         $('#dateFilter').select2('open');
                     }, 50);
-                    return; // do not reload table yet; wait for Apply
+                    return;
                 }
 
-                // Non-custom presets: clear custom dates and reload immediately
                 $('#startDate, #endDate').val('');
                 table.ajax.reload(null, false);
             });
 
-            // Check if table element exists
             if (!$('#sampleTable').length) {
                 console.error('Table element not found!');
                 errorMessage('Table initialization failed: Element not found');
                 return;
             }
 
-            // === DataTable ===
             function getDateFilterPayload() {
                 const filter = $('#dateFilter').val();
                 const payload = {};
@@ -570,7 +542,6 @@
                     url: "{{ route('sample.reports.data') }}",
                     type: 'GET',
                     data: function(d) {
-                        // Gabungkan data filter tanggal ke setiap request AJAX
                         return $.extend({}, d, getDateFilterPayload());
                     },
                     error: function(xhr, error, code) {
@@ -591,34 +562,27 @@
                     },
                     {
                         data: 'no_srs',
-                        name: 'no_srs',
+                        name: 'requisitions.no_srs',
                         width: '15%',
-                        render: function (data, type, row) {
-                            return data ? `<code class="small"><strong>${data}</strong></code>` : '-';
-                        }
+                        render: function (data) { return data ? `<code class="small"><strong>${data}</strong></code>` : '-'; }
                     },
                     {
                         data: 'requester',
-                        name: 'requester',
+                        name: 'users.name',
                         width: '15%',
-                        render: function (data, type, row) {
-                            if (data && data.name) {
-                                return `<span class="fw-medium">${data.name}</span>`;
-                            }
-                            return '<span class="text-muted">-</span>';
+                        render: function (data) {
+                            return (data && data.name) ? `<span class="fw-medium">${data.name}</span>` : '<span class="text-muted">-</span>';
                         }
                     },
                     {
                         data: 'created_at',
-                        name: 'created_at',
+                        name: 'requisitions.created_at',
                         width: '12%',
-                        render: function (data, type, row) {
-                            return formatDate(data);
-                        }
+                        render: function (data) { return formatDate(data); }
                     },
                     {
                         data: 'sub_category',
-                        name: 'sub_category',
+                        name: 'requisitions.sub_category',
                         width: '12%',
                         render: function (data, type, row) {
                             const sub = (data || (row && row.sub_category) || '').toString().trim();
@@ -646,7 +610,7 @@
                     },
                     {
                         data: 'status',
-                        name: 'status',
+                        name: 'requisitions.status',
                         width: '10%',
                         render: function (data, type, row) {
                             const statusRaw = data || '';
@@ -701,7 +665,6 @@
                         searchable: false,
                         width: '8%',
                         render: function (data, type, row) {
-                            // Correctly use the 'row' object to get the ID for the data-id attribute
                             return `
                                 <div class="action-btn-group">
                                     <button type="button" class="status-badge-lg btn-info btn-view-requisition" data-id="${row.id}" title="Show Detail">
@@ -712,7 +675,7 @@
                         }
                     }
                 ],
-                order: [[3, 'desc']], // Order by created_at descending
+                order: [[3, 'desc']],
                 pageLength: 25,
                 responsive: true,
                 language: {
@@ -721,9 +684,7 @@
                     zeroRecords: "No matching records found"
                 },
                 drawCallback: function() {
-                    // Initialize tooltips after each draw
                     initActionTooltips();
-                    // Update selection count and state
                     updateSelectedCount();
                 }
             });
@@ -731,14 +692,14 @@
             $('#resetDateFilter').on('click', function() {
                 $('#dateFilter').val('all').trigger('change');
                 $('#startDate, #endDate').val('');
-                // Force a reload but keep current paging
                 table.ajax.reload(null, false);
             });
 
             let searchInput = $('#sampleTable_filter input');
             searchInput.unbind();
             let debounceTimer;
-            searchInput.bind('keyup', function (e) {
+
+            searchInput.on('keyup search input', function (e) {
                 clearTimeout(debounceTimer);
                 debounceTimer = setTimeout(function () {
                     let searchTerm = searchInput.val();
@@ -746,12 +707,10 @@
                 }, 500);
             });
 
-            // Select All checkbox handler
             $('#selectAll').on('change', function() {
                 const isChecked = $(this).prop('checked');
                 $('.row-selector').prop('checked', isChecked);
 
-                // Update row highlighting
                 $('#sampleTable tbody tr').each(function() {
                     if (isChecked) {
                         $(this).addClass('selected-row');
@@ -763,12 +722,10 @@
                 updateSelectedCount();
             });
 
-            // Update count after table draw
             table.on('draw', function() {
                 updateSelectedCount();
             });
 
-            // Row checkbox handler
             $('#sampleTable tbody').on('change', '.row-selector', function() {
                 const row = $(this).closest('tr');
                 if ($(this).is(':checked')) {
@@ -780,7 +737,6 @@
             });
 
             function populateViewForm(data) {
-                // --- (Bagian atas fungsi yang mengisi detail dasar tidak berubah) ---
                 $('#view_sub_category').text(data.sub_category || '-');
                 $('#view_customer_name').text(data.customer ? data.customer.name : '-');
                 $('#view_customer_address').text(data.customer ? data.customer.address : '-');
@@ -817,7 +773,6 @@
                     viewItemTbody.html(`<tr><td colspan="${colspan}" class="text-center">No items have been added.</td></tr>`);
                 }
 
-                // --- Special Order & QA Section ---
                 const specialOrderSection = $('#view-special-order-section');
                 const qaSection = $('#view-qa-section');
                 if (data.sub_category === 'Special Order' && data.requisition_special) {
@@ -844,7 +799,6 @@
                     qaSection.hide();
                 }
 
-                // --- Status Badge ---
                 const status = data.status;
                 let badgeClass = 'bg-secondary';
                 if (['Submitted', 'Pending'].includes(status)) badgeClass = 'bg-primary';
@@ -853,13 +807,11 @@
                 else if (status === 'Processing' || status === 'In Progress') badgeClass = 'bg-info';
                 $('#view_status_badge').html(`<span class="badge fs-6 rounded-pill ${badgeClass}">${status}</span>`);
 
-                // --- [UPDATED] TRACKER LOGIC ---
                 const trackerContainer = $('#approval-tracker-container');
                 trackerContainer.empty();
 
                 let steps = [{ id: 'submitted', label: 'Request Submit', icon: 'ph-file-arrow-up' }];
 
-                // 1. Approval Steps
                 if (data.sequence_approvers) {
                     data.sequence_approvers.forEach((role, index) => {
                         const level = index + 1;
@@ -868,34 +820,28 @@
                     });
                 }
 
-                let trackingSteps = []; // Variabel untuk menyimpan ID step tracking
+                let trackingSteps = [];
 
-                // 2. Tracking Steps (Dynamic)
                 if (data.sequence_tracking && data.status !== 'Rejected' && data.status !== 'Recalled') {
                     data.sequence_tracking.forEach((stepName, index) => {
-                        let icon = 'ph-package'; // Icon default
+                        let icon = 'ph-package';
                         const stepNameLower = stepName.toLowerCase();
 
-                        // Coba buat icon lebih relevan
                         if (stepNameLower.includes('material')) icon = 'ph-printer';
                         if (stepNameLower.includes('outward')) icon = 'ph-truck';
                         if (stepNameLower.includes('qa') || stepNameLower.includes('qm')) icon = 'ph-clipboard-text';
 
-                        // Buat stepId unik berdasarkan index
-                        const stepId = `tracking_${index}`; // cth: tracking_0, tracking_1
+                        const stepId = `tracking_${index}`;
 
-                        // [PERBAIKAN] Gunakan formatStepName untuk label
                         steps.push({ id: stepId, label: formatStepName(stepName), icon: icon });
-                        trackingSteps.push(stepId); // Simpan ID untuk pemetaan nanti
+                        trackingSteps.push(stepId);
                     });
                 }
 
-                // 3. Completed Step
                 if (data.status !== 'Rejected' && data.status !== 'Recalled') {
                     steps.push({ id: 'completed', label: 'Completed', icon: 'ph-check-circle' });
                 }
 
-                // Render Steps HTML
                 let trackerHtml = '<div class="tracker-line"><div class="tracker-line-progress" id="tracker-progress"></div></div>';
                 steps.forEach(step => {
                     trackerHtml += `<div class="tracker-step" data-step-id="${step.id}"><div class="tracker-icon"><i class="ph-bold ${step.icon} fs-6"></i></div><div class="tracker-label">${step.label}</div><div class="tracker-details"></div></div>`;
@@ -905,7 +851,6 @@
                 let lastCompletedIndex = -1;
                 const isRejected = ['Rejected', 'Recalled'].includes(data.status);
 
-                // Populate Submitted Step
                 if (data.requester && data.created_at) {
                     const submittedStep = $(`.tracker-step[data-step-id="submitted"]`);
                     const creationDate = new Date(data.created_at).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).replace(',', '');
@@ -913,7 +858,6 @@
                     lastCompletedIndex = 0;
                 }
 
-                // Populate Approval Steps
                 if (data.approval_logs) {
                     data.approval_logs.forEach(log => {
                         const stepElement = $(`.tracker-step[data-step-id="approver_${log.level}"]`);
@@ -931,21 +875,17 @@
                     });
                 }
 
-                // Populate Tracking Steps (Dynamic)
                 if (data.trackings && data.trackings.length > 0) {
                     data.trackings.forEach((tracking, index) => {
-                        // Hanya proses tracking jika tanggalnya valid
                         if (tracking.last_updated && new Date(tracking.last_updated).getFullYear() > 1970) {
 
-                            // Ambil stepId dari array trackingSteps berdasarkan index
                             const stepId = trackingSteps[index];
 
                             if (stepId) {
                                 const stepElement = $(`.tracker-step[data-step-id="${stepId}"]`);
-                                const stepLabel = stepElement.find('.tracker-label').text(); // Ambil nama role dari label
+                                const stepLabel = stepElement.find('.tracker-label').text();
 
-                                // Tentukan nama user
-                                let userName = tracking.current_position; // Ini adalah Nama User
+                                let userName = tracking.current_position;
                                 if (stepLabel.toLowerCase().includes('qa') || stepLabel.toLowerCase().includes('qm')) {
                                     userName = 'QA/QM HSE Team';
                                 }
@@ -960,7 +900,6 @@
                     });
                 }
 
-                // Populate Final Steps
                 if (data.status === 'Completed') {
                     const completedStep = $(`.tracker-step[data-step-id="completed"]`);
                     const completionDate = new Date(data.updated_at).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).replace(',', '');
@@ -993,7 +932,6 @@
                     $('#tracker-progress').css('width', progressPercentage + '%');
                 }
 
-                // --- (Bagian History Log - Tidak Perlu Diubah) ---
                 const historyContainer = $('#history-log-container');
                 historyContainer.empty();
                 if (data.history && data.history.length > 0) {
@@ -1044,7 +982,6 @@
                 });
             });
 
-            // Custom Tooltip Handler for Action Buttons
             function initActionTooltips() {
                 $(document).off('mouseenter.customTooltip mouseleave.customTooltip', '.action-btn-hover');
 
@@ -1157,23 +1094,19 @@
                 });
             }
 
-            // Initialize tooltips after DataTable is ready
             table.on('draw', function () {
                 initActionTooltips();
             });
 
-            // Initialize tooltips after table is fully loaded
             setTimeout(function() {
                 initActionTooltips();
             }, 1000);
 
-            // Enhanced search placeholder
             $('#sampleTable_filter input').attr({
                 'placeholder': '🔍 Search sample...',
                 'class': 'form-control'
             });
 
-            // Add fade-in animation to DataTable wrapper
             $('.dataTables_wrapper').css({
                 'animation': 'fadeInUp 0.8s ease-out forwards',
                 'opacity': '0'
