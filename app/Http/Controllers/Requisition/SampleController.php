@@ -37,14 +37,9 @@ class SampleController extends Controller
     use traitRequisition;
     use traitTracking;
 
-    //======================================================================
-    // PUBLIC FUNCTIONS (Controller Endpoints & AJAX Handlers)
-    //======================================================================
-
     /**
      * Menampilkan halaman utama Sample Requisition.
      */
-
     public function index()
     {
         $customers = Customer::all();
@@ -82,7 +77,6 @@ class SampleController extends Controller
     /**
      * Menyediakan data untuk DataTables.
      */
-
     public function getData(Request $request)
     {
         $user = Auth::user();
@@ -532,10 +526,6 @@ class SampleController extends Controller
         }
     }
 
-    //======================================================================
-    // EMAIL RESPONSE HANDLING
-    //======================================================================
-
     /**
      * Menampilkan form respons dari link email (approval, review, QA form, etc.).
      */
@@ -642,11 +632,6 @@ class SampleController extends Controller
         return redirect()->route('approval.success')->with('card_class', 'reject')->with('title', 'Unknown Error');
     }
 
-    //======================================================================
-    // PRIVATE FUNCTIONS (Business Logic & Helpers)
-    //======================================================================
-
-
     private function notifyRelevantUsers(User $targetUser, Notification $notification)
     {
         // 1. Kirim notifikasi ke pengguna target utama.
@@ -733,7 +718,6 @@ class SampleController extends Controller
     /**
      * Memproses satu langkah persetujuan (approve/reject).
      */
-
     private function processApprovalStep(Request $request, ApprovalLog $approvalLog, string $action, ?string $notes)
     {
         DB::beginTransaction();
@@ -929,7 +913,6 @@ class SampleController extends Controller
     }
 
     // --- [BARU] HELPER FUNCTION FOR LOGGING ---
-
     private function logApprovalActivity(Requisition $requisition, User $approver, string $action, ?string $notes, int $level)
     {
         $logMessage = '';
@@ -1214,10 +1197,6 @@ class SampleController extends Controller
         return User::where('name', 'like', '%' . $name . '%')->first() ?? User::where('nik', $fallbackNik)->first();
     }
 
-    //======================================================================
-    // AJAX FUNCTIONS FOR FORM
-    //======================================================================
-
     public function getAllItemMasters()
     {
         return response()->json(ItemMaster::select('id', 'item_master_code', 'item_master_name', 'unit')->get());
@@ -1350,18 +1329,10 @@ class SampleController extends Controller
         return response()->json($responseData);
     }
 
-    //======================================================================
-    // OTHER PUBLIC FUNCTIONS
-    //======================================================================
-
     public function showSuccessPage()
     {
         return session('title') ? view('page.sample.links.response-success') : redirect('/');
     }
-
-    //======================================================================
-    // [BARU] FUNGSI UNTUK HALAMAN REPORT
-    //======================================================================
 
     public function reportsPage()
     {
@@ -1399,7 +1370,6 @@ class SampleController extends Controller
         return $pdf->stream('Bulk-RS-Sample-' . now()->format('Y-m-d') . '.pdf');
     }
 
-    // Ganti nama function biar jelas, parameternya sekarang $id
     public function printReportByEmail($id)
     {
         $requisition = Requisition::findOrFail($id);
@@ -1429,33 +1399,28 @@ class SampleController extends Controller
 
     public function getReportsData(Request $request)
     {
-        $query = Requisition::with(['requester', 'customer']) // Eager load relationships
-            ->where('category', 'SAMPLE')
+        $query = Requisition::with(['requester', 'customer'])
+            ->leftJoin('users', 'requisitions.requester_nik', '=', 'users.nik')
+            ->leftJoin('customers', 'requisitions.customer_id', '=', 'customers.id')
+            ->where('requisitions.category', 'SAMPLE')
             ->select('requisitions.*');
 
-        // Filter based on date range if provided
         if ($request->filled('start_date') && $request->filled('end_date')) {
             try {
                 $startDate = Carbon::createFromFormat('Y-m-d', $request->start_date)->startOfDay();
                 $endDate = Carbon::createFromFormat('Y-m-d', $request->end_date)->endOfDay();
-                $query->whereBetween('request_date', [$startDate, $endDate]);
+                $query->whereBetween('requisitions.request_date', [$startDate, $endDate]);
             } catch (\Exception $e) {
-                Log::error('Invalid date format for report filter: ' . $e->getMessage());
+                Log::error('Invalid date format: ' . $e->getMessage());
             }
         }
 
-        // Filter by user if not a super-admin
         if (!Auth::user()->hasRole('super-admin')) {
-            $query->where('requester_nik', Auth::user()->nik);
+            $query->where('requisitions.requester_nik', Auth::user()->nik);
         }
 
-        // Return the DataTables response without column modifications
         return DataTables::of($query)->make(true);
     }
-
-    //======================================================================
-    // [BARU] FUNGSI-FUNGSI UNTUK HALAMAN Logs INTERNAL
-    //======================================================================
 
     /**
      * Menampilkan halaman daftar logs untuk user yang login.
@@ -1470,15 +1435,8 @@ class SampleController extends Controller
     {
         $query = Activity::with(['causer', 'subject'])
             ->where(function ($q) {
-
-                // 1. Ambil log baru Requisition (cth: 'sample-packaging')
                 $q->where('log_name', 'like', 'sample%')
-
-                // 2. Ambil log baru Approval Path (cth: 'path - sample')
                 ->orWhere('log_name', 'path - sample')
-
-                // 3. Ambil log lama (default) TAPI HANYA JIKA subject-nya
-                //    adalah Requisition DENGAN KATEGORI "Sample"
                 ->orWhere(function ($subQ) {
                     $subQ->where('log_name', 'default')
                          ->where('subject_type', Requisition::class)
@@ -1487,8 +1445,6 @@ class SampleController extends Controller
                          });
                 })
 
-                // 4. Ambil log lama (default) TAPI HANYA JIKA subject-nya
-                //    adalah ApprovalPath DENGAN KATEGORI "Sample"
                 ->orWhere(function ($subQ) {
                     $subQ->where('log_name', 'default')
                          ->where('subject_type', ApprovalPath::class)
@@ -1496,10 +1452,8 @@ class SampleController extends Controller
                              $pathQuery->where('category', 'Sample');
                          });
                 });
-            })
-            ->orderBy('created_at', 'desc');
+            });
 
-        // Terapkan styling dari prompt pengguna
         return DataTables::of($query)
             ->addIndexColumn()
             ->editColumn('log_name', function ($log) {
@@ -1507,17 +1461,15 @@ class SampleController extends Controller
                 $badgeClass = 'bg-dark';
                 $icon = 'ph-scroll';
 
-                // Logika untuk 'path - sample' atau 'default' (jika subject-nya ApprovalPath)
                 if (str_starts_with($logName, 'path') || $log->subject_type === ApprovalPath::class) {
                     $logName = 'path - sample';
-                    $badgeClass = 'bg-dark'; // Badge untuk approval path
+                    $badgeClass = 'bg-dark';
                     $icon = 'ph-git-branch';
                 }
-                // Logika untuk 'sample - ...' atau 'default' (jika subject-nya Requisition)
                 elseif (str_starts_with($logName, 'sample') || $log->subject_type === Requisition::class) {
                     if ($log->subject) {
                         $subCategory = strtolower($log->subject->sub_category);
-                        $logName = 'sample - ' . $subCategory; // Standarkan nama log
+                        $logName = 'sample - ' . $subCategory;
                         switch ($subCategory) {
                             case 'packaging':
                                 $badgeClass = 'bg-warning'; $icon = 'ph-package'; break;
@@ -1529,11 +1481,10 @@ class SampleController extends Controller
                                 $badgeClass = 'bg-primary'; $icon = 'ph-tag'; break;
                         }
                     } else {
-                        $logName = 'sample - (unknown)'; // Jika subject terhapus
+                        $logName = 'sample - (unknown)';
                     }
                 }
 
-                // Fallback untuk log 'default' yang tidak punya subject (seperti log ID 6 di screenshot Anda)
                 if ($logName === 'default') {
                     $logName = 'System Log';
                 }
@@ -1541,17 +1492,13 @@ class SampleController extends Controller
                 return '<span class="status-badge-lg ' . $badgeClass . '"><i class="ph-bold ' . $icon . ' me-1"></i>' . e($logName) . '</span>';
             })
             ->addColumn('subject_info', function ($log) {
-                // Tampilkan No. SRS jika subject-nya Requisition
                 if ($log->subject_type === Requisition::class && $log->subject) {
                     return '<span class="srs-badge">' . e($log->subject->no_srs) . '</span>';
                 }
 
-                // [FIX] Tampilkan Info Path dari relasi ATAU dari properties (jika subject sudah dihapus)
                 if ($log->subject_type === ApprovalPath::class) {
-                    // Coba ambil dari relasi dulu
                     $subCategory = optional($log->subject)->sub_category;
 
-                    // Jika relasi null (karena subject dihapus), coba ambil dari properties
                     if (!$subCategory) {
                         $subCategory = $log->properties->get('sub_category');
                     }
@@ -1562,7 +1509,6 @@ class SampleController extends Controller
 
                 return '<span class="status-badge-lg bg-secondary">N/A</span>';
             })
-            // [BARU] Menambahkan kolom Subject ID yang bisa diklik
             ->addColumn('subject_id', function ($log) {
                 $id = $log->subject_id;
                 if (!$id) {
@@ -1618,10 +1564,6 @@ class SampleController extends Controller
             ->make(true);
     }
 
-    //======================================================================
-    // [BARU] FUNGSI-FUNGSI UNTUK HALAMAN APPROVAL INTERNAL
-    //======================================================================
-
     /**
      * Menampilkan halaman daftar approval untuk user yang login.
      */
@@ -1642,10 +1584,6 @@ class SampleController extends Controller
         ])
         ->join('requisitions', 'approval_logs.requisition_id', '=', 'requisitions.id');
 
-        // =================================================================
-        // LOGIKA INTI: Dibagi berdasarkan Role User
-        // =================================================================
-
         if ($currentUser->hasRole('super-admin')) {
 
         } else {
@@ -1664,7 +1602,7 @@ class SampleController extends Controller
             });
         }
 
-        $query->select('approval_logs.*')->orderBy('approval_logs.id', 'desc');
+        $query->select('approval_logs.*');
 
         return DataTables::of($query)
             ->addIndexColumn()
