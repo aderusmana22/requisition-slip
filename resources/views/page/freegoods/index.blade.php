@@ -26,14 +26,19 @@
             margin-bottom: 1rem;
         }
 
+        /* [CUSTOM STATUS COLORS] - Sesuaikan dengan Approval/Report */
+        .status-pending { background-color: #fd7e14 !important; color: #ffffff !important; border: 1px solid #fd7e14; }
+        .status-processing { background-color: #8B4513 !important; color: #ffffff !important; border: 1px solid #8B4513; } /* Coklat/Bronze */
+        .status-completed { background-color: #198754 !important; color: #ffffff !important; border: 1px solid #198754; }
+        .status-rejected { background-color: #dc3545 !important; color: #ffffff !important; border: 1px solid #dc3545; }
+        .status-default { background-color: #6c757d !important; color: #fff !important; }
+
         /* Style untuk badge Requester */
-        .requester-badge {
-            background-color: #4A5568;
+        .badge-requester {
+            background-color: #343a40; /* Dark/Black like reference */
             color: #ffffff;
-            padding: 0.35em 0.75em;
-            font-size: 0.875rem;
-            font-weight: 600;
-            border-radius: 50rem;
+            padding: 8px 16px;
+            border-radius: 50rem; /* Pill shape */
             display: inline-flex;
             align-items: center;
             gap: 0.4rem;
@@ -134,15 +139,15 @@
                     <table class="w-100 display" id="fgTable">
                         <thead>
                             <tr>
-                                <th>No.</th>
-                                <th>No. FG</th> 
-                                <th>Requester</th>
-                                <th>Customer</th>
-                                <th>Request Date</th>
-                                <th>Category</th>
-                                <th>Route To</th>
-                                <th>Status</th>
-                                <th>Action</th>
+                                <th class="text-center">No.</th>
+                                <th class="text-center">No. FG</th> 
+                                <th class="text-center">Requester</th>
+                                <th class="text-center">Customer</th>
+                                <th class="text-center">Request Date</th>
+                                <th class="text-center">Category</th>
+                                <th class="text-center">Route To</th>
+                                <th class="text-center">Status</th>
+                                <th class="text-center">Action</th>
                             </tr>
                         </thead>
                     </table>
@@ -495,19 +500,19 @@
                             return meta.row + meta.settings._iDisplayStart + 1;
                         }
                     },
-                    { data: 'no_srs', name: 'requisitions.no_srs' },
-                    { data: 'requester_info', name: 'users.name' },
-                    { data: 'customer_name', name: 'customers.name' },
-                    { data: 'request_date', name: 'requisitions.created_at' },
-                    { data: 'sub_category', name: 'requisitions.sub_category' },
-                    { data: 'route_to', name: 'requisitions.route_to' },
-                    { data: 'status', name: 'requisitions.status' },
+                    { data: 'no_srs', name: 'requisitions.no_srs', className: 'text-center align-middle' },
+                    { data: 'requester_info', name: 'users.name', className: 'text-center align-middle' }, // Center & Align Middle
+                    { data: 'customer_name', name: 'customers.name', className: 'text-center align-middle' },
+                    { data: 'request_date', name: 'requisitions.request_date', className: 'text-center align-middle' },
+                    { data: 'sub_category', name: 'requisitions.sub_category', className: 'text-center align-middle' },
+                    { data: 'route_to', name: 'requisitions.route_to', className: 'text-center align-middle' },
+                    { data: 'status', name: 'requisitions.status', className: 'text-center align-middle' },
                     {
                         data: 'action',
                         name: 'action',
                         orderable: false,
                         searchable: false,
-                        className: 'text-center',
+                        className: 'text-center align-middle',
                     }
                 ],
                 // Default sorting terbaru (ID Descending)
@@ -839,14 +844,15 @@
                     viewItemTbody.html(`<tr><td colspan="${colspan}" class="text-center">No items have been added.</td></tr>`);
                 }
 
+                // [UPDATE] Logic Status Color di Modal View
                 const status = data.status;
-                let badgeClass = 'bg-secondary';
-                if (['Submitted', 'Pending'].includes(status)) badgeClass = 'bg-warning';
-                else if (status.includes('Approved') || status === 'Completed') badgeClass = 'bg-success';
-                else if (['Rejected', 'Recalled'].includes(status)) badgeClass = 'bg-danger'; 
-                else if (status === 'Processing' || status === 'In Progress') badgeClass = 'bg-info';
+                let badgeClass = 'status-default';
+                if (['Submitted', 'Pending'].includes(status)) badgeClass = 'status-pending';
+                else if (status.includes('Approved') || status === 'Completed') badgeClass = 'status-completed';
+                else if (['Rejected', 'Recalled'].includes(status)) badgeClass = 'status-rejected'; 
+                else if (status === 'Processing' || status === 'In Progress') badgeClass = 'status-processing';
 
-                $('#view_status_badge').html(`<span class="badge status-badge-lg fs-6 rounded-pill ${badgeClass}">${status}</span>`);
+                $('#view_status_badge').html(`<span class="badge rounded-pill ${badgeClass} text-uppercase px-3 py-2">${status}</span>`);
 
                 const trackerContainer = $('#approval-tracker-container-fg'); 
                 trackerContainer.empty();

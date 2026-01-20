@@ -5,6 +5,157 @@
 
     @include('components.freegoods-table-styles')
 
+    {{-- [CUSTOM STYLES] --}}
+    @push('css')
+    <style>
+        /* 1. STATUS BADGES (Solid Colors with White Text) */
+        .status-pending {
+            background-color: #fd7e14 !important; /* Orange */
+            color: #ffffff !important;
+            border: 1px solid #fd7e14;
+        }
+
+        .status-processing {
+            background-color: #8B4513 !important; /* SaddleBrown / Bronze */
+            color: #ffffff !important;
+            border: 1px solid #8B4513;
+        }
+
+        .status-completed {
+            background-color: #198754 !important; /* Green */
+            color: #ffffff !important;
+            border: 1px solid #198754;
+        }
+
+        .status-rejected {
+            background-color: #dc3545 !important; /* Red */
+            color: #ffffff !important;
+            border: 1px solid #dc3545;
+        }
+
+        .status-default {
+            background-color: #6c757d !important;
+            color: #fff !important;
+        }
+
+        /* 2. BADGE STYLES (LEVEL, APPROVER, REQUESTER) */
+        
+        /* Level (Purple + Star) */
+        .badge-level {
+            background-color: #884dff; /* Ungu */
+            color: #fff;
+            padding: 6px 12px;
+            border-radius: 50rem;
+            font-size: 0.85em;
+            font-weight: 600;
+            box-shadow: 0 2px 5px rgba(136, 77, 255, 0.2);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 70px;
+        }
+
+        /* Approver (Dark Grey Pill) */
+        .badge-approver {
+            background-color: #495057; /* Dark Grey */
+            color: #fff;
+            padding: 6px 16px;
+            border-radius: 50rem;
+            font-size: 0.85em;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            min-width: 100px;
+        }
+
+        /* [NEW] REQUESTER (Dark Pill - Shading) */
+        .badge-requester {
+            background-color: #343a40; /* Dark/Black like reference */
+            color: #ffffff;
+            padding: 8px 16px;
+            border-radius: 50rem; /* Pill shape */
+            display: inline-flex;
+            align-items: center;
+            font-weight: 500;
+            font-size: 0.9em;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+            min-width: 140px; /* Optional: Uniform width */
+        }
+
+        /* 3. PAGINATION FIX */
+        .dataTables_wrapper .dataTables_paginate .paginate_button {
+            padding: 0.5em 1em;
+            margin-left: 2px;
+            display: inline-block;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            background: #fff;
+            color: #6c757d !important;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+            background: #e9ecef !important;
+            color: #000 !important;
+            border: 1px solid #dee2e6;
+        }
+
+        .dataTables_wrapper .dataTables_paginate .paginate_button.current,
+        .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+            background: #198754 !important; /* Hijau Tema */
+            color: #fff !important;
+            border: 1px solid #198754;
+        }
+
+        .dataTables_wrapper .dataTables_paginate .paginate_button.disabled,
+        .dataTables_wrapper .dataTables_paginate .paginate_button.disabled:hover,
+        .dataTables_wrapper .dataTables_paginate .paginate_button.disabled:active {
+            cursor: default;
+            color: #ccc !important;
+            background: transparent !important;
+            border: 1px solid transparent;
+            box-shadow: none;
+        }
+
+        /* 4. TABLE STYLING */
+        table.dataTable thead th {
+            background-color: #343a40; /* Dark Header */
+            color: #fff;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            padding: 12px;
+            border-bottom: 3px solid #cc982f; /* Gold accent */
+        }
+        
+        table.dataTable tbody td {
+            vertical-align: middle;
+            font-size: 0.9rem;
+            padding: 10px;
+        }
+
+        /* Search Clear Icon */
+        .search-container {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+        .search-clear-icon {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #adb5bd;
+            display: none;
+            z-index: 10;
+        }
+    </style>
+    @endpush
+
     <div class="bg-white p-4 rounded shadow-sm">
         <div class="row m-1">
             <div class="col-12">
@@ -24,12 +175,12 @@
                         <p class="table-subtitle">View and process all free goods requisition approval stages.</p>
                     </div>
                     <div class="table-responsive">
-                        <table class="w-100 display" id="fgApprovalTable">
+                        <table class="w-100 display table-hover" id="fgApprovalTable">
                             <thead>
                                 <tr>
                                     <th>No.</th>
                                     <th>FG No.</th>
-                                    <th>Requester</th>
+                                    <th style="min-width: 200px;">Requester</th>
                                     <th>Request Date</th>
                                     <th>Sub Category</th>
                                     <th>Status</th>
@@ -45,53 +196,48 @@
         </div>
     </div>
 
-    {{-- ========================================================== --}}
     {{-- MODAL DETAIL --}}
-    {{-- ========================================================== --}}
     <div class="modal fade" id="viewModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
         <div class="modal-dialog modal-dialog-centered modal-xl">
             <div class="modal-content">
-                <div class="modal-header">
-                     <h5 class="modal-title text-white" id="viewModalLabel"><i class="ph-bold ph-file-text me-2"></i>Free Goods Requisition Details</h5>
+                <div class="modal-header bg-dark text-white">
+                     <h5 class="modal-title" id="viewModalLabel"><i class="ph-bold ph-file-text me-2"></i>Free Goods Requisition Details</h5>
                     <button type="button" class="btn-close btn-close-white m-0 fs-5" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body p-4" style="background-color: #f8f9fa;">
-                    {{-- CARD 1: MAIN REQUISITION DETAILS --}}
-                    <div class="card view-modal-card">
-                        <div class="card-header view-modal-card-header">
-                            {{-- [WARNA] Menggunakan text-warning (Kuning/Emas) --}}
-                            <h5 class="fw-bold text-warning mb-3"><i class="ph-bold ph-identification-card me-2"></i> Requisition Details</h5>
+                    {{-- CARD 1: DETAILS --}}
+                    <div class="card view-modal-card mb-3 shadow-sm border-0">
+                        <div class="card-header bg-transparent border-bottom">
+                            <h5 class="fw-bold text-dark mb-0"><i class="ph-bold ph-identification-card me-2 text-warning"></i> Requisition Details</h5>
                         </div>
                         <div class="card-body p-4">
                             <div class="row g-4">
-                                <div class="col-md-6"><small class="view-label">Category</small><p class="view-data">FREE GOODS</p></div>
-                                <div class="col-md-6"><small class="view-label">Sub Category</small><p class="view-data" id="view_sub_category">-</p></div>
-                                <div class="col-md-3"><small class="view-label">FG No.</small><p class="view-data" id="view_no_srs">-</p></div>
-                                <div class="col-md-3"><small class="view-label">Request Date</small><p class="view-data" id="view_request_date">-</p></div>
-                                <div class="col-md-3"><small class="view-label">Customer Name</small><p class="view-data" id="view_customer_name">-</p></div>
-                                <div class="col-md-3"><small class="view-label">Address</small><p class="view-data" id="view_customer_address">-</p></div>
-                                <div class="col-md-3"><small class="view-label">Account</small><p class="view-data" id="view_account">-</p></div>
-                                <div class="col-md-3"><small class="view-label">Cost Center</small><p class="view-data" id="view_cost_center">-</p></div>
-                                <div class="col-md-6"><small class="view-label">Objectives</small><p class="view-data" id="view_objectives">-</p></div>
-                                <div class="col-md-6"><small class="view-label">Estimated Potential</small><p class="view-data" id="view_estimated_potential">-</p></div>
+                                <div class="col-md-6"><small class="text-muted d-block">Category</small><span class="fw-bold">FREE GOODS</span></div>
+                                <div class="col-md-6"><small class="text-muted d-block">Sub Category</small><span class="fw-bold" id="view_sub_category">-</span></div>
+                                <div class="col-md-3"><small class="text-muted d-block">FG No.</small><span class="fw-bold text-primary" id="view_no_srs">-</span></div>
+                                <div class="col-md-3"><small class="text-muted d-block">Request Date</small><span class="fw-bold" id="view_request_date">-</span></div>
+                                <div class="col-md-3"><small class="text-muted d-block">Customer Name</small><span class="fw-bold" id="view_customer_name">-</span></div>
+                                <div class="col-md-3"><small class="text-muted d-block">Address</small><span class="fw-bold" id="view_customer_address">-</span></div>
+                                <div class="col-md-3"><small class="text-muted d-block">Account</small><span class="fw-bold" id="view_account">-</span></div>
+                                <div class="col-md-3"><small class="text-muted d-block">Cost Center</small><span class="fw-bold" id="view_cost_center">-</span></div>
+                                <div class="col-md-6"><small class="text-muted d-block">Objectives</small><span class="fw-bold" id="view_objectives">-</span></div>
+                                <div class="col-md-6"><small class="text-muted d-block">Estimated Potential</small><span class="fw-bold" id="view_estimated_potential">-</span></div>
                             </div>
                         </div>
                     </div>
 
-                    {{-- CARD 2: REQUESTED ITEM LIST (READ ONLY) --}}
-                    <div class="card view-modal-card">
-                         {{-- [WARNA] text-warning --}}
-                         <div class="card-header"><h5 class="fw-bold text-warning mb-3"><i class="ph-bold  ph-list me-2"></i>Requested Item List</h5></div>
-                        <div class="card-body p-1">
+                    {{-- CARD 2: ITEMS --}}
+                    <div class="card view-modal-card mb-3 shadow-sm border-0">
+                         <div class="card-header bg-transparent border-bottom"><h5 class="fw-bold text-dark mb-0"><i class="ph-bold  ph-list me-2 text-warning"></i>Requested Item List</h5></div>
+                        <div class="card-body p-0">
                             <div class="table-responsive">
-                                <table class="table table-bordered w-100 mb-1">
-                                    <thead class="thead-dark">
+                                <table class="table table-striped mb-0">
+                                    <thead class="bg-light">
                                         <tr>
-                                            <th>Item Code</th>
+                                            <th class="ps-4">Item Code</th>
                                             <th>Item Name</th>
                                             <th>Unit</th>
-                                            <th class="text-center">Qty Required</th>
-                                            {{-- Qty Issued hidden di sini, hanya tampil di form warehouse --}}
+                                            <th class="text-center pe-4">Qty Required</th>
                                         </tr>
                                     </thead>
                                     <tbody id="view-items-tbody-fg"></tbody>
@@ -100,48 +246,39 @@
                         </div>
                     </div>
 
-                    {{-- CARD 3: APPROVAL TRACKING --}}
-                    <div class="card view-modal-card">
-                        <div class="card-header view-modal-card-header">
-                            {{-- [WARNA] text-warning --}}
-                            <h5 class="fw-bold text-warning mb-3"><i class="ph-bold ph-path me-2"></i> Approval & Process Tracking</h5>
+                    {{-- CARD 3: TRACKER --}}
+                    <div class="card view-modal-card mb-3 shadow-sm border-0">
+                        <div class="card-header bg-transparent border-bottom">
+                            <h5 class="fw-bold text-dark mb-0"><i class="ph-bold ph-path me-2 text-warning"></i> Approval & Process Tracking</h5>
                         </div>
                         <div class="card-body p-4">
                             <div class="d-flex align-items-center mb-4">
                                 <span class="fw-bold me-3">Current Status:</span>
                                 <div id="view_status_badge"></div>
                             </div>
-                            <div class="tracker-container" id="approval-tracker-container-fg">
-                                {{-- Tracker Generated by JS --}}
-                            </div>
+                            <div class="tracker-container" id="approval-tracker-container-fg"></div>
                         </div>
                     </div>
 
-                    {{-- CARD 4: REQUISITION HISTORY --}}
-                    <div class="card view-modal-card">
-                        <div class="card-header view-modal-card-header">
-                            {{-- [WARNA] text-warning --}}
-                            <h5 class="fw-bold text-warning mb-3"><i class="ph-bold ph-clock-counter-clockwise me-2"></i> Requisition History</h5>
+                    {{-- CARD 4: HISTORY --}}
+                    <div class="card view-modal-card shadow-sm border-0">
+                        <div class="card-header bg-transparent border-bottom">
+                            <h5 class="fw-bold text-dark mb-0"><i class="ph-bold ph-clock-counter-clockwise me-2 text-warning"></i> Requisition History</h5>
                         </div>
                         <div class="card-body p-4">
-                            <ul class="list-group list-group-flush" id="history-log-container">
-                                {{-- History Generated by JS --}}
-                            </ul>
+                            <ul class="list-group list-group-flush" id="history-log-container"></ul>
                         </div>
                     </div>
 
-                    {{-- Container untuk form aksi (approve/reject/qty input) --}}
                     <div id="viewModalActionFormContainer" class="mt-4"></div>
                 </div>
                 
-                {{-- FOOTER MODAL --}}
                 <div class="modal-footer" id="viewModalFooter">
-                    <button class="btn btn-light-secondary" data-bs-dismiss="modal" type="button">Close</button>
+                    <button class="btn btn-secondary" data-bs-dismiss="modal" type="button">Close</button>
                 </div>
             </div>
         </div>
     </div>
-
 
     @push('scripts')
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -152,18 +289,67 @@
                     serverSide: true,
                     ajax: "{{ route('freegoods.approval.data') }}",
                     columns: [
-                        { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false, width: '20px', className: 'text-center' },
+                        { 
+                            data: 'id', 
+                            name: 'approval_logs.id', 
+                            orderable: true, 
+                            searchable: false, 
+                            width: '20px', 
+                            className: 'text-center',
+                            render: function (data, type, row, meta) {
+                                return meta.row + meta.settings._iDisplayStart + 1;
+                            }
+                        },
                         { data: 'no_srs', name: 'requisition.no_srs' },
                         { data: 'requester', name: 'requisition.requester.name' },
                         { data: 'request_date', name: 'requisition.request_date' },
                         { data: 'sub_category', name: 'requisition.sub_category', className: 'text-center' },
                         { data: 'status', name: 'requisition.status', className: 'text-center' },
-                        { data: 'approver_nik', name: 'approver_nik' },
+                        { data: 'approver_nik', name: 'approver_nik', className: 'text-center' }, 
                         { data: 'level', name: 'level', className: 'text-center' },
                         { data: 'action', name: 'action', orderable: false, searchable: false, className: 'text-center', width: '120px' }
                     ],
+                    order: [[0, 'desc']], 
+                    
+                    // RE-INIT TOOLTIPS ON DRAW
+                    drawCallback: function() {
+                        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+                        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                            return new bootstrap.Tooltip(tooltipTriggerEl)
+                        })
+                    },
+                    // ICON UNTUK PREV/NEXT
+                    language: {
+                        paginate: {
+                            previous: '<i class="ph-bold ph-caret-left"></i>',
+                            next: '<i class="ph-bold ph-caret-right"></i>'
+                        }
+                    }
                 });
 
+                // SEARCH WITH 'X' BUTTON
+                const filterInput = $('#fgApprovalTable_filter input');
+                if (filterInput.parent().find('.search-container').length === 0) {
+                    filterInput.unbind();
+                    const wrapper = $('<div class="search-container"></div>');
+                    filterInput.wrap(wrapper);
+                    filterInput.attr({ 'placeholder': 'Search approvals...', 'class': 'form-control ps-3 pe-5' });
+                    $('<i class="ph-bold ph-x search-clear-icon" title="Clear Search"></i>').insertAfter(filterInput);
+                }
+                const clearIcon = $('.search-clear-icon');
+                let debounceTimer;
+                filterInput.on('keyup input', function (e) {
+                    const val = $(this).val();
+                    if (val.length > 0) clearIcon.show(); else clearIcon.hide();
+                    clearTimeout(debounceTimer);
+                    debounceTimer = setTimeout(function () { table.search(val).draw(); }, 500);
+                });
+                $(document).on('click', '.search-clear-icon', function() {
+                    filterInput.val('').trigger('input');
+                    table.search('').draw();
+                });
+
+                // POPULATE VIEW FORM
                 function populateViewForm(data) {
                     $('#view_sub_category').text(data.sub_category || '-');
                     $('#view_customer_name').text(data.customer ? data.customer.name : '-');
@@ -182,22 +368,22 @@
                             let itemCode = item.item_master ? item.item_master.item_master_code : 'N/A';
                             let itemName = item.item_master ? item.item_master.item_master_name : 'N/A';
                             let unit = item.item_master ? item.item_master.unit : 'N/A';
-                            
-                            // [UPDATE] Tidak menampilkan Qty Issued di sini
-                            const newRow = `<tr><td>${itemCode}</td><td>${itemName}</td><td>${unit}</td><td class="text-center">${item.quantity_required}</td></tr>`;
+                            const newRow = `<tr><td class="ps-4">${itemCode}</td><td>${itemName}</td><td>${unit}</td><td class="text-center pe-4">${item.quantity_required}</td></tr>`;
                             viewItemTbody.append(newRow);
                         });
                     } else {
                         viewItemTbody.html(`<tr><td colspan="4" class="text-center">No items have been added.</td></tr>`);
                     }
 
+                    // MODAL STATUS BADGE LOGIC
                     const status = data.status;
-                    let badgeClass = 'bg-secondary';
-                    if (['Submitted', 'Pending'].includes(status)) badgeClass = 'bg-warning';
-                    else if (status.includes('Approved') || status === 'Completed') badgeClass = 'bg-success';
-                    else if (['Rejected', 'Cancelled', 'Recalled'].includes(status)) badgeClass = 'bg-danger';
-                    else if (status === 'Processing' || status === 'In Progress') badgeClass = 'bg-info';
-                    $('#view_status_badge').html(`<span class="badge status-badge-lg fs-6 rounded-pill ${badgeClass}">${status}</span>`);
+                    let badgeClass = 'status-default';
+                    if (['Submitted', 'Pending'].includes(status)) badgeClass = 'status-pending';
+                    else if (['Approved', 'Completed'].includes(status)) badgeClass = 'status-completed';
+                    else if (['Rejected', 'Cancelled', 'Recalled'].includes(status)) badgeClass = 'status-rejected';
+                    else if (['Processing', 'In Progress'].includes(status)) badgeClass = 'status-processing';
+                    
+                    $('#view_status_badge').html(`<span class="badge rounded-pill ${badgeClass} text-uppercase px-3 py-2">${status}</span>`);
 
                     const trackerContainer = $('#approval-tracker-container-fg');
                     trackerContainer.empty();
@@ -262,10 +448,10 @@
                         data.history.forEach(log => {
                             let badgeClass = 'badge-created', avatarClass = 'avatar-created';
                             const action = log.action.toLowerCase();
-                            if (action.includes('approved not review') || action.includes('approved')) { badgeClass = 'badge-approved'; avatarClass = 'avatar-approved'; }
-                            else if (action.includes('approved with review')) { badgeClass = 'badge-review'; avatarClass = 'avatar-review'; }
+                            if (action.includes('approved')) { badgeClass = 'badge-approved'; avatarClass = 'avatar-approved'; }
                             else if (action.includes('rejected') || action.includes('cancelled') || action.includes('recalled')) { badgeClass = 'badge-rejected'; avatarClass = 'avatar-rejected'; }
                             else if (action.includes('completed step')) { badgeClass = 'badge-process'; avatarClass = 'avatar-process'; }
+                            
                             const logDate = new Date(log.timestamp).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
                             const notesHtml = log.notes ? `<div class="history-notes">"${log.notes}"</div>` : '';
                             const historyItem = `<li class="list-group-item history-item"><div class="history-avatar ${avatarClass}">${log.actor.charAt(0).toUpperCase()}</div><div class="history-content"><div class="history-actor">${log.actor}</div>${notesHtml}</div><div class="history-meta"><div class="history-badge ${badgeClass}">${log.action}</div><div class="history-timestamp">${logDate}</div></div></li>`;
@@ -276,6 +462,7 @@
                     }
                 }
 
+                // EVENTS
                 $('#fgApprovalTable').on('click', '.action-btn', function(e) {
                     e.preventDefault();
                     const button = $(this);
@@ -345,8 +532,6 @@
 
                             $('#viewModalLabel').text(`${modalTitle}: ${srs}`);
 
-                            // Logic Tabel Input Qty Issued (Hanya muncul jika warehouse update)
-                            // [WARNA] Menggunakan text-warning (Emas)
                             let itemInputsHtml = '';
                             if (!isReject && response.requisition_items && response.requisition_items.length > 0) {
                                 itemInputsHtml += `
@@ -411,7 +596,6 @@
 
                                     <div class="card view-modal-card mt-3">
                                         <div class="card-header view-modal-card-header border-bottom">
-                                            {{-- [WARNA] text-warning --}}
                                             <h5 class="fw-bold text-warning mb-0"><i class="ph-bold ph-note-pencil me-2"></i>Notes</h5>
                                         </div>
                                         <div class="card-body p-4">

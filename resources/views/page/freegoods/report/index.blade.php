@@ -10,6 +10,20 @@
         <link rel="stylesheet" href="{{ asset('assets/vendor/select/select2.min.css') }}">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+
+        <style>
+            /* Search Clear Icon */
+            .search-container { position: relative; display: inline-block; width: 100%; }
+            .search-clear-icon { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #adb5bd; display: none; z-index: 10; transition: color 0.2s; font-size: 1rem; }
+            .search-clear-icon:hover { color: #dc3545; }
+
+            /* [CUSTOM STATUS COLORS] */
+            .status-pending { background-color: #fd7e14 !important; color: #ffffff !important; border: 1px solid #fd7e14; }
+            .status-processing { background-color: #8B4513 !important; color: #ffffff !important; border: 1px solid #8B4513; } /* Coklat/Bronze */
+            .status-completed { background-color: #198754 !important; color: #ffffff !important; border: 1px solid #198754; }
+            .status-rejected { background-color: #dc3545 !important; color: #ffffff !important; border: 1px solid #dc3545; }
+            .status-default { background-color: #6c757d !important; color: #fff !important; }
+        </style>
     @endpush
 
     <div class="row m-1">
@@ -77,13 +91,13 @@
                                 <th class="text-center" style="width: 20px;">
                                     <input class="form-check-input" type="checkbox" id="select-all-checkbox">
                                 </th>
-                                <th>FG No.</th>
-                                <th>Requester</th>
-                                <th>Customer</th>
-                                <th>Request Date</th>
-                                <th>Sub Category</th>
-                                <th>Status</th>
-                                <th>Actions</th>
+                                <th class="text-center">FG No.</th>
+                                <th class="text-center">Requester</th>
+                                <th class="text-center">Customer</th>
+                                <th class="text-center">Request Date</th>
+                                <th class="text-center">Sub Category</th>
+                                <th class="text-center">Status</th>
+                                <th class="text-center">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -110,47 +124,16 @@
                         </div>
                         <div class="card-body p-4">
                             <div class="row g-4">
-                                <div class="col-md-6">
-                                    <small class="view-label">Category</small>
-                                    <p class="view-data">FREE GOODS</p>
-                                </div>
-                                <div class="col-md-6">
-                                    <small class="view-label">Sub Category</small>
-                                    <p class="view-data" id="view_sub_category">-</p>
-                                </div>
-                                <div class="col-md-3">
-                                    <small class="view-label">FG No.</small>
-                                    <p class="view-data" id="view_no_srs">-</p>
-                                </div>
-                                <div class="col-md-3">
-                                    <small class="view-label">Request Date</small>
-                                    <p class="view-data" id="view_request_date">-</p>
-                                </div>
-                                <div class="col-md-3">
-                                    <small class="view-label">Customer Name</small>
-                                    <p class="view-data" id="view_customer_name">-</p>
-                                </div>
-                                <div class="col-md-3">
-                                    <small class="view-label">Address</small>
-                                    <p class="view-data" id="view_customer_address">-</p>
-                                </div>
-                                <div class="col-md-3">
-                                    <small class="view-label">Account</small>
-                                    <p class="view-data" id="view_account">-</p>
-                                </div>
-                                <div class="col-md-3">
-                                    <small class="view-label">Cost Center</small>
-                                    <p class="view-data" id="view_cost_center">-</p>
-                                </div>
-
-                                <div class="col-md-3">
-                                    <small class="view-label">Objectives</small>
-                                    <p class="view-data" id="view_objectives">-</p>
-                                </div>
-                                <div class="col-md-3">
-                                    <small class="view-label">Estimated Potential</small>
-                                    <p class="view-data" id="view_estimated_potential">-</p>
-                                </div>
+                                <div class="col-md-6"><small class="view-label">Category</small><p class="view-data">FREE GOODS</p></div>
+                                <div class="col-md-6"><small class="view-label">Sub Category</small><p class="view-data" id="view_sub_category">-</p></div>
+                                <div class="col-md-3"><small class="view-label">FG No.</small><p class="view-data" id="view_no_srs">-</p></div>
+                                <div class="col-md-3"><small class="view-label">Request Date</small><p class="view-data" id="view_request_date">-</p></div>
+                                <div class="col-md-3"><small class="view-label">Customer Name</small><p class="view-data" id="view_customer_name">-</p></div>
+                                <div class="col-md-3"><small class="view-label">Address</small><p class="view-data" id="view_customer_address">-</p></div>
+                                <div class="col-md-3"><small class="view-label">Account</small><p class="view-data" id="view_account">-</p></div>
+                                <div class="col-md-3"><small class="view-label">Cost Center</small><p class="view-data" id="view_cost_center">-</p></div>
+                                <div class="col-md-3"><small class="view-label">Objectives</small><p class="view-data" id="view_objectives">-</p></div>
+                                <div class="col-md-3"><small class="view-label">Estimated Potential</small><p class="view-data" id="view_estimated_potential">-</p></div>
                             </div>
                         </div>
                     </div>
@@ -190,7 +173,6 @@
                             </div>
                             <div class="tracker-container" id="approval-tracker-container">
                                 <div class="tracker-line"><div class="tracker-line-progress" id="tracker-progress"></div></div>
-                                {{-- Steps di-inject via JS --}}
                             </div>
                         </div>
                     </div>
@@ -201,9 +183,7 @@
                             <h5 class="fw-bold text-success mb-3"><i class="ph-bold ph-clock-counter-clockwise me-2"></i> Requisition History</h5>
                         </div>
                         <div class="card-body p-4">
-                            <ul class="list-group list-group-flush" id="history-log-container">
-                                {{-- History di-inject via JS --}}
-                            </ul>
+                            <ul class="list-group list-group-flush" id="history-log-container"></ul>
                         </div>
                     </div>
                 </div>
@@ -222,11 +202,7 @@
 
     <script>
         function errorMessage(message) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: message
-            });
+            Swal.fire({ icon: 'error', title: 'Error', text: message });
         }
 
         $(document).ready(function () {
@@ -260,7 +236,6 @@
                 autoUpdateInput: false 
             }, cb);
 
-            // Set initial blank logic or default logic
             $('#reportrange span').html('Filter by Request Date');
 
             $('#reportrange').on('apply.daterangepicker', function(ev, picker) {
@@ -286,46 +261,63 @@
                         d.start_date = $('#start_date').val();
                         d.end_date = $('#end_date').val();
                     },
-                    error: function(xhr, error, code) {
-                        console.error('DataTable Error:', error);
-                    }
+                    error: function(xhr, error, code) { console.error('DataTable Error:', error); }
                 },
                 columns: [
                     {
                         data: 'id',
                         orderable: false,
                         searchable: false,
-                        className: 'text-center',
+                        className: 'text-center align-middle', // Center Checkbox
                         render: function (data) {
                             return `<input type="checkbox" class="requisition-checkbox form-check-input" value="${data}">`;
                         }
                     },
-                    { data: 'no_srs', name: 'no_srs' },
-                    { data: 'requester_info', name: 'requester.name' },
-                    { data: 'customer_name', name: 'customer.name' },
-                    { data: 'request_date', name: 'request_date' },
-                    { data: 'sub_category', name: 'sub_category' },
-                    { data: 'status', name: 'status' },
+                    { data: 'no_srs', name: 'no_srs', className: 'align-middle text-center' },
+                    { data: 'requester_info', name: 'requester.name', className: 'text-center align-middle' }, // Center Requester
+                    { data: 'customer_name', name: 'customer.name', className: 'text-center align-middle' }, // Center Customer
+                    { data: 'request_date', name: 'request_date', className: 'text-center align-middle' }, // Center Date
+                    { data: 'sub_category', name: 'sub_category', className: 'text-center align-middle' }, // Center Category
+                    { data: 'status', name: 'status', className: 'text-center align-middle' }, // Center Status
                     {
                         data: null,
                         orderable: false,
                         searchable: false,
+                        className: 'text-center align-middle', // Center Actions
                         render: function (data, type, row) {
-                            return `
-                                <button type="button" class="btn btn-sm btn-info btn-view-requisition" data-id="${row.id}">
-                                    <i class="ph-duotone ph-eye"></i>
-                                </button>
-                            `;
+                            return `<button type="button" class="btn btn-sm btn-info btn-view-requisition" data-id="${row.id}"><i class="ph-duotone ph-eye"></i></button>`;
                         }
                     }
                 ],
-                order: [[4, 'desc']], // Request Date
+                order: [[4, 'desc']], 
                 drawCallback: function() {
                     updateSelectedCount();
                 }
             });
 
-            // === Checkbox Logic ===
+            // Search Logic
+            const filterInput = $('#freegoodsReportTable_filter input');
+            if (filterInput.parent().find('.search-container').length === 0) {
+                filterInput.unbind();
+                const wrapper = $('<div class="search-container"></div>');
+                filterInput.wrap(wrapper);
+                filterInput.attr({ 'placeholder': 'Search reports...', 'class': 'form-control ps-3 pe-5' });
+                $('<i class="ph-bold ph-x search-clear-icon" title="Clear Search"></i>').insertAfter(filterInput);
+            }
+            const clearIcon = $('.search-clear-icon');
+            let debounceTimer;
+            filterInput.on('keyup input', function (e) {
+                const val = $(this).val();
+                if (val.length > 0) clearIcon.show(); else clearIcon.hide();
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(function () { table.search(val).draw(); }, 500);
+            });
+            $(document).on('click', '.search-clear-icon', function() {
+                filterInput.val('').trigger('input');
+                table.search('').draw();
+            });
+
+            // Checkbox Logic
             function updateSelectedCount() {
                 const selectedCheckboxes = $('.requisition-checkbox:checked');
                 const selectedCount = selectedCheckboxes.length;
@@ -337,20 +329,16 @@
                     $('#hidden-ids-container').append(`<input type="hidden" name="ids[]" value="${$(this).val()}">`);
                 });
             }
-
             $('#select-all-checkbox').on('click', function() {
                 $('.requisition-checkbox').prop('checked', this.checked);
                 updateSelectedCount();
             });
-
             $('#freegoodsReportTable tbody').on('change', '.requisition-checkbox', function() {
                 updateSelectedCount();
-                if (!this.checked) {
-                    $('#select-all-checkbox').prop('checked', false);
-                }
+                if (!this.checked) $('#select-all-checkbox').prop('checked', false);
             });
 
-            // === Detail Modal Logic ===
+            // Modal Logic
             function populateViewForm(data) {
                 $('#view_sub_category').text(data.sub_category || 'General Request');
                 $('#view_customer_name').text(data.customer ? data.customer.name : '-');
@@ -362,7 +350,6 @@
                 $('#view_objectives').text(data.objectives || '-');
                 $('#view_estimated_potential').text(data.estimated_potential || '-');
 
-                // Items
                 const viewItemTbody = $('#view-items-tbody');
                 viewItemTbody.empty();
                 if (data.requisition_items && data.requisition_items.length > 0) {
@@ -373,11 +360,8 @@
                         const newRow = `<tr><td>${itemCode}</td><td>${itemName}</td><td>${unit}</td><td class="text-center">${item.quantity_required}</td><td class="text-center">${item.quantity_issued || '-'}</td></tr>`;
                         viewItemTbody.append(newRow);
                     });
-                } else {
-                    viewItemTbody.html(`<tr><td colspan="5" class="text-center">No items found.</td></tr>`);
-                }
+                } else viewItemTbody.html(`<tr><td colspan="5" class="text-center">No items found.</td></tr>`);
 
-                // Status
                 const status = data.status;
                 let badgeClass = 'bg-secondary';
                 if (['Submitted', 'Pending'].includes(status)) badgeClass = 'bg-warning';
@@ -386,25 +370,21 @@
                 else if (status === 'Processing' || status === 'In Progress') badgeClass = 'bg-info';
                 $('#view_status_badge').html(`<span class="badge fs-6 rounded-pill ${badgeClass}">${status}</span>`);
 
-                // Tracker (Simplified for Free Goods)
                 const trackerContainer = $('#approval-tracker-container');
                 trackerContainer.empty();
                 let steps = [
                     { id: 'submitted', label: 'Request Submit', icon: 'ph-file-arrow-up' },
-                    // Asumsi: Free Goods punya Manager -> Controller -> Warehouse -> Completed
                     { id: 'approver_1', label: 'Manager', icon: 'ph-user' },
                     { id: 'approver_2', label: 'Business Controller', icon: 'ph-briefcase' },
                     { id: 'outward', label: 'Warehouse Outward', icon: 'ph-package' },
                     { id: 'completed', label: 'Completed', icon: 'ph-check-circle' }
                 ];
-
                 let trackerHtml = '<div class="tracker-line"><div class="tracker-line-progress" id="tracker-progress"></div></div>';
                 steps.forEach(step => {
                     trackerHtml += `<div class="tracker-step" data-step-id="${step.id}"><div class="tracker-icon"><i class="ph-bold ${step.icon} fs-6"></i></div><div class="tracker-label">${step.label}</div><div class="tracker-details"></div></div>`;
                 });
                 trackerContainer.html(trackerHtml);
 
-                // Simple Tracker Active Logic (Visual Only based on status for now)
                 let activeIndex = 0;
                 if (status === 'Completed') activeIndex = 4;
                 else if (status === 'Processing') activeIndex = 3;
@@ -416,11 +396,8 @@
                     $('.tracker-step').each(function(index) {
                         if (index <= activeIndex) $(this).addClass('completed');
                     });
-                } else {
-                     $('.tracker-step').first().addClass('rejected');
-                }
+                } else $('.tracker-step').first().addClass('rejected');
 
-                // History
                 const historyContainer = $('#history-log-container');
                 historyContainer.empty();
                 if (data.history && data.history.length > 0) {
@@ -449,12 +426,8 @@
                         populateViewForm(response);
                         $('#viewModal').modal('show');
                     },
-                    error: function() {
-                        errorMessage('Failed to fetch requisition details.');
-                    },
-                    complete: function() {
-                        button.html(originalIcon).prop('disabled', false);
-                    }
+                    error: function() { errorMessage('Failed to fetch requisition details.'); },
+                    complete: function() { button.html(originalIcon).prop('disabled', false); }
                 });
             });
         });
