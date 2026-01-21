@@ -287,6 +287,9 @@
                         name: 'created_at',
                         width: '15%',
                         render: function (data, type, row) {
+                            if (type === 'sort' || type === 'type') {
+                                return data;
+                            }
                             return formatDateTime(data);
                         }
                     },
@@ -299,7 +302,7 @@
                         render: function (data, type, row) {
                             return `
                                 <div class="action-btn-group">
-                                    <button type="button" class="btn btn-info btn-sm detail-button action-btn-hover" 
+                                    <button type="button" class="btn btn-info btn-sm detail-button action-btn-hover"
                                             data-activity='${JSON.stringify(row)}'
                                             data-tooltip="View Details">
                                         <i class="ph-duotone ph-eye"></i>
@@ -309,7 +312,7 @@
                         }
                     }
                 ],
-                order: [[5, 'desc']],
+                order: [[4, 'desc']],
                 pageLength: 25,
                 responsive: true
             });
@@ -317,7 +320,8 @@
             let searchInput = $('#complainLogTable_filter input');
             searchInput.unbind();
             let debounceTimer;
-            searchInput.bind('keyup', function (e) {
+
+            searchInput.on('keyup search input', function (e) {
                 clearTimeout(debounceTimer);
                 debounceTimer = setTimeout(function () {
                     let searchTerm = searchInput.val();

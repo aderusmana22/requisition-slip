@@ -577,7 +577,7 @@
                 container.append(`
                     <div class="col-md-3 mb-3">
                         <div class="card">
-                            <img src="${imageUrl}" class="card-img-top image-clickable" 
+                            <img src="${imageUrl}" class="card-img-top image-clickable"
                                 style="height: 200px; object-fit: cover; cursor: pointer;"
                                 alt="Complain Image ${index + 1}"
                                 data-image-src="${imageUrl}"
@@ -713,7 +713,7 @@
             let isAdmin = false; // Variable to store admin status
 
             const table = $('#approvalTable').DataTable({
-                processing: false,
+                processing: true,
                 serverSide: false,
                 ajax: {
                     url: approvalDataUrl,
@@ -758,6 +758,11 @@
                     {
                         data: 'requisition_details.updated_at',
                         render: (data) => {
+                            if (type === 'sort' || type === 'type') {
+                                return data;
+                            }
+
+                            // Jika type 'display', baru format ke teks "ago"
                             if (!data) return 'N/A';
 
                             const diffInSeconds = Math.floor((new Date() - new Date(data)) / 1000);
@@ -799,11 +804,11 @@
 
                             // Jika ada token, tampilkan button actions
                             let buttons = `
-                                <button type="button" class="btn btn-info btn-sm detail-button action-btn-hover" 
+                                <button type="button" class="btn btn-info btn-sm detail-button action-btn-hover"
                                         data-id="${row.requisition_id}" data-tooltip="View Details">
                                     <i class="ph-duotone ph-eye"></i>
                                 </button>
-                                <button type="button" class="btn btn-primary btn-sm review-button action-btn-hover" 
+                                <button type="button" class="btn btn-primary btn-sm review-button action-btn-hover"
                                         data-token="${token}" data-tooltip="Review with Notes">
                                     <i class="ph-duotone ph-note"></i>
                                 </button>
@@ -812,7 +817,7 @@
                             // Jika user adalah admin, tambahkan tombol resend
                             if (isAdmin) {
                                 buttons += `
-                                    <button type="button" class="btn btn-warning btn-sm resend-button action-btn-hover" 
+                                    <button type="button" class="btn btn-warning btn-sm resend-button action-btn-hover"
                                             data-token="${token}" data-tooltip="Resend Email">
                                         <i class="ph-duotone ph-paper-plane-tilt"></i>
                                     </button>
@@ -824,7 +829,7 @@
                         width: '15%'
                     }
                 ],
-                order: [[4, 'desc']],
+                order: [[5, 'desc']],
                 responsive: true,
                 language: {
                     processing: '<div class="d-flex justify-content-center"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>',
@@ -833,11 +838,15 @@
                 }
             });
 
-            const searchInput = $('#approvalTable_filter input').unbind();
+            const searchInput = $('#approvalTable_filter input');
+            searchInput.unbind();
             let debounceTimer;
-            searchInput.on('keyup', function() {
+
+            searchInput.on('keyup search input', function() {
                 clearTimeout(debounceTimer);
-                debounceTimer = setTimeout(() => table.search($(this).val()).draw(), 500);
+                debounceTimer = setTimeout(() => {
+                    table.search($(this).val()).draw();
+                }, 500);
             });
 
             // === Custom Tooltip System ===
