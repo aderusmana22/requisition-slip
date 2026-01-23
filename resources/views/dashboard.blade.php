@@ -3,6 +3,7 @@
     @section('title')
         Dashboard Requisition Slip
     @endsection
+    @include('components.sample-table-styles')
 
     <div class="row mb-3 align-items-center">
         <div class="col-md-7">
@@ -110,7 +111,7 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    <div id="monthlyRequisitionChart" style="min-height: 350px;"></div>
+                    <div id="monthlyRequisitionChart" style="min-height: 21.875rem;"></div>
                 </div>
             </div>
         </div>
@@ -122,11 +123,11 @@
                 <div class="col-12 mb-1">
                      <div class="card h-100 ticket-card bg-primary text-white shadow-lg">
                         <div class="card-body">
-                            <div class="d-flex-center bg-white mb-2" style="width: 45px; height: 45px; border-radius: 12px;">
+                            <div class="d-flex-center bg-white mb-2" style="width: 2.8125rem; height: 2.8125rem; border-radius: .75rem;">
                                 <i class="ti ti-files fs-3 text-primary"></i>
                             </div>
                             <p class="fs-6 mb-0">Total Created</p>
-                            <small class="d-block mb-2" style="font-size: 0.75rem; opacity: 0.8;">Semua requisition yang pernah dibuat.</small>
+                            <small class="d-block mb-2" style="font-size: 12px; opacity: 0.8;">Semua requisition yang pernah dibuat.</small>
                             <h3 class="mb-0" id="summaryCreated">0</h3>
                         </div>
                     </div>
@@ -136,11 +137,11 @@
                 <div class="col-sm-6 mb-1">
                     <div class="card h-100 ticket-card bg-light-success">
                         <div class="card-body">
-                            <div class="d-flex-center bg-white mb-2" style="width: 45px; height: 45px; border-radius: 12px;">
+                            <div class="d-flex-center bg-white mb-2" style="width: 2.8125rem; height: 2.8125rem; border-radius: .75rem;">
                                 <i class="ti ti-check fs-3 text-success"></i>
                             </div>
                             <p class="fs-6 text-muted mb-0">Approved</p>
-                            <small class="text-muted d-block mb-2" style="font-size: 0.75rem;">Siap diproses warehouse/QA.</small>
+                            <small class="text-muted d-block mb-2" style="font-size: 12px;">Siap diproses warehouse/QA.</small>
                             <h3 class="text-success-dark mb-0" id="summaryApproved">0</h3>
                         </div>
                     </div>
@@ -148,11 +149,11 @@
                 <div class="col-sm-6 mb-1">
                     <div class="card h-100 ticket-card bg-light-dark">
                         <div class="card-body">
-                            <div class="d-flex-center bg-white mb-2" style="width: 45px; height: 45px; border-radius: 12px;">
+                            <div class="d-flex-center bg-white mb-2" style="width: 2.8125rem; height: 2.8125rem; border-radius: .75rem;">
                                 <i class="ti ti-package-export fs-3 text-dark"></i>
                             </div>
                             <p class="fs-6 text-muted mb-0">Completed</p>
-                            <small class="text-muted d-block mb-2" style="font-size: 0.75rem;">Selesai proses warehouse/QA.</small>
+                            <small class="text-muted d-block mb-2" style="font-size: 12px;">Selesai proses warehouse/QA.</small>
                             <h3 class="text-dark mb-0" id="summaryCompleted">0</h3>
                         </div>
                     </div>
@@ -160,11 +161,11 @@
                 <div class="col-sm-6 mb-1">
                     <div class="card h-100 ticket-card bg-light-info">
                         <div class="card-body">
-                            <div class="d-flex-center bg-white mb-2" style="width: 45px; height: 45px; border-radius: 12px;">
+                            <div class="d-flex-center bg-white mb-2" style="width: 2.8125rem; height: 2.8125rem; border-radius: .75rem;">
                                 <i class="ti ti-loader-2 fs-3 text-info"></i>
                             </div>
                             <p class="fs-6 text-muted mb-0">In Progress</p>
-                            <small class="text-muted d-block mb-2" style="font-size: 0.75rem;">Dalam proses approval.</small>
+                            <small class="text-muted d-block mb-2" style="font-size: 12px;">Dalam proses approval.</small>
                             <h3 class="text-info-dark mb-0" id="summaryInProgress">0</h3>
                         </div>
                     </div>
@@ -172,11 +173,11 @@
                 <div class="col-sm-6 mb-1">
                     <div class="card h-100 ticket-card bg-light-warning">
                         <div class="card-body">
-                            <div class="d-flex-center bg-white mb-2" style="width: 45px; height: 45px; border-radius: 12px;">
+                            <div class="d-flex-center bg-white mb-2" style="width: 2.8125rem; height: 2.8125rem; border-radius: .75rem;">
                                 <i class="ti ti-clock fs-3 text-warning"></i>
                             </div>
                             <p class="fs-6 text-muted mb-0">Pending</p>
-                            <small class="text-muted d-block mb-2" style="font-size: 0.75rem;">Menunggu approval pertama.</small>
+                            <small class="text-muted d-block mb-2" style="font-size: 12px;">Menunggu approval pertama.</small>
                             <h3 class="text-warning-dark mb-0" id="summaryPending">0</h3>
                         </div>
                     </div>
@@ -184,12 +185,12 @@
                 <div class="col-sm-6 mb-1">
                     <div class="card h-100 ticket-card bg-light-danger">
                         <div class="card-body">
-                            <div class="d-flex-center bg-white mb-2" style="width: 45px; height: 45px; border-radius: 12px;">
+                            <div class="d-flex-center bg-white mb-2" style="width: 2.8125rem; height: 2.8125rem; border-radius: .75rem;">
                                 <i class="ti ti-ban fs-3 text-danger"></i>
                             </div>
                             {{-- [MODIFIKASI] Judul, deskripsi, dan ID diubah --}}
                             <p class="fs-6 text-muted mb-0">Rejected</p>
-                            <small class="text-muted d-block mb-2" style="font-size: 0.75rem;">Ditolak oleh approver.</small>
+                            <small class="text-muted d-block mb-2" style="font-size: 12px;">Ditolak oleh approver.</small>
                             <h3 class="text-danger-dark mb-0" id="summaryRejected">0</h3>
                         </div>
                     </div>
@@ -198,11 +199,11 @@
                 <div class="col-sm-6 mb-1">
                     <div class="card h-100 ticket-card bg-light-primary"> {{-- Style dari kartu 'created' lama --}}
                         <div class="card-body">
-                            <div class="d-flex-center bg-white mb-2" style="width: 45px; height: 45px; border-radius: 12px;">
+                            <div class="d-flex-center bg-white mb-2" style="width: 2.8125rem; height: 2.8125rem; border-radius: .75rem;">
                                 <i class="ti ti-file-plus fs-3 text-primary"></i>
                             </div>
                             <p class="fs-6 text-muted mb-0">Recalled</p>
-                            <small class="text-muted d-block mb-2" style="font-size: 0.75rem;">Ditarik kembali oleh requester.</small>
+                            <small class="text-muted d-block mb-2" style="font-size: 12px;">Ditarik kembali oleh requester.</small>
                             <h3 class="text-primary-dark mb-0" id="summaryRecalled">0</h3>
                         </div>
                     </div>
@@ -218,7 +219,7 @@
                 <div class="card-header bg-white border-0 py-3">
                     <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
                         <h5 class="card-title mb-0">Top 5 Item Requisition</h5>
-                        <div class="d-flex align-items-center flex-wrap gap-2" style="font-size: 0.8rem;">
+                        <div class="d-flex align-items-center flex-wrap gap-2" style="font-size: 12.8px;">
                             <select class="form-select form-select-sm top-filter" style="width: auto;" id="topItemCategoryFilter">
                                 <option value="all">Semua Kategori</option>
                                 <option value="sample">Sample</option>
@@ -240,7 +241,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="card-body pt-0 simplebar-scroll" style="max-height: 300px; overflow-y: auto;">
+                <div class="card-body pt-0 simplebar-scroll" style="max-height: 18.75rem; overflow-y: auto;">
                     <ul class="list-group list-group-flush" id="topItemsList">
                         {{-- Data diisi oleh JavaScript --}}
                     </ul>
@@ -253,7 +254,7 @@
                 <div class="card-header bg-white border-0 py-3">
                     <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
                         <h5 class="card-title mb-0">Top 5 Customer Requisition</h5>
-                        <div class="d-flex align-items-center flex-wrap gap-2" style="font-size: 0.8rem;">
+                        <div class="d-flex align-items-center flex-wrap gap-2" style="font-size: 12.8px;">
                             <select class="form-select form-select-sm top-filter" style="width: auto;" id="topCustomerCategoryFilter">
                                 <option value="all">Semua Kategori</option>
                                 <option value="sample">Sample</option>
@@ -275,7 +276,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="card-body pt-0 simplebar-scroll" style="max-height: 300px; overflow-y: auto;">
+                <div class="card-body pt-0 simplebar-scroll" style="max-height: 18.75rem; overflow-y: auto;">
                     <ul class="list-group list-group-flush" id="topCustomersList">
                         {{-- Data diisi oleh JavaScript --}}
                     </ul>
@@ -286,6 +287,7 @@
 
     {{-- Aktivitas Terbaru dan Tindakan Saya --}}
     <div class="row g-3 mb-4">
+        {{-- [REVISI] Tampilan Request ID diperbaiki (Professional Look) --}}
         <div class="col-lg-8">
             <div class="card h-100 shadow-sm border-0">
                 <div class="card-header d-flex justify-content-between align-items-center bg-white border-0 py-3">
@@ -294,9 +296,9 @@
                 </div>
                 <div class="table-responsive">
                     <table class="table align-middle table-hover mb-0">
-                        <thead>
+                        <thead class="bg-light">
                             <tr>
-                                <th scope="col">Request ID</th>
+                                <th scope="col" class="ps-4">Request ID</th>
                                 <th scope="col">Requester</th>
                                 <th scope="col">Kategori</th>
                                 <th scope="col">Status</th>
@@ -310,15 +312,81 @@
                 </div>
             </div>
         </div>
+
+        {{-- Kolom Tindakan Saya (Tetap) --}}
         <div class="col-lg-4">
             <div class="card h-100 shadow-sm border-0">
                 <div class="card-header bg-white border-0 py-3">
                     <h5 class="mb-0 card-title">Tindakan Saya (<span id="myActionsCount">0</span>)</h5>
                 </div>
-                <div class="card-body p-0 simplebar-scroll" style="max-height: 400px; overflow-y: auto;">
+                <div class="card-body p-0 simplebar-scroll" style="max-height: 25rem; overflow-y: auto;">
                     <ul class="list-unstyled mb-0" id="myActionsList">
                        {{-- Data diisi oleh JavaScript --}}
                     </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- [REVISI TOTAL] Tracking Status Requisition (On Going) --}}
+    <div class="row g-3 mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white border-0 py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-0 card-title">Tracking Status Requisition (On Going)</h5>
+                            <small class="text-muted">Memantau posisi dokumen yang sedang diproses.</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table align-middle table-hover mb-0">
+                        <thead class="bg-light">
+                            <tr>
+                                <th scope="col" class="ps-4">Request ID</th>
+                                <th scope="col">Requester</th>
+                                <th scope="col">Kategori</th>
+                                <th scope="col">Status</th>
+                                <th scope="col">Route To (Posisi)</th>
+                                <th scope="col" class="text-end pe-4">Detail</th>
+                            </tr>
+                        </thead>
+                        <tbody id="incompleteRequisitionsTableBody">
+                            {{-- Data diisi oleh JavaScript --}}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- [BARU] Card Tracking Requisition Belum Selesai (Incomplete) --}}
+    <div class="row g-3 mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white border-0 py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-0 card-title">Tracking Status Requisition (On Going)</h5>
+                            <small class="text-muted">Daftar permintaan yang sedang berjalan dan belum selesai.</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table align-middle table-hover mb-0">
+                        <thead class="bg-light">
+                            <tr>
+                                <th scope="col" class="ps-4">Request ID</th>
+                                <th scope="col">Kategori</th>
+                                <th scope="col">Status Saat Ini</th>
+                                <th scope="col" class="text-end pe-4">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="incompleteRequisitionsTableBody">
+                            {{-- Data diisi oleh JavaScript --}}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -861,7 +929,7 @@
                                 <div class="flex-grow-1">
                                     <div class="fw-bold">${item.name}</div>
                                     <small class="text-muted">${type === 'Items' ? 'SKU' : 'ID'}: ${skuOrCode}</small>
-                                    <div class="progress mt-1" style="height: 5px;">
+                                    <div class="progress mt-1" style="height: .3125rem;">
                                         <div class="progress-bar ${progressBarColor}" role="progressbar" style="width: ${progress}%;" aria-valuenow="${progress}" aria-valuemin="0" aria-valuemax="100"></div>
                                     </div>
                                 </div>
@@ -890,25 +958,124 @@
                 });
 
 
-                // === 4. RECENT ACTIVITIES & MY ACTIONS ===
+                function getCategoryConfig(category) {
+                    const lowerCat = category.toLowerCase();
+                    if (lowerCat.includes('packaging')) return { class: 'bg-info', icon: 'ti-package' };
+                    if (lowerCat.includes('finished') || lowerCat.includes('fg')) return { class: 'bg-success', icon: 'ti-box' };
+                    if (lowerCat.includes('special') || lowerCat.includes('order')) return { class: 'bg-primary', icon: 'ti-star' };
+                    if (lowerCat.includes('complain')) return { class: 'bg-warning', icon: 'ti-alert-circle' };
+                    if (lowerCat.includes('free')) return { class: 'bg-danger', icon: 'ti-gift' };
+                    return { class: 'bg-secondary', icon: 'ti-file' };
+                }
+
+                // [HELPER] Warna Status
+                function getStatusClass(status) {
+                    switch (status) {
+                        case 'Approved': return 'bg-info';
+                        case 'Completed': return 'bg-success';
+                        case 'In Progress': return 'bg-warning';
+                        case 'Pending': return 'bg-danger';
+                        case 'Rejected': return 'bg-danger';
+                        case 'Recalled': return 'bg-secondary';
+                        default: return 'bg-secondary';
+                    }
+                }
+
                 async function loadRecentActivities() {
                     const data = await fetchData("{{ route('dashboard.data.recent-activities') }}");
                     const tableBody = document.getElementById('recentActivitiesTableBody');
                     tableBody.innerHTML = '';
 
                     if (!data || data.length === 0) {
-                        tableBody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No recent activities.</td></tr>';
+                        tableBody.innerHTML = '<tr><td colspan="5" class="text-center text-muted p-4">Belum ada aktivitas terbaru.</td></tr>';
                         return;
                     }
 
                     data.forEach(activity => {
+                        const catConfig = getCategoryConfig(activity.category);
+                        const statusClass = getStatusClass(activity.status);
+
                         const row = `
                             <tr>
-                                <td><a href="#" class="fw-bold text-dark">#${activity.srs_number || 'N/A'}</a></td>
-                                <td><span class="badge bg-dark text-light rounded-pill">${activity.requester_name}</span></td>
-                                <td><span class="badge bg-primary text-light rounded-pill">${activity.category}</span></td>
-                                <td><span class="badge bg-info text-light rounded-pill">${activity.status}</span></td>
-                                <td>${activity.timestamp}</td>
+                                <td class="ps-4">
+                                    <span class="fw-bold font-monospace text-dark">#${activity.srs_number || 'N/A'}</span>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-sm bg-light-secondary text-secondary rounded-circle me-2 d-flex justify-content-center align-items-center" style="width: 1.875rem; height: 1.875rem;">
+                                            <i class="ti ti-user fs-6"></i>
+                                        </div>
+                                        <span class="fw-semibold text-dark">${activity.requester_name}</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="status-badge-lg ${catConfig.class}">
+                                        <i class="ti ${catConfig.icon} me-1"></i> ${activity.category}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="status-badge-lg ${statusClass}">${activity.status}</span>
+                                </td>
+                                <td class="text-muted small">
+                                    <i class="ti ti-clock me-1"></i>${activity.timestamp}
+                                </td>
+                            </tr>`;
+                        tableBody.insertAdjacentHTML('beforeend', row);
+                    });
+                }
+
+                async function loadIncompleteRequisitions() {
+                    const data = await fetchData("{{ route('dashboard.data.incomplete') }}");
+                    const tableBody = document.getElementById('incompleteRequisitionsTableBody');
+                    tableBody.innerHTML = '';
+
+                    if (!data || data.length === 0) {
+                        tableBody.innerHTML = '<tr><td colspan="6" class="text-center text-muted p-4">Semua requisition telah selesai diproses.</td></tr>';
+                        return;
+                    }
+
+                    data.forEach(item => {
+                        const catConfig = getCategoryConfig(item.category);
+                        const statusClass = getStatusClass(item.status);
+                        const isUser = item.route_to.includes('(');
+                        const routeBadgeClass = isUser ? 'bg-primary' : 'bg-info';
+                        const routeIcon = isUser ? 'ti-user-check' : 'ti-map-pin';
+
+                        const row = `
+                            <tr>
+                                <td class="ps-4">
+                                    <a href="${item.tracking_url}" class="fw-bold font-monospace text-primary text-decoration-none">
+                                        #${item.srs_number}
+                                    </a>
+                                </td>
+                                <td>
+                                        <div class="d-flex align-items-center">
+                                        <div class="avatar-sm bg-light-secondary text-secondary rounded-circle me-2 d-flex justify-content-center align-items-center" style="width: 1.875rem; height: 1.875rem;">
+                                            <i class="ti ti-user fs-6"></i>
+                                        </div>
+                                        <span class="text-dark">${item.requester_name}</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="status-badge-lg ${catConfig.class}">
+                                        <i class="ti ${catConfig.icon} me-1"></i> ${item.category}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="status-badge-lg ${statusClass}">
+                                        ${item.status}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="status-badge-lg ${routeBadgeClass}">
+                                        <i class="ti ${routeIcon} me-1"></i> ${item.route_to}
+                                    </span>
+                                </td>
+                                <td class="text-end pe-4">
+                                    <a href="${item.tracking_url}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                        Cek Details <i class="ti ti-arrow-right ms-1"></i>
+                                    </a>
+                                </td>
                             </tr>`;
                         tableBody.insertAdjacentHTML('beforeend', row);
                     });
@@ -951,6 +1118,7 @@
                 updateTop5List('Items', getTopFilters('topItem'));
                 updateTop5List('Customers', getTopFilters('topCustomer'));
                 loadRecentActivities();
+                loadIncompleteRequisitions();
                 loadMyActions();
             });
         </script>

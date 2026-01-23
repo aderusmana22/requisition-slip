@@ -69,6 +69,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/recent-activities', [DashboardController::class, 'getRecentActivities'])->name('recent-activities');
         Route::get('/my-actions', [DashboardController::class, 'getMyActions'])->name('my-actions');
         Route::get('/available-years', [DashboardController::class, 'getAvailableYearsApi'])->name('available-years');
+        Route::get('/incomplete', [DashboardController::class, 'getIncompleteRequisitions'])->name('incomplete');
     });
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -114,13 +115,13 @@ Route::middleware('auth')->group(function () {
 
     // --- FREE GOODS REQUISITION ROUTES ---
     // [UPDATE] Menggunakan grup 'freegoods-form' dan 'freegoods' sesuai kode awal Anda
-    
+
     // 1. FORM CRUD (Menggunakan freegoods-form)
     Route::prefix('freegoods-form')->name('freegoods-form.')->group(function () {
         Route::get('/', [FreeGoodsController::class, 'index'])->name('index');
-        
+
         // Halaman Approval & Report & Log (dashboard)
-        Route::get('/approval', [FreeGoodsController::class, 'approvalPage'])->name('approval'); 
+        Route::get('/approval', [FreeGoodsController::class, 'approvalPage'])->name('approval');
         Route::get('/reports', [FreeGoodsController::class, 'reports'])->name('reports');
         Route::get('/log', [FreeGoodsController::class, 'log'])->name('log');
 
@@ -134,19 +135,19 @@ Route::middleware('auth')->group(function () {
     Route::name('freegoods.')->group(function () {
         // Data Utama
         Route::get('/freegoods-data', [FreeGoodsController::class, 'getData'])->name('data');
-        
+
         // [FIX ERROR] Route ini yang sebelumnya 'not defined', sekarang sudah ada:
         Route::get('/freegoods-approval/data', [FreeGoodsController::class, 'getApprovalData'])->name('approval.data');
-        
+
         Route::get('/freegoods-reports/data', [FreeGoodsController::class, 'getReportData'])->name('reports.data');
         Route::get('/freegoods-log/data', [FreeGoodsController::class, 'getLogData'])->name('log.data');
-        
+
         Route::get('/freegoods/get-next-number', [FreeGoodsController::class, 'getNextFgNumber'])->name('get-next-number');
         Route::get('/get-all-item-masters-fg', [FreeGoodsController::class, 'getAllItemMasters'])->name('getAllItemMasters');
-        
+
         // Action Process (Print)
         Route::post('/freegoods-form/reports/print-batch', [FreeGoodsController::class, 'printBatch'])->name('report.print.batch');
-        
+
         // Action Process (Approval POST) - Dipanggil dari modal Approval
         Route::post('/freegoods-approval/process', [FreeGoodsController::class, 'processApproval'])->name('approval.process');
     });

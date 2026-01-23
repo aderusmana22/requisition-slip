@@ -8,6 +8,19 @@
     @push('css')
         <link rel="stylesheet" href="{{ asset('assets/vendor/select/select2.min.css') }}">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+        <style>
+            @keyframes highlightRowAnim {
+                0% { box-shadow: inset 0 0 0 9999px rgba(37, 99, 235, 0.4); }   /* Biru terang */
+                50% { box-shadow: inset 0 0 0 9999px rgba(37, 99, 235, 0.1); }  /* Biru pudar */
+                100% { box-shadow: inset 0 0 0 9999px transparent; }            /* Transparan */
+            }
+
+            tr.highlight-animate td {
+                animation: highlightRowAnim 1.5s ease-in-out 3; /* Berkedip 3 kali */
+                position: relative; /* Diperlukan agar z-index bekerja */
+                z-index: 5;         /* Pastikan highlight muncul di lapisan paling atas */
+            }
+        </style>
     @endpush
 
     <div class="row m-1">
@@ -180,7 +193,7 @@
                                     <div class="col-md-3">
                                         <label for="cost_center" class="form-label">Cost Center</label>
                                         <input type="text" class="form-control" id="cost_center" name="cost_center"
-                                        placeholder="e.g: CC1001, CC2002e">
+                                        placeholder="e.g: 313, 202">
                                     </div>
                                     <div class="col-md-6">
                                         <label for="objectives" class="form-label">Objectives<i
@@ -766,6 +779,9 @@
             const userDepartmentName = @json($userDepartmentName ?? '');
             const userDepartmentCode = "{{ $userAccount ?? '' }}";
 
+            const urlParams = new URLSearchParams(window.location.search);
+            const highlightId = urlParams.get('highlight_id');
+
             function initSelect2() {
                 function formatSubCategory(option) {
                     if (!option.id) return '<span class="text-muted">Select Sub Category</span>';
@@ -828,7 +844,7 @@
             const table = $('#sampleTable').DataTable({
                 processing: true,
                 serverSide: true,
-                order: [[0, 'desc']], 
+                order: [[0, 'desc']],
                 ajax: {
                     url: "{{ route('sample.data') }}",
                     data: function (d) {
@@ -836,8 +852,9 @@
                         d.status = $('#statusFilter').val();
                     }
                 },
+                rowId: 'id',
                 columns: [{
-                        data: 'id', 
+                        data: 'id',
                         name: 'requisitions.id',
                         orderable: true,
                         searchable: false,
@@ -887,8 +904,27 @@
                         name: 'action',
                         className: 'dt-no-wrap'
                     }
-                ]
+                ],
+                createdRow: function(row, data, dataIndex) {
+                    // Cek apakah ID baris ini sama dengan highlight_id dari URL
+                    if (highlightId && data.id == highlightId) {
+                        $(row).addClass('highlight-animate'); // Tambahkan class animasi
+                        
+                        // Scroll ke baris tersebut setelah tabel selesai digambar
+                        setTimeout(() => {
+                            $('html, body').animate({
+                                scrollTop: $(row).offset().top - 150 // Scroll dengan offset header
+                            }, 500);
+                        }, 500);
+                    }
+                }
             });
+
+            // Opsional: Bersihkan URL setelah highlight agar kalau di-refresh tidak kedip lagi
+            if (highlightId) {
+                const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+                window.history.replaceState({path: newUrl}, '', newUrl);
+            }
 
             $('#subCategoryFilter, #statusFilter').on('change', function () {
                 table.ajax.reload();
@@ -1250,7 +1286,6 @@
                                             successMessage(res.message);
                                             table.ajax.reload(null, false);
 
-                                            const urlParams = new URLSearchParams(window.location.search);
                                             const openFormId = urlParams.get('open_form');
                                             if (openFormId) {
                                                 setTimeout(function() {
@@ -2081,7 +2116,6 @@
                 $('#sampleForm').removeAttr('data-mode data-id');
             });
 
-            const urlParams = new URLSearchParams(window.location.search);
             const openFormId = urlParams.get('open_form');
             if (openFormId) {
                 $(`.btn-qa-form[data-id="${openForm-id}"]`).click();
