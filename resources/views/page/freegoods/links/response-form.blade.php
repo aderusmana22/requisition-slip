@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $pageTitle }} : {{ $requisition->no_srs }}</title>
+    <title>{{ $pageTitle }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -19,7 +19,7 @@
             box-shadow: 0 8px 30px rgba(0, 0, 0, .05);
         }
 
-        /* [WARNA] Menggunakan Gradient Emas/Coklat (Sample Theme) */
+        /* Gradient Emas */
         .card-header.main-header {
             background: linear-gradient(135deg, #cc982f 0%, #b8871a 100%);
             color: white;
@@ -27,7 +27,6 @@
             border-radius: 16px 16px 0 0 !important;
         }
 
-        /* [WARNA] Judul Section Coklat Emas */
         .section-title {
             font-size: 1.1rem;
             font-weight: 700;
@@ -77,39 +76,15 @@
             opacity: 1;
         }
 
-        /* [WARNA] Text Primary jadi Coklat Emas */
-        .text-primary {
-            color: #b8871a !important; 
-        }
+        .text-primary { color: #b8871a !important; }
 
-        /* [WARNA] Button Primary jadi Kuning Emas */
-        .btn-primary {
-            background-color: #cc982f;
-            border-color: #cc982f;
-            color: white;
-        }
+        .btn-primary { background-color: #cc982f; border-color: #cc982f; color: white; }
+        .btn-primary:hover { background-color: #b8871a; border-color: #b8871a; color: white; }
 
-        .btn-primary:hover {
-            background-color: #b8871a;
-            border-color: #b8871a;
-            color: white;
-        }
+        .btn-success { background-color: #cc982f; border-color: #cc982f; color: white; }
+        .btn-success:hover { background-color: #b8871a; border-color: #b8871a; }
 
-        /* [WARNA] Button Success (untuk Submit default) disamakan ke tema Sample */
-        .btn-success {
-            background-color: #cc982f;
-            border-color: #cc982f;
-            color: white;
-        }
-        
-        .btn-success:hover {
-            background-color: #b8871a;
-            border-color: #b8871a;
-        }
-
-        .processing-overlay .spinner-border {
-            color: #cc982f !important;
-        }
+        .processing-overlay .spinner-border { color: #cc982f !important; }
 
         .main-container {
             display: grid;
@@ -120,46 +95,20 @@
             padding: 0 20px;
         }
 
-        .action-card {
-            position: sticky;
-            top: 40px;
-        }
-
-        .left-column>.card {
-            margin-bottom: 30px;
-        }
-
-        .radio-group-horizontal .form-check {
-            margin-right: 15px;
-        }
+        .action-card { position: sticky; top: 40px; }
+        .left-column>.card { margin-bottom: 30px; }
+        .radio-group-horizontal .form-check { margin-right: 15px; }
 
         @media (max-width: 992px) {
-            .main-container {
-                grid-template-columns: 1fr;
-                gap: 20px;
-                padding: 0 15px;
-                margin-top: 20px;
-                margin-bottom: 20px;
-            }
-
-            .action-card {
-                position: static;
-                top: auto;
-            }
-
-            .card-body.p-md-5 {
-                padding: 1.5rem !important;
-            }
-
-            .main-header h4 {
-                font-size: 1.25rem;
-            }
+            .main-container { grid-template-columns: 1fr; gap: 20px; padding: 0 15px; margin-top: 20px; margin-bottom: 20px; }
+            .action-card { position: static; top: auto; }
+            .card-body.p-md-5 { padding: 1.5rem !important; }
+            .main-header h4 { font-size: 1.25rem; }
         }
     </style>
 </head>
 
 <body>
-    {{-- Form Membungkus seluruh Main Container --}}
     <form id="responseForm" action="{{ route('fg.approval.process') }}" method="POST">
         @csrf
         <input type="hidden" name="token" value="{{ $token }}">
@@ -169,10 +118,10 @@
                 <div class="card">
                     <div class="card-header main-header">
                         <h4 class="mb-0">Free Goods Requisition Approval</h4>
-                        <p class="mb-0 opacity-75">FG No: {{ $requisition->no_srs }}</p>
+                        {{-- [REVISI] FG NO Dihapus --}}
                     </div>
                     <div class="card-body p-4 p-md-5">
-                        {{-- BAGIAN 1: DETAIL REQUISITION --}}
+                        
                         <h5 class="section-title"><i class="fas fa-file-invoice"></i> Requisition Details</h5>
                         <div class="row g-4">
                             <div class="col-md-4">
@@ -188,29 +137,32 @@
                                 <div class="info-label">Department</div>
                                 <div class="info-value">{{ $requisition->requester->department->name ?? 'N/A' }}</div>
                             </div>
+                            
+                            {{-- [REVISI] Label Recipient & Data Recipient Name --}}
                             <div class="col-md-4">
-                                <div class="info-label">Customer Name</div>
-                                <div class="info-value">{{ $requisition->customer->name ?? 'N/A' }}</div>
+                                <div class="info-label">Recipient</div>
+                                <div class="info-value">{{ $requisition->recipient_name ?? '-' }}</div>
                             </div>
+                            
+                            {{-- [REVISI] Data Recipient Address --}}
                             <div class="col-md-8">
                                 <div class="info-label">Address</div>
-                                <div class="info-value">{{ $requisition->customer->address ?? 'N/A' }}</div>
+                                <div class="info-value">{{ $requisition->recipient_address ?? '-' }}</div>
                             </div>
+                            
                             <div class="col-md-4">
-                                <div class="info-label">Cost Center</div>
-                                <div class="info-value">{{ $requisition->cost_center ?? '-' }}</div>
+                                <div class="info-label">Account / Cost Center</div>
+                                <div class="info-value">{{ $requisition->account ?? '-' }} / {{ $requisition->cost_center ?? '-' }}</div>
                             </div>
-                            <div class="col-md-4">
+                            
+                            {{-- [REVISI] Estimated Potential Dihapus --}}
+                            <div class="col-md-8">
                                 <div class="info-label">Objectives</div>
                                 <div class="info-value">{{ $requisition->objectives }}</div>
                             </div>
-                            <div class="col-md-4">
-                                <div class="info-label">Estimated Potential</div>
-                                <div class="info-value">{{ $requisition->estimated_potential }}</div>
-                            </div>
                         </div>
 
-                        {{-- BAGIAN 2: DETAIL ITEM --}}
+                        {{-- ITEM LIST --}}
                         @if($requisition->requisitionItems->count() > 0)
                         <h5 class="section-title mt-5"><i class="fas fa-cubes"></i> Requested Item List</h5>
                         <div class="table-responsive">
@@ -239,7 +191,6 @@
                                         <td>{{ $item->itemMaster->unit ?? '-' }}</td>
                                         <td class="text-center">{{ $item->quantity_required }}</td>
                                         <td class="text-center">
-                                            {{-- [LOGIKA] Input Enabled HANYA jika action = update_qty (Warehouse) --}}
                                             @if($action === 'update_qty')
                                                 <input type="number" 
                                                     class="form-control form-control-sm text-center fw-bold"
@@ -251,7 +202,6 @@
                                                     max="{{ $item->quantity_required }}"
                                                 >
                                             @else
-                                                {{-- Jika bukan warehouse update, tampilkan sebagai text biasa --}}
                                                 {{ $item->quantity_issued > 0 ? $item->quantity_issued : '-' }}
                                             @endif
                                         </td>
@@ -265,6 +215,7 @@
                 </div>
             </div>
 
+            {{-- ACTION COLUMN --}}
             <div class="right-column">
                 <div class="card action-card">
                     <div class="card-body p-4">
@@ -277,7 +228,6 @@
                             {{ $actionName }}
                         </h5>
 
-                        {{-- Hidden inputs yang diperlukan --}}
                         @if($action === 'approve' || ($action === 'submit' && $isWarehouseProcess))
                             <input type="hidden" name="action" value="{{ $action }}">
                         @endif
@@ -290,7 +240,6 @@
                                     <strong>Quick Submit:</strong> You are approving this step without changes.
                                 </div>
                                 <div class="d-grid">
-                                    {{-- Menggunakan btn-success yang sudah di-override ke warna emas --}}
                                     <button type="submit" class="btn btn-success btn-lg" id="submitBtn">Confirm Submit</button>
                                 </div>
                             
@@ -300,14 +249,10 @@
                                 </div>
                                 <div class="mb-3">
                                     <label for="notes" class="form-label"><strong>Notes/Reason: <span class="text-danger">*</span></strong></label>
-                                    
                                     <div class="alert alert-warning d-flex align-items-start p-2 mb-2" role="alert" style="font-size: 0.8rem;">
                                         <i class="fas fa-exclamation-triangle mt-1 me-2"></i>
-                                        <div>
-                                            <strong>Validation:</strong> Please provide a clear sentence. Inputs consisting solely of <b>numbers</b> or <b>punctuation</b> are not allowed.
-                                        </div>
+                                        <div><strong>Validation:</strong> Please provide a clear sentence.</div>
                                     </div>
-
                                     <textarea class="form-control" id="notes" name="notes" rows="5" placeholder="Provide notes..." required></textarea>
                                 </div>
                                 <div class="d-grid">
@@ -319,57 +264,39 @@
                                     <strong>Update Quantity Issued:</strong><br>
                                     Please input the "Qty Issued" directly in the <b>Item List table</b> on the left, then add notes below.
                                 </div>
-
                                 <div class="mb-3">
                                     <label for="notes" class="form-label"><strong>Notes: <span class="text-danger">*</span></strong></label>
-                                    
-                                    <div class="alert alert-warning d-flex align-items-start p-2 mb-2" role="alert" style="font-size: 0.8rem;">
-                                        <i class="fas fa-exclamation-triangle mt-1 me-2"></i>
-                                        <div>
-                                            <strong>Validation:</strong> Please provide a clear sentence explaining the quantity change. <b>Numbers only</b> are not accepted here.
-                                        </div>
-                                    </div>
-
-                                    <textarea class="form-control" id="notes" name="notes" rows="3" placeholder="Provide reason for quantity update..." required></textarea>
+                                    <textarea class="form-control" id="notes" name="notes" rows="3" placeholder="Provide reason..." required></textarea>
                                 </div>
-
                                 <div class="d-grid">
                                     <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">Submit Qty & Notes</button>
                                 </div>
                             @endif
 
                         @else
-                            {{-- Form Approval (Managerial) --}}
+                            {{-- Managerial Approval --}}
                             <div class="mb-3">
                                 <label class="form-label"><strong>Decision:</strong></label>
                                 <div>
                                     <div class="form-check mb-2">
                                         <input class="form-check-input" type="radio" name="action" id="action_review"
                                             value="review" @if($action === 'review' && $originalAction !== 'reject') checked @endif>
-                                        <label class="form-check-label text-primary" for="action_review"><strong>
-                                            Approve with Review</strong></label>
+                                        <label class="form-check-label text-primary" for="action_review"><strong>Approve with Review</strong></label>
                                     </div>
                                     <div class="form-check me-3 mb-1">
                                         <input class="form-check-input" type="radio" name="action" id="action_reject"
                                             value="reject" @if($originalAction === 'reject') checked @endif>
-                                        <label class="form-check-label text-danger"
-                                            for="action_reject"><strong>Reject</strong></label>
+                                        <label class="form-check-label text-danger" for="action_reject"><strong>Reject</strong></label>
                                     </div>
                                 </div>
                             </div>
                             <div class="mb-3">
                                 <label for="notes" class="form-label"><strong>Notes/Reason:</strong></label>
-                                
                                 <div class="alert alert-warning d-flex align-items-start p-2 mb-2" role="alert" style="font-size: 0.8rem;">
                                     <i class="fas fa-exclamation-triangle mt-1 me-2"></i>
-                                    <div>
-                                        <strong>Validation:</strong> Please provide a clear explanation. Inputs consisting solely of <b>numbers</b> or <b>symbols</b> will be rejected by the system.
-                                    </div>
+                                    <div><strong>Validation:</strong> Please provide a clear explanation.</div>
                                 </div>
-
-                                <textarea class="form-control" id="notes" name="notes" rows="8"
-                                    placeholder="Provide notes for your decision..."></textarea>
-                                <div class="form-text text-muted">Notes are required for rejection or review.</div>
+                                <textarea class="form-control" id="notes" name="notes" rows="8" placeholder="Provide notes..."></textarea>
                             </div>
                             <div class="d-grid">
                                 <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">Submit Notes</button>
@@ -397,18 +324,12 @@
             const isWarehouseProcess = {{ $isWarehouseProcess ? 'true' : 'false' }};
             const isQuickAction = ('{{ $action }}' === 'approve') || ('{{ $action }}' === 'submit' && isWarehouseProcess);
 
-            // Validasi Input Angka (Qty) untuk Update Qty Warehouse
             if ('{{ $action }}' === 'update_qty') {
                 const qtyInputs = document.querySelectorAll('input[name^="items"]');
-                
                 qtyInputs.forEach(input => {
                     input.addEventListener('input', function() {
-                        let value = this.value;
-                        value = value.replace(/[^0-9]/g, ''); 
-                        
-                        if (value.length > 1 && value.startsWith('0')) {
-                            value = parseInt(value, 10).toString();
-                        }
+                        let value = this.value.replace(/[^0-9]/g, ''); 
+                        if (value.length > 1 && value.startsWith('0')) value = parseInt(value, 10).toString();
                         this.value = value;
                     });
                 });
@@ -421,29 +342,18 @@
                         Swal.fire({ icon: 'warning', title: 'Catatan Diperlukan', text: 'Mohon berikan catatan yang valid.' });
                         return false;
                     }
-
                     if ('{{ $action }}' === 'update_qty') {
                         let qtyValid = true;
-                        let invalidMessage = '';
-
                         const inputs = document.querySelectorAll('input[name^="items"]');
-                        
                         inputs.forEach(input => {
-                            const val = input.value;
-                            if (val === '') {
-                                qtyValid = false; invalidMessage = 'Kolom Qty Issued tidak boleh kosong.';
-                            } else if (parseInt(val) < 0) {
-                                qtyValid = false; invalidMessage = 'Qty Issued tidak boleh negatif.';
-                            }
+                            if (input.value === '' || parseInt(input.value) < 0) qtyValid = false;
                         });
-
                         if(!qtyValid) {
-                             Swal.fire({ icon: 'warning', title: 'Quantity Invalid', text: invalidMessage });
+                             Swal.fire({ icon: 'warning', title: 'Quantity Invalid', text: 'Qty Issued tidak boleh kosong/negatif.' });
                              return false;
                         }
                     }
-
-                } else { // Approval
+                } else {
                     const reviewRadio = document.getElementById('action_review');
                     const rejectRadio = document.getElementById('action_reject');
                     const notesTextarea = document.getElementById('notes');
@@ -492,7 +402,6 @@
             if (!isWarehouseProcess) {
                 const reviewRadio = document.getElementById('action_review');
                 const rejectRadio = document.getElementById('action_reject');
-                
                 const updateSubmitButton = () => {
                     if (reviewRadio && reviewRadio.checked) {
                         submitBtn.textContent = 'Submit Approve';
@@ -502,7 +411,6 @@
                         submitBtn.classList.remove('btn-primary'); submitBtn.classList.add('btn-danger');
                     }
                 };
-                
                 if(reviewRadio && rejectRadio){
                     reviewRadio.addEventListener('change', updateSubmitButton);
                     rejectRadio.addEventListener('change', updateSubmitButton);
