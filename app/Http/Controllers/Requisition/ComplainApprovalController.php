@@ -46,27 +46,27 @@ class ComplainApprovalController extends Controller
                     ->whereNotNull('token')
                     ->where(function ($query) {
                         $query->whereRaw('level = (
-                            SELECT MIN(level) 
-                            FROM approval_logs a2 
-                            WHERE a2.requisition_id = approval_logs.requisition_id 
+                            SELECT MIN(level)
+                            FROM approval_logs a2
+                            WHERE a2.requisition_id = approval_logs.requisition_id
                             AND a2.token IS NOT NULL
                         )');
                     });
             } else {
                 $query->whereRaw('level = (
-                    CASE 
+                    CASE
                         WHEN EXISTS (
-                            SELECT 1 FROM approval_logs a2 
-                            WHERE a2.requisition_id = approval_logs.requisition_id 
+                            SELECT 1 FROM approval_logs a2
+                            WHERE a2.requisition_id = approval_logs.requisition_id
                             AND a2.token IS NOT NULL
                         )
                         THEN (
-                            SELECT MIN(level) FROM approval_logs a2 
-                            WHERE a2.requisition_id = approval_logs.requisition_id 
+                            SELECT MIN(level) FROM approval_logs a2
+                            WHERE a2.requisition_id = approval_logs.requisition_id
                             AND a2.token IS NOT NULL
                         )
                         ELSE (
-                            SELECT MAX(level) FROM approval_logs a3 
+                            SELECT MAX(level) FROM approval_logs a3
                             WHERE a3.requisition_id = approval_logs.requisition_id
                         )
                     END
@@ -77,8 +77,8 @@ class ComplainApprovalController extends Controller
                 'requisition' => function ($query) {
                     $query->with(['customer', 'requester']);
                 }
-            ])
-                ->get();
+            ])->orderBy('created_at', 'desc')->get();
+
             if ($data->isEmpty()) {
                 return response()->json([
                     'message' => 'Tidak ada requisition complain yang menunggu approval dari Anda.',
@@ -89,7 +89,7 @@ class ComplainApprovalController extends Controller
             // Format data untuk response
             $formattedData = $data->map(function ($approval) {
                 $requisition = $approval->requisition;
-                
+
                 return [
                     'id' => $approval->id,
                     'requisition_id' => $approval->requisition_id,

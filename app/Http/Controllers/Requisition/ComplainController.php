@@ -249,32 +249,33 @@ class ComplainController extends Controller
         $totalData = Requisition::where('category', 'Complain')->count();
 
         // Mulai query builder
-        $query = Requisition::query()->where('category', 'Complain');
+        $query = Requisition::query()
+            ->select('requisitions.*', 'users.name as requester_name') // Select kolom yang dibutuhkan
+            ->leftJoin('users', 'requisitions.requester_nik', '=', 'users.nik') // Join ke users
+            ->where('requisitions.category', 'Complain');
 
-        if (!empty($statusFilter)) {
-            $query->where('status', $statusFilter); // <-- TAMBAHAN INI
+        if (!empty($statusFilter) && $statusFilter !== 'all') {
+            $query->where('requisitions.status', $statusFilter);
         }
 
-        // 2. Terapkan filter pencarian jika ada input dari kotak search
+        // [PERBAIKAN] Search Logic yang lebih akurat
         if (!empty($searchValue)) {
             $query->where(function ($q) use ($searchValue) {
-                $q->whereHas('requester', function ($q) use ($searchValue) {
-                    $q->where('name', 'like', "%{$searchValue}%");
-                })
-                ->orWhereHas('customer', function ($q) use ($searchValue) {
-                    $q->where('name', 'like', "%{$searchValue}%");
-                })
-                ->orWhere('cost_center', 'like', "%{$searchValue}%")
-                ->orWhere('category', 'like', "%{$searchValue}%")
-                ->orWhere('route_to', 'like', "%{$searchValue}%")
-                ->orWhere('status', 'like', "%{$searchValue}%");
+                $q->where('requisitions.no_srs', 'like', "%{$searchValue}%")
+                ->orWhere('users.name', 'like', "%{$searchValue}%") // Search nama requester
+                ->orWhere('requisitions.status', 'like', "%{$searchValue}%");
             });
         }
 
+        $totalData = Requisition::where('category', 'Complain')->count();
         $totalFiltered = $query->count();
 
         if (!empty($orderColumnName)) {
-            $query->orderBy($orderColumnName, $orderDirection);
+            if ($orderColumnName === 'requester') {
+                $query->orderBy('users.name', $orderDirection);
+            } else {
+                $query->orderBy($orderColumnName, $orderDirection);
+            }
         } else {
             $query->orderBy('requisitions.id', 'desc');
         }

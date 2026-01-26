@@ -184,28 +184,28 @@
     @push('scripts')
     <!-- SweetAlert -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    
+
     <style>
         /* Custom styles for checkbox selection */
         .row-selector {
             cursor: pointer;
         }
-        
+
         #selectAll {
             cursor: pointer;
         }
-        
+
         /* Disabled button styling */
         #printSelectedBtn:disabled {
             opacity: 0.6;
             cursor: not-allowed;
         }
-        
+
         /* Selected row highlight */
         .selected-row {
             background-color: rgba(0, 123, 255, 0.1) !important;
         }
-        
+
         /* Action button group spacing */
         .action-btn-group {
             display: flex;
@@ -295,14 +295,14 @@
         function updateSelectedCount() {
             const selectedCheckboxes = $('.row-selector:checked');
             const count = selectedCheckboxes.length;
-            
+
             $('#selectedCount').text(count);
             $('#printSelectedBtn').prop('disabled', count === 0);
-            
+
             // Update select all checkbox state
             const totalCheckboxes = $('.row-selector').length;
             const selectAllCheckbox = $('#selectAll');
-            
+
             if (count === 0) {
                 selectAllCheckbox.prop('indeterminate', false);
                 selectAllCheckbox.prop('checked', false);
@@ -388,22 +388,22 @@
 
                     // Append form to body and submit
                     $('body').append(form);
-                    
+
                     try {
                         form.submit();
-                        
+
                         // Close loading and show success
                         setTimeout(() => {
                             Swal.close();
                             successMessage(`${selectedIds.length} report(s) sent for printing!`);
-                            
+
                             // Clear selections and row highlighting
                             $('.row-selector').prop('checked', false);
                             $('.selected-row').removeClass('selected-row');
                             $('#selectAll').prop('checked', false).prop('indeterminate', false);
                             updateSelectedCount();
                         }, 1500);
-                        
+
                     } catch (error) {
                         console.error('Form submission error:', error);
                         Swal.close();
@@ -427,7 +427,7 @@
             // === DataTable ===
             let table = $('#approvalReportTable').DataTable({
                 processing: true,
-                serverSide: false,
+                serverSide: true,
                 ajax: {
                     url: "{{ route('get.complain.data') }}", // Sesuaikan dengan route Anda
                     type: 'GET',
@@ -449,7 +449,7 @@
                     },
                     {
                         data: 'no_srs',
-                        name: 'no_srs',
+                        name: 'requisitions.no_srs',
                         width: '15%',
                         render: function (data, type, row) {
                             return data ? `<span class="fw-bold text-primary">${data}</span>` : '-';
@@ -468,7 +468,7 @@
                     },
                     {
                         data: 'status',
-                        name: 'status',
+                        name: 'requisitions.status',
                         width: '10%',
                         render: function (data, type, row) {
                             // Normalize status untuk comparison
@@ -497,7 +497,7 @@
                     },
                     {
                         data: 'created_at',
-                        name: 'created_at',
+                        name: 'requisitions.created_at',
                         width: '12%',
                         render: function (data, type, row) {
                             return formatDate(data);
@@ -513,7 +513,7 @@
                             const safeRow = JSON.stringify(row).replace(/"/g, '&quot;');
                             return `
                                 <div class="action-btn-group">
-                                    <button type="button" class="btn btn-info btn-sm detail-button action-btn-hover" 
+                                    <button type="button" class="btn btn-info btn-sm detail-button action-btn-hover"
                                             data-approval="${safeRow}"
                                             data-tooltip="View Details">
                                         <i class="ph-duotone ph-eye"></i>
@@ -523,7 +523,7 @@
                         }
                     }
                 ],
-                order: [[5, 'desc']], // Order by created_at descending
+                order: [[4, 'desc']], // Order by created_at descending
                 pageLength: 25,
                 responsive: true,
                 language: {
@@ -542,7 +542,8 @@
             let searchInput = $('#approvalReportTable_filter input');
             searchInput.unbind();
             let debounceTimer;
-            searchInput.bind('keyup', function (e) {
+
+            searchInput.on('keyup search input', function (e) {
                 clearTimeout(debounceTimer);
                 debounceTimer = setTimeout(function () {
                     let searchTerm = searchInput.val();
@@ -554,7 +555,7 @@
             $('#selectAll').on('change', function() {
                 const isChecked = $(this).prop('checked');
                 $('.row-selector').prop('checked', isChecked);
-                
+
                 // Update row highlighting
                 $('#approvalReportTable tbody tr').each(function() {
                     if (isChecked) {
@@ -563,7 +564,7 @@
                         $(this).removeClass('selected-row');
                     }
                 });
-                
+
                 updateSelectedCount();
             });
 
@@ -572,7 +573,7 @@
                 updateSelectedCount();
             });
 
-            // Row checkbox handler  
+            // Row checkbox handler
             $('#approvalReportTable tbody').on('change', '.row-selector', function() {
                 const row = $(this).closest('tr');
                 if ($(this).is(':checked')) {
@@ -594,10 +595,10 @@
                     $('#detail_requester').text(approvalData.requester ? approvalData.requester.name : '-');
                     $('#detail_request_date').text(formatDate(approvalData.created_at));
                     $('#detail_status').html(getStatusBadge(approvalData.status));
-                    
+
                     // Handle approver from approval_logs
                     $('#detail_approver').text(approvalData.route_to);
-                    
+
                     $('#detail_approval_date').text(formatDate(approvalData.updated_at));
                     $('#detail_description').text(approvalData.reason_for_replacement || '-');
 

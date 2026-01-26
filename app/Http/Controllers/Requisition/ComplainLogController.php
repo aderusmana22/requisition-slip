@@ -20,7 +20,7 @@ class ComplainLogController extends Controller
 
     public function getData()
     {
-        $activity = Activity::where('log_name', 'complain')->with(['causer', 'subject'])->get();
+        $activity = Activity::where('log_name', 'complain')->with(['causer', 'subject'])->orderBy('id', 'desc')->get();
 
         return response()->json(['data' => $activity]);
     }

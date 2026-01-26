@@ -47,7 +47,6 @@ class DashboardController extends Controller
      */
     public function getMetricCounts()
     {
-        // [MODIFIKASI] Tambahkan logika filter berdasarkan user role
         $user = Auth::user();
         $query = Requisition::select(
             DB::raw("SUM(CASE WHEN category = 'SAMPLE' AND sub_category = 'Finished Goods' THEN 1 ELSE 0 END) as sample_fg"),
@@ -62,9 +61,15 @@ class DashboardController extends Controller
             $query->where('requester_nik', $user->nik);
         }
 
-        $counts = $query->first()->toArray();
+        $metrics = $query->first();
 
-        return response()->json($counts);
+        return response()->json([
+            'sample_fg' => $metrics->sample_fg,
+            'sample_packaging' => $metrics->sample_packaging,
+            'sample_special' => $metrics->sample_special,
+            'complain' => $metrics->complain,
+            'freegoods' => $metrics->freegoods,
+        ]);
     }
 
     /**
@@ -199,7 +204,6 @@ class DashboardController extends Controller
      */
     public function getRecentActivities()
     {
-        // Fungsi ini sudah memiliki logika yang benar
         $user = Auth::user();
         $query = Requisition::with('requester:nik,name')->orderBy('updated_at', 'desc');
 
@@ -210,6 +214,7 @@ class DashboardController extends Controller
         $recentRequisitions = $query->limit(5)->get();
         $formattedActivities = $recentRequisitions->map(function ($requisition) {
             return [
+                'id'             => $requisition->id,
                 'srs_number'     => $requisition->no_srs,
                 'requester_name' => optional($requisition->requester)->name ?? 'N/A',
                 'category'       => $requisition->sub_category ?? $requisition->category,
@@ -219,6 +224,44 @@ class DashboardController extends Controller
         });
 
         return response()->json($formattedActivities);
+    }
+
+    public function getIncompleteRequisitions()
+    {
+        $user = Auth::user();
+        $activeStatuses = ['Pending', 'In Progress', 'Approved', 'Recalled', 'Rejected'];
+
+        $query = Requisition::with('requester:nik,name')
+            ->select('id', 'no_srs', 'requester_nik', 'category', 'sub_category', 'status', 'route_to', 'updated_at')
+            ->whereIn('status', $activeStatuses)
+            ->orderBy('updated_at', 'desc');
+
+        if (!$user->hasRole('super-admin')) {
+            $query->where('requester_nik', $user->nik);
+        }
+
+        $data = $query->limit(5)->get()->map(function($req) {
+
+            $currentPosition = $req->route_to;
+            $targetUser = User::where('name', $req->route_to)->with('roles', 'department')->first();
+
+            if ($targetUser) {
+                $roleOrDept = $targetUser->roles->first()->name ?? $targetUser->department->name ?? 'Staff';
+                $currentPosition = $targetUser->name . ' (' . ucfirst($roleOrDept) . ')';
+            }
+
+            return [
+                'id' => $req->id,
+                'srs_number' => $req->no_srs,
+                'requester_name' => optional($req->requester)->name ?? 'N/A',
+                'category' => $req->sub_category ?? $req->category,
+                'status' => $req->status,
+                'route_to' => $currentPosition,
+                'tracking_url' => route('sample-form.index', ['highlight_id' => $req->id]),
+            ];
+        });
+
+        return response()->json($data);
     }
 
     /**
