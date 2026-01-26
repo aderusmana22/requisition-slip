@@ -385,45 +385,23 @@
             if (searchInput.parent().find('.search-container').length === 0) {
                 searchInput.unbind();
                 const wrapper = $('<div class="search-container"></div>');
-                filterInput.wrap(wrapper);
-                
-                // Tambahkan class styling ke input
-                filterInput.attr({ 
-                    'placeholder': 'Search Free Goods...',
-                    'class': 'form-control ps-3 pe-5' 
-                });
-
-                // Tambahkan tombol X setelah input
-                $('<i class="ph-bold ph-x search-clear-icon" title="Clear Search"></i>').insertAfter(filterInput);
+                searchInput.wrap(wrapper);
+                searchInput.attr({ 'placeholder': 'Search Free Goods...', 'class': 'form-control ps-3 pe-5' });
+                $('<i class="ph-bold ph-x search-clear-icon" title="Clear Search"></i>').insertAfter(searchInput);
             }
-
+            
             const clearIcon = $('.search-clear-icon');
             let debounceTimer;
-
-            // Event saat mengetik
-            filterInput.on('keyup input', function (e) {
+            searchInput.on('keyup input', function (e) {
                 const val = $(this).val();
-                
-                // Tampilkan icon jika ada teks
-                if (val.length > 0) {
-                    clearIcon.show();
-                } else {
-                    clearIcon.hide();
-                }
-
-                // Delay pencarian 500ms (debounce) agar tidak berat di server
+                if (val.length > 0) clearIcon.show(); else clearIcon.hide();
                 clearTimeout(debounceTimer);
-                debounceTimer = setTimeout(function () {
-                    table.search(val).draw();
-                }, 500);
+                debounceTimer = setTimeout(function () { table.search(val).draw(); }, 500);
             });
-
-            // Event saat tombol X diklik
             $(document).on('click', '.search-clear-icon', function() {
-                filterInput.val('').trigger('input'); // Kosongkan input & trigger event
-                table.search('').draw(); // Refresh tabel bersih
+                searchInput.val('').trigger('input');
+                table.search('').draw();
             });
-            // ==============================================================
 
             function clearValidationErrors() {
                 $('.form-control, .form-select').removeClass('is-invalid');
@@ -631,7 +609,7 @@
 
                 const itemTbody = $('#requisition-items-tbody-fg'); 
                 itemTbody.empty();
-                const colspan = 4; 
+                const colspan = 4;
 
                 if (data.requisition_items && data.requisition_items.length > 0) {
                     data.requisition_items.forEach(item => {
@@ -880,7 +858,6 @@
                 });
             });
 
-            // Logic Duplicate (Tanpa FG No)
             $(document).on('click', '.btn-duplicate-requisition', function() {
                 const id = $(this).data('id');
                 const button = $(this);
