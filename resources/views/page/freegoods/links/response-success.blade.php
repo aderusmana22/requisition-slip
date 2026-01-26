@@ -42,33 +42,13 @@
             color: #fff;
         }
 
-        /* [WARNA] Tema Sample (Gold) */
-        .response-card.success {
-            border-color: #cc982f;
-        }
+        .response-card.success { border-color: #cc982f; }
+        .response-card.success .icon-circle { background-color: #cc982f; }
+        .response-card.reject { border-color: #dc3545; }
+        .response-card.reject .icon-circle { background-color: #dc3545; }
 
-        .response-card.success .icon-circle {
-            background-color: #cc982f;
-        }
-
-        .response-card.reject {
-            border-color: #dc3545;
-        }
-
-        .response-card.reject .icon-circle {
-            background-color: #dc3545;
-        }
-
-        h3 {
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 15px;
-        }
-
-        .message {
-            color: #6c757d;
-            margin-bottom: 40px;
-        }
+        h3 { font-weight: 600; color: #333; margin-bottom: 15px; }
+        .message { color: #6c757d; margin-bottom: 40px; }
 
         .details-box {
             background-color: #f8f9fa;
@@ -80,46 +60,16 @@
         }
 
         .detail-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: start;
-            padding: 10px 0;
-            border-bottom: 1px dashed #dee2e6;
+            display: flex; justify-content: space-between; align-items: start;
+            padding: 10px 0; border-bottom: 1px dashed #dee2e6;
         }
-
-        .detail-item:last-child {
-            border-bottom: none;
-        }
-
-        .detail-label {
-            font-weight: 600;
-            color: #495057;
-            white-space: nowrap;
-            margin-right: 20px;
-        }
-
-        .detail-value {
-            color: #212529;
-            text-align: right;
-            word-break: break-word;
-        }
-
-        .countdown-text {
-            font-size: 0.9em;
-            color: #6c757d;
-            margin-top: 25px;
-        }
+        .detail-item:last-child { border-bottom: none; }
+        .detail-label { font-weight: 600; color: #495057; white-space: nowrap; margin-right: 20px; }
+        .detail-value { color: #212529; text-align: right; word-break: break-word; }
+        .countdown-text { font-size: 0.9em; color: #6c757d; margin-top: 25px; }
         
-        /* [WARNA] Button Sample Theme */
-        .btn-primary {
-            background-color: #cc982f;
-            border-color: #cc982f;
-        }
-
-        .btn-primary:hover {
-            background-color: #b8871a;
-            border-color: #b8871a;
-        }
+        .btn-primary { background-color: #cc982f; border-color: #cc982f; }
+        .btn-primary:hover { background-color: #b8871a; border-color: #b8871a; }
     </style>
 </head>
 
@@ -132,16 +82,17 @@
         <h3>{{ session('title', 'Action Submitted') }}</h3>
         <p class="message">{{ session('message', 'Your response has been recorded.') }}</p>
 
-        @if(session('no_srs'))
+        {{-- [REVISI] Hanya menampilkan jika session customer_name ada --}}
+        @if(session('customer_name')) 
         <div class="details-box">
+            {{-- FG No sudah dihapus dari sini --}}
+            
+            {{-- [REVISI] Label Recipient --}}
             <div class="detail-item">
-                <span class="detail-label">FG Number:</span>
-                <span class="detail-value">{{ session('no_srs') }}</span>
-            </div>
-            <div class="detail-item">
-                <span class="detail-label">Customer:</span>
+                <span class="detail-label">Recipient:</span>
                 <span class="detail-value">{{ session('customer_name') }}</span>
             </div>
+            
             @if(session('action_text') && session('approver_name'))
             <div class="detail-item">
                 <span class="detail-label">Approver:</span>
