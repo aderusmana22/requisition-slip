@@ -318,7 +318,18 @@
                                                 <td align="center" bgcolor="#28a745" style="border-radius: 4px;">
                                                     <a href="{{ $approve_url }}"
                                                         style="display: inline-block; padding: 12px 25px; font-family: Arial, sans-serif; font-size: 14px; color: #ffffff; text-decoration: none; font-weight: bold; border: 1px solid #28a745; border-radius: 4px; mso-padding-alt: 12px 25px;">✅
-                                                        Approve</a>
+                                                     Approve not Review</a>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                    <td style="padding: 0 5px;">
+                                        <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse;">
+                                            <tr>
+                                                <td align="center" bgcolor="#007bff" style="border-radius: 4px;">
+                                                    <a href="{{ $review_url }}"
+                                                        style="display: inline-block; padding: 12px 25px; font-family: Arial, sans-serif; font-size: 14px; color: #ffffff; text-decoration: none; font-weight: bold; border: 1px solid #007bff; border-radius: 4px; mso-padding-alt: 12px 25px;">📝
+                                                        Approve with Review</a>
                                                 </td>
                                             </tr>
                                         </table>
@@ -330,17 +341,6 @@
                                                     <a href="{{ $reject_url }}"
                                                         style="display: inline-block; padding: 12px 25px; font-family: Arial, sans-serif; font-size: 14px; color: #ffffff; text-decoration: none; font-weight: bold; border: 1px solid #dc3545; border-radius: 4px; mso-padding-alt: 12px 25px;">❌
                                                         Reject</a>
-                                                </td>
-                                            </tr>
-                                        </table>
-                                    </td>
-                                    <td style="padding: 0 5px;">
-                                        <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse;">
-                                            <tr>
-                                                <td align="center" bgcolor="#007bff" style="border-radius: 4px;">
-                                                    <a href="{{ $review_url }}"
-                                                        style="display: inline-block; padding: 12px 25px; font-family: Arial, sans-serif; font-size: 14px; color: #ffffff; text-decoration: none; font-weight: bold; border: 1px solid #007bff; border-radius: 4px; mso-padding-alt: 12px 25px;">📝
-                                                        Review</a>
                                                 </td>
                                             </tr>
                                         </table>
