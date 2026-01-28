@@ -83,7 +83,6 @@
                         <thead>
                             <tr>
                                 <th class="text-center">No.</th>
-                                {{-- Kolom No FG dihapus --}}
                                 <th class="text-center">Requester</th>
                                 <th class="text-center">Recipient</th>
                                 <th class="text-center">Request Date</th>
@@ -146,11 +145,10 @@
                                     </div>
                                 </div>
 
-                                {{-- Layout Input 3 Kolom (FG No dihapus) --}}
                                 <div class="row g-3 mb-3">
                                     <div class="col-md-4">
                                         <label for="account" class="form-label">Account<i class="text-danger">*</i></label>
-                                        <input type="text" class="form-control" id="account" name="account" value="{{ $userAccount ?? '5300' }}" readonly>
+                                        <input type="text" class="form-control" id="account" name="account" value="5300" readonly>
                                     </div>
                                     <div class="col-md-4">
                                         <label for="request_date" class="form-label">Request Date<i class="text-danger">*</i></label>
@@ -159,6 +157,7 @@
                                     <div class="col-md-4">
                                         <label for="cost_center" class="form-label">Cost Center</label>
                                         <input type="text" class="form-control" id="cost_center" name="cost_center" placeholder="e.g: 212, 211">
+                                        <small class="text-muted" id="cost_center_help"></small>
                                     </div>
                                 </div>
 
@@ -238,7 +237,6 @@
                                     <small class="view-label">Sub Category</small>
                                     <p class="view-data" id="view_sub_category">General Request</p>
                                 </div>
-                                {{-- FG NO Dihapus --}}
                                 <div class="col-md-3">
                                     <small class="view-label">Request Date</small>
                                     <p class="view-data" id="view_request_date">-</p>
@@ -313,7 +311,7 @@
     <script src="{{ asset('assets/vendor/select/select2.min.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        const userAccount = "{{ $userAccount ?? '5300' }}"; 
+        const isHcdUser = {{ $isHcd ? 'true' : 'false' }};
 
         function successMessage(message) {
             Swal.fire({ icon: 'success', title: 'Success', text: message, timer: 1500, showConfirmButton: true });
@@ -366,7 +364,6 @@
                 },
                 columns: [
                     { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false, width: '20px', className: 'text-center align-middle' },
-                    // [REVISI] Kolom FG No dihapus dari sini
                     { data: 'requester_info', name: 'users.name', className: 'text-center align-middle' }, 
                     { data: 'recipient_name', name: 'requisitions.recipient_name', className: 'text-center align-middle' },
                     { data: 'request_date', name: 'requisitions.request_date', className: 'text-center align-middle' },
@@ -375,7 +372,7 @@
                     { data: 'status', name: 'requisitions.status', className: 'text-center align-middle' },
                     { data: 'action', name: 'action', orderable: false, searchable: false, className: 'text-center align-middle' }
                 ],
-                order: [[3, 'desc']] // Order by Request Date (index sekarang geser ke 3)
+                order: [[3, 'desc']] 
             });
 
             $('#statusFilter').on('change', function() { table.ajax.reload(); });
@@ -422,13 +419,19 @@
 
                 clearValidationErrors();
                 $('#fgModalLabel').text('Create New Free Goods Requisition'); 
-                // [REVISI] Tidak ada reset no_fg karena inputnya sudah dihapus
                 $('#saveFgBtn').text('Save'); 
 
-                if (userAccount === '5300') {
-                    $('#cost_center').val('313').prop('readonly', true);
+                $('#account').val('5300');
+
+                const costCenterInput = $('#cost_center');
+                const costCenterHelp = $('#cost_center_help');
+
+                if (isHcdUser) {
+                    costCenterInput.val('313').prop('readonly', true);
+                    costCenterHelp.text('Auto-assigned for HCD');
                 } else {
-                    $('#cost_center').val('').prop('readonly', false);
+                    costCenterInput.val('').prop('readonly', false);
+                    costCenterHelp.text('');
                 }
             }
 
@@ -532,7 +535,6 @@
                                     $('#fgModal').modal('hide'); 
                                     successMessage(res.message);
                                     table.ajax.reload(null, false);
-                                    // nextFgNumber Logic removed here
                                 }
                             },
 
@@ -571,7 +573,6 @@
                 
                 let formData = new FormData(form);
                 formData.append('category', 'FREE GOODS');
-                formData.append('sub_category', 'General Request');
                 
                 submitForm(formData);
                     }
@@ -584,12 +585,12 @@
                 $('#recipient_name').val(data.recipient_name);
                 $('#recipient_address').val(data.recipient_address);
 
-                $('#account').val(data.account);
+                $('#account').val('5300'); // Always 5300
                 $('#cost_center').val(data.cost_center);
                 $('#request_date').val(data.request_date);
                 $('#objectives').val(data.objectives);
 
-                if (userAccount === '5300') {
+                if (isHcdUser) {
                     $('#cost_center').prop('readonly', true);
                 } else {
                     $('#cost_center').prop('readonly', false);
@@ -639,10 +640,8 @@
 
             function populateViewForm(data) {
                 $('#view_sub_category').text(data.sub_category || 'General Request');
-                
                 $('#view_recipient_name').text(data.recipient_name || '-');
                 $('#view_recipient_address').text(data.recipient_address || '-');
-                
                 $('#view_account').text(data.account || '-');
                 $('#view_request_date').text(new Date(data.request_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) || '-');
                 $('#view_cost_center').text(data.cost_center || '-');
@@ -650,18 +649,15 @@
 
                 const viewItemTbody = $('#view-items-tbody-fg'); 
                 viewItemTbody.empty();
-                const colspan = 5;
 
                 if (data.requisition_items && data.requisition_items.length > 0) {
                     data.requisition_items.forEach(item => {
                         let itemCode = 'N/A', itemName = 'N/A', unit = 'N/A';
-
                         if (item.item_master) {
                             itemCode = item.item_master.item_master_code;
                             itemName = item.item_master.item_master_name;
                             unit = item.item_master.unit;
                         }
-
                         const newRow = `
                         <tr>
                             <td>${itemCode}</td>
@@ -673,7 +669,7 @@
                         viewItemTbody.append(newRow);
                     });
                 } else {
-                    viewItemTbody.html(`<tr><td colspan="${colspan}" class="text-center">No items have been added.</td></tr>`);
+                    viewItemTbody.html(`<tr><td colspan="5" class="text-center">No items have been added.</td></tr>`);
                 }
 
                 const status = data.status;
@@ -694,16 +690,24 @@
                 
                 const approvalLogs = data.approval_logs ? data.approval_logs.filter(log => log.level <= 100) : [];
                 
-                let isSnM = data.requester.department?.name === 'SnM' || data.requester.department?.code === '5300'; 
-                let approvalSteps = [
-                    { label: isSnM ? 'SnM Manager' : 'HCD Dept. Head', icon: 'ph-user-plus' },
-                    { label: 'Business Controller', icon: 'ph-briefcase' }
-                ];
+                let isSnM = data.sub_category === 'SnM Request'; 
+                let approvalSteps = [];
+                
+                if (isSnM) {
+                     approvalSteps = [
+                        { label: 'SnM Manager', icon: 'ph-user-plus' },
+                        { label: 'Business Controller', icon: 'ph-briefcase' }
+                    ];
+                } else {
+                     approvalSteps = [
+                        { label: 'HCD Dept. Head', icon: 'ph-user-plus' }, 
+                        { label: 'Business Controller', icon: 'ph-briefcase' }
+                    ];
+                }
 
                 approvalSteps.forEach((step, index) => {
                     const log = approvalLogs.find(l => l.level === (index + 1)); 
                     const approverName = log && log.approver ? log.approver.name : step.label;
-                    
                     steps.push({
                         id: 'approver_' + (index + 1),
                         label: `${step.label}<br><small class="text-muted fw-normal">${log ? approverName : '...'}</small>`,
@@ -761,7 +765,7 @@
                         $(`.tracker-step[data-step-id="outward"]`).addClass('active');
                         lastCompletedIndex = Math.max(lastCompletedIndex, stepIndex - 1); 
                     }
-                } else if (status === 'Completed' && data.trackings && data.trackings.length > 0) {
+                } else if (status === 'Completed') {
                      const stepIndex = steps.findIndex(s => s.id === 'completed');
                      if(stepIndex > -1) {
                          $(`.tracker-step`).addClass('completed');
@@ -773,22 +777,7 @@
                     let totalSteps = steps.length - 1;
                     let progressPercentage = (lastCompletedIndex / totalSteps) * 100;
                     if (totalSteps === 0) progressPercentage = 100; 
-                    
                     $('#tracker-progress-fg').css('width', progressPercentage + '%'); 
-                }
-
-                if (status === 'Completed') {
-                    $('.tracker-step').addClass('completed');
-                } else if (isRejected) {
-                    const nextStepIndex = lastCompletedIndex + 1;
-                    if (nextStepIndex < steps.length) {
-                        $(`.tracker-step`).eq(nextStepIndex).addClass('rejected');
-                    }
-                } else if (status === 'Pending' || status === 'In Progress') {
-                    const nextStepIndex = lastCompletedIndex + 1;
-                    if (nextStepIndex < steps.length) {
-                        $(`.tracker-step`).eq(nextStepIndex).addClass('active');
-                    }
                 }
             }
 
@@ -806,52 +795,23 @@
                         populateViewForm(response);
                         $('#viewModal').modal('show');
                     },
-                    error: function() {
-                        errorMessage('Failed to fetch requisition details.');
-                    },
-                    complete: function() {
-                        button.html(originalIcon).prop('disabled', false);
-                    }
+                    error: function() { errorMessage('Failed to fetch requisition details.'); },
+                    complete: function() { button.html(originalIcon).prop('disabled', false); }
                 });
             });
 
-            // TOMBOL DELETE
             $(document).on('click', '.btn-delete-requisition', function() {
                 const id = $(this).data('id');
-                const button = $(this);
-                
                 Swal.fire({
-                    title: 'Are you sure?',
-                    text: "You won't be able to revert this!",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#d33',
-                    cancelButtonColor: '#3085d6',
-                    confirmButtonText: 'Yes, delete it!'
+                    title: 'Are you sure?', text: "You won't be able to revert this!", icon: 'warning',
+                    showCancelButton: true, confirmButtonColor: '#d33', cancelButtonColor: '#3085d6', confirmButtonText: 'Yes, delete it!'
                 }).then((result) => {
                     if (result.isConfirmed) {
                         $.ajax({
-                            url: `/freegoods-form/${id}`, 
-                            type: 'DELETE',
-                            data: {
-                                _token: '{{ csrf_token() }}' 
-                            },
-                            beforeSend: function() {
-                                button.prop('disabled', true);
-                            },
+                            url: `/freegoods-form/${id}`, type: 'DELETE', data: { _token: '{{ csrf_token() }}' },
                             success: function(response) {
-                                if (response.success) {
-                                    Swal.fire('Deleted!', response.message, 'success');
-                                    table.ajax.reload(null, false); 
-                                } else {
-                                    Swal.fire('Error!', response.message, 'error');
-                                }
-                            },
-                            error: function(xhr) {
-                                Swal.fire('Error!', 'Failed to delete requisition.', 'error');
-                            },
-                            complete: function() {
-                                button.prop('disabled', false);
+                                if (response.success) { Swal.fire('Deleted!', response.message, 'success'); table.ajax.reload(null, false); }
+                                else { Swal.fire('Error!', response.message, 'error'); }
                             }
                         });
                     }
@@ -860,88 +820,45 @@
 
             $(document).on('click', '.btn-duplicate-requisition', function() {
                 const id = $(this).data('id');
-                const button = $(this);
-                const originalIcon = button.html();
-                button.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>').prop('disabled', true);
-
                 $.ajax({
-                    url: `/freegoods-form/${id}/edit`,
-                    type: 'GET',
+                    url: `/freegoods-form/${id}/edit`, type: 'GET',
                     success: function(data) {
-                        resetForm(); 
-                        populateForm(data);
-                        
+                        resetForm(); populateForm(data);
                         $('#fgForm').attr('data-mode', 'create').removeAttr('data-id');
                         $('#fgModalLabel').text('Duplicate Free Goods Requisition');
                         $('#saveFgBtn').text('Save as New');
-                        
-                        button.html(originalIcon).prop('disabled', false);
                         $('#fgModal').modal('show');
-                    },
-                    error: function() {
-                        errorMessage('Failed to fetch data for duplication.');
-                        button.html(originalIcon).prop('disabled', false);
                     }
                 });
             });
 
-            $('#fgModal').on('hidden.bs.modal', function () { 
-                resetForm();
-                $('#fgForm').removeAttr('data-mode data-id'); 
-            });
+            $('#fgModal').on('hidden.bs.modal', function () { resetForm(); $('#fgForm').removeAttr('data-mode data-id'); });
 
-            // Recall Logic
             $(document).on('click', '.btn-recall-requisition', function() {
                 const requisitionId = $(this).data('id');
-                
                 Swal.fire({
-                    title: `Recall Requisition`,
-                    width: '600px',
-                    html: `
-                        <p class="text-danger fw-bold">Tindakan ini akan membatalkan requisition dan tidak dapat di-undo.</p>
-                        <textarea id="recallNotes" class="swal2-textarea" placeholder="Mohon berikan alasan untuk recall (wajib)..." style="width: 400px; height: 150px;"></textarea>
-                    `,
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#d33',
-                    cancelButtonColor: '#6c757d',
-                    confirmButtonText: 'Lanjutkan',
-                    cancelButtonText: 'Batal',
-                    focusConfirm: false,
+                    title: `Recall Requisition`, width: '600px',
+                    html: `<p class="text-danger fw-bold">Tindakan ini akan membatalkan requisition dan tidak dapat di-undo.</p><textarea id="recallNotes" class="swal2-textarea" placeholder="Mohon berikan alasan untuk recall (wajib)..." style="width: 400px; height: 150px;"></textarea>`,
+                    icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Lanjutkan', cancelButtonText: 'Batal',
                     preConfirm: () => {
                         const notes = Swal.getPopup().querySelector('#recallNotes').value;
-                        if (!notes.trim()) {
-                            Swal.showValidationMessage('Alasan recall wajib diisi.');
-                            return false;
-                        }
+                        if (!notes.trim()) { Swal.showValidationMessage('Alasan recall wajib diisi.'); return false; }
                         return notes;
                     }
                 }).then((result) => {
                     if (result.isConfirmed && result.value) {
-                         const notes = result.value;
                          $.ajax({
-                                    url: `/freegoods-form/${requisitionId}/recall`,
-                                    type: 'POST',
-                                    data: {
-                                        _token: '{{ csrf_token() }}',
-                                        notes: notes 
-                                    },
-                                    success: function (response) {
-                                        if (response.success) {
-                                            Swal.fire('Recalled!', response.message, 'success');
-                                            table.ajax.reload(null, false);
-                                        }
-                                    },
-                                    error: function (xhr) {
-                                        Swal.fire('Gagal!', xhr.responseJSON?.message || 'Terjadi kesalahan.', 'error');
-                                    }
-                                });
+                            url: `/freegoods-form/${requisitionId}/recall`, type: 'POST',
+                            data: { _token: '{{ csrf_token() }}', notes: result.value },
+                            success: function (response) {
+                                if (response.success) { Swal.fire('Recalled!', response.message, 'success'); table.ajax.reload(null, false); }
+                            }
+                        });
                     }
                 });
             });
 
         });
-
     </script>
     @endpush
 </x-app-layout>
