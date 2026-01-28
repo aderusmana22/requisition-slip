@@ -6,13 +6,12 @@ use App\Models\Master\Customer;
 use App\Models\Master\Revision;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory; // [DITAMBAHKAN] Baris ini memperbaiki error
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
 class Requisition extends Model
 {
-    // [DITAMBAHKAN] Trait yang menyebabkan error kini sudah diimpor dengan benar
     use HasFactory, LogsActivity;
 
     protected $table = 'requisitions';
@@ -20,6 +19,8 @@ class Requisition extends Model
     protected $fillable = [
         'requester_nik',
         'customer_id',
+        'recipient_name',    // [DITAMBAHKAN] Agar input Recipient bisa disimpan
+        'recipient_address', // [DITAMBAHKAN] Agar input Address bisa disimpan
         'no_srs',
         'account',
         'cost_center',

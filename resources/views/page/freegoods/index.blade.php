@@ -3,77 +3,34 @@
     Free Goods Requisition
     @endsection
 
-    {{-- Memuat file CSS Hijau Anda dari komponen --}}
     @include('components.freegoods-table-styles')
 
     @push('css')
-    {{-- CSS untuk Select2 agar filter terlihat rapi --}}
     <link rel="stylesheet" href="{{ asset('assets/vendor/select/select2.min.css') }}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
 
     <style>
-        .modal-body hr {
-            margin-top: 1.75rem;
-            margin-bottom: 1.75rem;
-        }
-        .modal-body h5.fw-bold {
-            margin-bottom: 1.25rem !important;
-        }
-        .table-responsive h6.fw-bold {
-             margin-bottom: 1rem;
-        }
-        .view-modal-card .row > [class^="col-"] {
-            margin-bottom: 1rem;
-        }
+        .modal-body hr { margin-top: 1.75rem; margin-bottom: 1.75rem; }
+        .modal-body h5.fw-bold { margin-bottom: 1.25rem !important; }
+        .table-responsive h6.fw-bold { margin-bottom: 1rem; }
+        .view-modal-card .row > [class^="col-"] { margin-bottom: 1rem; }
 
-        /* [CUSTOM STATUS COLORS] - Sesuaikan dengan Approval/Report */
         .status-pending { background-color: #fd7e14 !important; color: #ffffff !important; border: 1px solid #fd7e14; }
-        .status-processing { background-color: #8B4513 !important; color: #ffffff !important; border: 1px solid #8B4513; } /* Coklat/Bronze */
+        .status-processing { background-color: #8B4513 !important; color: #ffffff !important; border: 1px solid #8B4513; }
         .status-completed { background-color: #198754 !important; color: #ffffff !important; border: 1px solid #198754; }
         .status-rejected { background-color: #dc3545 !important; color: #ffffff !important; border: 1px solid #dc3545; }
         .status-default { background-color: #6c757d !important; color: #fff !important; }
 
-        /* Style untuk badge Requester */
         .badge-requester {
-            background-color: #343a40; /* Dark/Black like reference */
-            color: #ffffff;
-            padding: 8px 16px;
-            border-radius: 50rem; /* Pill shape */
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-            white-space: nowrap;
-        }
-        .requester-badge i {
-            font-size: 1.2em;
+            background-color: #343a40; color: #ffffff; padding: 8px 16px;
+            border-radius: 50rem; display: inline-flex; align-items: center;
+            font-weight: 500; font-size: 0.9em; box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+            min-width: 140px; 
         }
 
-        /* [STYLE SEARCH] Search Clear Icon (Tombol X) */
-        .search-container {
-            position: relative;
-            display: inline-block;
-            width: 100%;
-        }
-        .search-clear-icon {
-            position: absolute;
-            right: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            cursor: pointer;
-            color: #adb5bd;
-            display: none; /* Default sembunyi, muncul via JS saat mengetik */
-            z-index: 10;
-            transition: color 0.2s;
-            font-size: 1rem;
-        }
-        .search-clear-icon:hover {
-            color: #dc3545; /* Warna merah saat hover */
-        }
-        
-        /* Memastikan header tabel cursor-nya pointer saat di-hover agar user tahu bisa diklik */
-        table.dataTable thead th {
-            cursor: pointer;
-        }
+        .search-container { position: relative; display: inline-block; width: 100%; }
+        .search-clear-icon { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #adb5bd; display: none; z-index: 10; transition: color 0.2s; font-size: 1rem; }
+        .search-clear-icon:hover { color: #dc3545; }
     </style>
     @endpush
 
@@ -82,23 +39,15 @@
         <div class="col-12">
             <h4 class="main-title">Free Goods Requisition List</h4>
             <ul class="app-line-breadcrumbs mb-3">
-                <li>
-                    <a class="f-s-14 f-w-500" href="#">
-                        <i class="ph-duotone ph ph-note-pencil f-s-16"></i> Forms
-                    </a>
-                </li>
-                <li class="active">
-                    <a class="f-s-14 f-w-500" href="#">Free Goods Requisition</a>
-                </li>
+                <li><a class="f-s-14 f-w-500" href="#"><i class="ph-duotone ph ph-note-pencil f-s-16"></i> Forms</a></li>
+                <li class="active"><a class="f-s-14 f-w-500" href="#">Free Goods Requisition</a></li>
             </ul>
         </div>
     </div>
 
     <div class="row">
         <div class="col-12">
-             {{-- Layout Filter & Tombol --}}
             <div class="d-flex justify-content-between align-items-center mb-4">
-                {{-- Grup Filter di Kiri --}}
                 <div class="d-flex align-items-center gap-2">
                     <span class="text-muted fw-bold">Filter by:</span>
                     <select id="statusFilter" class="form-select select2" style="width: 200px;">
@@ -115,23 +64,17 @@
                     </button>
                 </div>
 
-                {{-- Tombol Create di Kanan --}}
                 <div>
-                    <button class="btn new-freegoods-btn" type="button" data-bs-toggle="modal"
-                        data-bs-target="#fgModal" id="btn-create-fg">
+                    <button class="btn new-freegoods-btn" type="button" data-bs-toggle="modal" data-bs-target="#fgModal" id="btn-create-fg">
                         <i class="ph-bold ph-plus"></i>
                         <span>New Free Goods</span>
                     </button>
                 </div>
             </div>
     
-            {{-- Container Tabel --}}
             <div class="main-table-container">
                 <div class="table-header-enhanced">
-                    <h4 class="table-title">
-                        <i class="ph-duotone ph-list"></i>
-                        Free Goods Requisition List
-                    </h4>
+                    <h4 class="table-title"><i class="ph-duotone ph-list"></i>Free Goods Requisition List</h4>
                     <p class="table-subtitle">View, manage and track all free goods requisition submissions</p>
                 </div>
 
@@ -140,9 +83,9 @@
                         <thead>
                             <tr>
                                 <th class="text-center">No.</th>
-                                <th class="text-center">No. FG</th> 
+                                {{-- Kolom No FG dihapus --}}
                                 <th class="text-center">Requester</th>
-                                <th class="text-center">Customer</th>
+                                <th class="text-center">Recipient</th>
                                 <th class="text-center">Request Date</th>
                                 <th class="text-center">Category</th>
                                 <th class="text-center">Route To</th>
@@ -157,11 +100,8 @@
     </div>
 
 
-    {{-- ========================================================== --}}
-    {{-- MODAL & SCRIPT --}}
-    {{-- ========================================================== --}}
-    <div class="modal fade" id="fgModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static"
-        data-bs-keyboard="false">
+    {{-- MODAL --}}
+    <div class="modal fade" id="fgModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
         <div class="modal-dialog modal-dialog-centered modal-xl">
             <div class="modal-content">
                 <div class="loading-overlay" style="display: none;">
@@ -172,13 +112,11 @@
                 </div>
                 <div class="modal-header"> 
                     <h5 class="modal-title text-white" id="fgModalLabel">Create New Free Goods Requisition</h5>
-                    <button type="button" class="btn-close btn-close-white m-0 fs-5" data-bs-dismiss="modal"
-                        aria-label="Close"></button>
+                    <button type="button" class="btn-close btn-close-white m-0 fs-5" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <form id="fgForm" enctype="multipart/form-data">
                     @csrf
                     <div class="modal-body">
-                        {{-- Bagian Atas Form --}}
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label for="category" class="form-label fw-bold">1. Category</label>
@@ -195,56 +133,40 @@
                                 <hr>
                                 <h5 class="fw-bold text-warning">Requisition Details</h5>
                                 
-                                {{-- Baris 1: Informasi Customer --}}
                                 <div class="row g-3 mb-3">
                                     <div class="col-md-6">
-                                        <label for="customer_id" class="form-label">Customer Name<i class="text-danger">*</i></label>
-                                        <select class="form-select select2-styled" id="customer_id" name="customer_id" style="width: 100%;">
-                                            <option></option>
-                                            @foreach ($customers as $customer)
-                                            <option value="{{ $customer->id }}" data-address="{{ $customer->address }}">
-                                                {{ $customer->name }}</option>
-                                            @endforeach
-                                        </select>
-                                        <div class="invalid-feedback" id="customer_id_error"></div>
+                                        <label for="recipient_name" class="form-label">Recipient<i class="text-danger">*</i></label>
+                                        <input type="text" class="form-control" id="recipient_name" name="recipient_name" maxlength="30" placeholder="Recipient Name (Max 30 Chars)">
+                                        <div class="invalid-feedback" id="recipient_name_error"></div>
                                     </div>
                                     <div class="col-md-6">
-                                        <label for="customer_address" class="form-label">Address</label>
-                                        <textarea class="form-control" id="customer_address" rows="2" readonly></textarea>
+                                        <label for="recipient_address" class="form-label">Address</label>
+                                        <textarea class="form-control" id="recipient_address" name="recipient_address" rows="2" placeholder="Recipient Address (Optional)"></textarea>
+                                        <div class="invalid-feedback" id="recipient_address_error"></div>
                                     </div>
                                 </div>
 
-                                {{-- Baris 2: Detail Nomor, Akun, dan Tanggal --}}
+                                {{-- Layout Input 3 Kolom (FG No dihapus) --}}
                                 <div class="row g-3 mb-3">
-                                    <div class="col-md-3">
-                                        <label for="no_srs" class="form-label">FG No.<i class="text-danger">*</i></label>
-                                        <input type="text" class="form-control" id="no_fg" name="no_fg" value="{{ $generatedFg }}" readonly>
-                                    </div>
-                                    <div class="col-md-3">
+                                    <div class="col-md-4">
                                         <label for="account" class="form-label">Account<i class="text-danger">*</i></label>
-                                        <input type="text" class="form-control" id="account" name="account" value="5300" readonly>
+                                        <input type="text" class="form-control" id="account" name="account" value="{{ $userAccount ?? '5300' }}" readonly>
                                     </div>
-                                    <div class="col-md-3">
+                                    <div class="col-md-4">
                                         <label for="request_date" class="form-label">Request Date<i class="text-danger">*</i></label>
                                         <input type="date" class="form-control" id="request_date" name="request_date" value="{{ date('Y-m-d') }}">
                                     </div>
-                                    <div class="col-md-3">
+                                    <div class="col-md-4">
                                         <label for="cost_center" class="form-label">Cost Center</label>
-                                        <input type="text" class="form-control" id="cost_center" name="cost_center" placeholder="e.g: CC1001, CC2002">
+                                        <input type="text" class="form-control" id="cost_center" name="cost_center" placeholder="e.g: 212, 211">
                                     </div>
                                 </div>
 
-                                {{-- Baris 3: Tujuan dan Potensi --}}
                                 <div class="row g-3">
-                                    <div class="col-md-6">
+                                    <div class="col-md-12"> 
                                         <label for="objectives" class="form-label">Objectives<i class="text-danger">*</i></label>
                                         <textarea class="form-control" id="objectives" name="objectives" placeholder="e.g: Promotional Items, Internal Use, etc." rows="2"></textarea>
                                         <div class="invalid-feedback" id="objectives_error"></div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="estimated_potential" class="form-label">Estimated Potential<i class="text-danger">*</i></label>
-                                        <textarea class="form-control" id="estimated_potential" name="estimated_potential" placeholder="e.g.: High, Medium, Low, Others: Specify Here" rows="2"></textarea>
-                                        <div class="invalid-feedback" id="estimated_potential_error"></div>
                                     </div>
                                 </div>
 
@@ -292,7 +214,7 @@
         </div>
     </div>
 
-    {{-- VIEW MODAL --}}
+    {{-- MODAL VIEW --}}
     <div class="modal fade" id="viewModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
         <div class="modal-dialog modal-dialog-centered modal-xl">
             <div class="modal-content">
@@ -316,21 +238,18 @@
                                     <small class="view-label">Sub Category</small>
                                     <p class="view-data" id="view_sub_category">General Request</p>
                                 </div>
-                                <div class="col-md-3">
-                                    <small class="view-label">FG No.</small>
-                                    <p class="view-data" id="view_no_srs">-</p>
-                                </div>
+                                {{-- FG NO Dihapus --}}
                                 <div class="col-md-3">
                                     <small class="view-label">Request Date</small>
                                     <p class="view-data" id="view_request_date">-</p>
                                 </div>
                                 <div class="col-md-3">
-                                    <small class="view-label">Customer Name</small>
-                                    <p class="view-data" id="view_customer_name">-</p>
+                                    <small class="view-label">Recipient</small>
+                                    <p class="view-data" id="view_recipient_name">-</p>
                                 </div>
                                 <div class="col-md-3">
                                     <small class="view-label">Address</small>
-                                    <p class="view-data" id="view_customer_address">-</p>
+                                    <p class="view-data" id="view_recipient_address">-</p>
                                 </div>
                                 <div class="col-md-3">
                                     <small class="view-label">Account</small>
@@ -340,13 +259,9 @@
                                     <small class="view-label">Cost Center</small>
                                     <p class="view-data" id="view_cost_center">-</p>
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-md-12">
                                     <small class="view-label">Objectives</small>
                                     <p class="view-data fst-italic fw-normal" id="view_objectives">-</p>
-                                </div>
-                                <div class="col-md-6">
-                                    <small class="view-label">Estimated Potential</small>
-                                    <p class="view-data fst-italic fw-normal" id="view_estimated_potential">-</p>
                                 </div>
                             </div>
                         </div>
@@ -383,9 +298,7 @@
                                 <span class="fw-bold me-3">Current Status:</span>
                                 <div id="view_status_badge"></div>
                             </div>
-                            <div class="tracker-container" id="approval-tracker-container-fg">
-                                {{-- Tracker steps akan diisi oleh JS --}}
-                            </div>
+                            <div class="tracker-container" id="approval-tracker-container-fg"></div>
                         </div>
                     </div>
                 </div>
@@ -400,54 +313,23 @@
     <script src="{{ asset('assets/vendor/select/select2.min.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        let nextFgNumber = "{{ $generatedFg }}"; 
+        const userAccount = "{{ $userAccount ?? '5300' }}"; 
 
         function successMessage(message) {
-            Swal.fire({
-                icon: 'success',
-                title: 'Success',
-                text: message,
-                timer: 1500,
-                showConfirmButton: true
-            });
+            Swal.fire({ icon: 'success', title: 'Success', text: message, timer: 1500, showConfirmButton: true });
         }
 
         function errorMessage(message) {
-            Swal.fire({
-                icon: 'error',
-                title: 'An Error Occurred',
-                text: message
-            });
+            Swal.fire({ icon: 'error', title: 'An Error Occurred', text: message });
         }
 
         function warningMessage(message) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Attention',
-                text: message
-            });
+            Swal.fire({ icon: 'warning', title: 'Attention', text: message });
         }
 
         $(document).ready(function () {
-            const userDepartmentName = "{{ $userDepartmentName ?? '' }}";
-
+            
             function initSelect2() {
-                
-                function formatCustomer(option) {
-                    if (!option.id) return '<span class="text-muted">Select Customer</span>';
-                    return `<i class='ph ph-user-circle me-2 text-warning'></i> <span style='font-weight:500;'>${option.text}</span>`;
-                }
-                $('#customer_id').select2({
-                    dropdownParent: $('#fgModal'), 
-                    placeholder: 'Select Customer',
-                    allowClear: true,
-                    templateResult: formatCustomer,
-                    templateSelection: formatCustomer,
-                    escapeMarkup: function (markup) {
-                        return markup;
-                    }
-                });
-
                 $('#product_select_fg').select2({
                     dropdownParent: $('#fgModal'), 
                     placeholder: 'Select products',
@@ -471,10 +353,7 @@
             }
             initSelect2();
 
-            $('#statusFilter').select2({
-                theme: 'bootstrap-5',
-                minimumResultsForSearch: Infinity 
-            });
+            $('#statusFilter').select2({ theme: 'bootstrap-5', minimumResultsForSearch: Infinity });
 
             const table = $('#fgTable').DataTable({
                 processing: true,
@@ -486,97 +365,43 @@
                     }
                 },
                 columns: [
-                    {
-                        // [FIXED] Kolom "NO." sekarang dihubungkan ke ID untuk sorting
-                        // Pastikan di Controller baris $query->orderBy('requisitions.id', 'desc') sudah DIHAPUS
-                        data: 'id',
-                        name: 'requisitions.id', 
-                        orderable: true,         
-                        searchable: false,
-                        width: '20px',
-                        className: 'text-center',
-                        render: function (data, type, row, meta) {
-                            // Render Nomor Urut (1, 2, 3...) meski di-sort
-                            return meta.row + meta.settings._iDisplayStart + 1;
-                        }
-                    },
-                    { data: 'no_srs', name: 'requisitions.no_srs', className: 'text-center align-middle' },
-                    { data: 'requester_info', name: 'users.name', className: 'text-center align-middle' }, // Center & Align Middle
-                    { data: 'customer_name', name: 'customers.name', className: 'text-center align-middle' },
+                    { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false, width: '20px', className: 'text-center align-middle' },
+                    // [REVISI] Kolom FG No dihapus dari sini
+                    { data: 'requester_info', name: 'users.name', className: 'text-center align-middle' }, 
+                    { data: 'recipient_name', name: 'requisitions.recipient_name', className: 'text-center align-middle' },
                     { data: 'request_date', name: 'requisitions.request_date', className: 'text-center align-middle' },
                     { data: 'sub_category', name: 'requisitions.sub_category', className: 'text-center align-middle' },
                     { data: 'route_to', name: 'requisitions.route_to', className: 'text-center align-middle' },
                     { data: 'status', name: 'requisitions.status', className: 'text-center align-middle' },
-                    {
-                        data: 'action',
-                        name: 'action',
-                        orderable: false,
-                        searchable: false,
-                        className: 'text-center align-middle',
-                    }
+                    { data: 'action', name: 'action', orderable: false, searchable: false, className: 'text-center align-middle' }
                 ],
-                // Default sorting terbaru (ID Descending)
-                order: [[0, 'desc']] 
+                order: [[3, 'desc']] // Order by Request Date (index sekarang geser ke 3)
             });
 
-            $('#statusFilter').on('change', function() {
-                table.ajax.reload();
-            });
+            $('#statusFilter').on('change', function() { table.ajax.reload(); });
+            $('#resetFilters').on('click', function() { $('#statusFilter').val('all').trigger('change'); });
 
-            $('#resetFilters').on('click', function() {
-                $('#statusFilter').val('all').trigger('change');
-            });
-
-            // [FIXED] Logika Search Input dengan Tombol 'X' (Clear)
-            // ==============================================================
-            const filterInput = $('#fgTable_filter input'); 
-            
-            // Bungkus input dengan div agar icon bisa diposisikan absolute
-            if (filterInput.parent().find('.search-container').length === 0) {
-                // Hapus binding default DataTables agar kita bisa kontrol sendiri
-                filterInput.unbind();
-                
-                // Buat wrapper baru
+            let searchInput = $('#fgTable_filter input'); 
+            if (searchInput.parent().find('.search-container').length === 0) {
+                searchInput.unbind();
                 const wrapper = $('<div class="search-container"></div>');
-                filterInput.wrap(wrapper);
-                
-                // Tambahkan class styling ke input
-                filterInput.attr({ 
-                    'placeholder': 'Search Free Goods...',
-                    'class': 'form-control ps-3 pe-5' 
-                });
-
-                // Tambahkan tombol X setelah input
-                $('<i class="ph-bold ph-x search-clear-icon" title="Clear Search"></i>').insertAfter(filterInput);
+                searchInput.wrap(wrapper);
+                searchInput.attr({ 'placeholder': 'Search Free Goods...', 'class': 'form-control ps-3 pe-5' });
+                $('<i class="ph-bold ph-x search-clear-icon" title="Clear Search"></i>').insertAfter(searchInput);
             }
-
+            
             const clearIcon = $('.search-clear-icon');
             let debounceTimer;
-
-            // Event saat mengetik
-            filterInput.on('keyup input', function (e) {
+            searchInput.on('keyup input', function (e) {
                 const val = $(this).val();
-                
-                // Tampilkan icon jika ada teks
-                if (val.length > 0) {
-                    clearIcon.show();
-                } else {
-                    clearIcon.hide();
-                }
-
-                // Delay pencarian 500ms (debounce) agar tidak berat di server
+                if (val.length > 0) clearIcon.show(); else clearIcon.hide();
                 clearTimeout(debounceTimer);
-                debounceTimer = setTimeout(function () {
-                    table.search(val).draw();
-                }, 500);
+                debounceTimer = setTimeout(function () { table.search(val).draw(); }, 500);
             });
-
-            // Event saat tombol X diklik
             $(document).on('click', '.search-clear-icon', function() {
-                filterInput.val('').trigger('input'); // Kosongkan input & trigger event
-                table.search('').draw(); // Refresh tabel bersih
+                searchInput.val('').trigger('input');
+                table.search('').draw();
             });
-            // ==============================================================
 
             function clearValidationErrors() {
                 $('.form-control, .form-select').removeClass('is-invalid');
@@ -588,27 +413,29 @@
             function resetForm() {
                 $('#fgForm')[0].reset(); 
                 $('#fgForm').removeAttr('data-mode data-id'); 
-                $('#customer_id, #product_select_fg').val(null).trigger('change');
+                
+                $('#product_select_fg').val(null).trigger('change');
+                
                 $('#requisition-items-tbody-fg').html(
                     '<tr id="no-items-row"><td colspan="4" class="text-center">No items have been added yet.</td></tr>'
                 );
 
                 clearValidationErrors();
                 $('#fgModalLabel').text('Create New Free Goods Requisition'); 
-                $('#no_fg').val(nextFgNumber); 
+                // [REVISI] Tidak ada reset no_fg karena inputnya sudah dihapus
                 $('#saveFgBtn').text('Save'); 
+
+                if (userAccount === '5300') {
+                    $('#cost_center').val('313').prop('readonly', true);
+                } else {
+                    $('#cost_center').val('').prop('readonly', false);
+                }
             }
 
             $('#btn-create-fg').on('click', function () { 
                 resetForm();
                 $('#fgForm').attr('data-mode', 'create').removeAttr('data-id'); 
                 $('#fgModal').modal('show'); 
-            });
-
-            $('#customer_id').on('change', function () {
-                const selectedOption = $(this).find('option:selected');
-                const address = selectedOption.data('address') || '';
-                $('#customer_address').val(address);
             });
 
             $('#btn-add-items-master').on('click', function () {
@@ -657,7 +484,7 @@
                 e.preventDefault(); 
                 const form = this; 
 
-                const customerName = $('#customer_id option:selected').text().trim();
+                const recipientName = $('#recipient_name').val().trim();
                 const requestDate = $('#request_date').val();
                 const itemCount = $('#requisition-items-tbody-fg tr[id^="item-row-"]').length; 
 
@@ -666,7 +493,7 @@
                     html: `Anda akan mengajukan Requisition dengan ringkasan data berikut:
                         <ul class="text-start mt-3" style="list-style: none; padding-left: 0;">
                             <li style="padding: 5px 0;"><strong>Kategori:</strong> FREE GOODS</li>
-                            <li style="padding: 5px 0;"><strong>Customer:</strong> ${customerName || '<i>Belum dipilih</i>'}</li>
+                            <li style="padding: 5px 0;"><strong>Recipient:</strong> ${recipientName || '<i>Belum diisi</i>'}</li>
                             <li style="padding: 5px 0;"><strong>Tgl. Request:</strong> ${requestDate}</li>
                             <li style="padding: 5px 0;"><strong>Jumlah Item:</strong> ${itemCount} item</li>
                         </ul>
@@ -705,7 +532,7 @@
                                     $('#fgModal').modal('hide'); 
                                     successMessage(res.message);
                                     table.ajax.reload(null, false);
-                                    nextFgNumber = res.next_fg_number; 
+                                    // nextFgNumber Logic removed here
                                 }
                             },
 
@@ -745,7 +572,6 @@
                 let formData = new FormData(form);
                 formData.append('category', 'FREE GOODS');
                 formData.append('sub_category', 'General Request');
-                formData.append('no_srs', $('#no_fg').val()); 
                 
                 submitForm(formData);
                     }
@@ -755,13 +581,19 @@
             function populateForm(data) {
                 $('#fgForm').attr('data-mode', 'edit').attr('data-id', data.id); 
 
-                $('#customer_id').val(data.customer_id).trigger('change.select2');
-                $('#no_fg').val(data.no_srs); 
+                $('#recipient_name').val(data.recipient_name);
+                $('#recipient_address').val(data.recipient_address);
+
                 $('#account').val(data.account);
                 $('#cost_center').val(data.cost_center);
                 $('#request_date').val(data.request_date);
                 $('#objectives').val(data.objectives);
-                $('#estimated_potential').val(data.estimated_potential);
+
+                if (userAccount === '5300') {
+                    $('#cost_center').prop('readonly', true);
+                } else {
+                    $('#cost_center').prop('readonly', false);
+                }
 
                 const productSelectFg = $('#product_select_fg');
                 productSelectFg.empty();
@@ -777,7 +609,7 @@
 
                 const itemTbody = $('#requisition-items-tbody-fg'); 
                 itemTbody.empty();
-                const colspan = 4; 
+                const colspan = 4;
 
                 if (data.requisition_items && data.requisition_items.length > 0) {
                     data.requisition_items.forEach(item => {
@@ -807,14 +639,14 @@
 
             function populateViewForm(data) {
                 $('#view_sub_category').text(data.sub_category || 'General Request');
-                $('#view_customer_name').text(data.customer ? data.customer.name : '-');
-                $('#view_customer_address').text(data.customer ? data.customer.address : '-');
-                $('#view_no_srs').text(data.no_srs || '-');
+                
+                $('#view_recipient_name').text(data.recipient_name || '-');
+                $('#view_recipient_address').text(data.recipient_address || '-');
+                
                 $('#view_account').text(data.account || '-');
                 $('#view_request_date').text(new Date(data.request_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) || '-');
                 $('#view_cost_center').text(data.cost_center || '-');
                 $('#view_objectives').text(data.objectives || '-');
-                $('#view_estimated_potential').text(data.estimated_potential || '-');
 
                 const viewItemTbody = $('#view-items-tbody-fg'); 
                 viewItemTbody.empty();
@@ -844,7 +676,6 @@
                     viewItemTbody.html(`<tr><td colspan="${colspan}" class="text-center">No items have been added.</td></tr>`);
                 }
 
-                // [UPDATE] Logic Status Color di Modal View
                 const status = data.status;
                 let badgeClass = 'status-default';
                 if (['Submitted', 'Pending'].includes(status)) badgeClass = 'status-pending';
@@ -984,16 +815,87 @@
                 });
             });
 
+            // TOMBOL DELETE
+            $(document).on('click', '.btn-delete-requisition', function() {
+                const id = $(this).data('id');
+                const button = $(this);
+                
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: "You won't be able to revert this!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Yes, delete it!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: `/freegoods-form/${id}`, 
+                            type: 'DELETE',
+                            data: {
+                                _token: '{{ csrf_token() }}' 
+                            },
+                            beforeSend: function() {
+                                button.prop('disabled', true);
+                            },
+                            success: function(response) {
+                                if (response.success) {
+                                    Swal.fire('Deleted!', response.message, 'success');
+                                    table.ajax.reload(null, false); 
+                                } else {
+                                    Swal.fire('Error!', response.message, 'error');
+                                }
+                            },
+                            error: function(xhr) {
+                                Swal.fire('Error!', 'Failed to delete requisition.', 'error');
+                            },
+                            complete: function() {
+                                button.prop('disabled', false);
+                            }
+                        });
+                    }
+                });
+            });
+
+            $(document).on('click', '.btn-duplicate-requisition', function() {
+                const id = $(this).data('id');
+                const button = $(this);
+                const originalIcon = button.html();
+                button.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>').prop('disabled', true);
+
+                $.ajax({
+                    url: `/freegoods-form/${id}/edit`,
+                    type: 'GET',
+                    success: function(data) {
+                        resetForm(); 
+                        populateForm(data);
+                        
+                        $('#fgForm').attr('data-mode', 'create').removeAttr('data-id');
+                        $('#fgModalLabel').text('Duplicate Free Goods Requisition');
+                        $('#saveFgBtn').text('Save as New');
+                        
+                        button.html(originalIcon).prop('disabled', false);
+                        $('#fgModal').modal('show');
+                    },
+                    error: function() {
+                        errorMessage('Failed to fetch data for duplication.');
+                        button.html(originalIcon).prop('disabled', false);
+                    }
+                });
+            });
+
+            $('#fgModal').on('hidden.bs.modal', function () { 
+                resetForm();
+                $('#fgForm').removeAttr('data-mode data-id'); 
+            });
+
+            // Recall Logic
             $(document).on('click', '.btn-recall-requisition', function() {
                 const requisitionId = $(this).data('id');
-                const row = $(this).closest('tr');
-                const rowData = table.row(row).data();
-                const fgNumber = rowData.no_srs; 
-                const button = $(this);
-                const originalHtml = button.html();
-
+                
                 Swal.fire({
-                    title: `Recall Requisition ${fgNumber}`,
+                    title: `Recall Requisition`,
                     width: '600px',
                     html: `
                         <p class="text-danger fw-bold">Tindakan ini akan membatalkan requisition dan tidak dapat di-undo.</p>
@@ -1016,33 +918,13 @@
                     }
                 }).then((result) => {
                     if (result.isConfirmed && result.value) {
-                        const notes = result.value;
-
-                        Swal.fire({
-                            title: 'Konfirmasi Alasan Recall',
-                            html: `
-                                <p>Pastikan alasan yang Anda masukkan sudah benar:</p>
-                                <div style="background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 5px; padding: 10px; text-align: left; margin-top: 10px;">
-                                    <i>"${notes}"</i>
-                                </div>
-                            `,
-                            icon: 'question',
-                            showCancelButton: true,
-                            confirmButtonColor: '#28a745',
-                            cancelButtonColor: '#6c757d',
-                            confirmButtonText: 'Ya, Data Benar & Recall!',
-                            cancelButtonText: 'Batal'
-                        }).then((confirmResult) => {
-                            if (confirmResult.isConfirmed) {
-                                $.ajax({
+                         const notes = result.value;
+                         $.ajax({
                                     url: `/freegoods-form/${requisitionId}/recall`,
                                     type: 'POST',
                                     data: {
                                         _token: '{{ csrf_token() }}',
                                         notes: notes 
-                                    },
-                                    beforeSend: function() {
-                                        button.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>').prop('disabled', true);
                                     },
                                     success: function (response) {
                                         if (response.success) {
@@ -1052,58 +934,10 @@
                                     },
                                     error: function (xhr) {
                                         Swal.fire('Gagal!', xhr.responseJSON?.message || 'Terjadi kesalahan.', 'error');
-                                    },
-                                    complete: function() {
-                                        button.html(originalHtml).prop('disabled', false);
                                     }
                                 });
-                            }
-                        });
                     }
                 });
-            });
-
-
-            $(document).on('click', '.btn-duplicate-requisition', function() {
-                const id = $(this).data('id');
-                const button = $(this);
-                const originalIcon = button.html();
-                button.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>').prop('disabled', true);
-
-                $.ajax({
-                    url: `/freegoods-form/${id}/edit`,
-                    type: 'GET',
-                    success: function(data) {
-                        resetForm(); 
-                        populateForm(data);
-
-                        $.ajax({
-                            url: "{{ route('freegoods.get-next-number') }}",
-                            type: 'GET',
-                            success: function(res) {
-                                $('#no_fg').val(res.next_fg_number);
-                                nextFgNumber = res.next_fg_number;
-                            },
-                            complete: function() {
-                                $('#fgForm').attr('data-mode', 'create').removeAttr('data-id');
-                                $('#fgModalLabel').text('Duplicate Free Goods Requisition');
-                                $('#saveFgBtn').text('Save as New');
-                                
-                                button.html(originalIcon).prop('disabled', false);
-                                $('#fgModal').modal('show');
-                            }
-                        });
-                    },
-                    error: function() {
-                        errorMessage('Failed to fetch data for duplication.');
-                        button.html(originalIcon).prop('disabled', false);
-                    }
-                });
-            });
-            
-            $('#fgModal').on('hidden.bs.modal', function () { 
-                resetForm();
-                $('#fgForm').removeAttr('data-mode data-id'); 
             });
 
         });

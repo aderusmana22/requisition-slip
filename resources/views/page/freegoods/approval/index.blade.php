@@ -8,150 +8,76 @@
     {{-- [CUSTOM STYLES] --}}
     @push('css')
     <style>
-        /* 1. STATUS BADGES (Solid Colors with White Text) */
-        .status-pending {
-            background-color: #fd7e14 !important; /* Orange */
-            color: #ffffff !important;
-            border: 1px solid #fd7e14;
-        }
+        /* 1. STATUS BADGES */
+        .status-pending { background-color: #fd7e14 !important; color: #ffffff !important; border: 1px solid #fd7e14; }
+        .status-processing { background-color: #8B4513 !important; color: #ffffff !important; border: 1px solid #8B4513; }
+        .status-completed { background-color: #198754 !important; color: #ffffff !important; border: 1px solid #198754; }
+        .status-rejected { background-color: #dc3545 !important; color: #ffffff !important; border: 1px solid #dc3545; }
+        .status-default { background-color: #6c757d !important; color: #fff !important; }
 
-        .status-processing {
-            background-color: #8B4513 !important; /* SaddleBrown / Bronze */
-            color: #ffffff !important;
-            border: 1px solid #8B4513;
-        }
-
-        .status-completed {
-            background-color: #198754 !important; /* Green */
-            color: #ffffff !important;
-            border: 1px solid #198754;
-        }
-
-        .status-rejected {
-            background-color: #dc3545 !important; /* Red */
-            color: #ffffff !important;
-            border: 1px solid #dc3545;
-        }
-
-        .status-default {
-            background-color: #6c757d !important;
-            color: #fff !important;
-        }
-
-        /* 2. BADGE STYLES (LEVEL, APPROVER, REQUESTER) */
-        
-        /* Level (Purple + Star) */
+        /* 2. BADGE STYLES */
         .badge-level {
-            background-color: #884dff; /* Ungu */
-            color: #fff;
-            padding: 6px 12px;
-            border-radius: 50rem;
-            font-size: 0.85em;
-            font-weight: 600;
-            box-shadow: 0 2px 5px rgba(136, 77, 255, 0.2);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 70px;
+            background-color: #884dff; color: #fff; padding: 6px 12px;
+            border-radius: 50rem; font-size: 0.85em; font-weight: 600;
+            box-shadow: 0 2px 5px rgba(136, 77, 255, 0.2); display: inline-flex;
+            align-items: center; justify-content: center; min-width: 70px;
         }
 
-        /* Approver (Dark Grey Pill) */
         .badge-approver {
-            background-color: #495057; /* Dark Grey */
-            color: #fff;
-            padding: 6px 16px;
-            border-radius: 50rem;
-            font-size: 0.85em;
-            font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            min-width: 100px;
+            background-color: #495057; color: #fff; padding: 6px 16px;
+            border-radius: 50rem; font-size: 0.85em; font-weight: 600;
+            display: inline-flex; align-items: center; justify-content: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); min-width: 100px;
         }
 
-        /* [NEW] REQUESTER (Dark Pill - Shading) */
         .badge-requester {
-            background-color: #343a40; /* Dark/Black like reference */
-            color: #ffffff;
-            padding: 8px 16px;
-            border-radius: 50rem; /* Pill shape */
-            display: inline-flex;
-            align-items: center;
-            font-weight: 500;
-            font-size: 0.9em;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
-            min-width: 140px; /* Optional: Uniform width */
+            background-color: #343a40; color: #ffffff; padding: 8px 16px;
+            border-radius: 50rem; display: inline-flex; align-items: center;
+            font-weight: 500; font-size: 0.9em; box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+            min-width: 140px; 
         }
 
         /* 3. PAGINATION FIX */
         .dataTables_wrapper .dataTables_paginate .paginate_button {
-            padding: 0.5em 1em;
-            margin-left: 2px;
-            display: inline-block;
-            border: 1px solid #dee2e6;
-            border-radius: 4px;
-            background: #fff;
-            color: #6c757d !important;
-            cursor: pointer;
-            text-decoration: none;
+            padding: 0.5em 1em; margin-left: 2px; display: inline-block;
+            border: 1px solid #dee2e6; border-radius: 4px; background: #fff;
+            color: #6c757d !important; cursor: pointer; text-decoration: none;
         }
-
         .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
-            background: #e9ecef !important;
-            color: #000 !important;
-            border: 1px solid #dee2e6;
+            background: #e9ecef !important; color: #000 !important; border: 1px solid #dee2e6;
         }
-
         .dataTables_wrapper .dataTables_paginate .paginate_button.current,
         .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
-            background: #198754 !important; /* Hijau Tema */
-            color: #fff !important;
-            border: 1px solid #198754;
+            background: #198754 !important; color: #fff !important; border: 1px solid #198754;
         }
-
         .dataTables_wrapper .dataTables_paginate .paginate_button.disabled,
-        .dataTables_wrapper .dataTables_paginate .paginate_button.disabled:hover,
-        .dataTables_wrapper .dataTables_paginate .paginate_button.disabled:active {
-            cursor: default;
-            color: #ccc !important;
-            background: transparent !important;
-            border: 1px solid transparent;
-            box-shadow: none;
+        .dataTables_wrapper .dataTables_paginate .paginate_button.disabled:hover {
+            cursor: default; color: #ccc !important; background: transparent !important; border: 1px solid transparent; box-shadow: none;
         }
 
         /* 4. TABLE STYLING */
         table.dataTable thead th {
-            background-color: #343a40; /* Dark Header */
-            color: #fff;
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 0.85rem;
-            padding: 12px;
-            border-bottom: 3px solid #cc982f; /* Gold accent */
+            background-color: #343a40; color: #fff; font-weight: 600;
+            text-transform: uppercase; font-size: 0.85rem; padding: 12px;
+            border-bottom: 3px solid #cc982f;
         }
-        
         table.dataTable tbody td {
-            vertical-align: middle;
-            font-size: 0.9rem;
-            padding: 10px;
+            vertical-align: middle; font-size: 0.9rem; padding: 10px;
         }
 
-        /* Search Clear Icon */
-        .search-container {
-            position: relative;
-            display: inline-block;
-            width: 100%;
+        .search-container { position: relative; display: inline-block; width: 100%; }
+        .search-clear-icon { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #adb5bd; display: none; z-index: 10; }
+        
+        .view-modal-card {
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         }
-        .search-clear-icon {
-            position: absolute;
-            right: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            cursor: pointer;
-            color: #adb5bd;
-            display: none;
-            z-index: 10;
+        .view-modal-card-header {
+            background-color: #fff;
+            border-bottom: 1px solid #e9ecef;
+            padding: 15px 20px;
+            border-radius: 8px 8px 0 0;
         }
     </style>
     @endpush
@@ -178,15 +104,15 @@
                         <table class="w-100 display table-hover" id="fgApprovalTable">
                             <thead>
                                 <tr>
-                                    <th>No.</th>
-                                    <th>FG No.</th>
+                                    <th class="text-center">No.</th>
+                                    {{-- Kolom FG No Dihapus --}}
                                     <th style="min-width: 200px;">Requester</th>
-                                    <th>Request Date</th>
-                                    <th>Sub Category</th>
-                                    <th>Status</th>
-                                    <th>Approver NIK</th>
-                                    <th>Level</th>
-                                    <th>Action</th>
+                                    <th class="text-center">Request Date</th>
+                                    <th class="text-center">Sub Category</th>
+                                    <th class="text-center">Status</th>
+                                    <th class="text-center">Approver NIK</th>
+                                    <th class="text-center">Level</th>
+                                    <th class="text-center">Action</th>
                                 </tr>
                             </thead>
                         </table>
@@ -205,30 +131,36 @@
                     <button type="button" class="btn-close btn-close-white m-0 fs-5" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body p-4" style="background-color: #f8f9fa;">
+                    
                     {{-- CARD 1: DETAILS --}}
                     <div class="card view-modal-card mb-3 shadow-sm border-0">
-                        <div class="card-header bg-transparent border-bottom">
-                            <h5 class="fw-bold text-dark mb-0"><i class="ph-bold ph-identification-card me-2 text-warning"></i> Requisition Details</h5>
+                        <div class="card-header view-modal-card-header">
+                            <h5 class="fw-bold text-dark mb-0"><i class="ph-bold ph-identification-card me-2 text-warning"></i> Request Information</h5>
                         </div>
                         <div class="card-body p-4">
                             <div class="row g-4">
                                 <div class="col-md-6"><small class="text-muted d-block">Category</small><span class="fw-bold">FREE GOODS</span></div>
                                 <div class="col-md-6"><small class="text-muted d-block">Sub Category</small><span class="fw-bold" id="view_sub_category">-</span></div>
-                                <div class="col-md-3"><small class="text-muted d-block">FG No.</small><span class="fw-bold text-primary" id="view_no_srs">-</span></div>
+                                
+                                {{-- [FIXED] FG NO & Estimated Potential Dihapus dari HTML ini --}}
+                                
                                 <div class="col-md-3"><small class="text-muted d-block">Request Date</small><span class="fw-bold" id="view_request_date">-</span></div>
-                                <div class="col-md-3"><small class="text-muted d-block">Customer Name</small><span class="fw-bold" id="view_customer_name">-</span></div>
-                                <div class="col-md-3"><small class="text-muted d-block">Address</small><span class="fw-bold" id="view_customer_address">-</span></div>
+                                
+                                {{-- [FIXED] Customer diganti Recipient --}}
+                                <div class="col-md-3"><small class="text-muted d-block">Recipient</small><span class="fw-bold" id="view_recipient_name">-</span></div>
+                                <div class="col-md-3"><small class="text-muted d-block">Address</small><span class="fw-bold" id="view_recipient_address">-</span></div>
+                                
                                 <div class="col-md-3"><small class="text-muted d-block">Account</small><span class="fw-bold" id="view_account">-</span></div>
                                 <div class="col-md-3"><small class="text-muted d-block">Cost Center</small><span class="fw-bold" id="view_cost_center">-</span></div>
-                                <div class="col-md-6"><small class="text-muted d-block">Objectives</small><span class="fw-bold" id="view_objectives">-</span></div>
-                                <div class="col-md-6"><small class="text-muted d-block">Estimated Potential</small><span class="fw-bold" id="view_estimated_potential">-</span></div>
+                                
+                                <div class="col-md-12"><small class="text-muted d-block">Objectives</small><span class="fw-bold fst-italic" id="view_objectives">-</span></div>
                             </div>
                         </div>
                     </div>
 
                     {{-- CARD 2: ITEMS --}}
                     <div class="card view-modal-card mb-3 shadow-sm border-0">
-                         <div class="card-header bg-transparent border-bottom"><h5 class="fw-bold text-dark mb-0"><i class="ph-bold  ph-list me-2 text-warning"></i>Requested Item List</h5></div>
+                         <div class="card-header view-modal-card-header"><h5 class="fw-bold text-dark mb-0"><i class="ph-bold  ph-list me-2 text-warning"></i>Requested Item List</h5></div>
                         <div class="card-body p-0">
                             <div class="table-responsive">
                                 <table class="table table-striped mb-0">
@@ -248,7 +180,7 @@
 
                     {{-- CARD 3: TRACKER --}}
                     <div class="card view-modal-card mb-3 shadow-sm border-0">
-                        <div class="card-header bg-transparent border-bottom">
+                        <div class="card-header view-modal-card-header">
                             <h5 class="fw-bold text-dark mb-0"><i class="ph-bold ph-path me-2 text-warning"></i> Approval & Process Tracking</h5>
                         </div>
                         <div class="card-body p-4">
@@ -262,7 +194,7 @@
 
                     {{-- CARD 4: HISTORY --}}
                     <div class="card view-modal-card shadow-sm border-0">
-                        <div class="card-header bg-transparent border-bottom">
+                        <div class="card-header view-modal-card-header">
                             <h5 class="fw-bold text-dark mb-0"><i class="ph-bold ph-clock-counter-clockwise me-2 text-warning"></i> Requisition History</h5>
                         </div>
                         <div class="card-body p-4">
@@ -300,9 +232,9 @@
                                 return meta.row + meta.settings._iDisplayStart + 1;
                             }
                         },
-                        { data: 'no_srs', name: 'requisition.no_srs' },
+                        // [FIXED] Kolom no_srs dihapus dari sini
                         { data: 'requester', name: 'requisition.requester.name' },
-                        { data: 'request_date', name: 'requisition.request_date' },
+                        { data: 'request_date', name: 'requisition.request_date', className: 'text-center' },
                         { data: 'sub_category', name: 'requisition.sub_category', className: 'text-center' },
                         { data: 'status', name: 'requisition.status', className: 'text-center' },
                         { data: 'approver_nik', name: 'approver_nik', className: 'text-center' }, 
@@ -311,14 +243,12 @@
                     ],
                     order: [[0, 'desc']], 
                     
-                    // RE-INIT TOOLTIPS ON DRAW
                     drawCallback: function() {
                         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
                         var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
                             return new bootstrap.Tooltip(tooltipTriggerEl)
                         })
                     },
-                    // ICON UNTUK PREV/NEXT
                     language: {
                         paginate: {
                             previous: '<i class="ph-bold ph-caret-left"></i>',
@@ -327,7 +257,6 @@
                     }
                 });
 
-                // SEARCH WITH 'X' BUTTON
                 const filterInput = $('#fgApprovalTable_filter input');
                 if (filterInput.parent().find('.search-container').length === 0) {
                     filterInput.unbind();
@@ -349,17 +278,19 @@
                     table.search('').draw();
                 });
 
-                // POPULATE VIEW FORM
                 function populateViewForm(data) {
                     $('#view_sub_category').text(data.sub_category || '-');
-                    $('#view_customer_name').text(data.customer ? data.customer.name : '-');
-                    $('#view_customer_address').text(data.customer ? data.customer.address : '-');
-                    $('#view_no_srs').text(data.no_srs || '-');
+                    
+                    // [FIXED] Mengisi data Recipient & Address ke Element HTML Baru
+                    $('#view_recipient_name').text(data.recipient_name || '-');
+                    $('#view_recipient_address').text(data.recipient_address || '-');
+                    
+                    // [FIXED] FG NO & Estimated Potential dihapus dari logika ini
+                    
                     $('#view_account').text(data.account || '-');
                     $('#view_request_date').text(new Date(data.request_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) || '-');
                     $('#view_cost_center').text(data.cost_center || '-');
                     $('#view_objectives').text(data.objectives || '-');
-                    $('#view_estimated_potential').text(data.estimated_potential || '-');
                     
                     const viewItemTbody = $('#view-items-tbody-fg');
                     viewItemTbody.empty();
@@ -375,7 +306,6 @@
                         viewItemTbody.html(`<tr><td colspan="4" class="text-center">No items have been added.</td></tr>`);
                     }
 
-                    // MODAL STATUS BADGE LOGIC
                     const status = data.status;
                     let badgeClass = 'status-default';
                     if (['Submitted', 'Pending'].includes(status)) badgeClass = 'status-pending';
@@ -467,11 +397,11 @@
                     e.preventDefault();
                     const button = $(this);
                     const token = button.data('token');
-                    const srs = button.data('srs');
+                    const srs = button.data('srs'); 
 
                     Swal.fire({
                         title: 'Are you sure?',
-                        text: `Approve FG No. ${srs} without review?`,
+                        text: `Approve this requisition without review?`,
                         icon: 'question',
                         showCancelButton: true,
                         confirmButtonColor: '#3A6B35',
@@ -493,7 +423,7 @@
                                     button.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>').prop('disabled', true);
                                 },
                                 success: function() {
-                                    Swal.fire('Approved!', `Requisition ${srs} has been approved.`, 'success');
+                                    Swal.fire('Approved!', `Requisition has been approved.`, 'success');
                                     table.ajax.reload(null, false);
                                 },
                                 error: function(xhr) {
@@ -530,7 +460,7 @@
                             const notesPlaceholder = isReject ? 'Provide reason for rejection...' : 'Provide review notes...';
                             const notesLabel = isReject ? 'Rejection Reason' : 'Review Notes';
 
-                            $('#viewModalLabel').text(`${modalTitle}: ${srs}`);
+                            $('#viewModalLabel').text(`${modalTitle}`);
 
                             let itemInputsHtml = '';
                             if (!isReject && response.requisition_items && response.requisition_items.length > 0) {
