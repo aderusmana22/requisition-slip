@@ -681,6 +681,7 @@ class SampleController extends Controller
             return redirect()->route('approval.success')->with('card_class', 'reject')->with('title', 'System Error');
         }
     }
+
     private function processApprovalStep(Request $request, ApprovalLog $approvalLog, string $action, ?string $notes)
     {
         DB::beginTransaction();
@@ -766,6 +767,7 @@ class SampleController extends Controller
             return redirect()->route('approval.success')->with('card_class', 'reject')->with('title', 'System Error');
         }
     }
+
     private function handleRejection(Requisition $requisition, ApprovalLog $approvalLog, User $approver, ?string $notes)
     {
         $requisition->update(['status' => 'Rejected', 'route_to' => '-']);
@@ -793,6 +795,7 @@ class SampleController extends Controller
             );
         }
     }
+
     private function handleApproval(Requisition $requisition, ApprovalLog $approvalLog, User $approver, ?string $notes)
     {
         $finalNotes = $notes ?? 'Approved without Review';
@@ -804,6 +807,7 @@ class SampleController extends Controller
             'token'      => null,
         ]);
     }
+
     private function getNextStep(Requisition $requisition, int $currentLevel)
     {
         $nextApprovalLog = ApprovalLog::where('requisition_id', $requisition->id)
@@ -815,6 +819,7 @@ class SampleController extends Controller
         }
         return ['type' => 'finished'];
     }
+
     private function notifyRequesterOfRejection(Requisition $requisition, User $approver)
     {
         if ($requester = $requisition->requester) {
@@ -826,6 +831,7 @@ class SampleController extends Controller
             ], $approver));
         }
     }
+
     private function notifyNextApprover(Requisition $requisition, ApprovalLog $nextApprovalLog, User $nextApprover)
     {
         $requisition->update(['status' => 'In Progress', 'route_to' => $nextApprover->name]);
@@ -841,6 +847,7 @@ class SampleController extends Controller
             'url'            => route('sample-form.approval'),
         ], $requisition->requester));
     }
+
     private function notifyRequesterOfProgress(Requisition $requisition, User $approver)
     {
         if ($requester = $requisition->requester) {
@@ -852,6 +859,7 @@ class SampleController extends Controller
             ], $approver));
         }
     }
+
     private function notifyRequesterOfFinalApproval(Requisition $requisition, User $approver)
     {
         if ($requester = $requisition->requester) {
@@ -863,6 +871,7 @@ class SampleController extends Controller
             ], $approver));
         }
     }
+
     private function logApprovalActivity(Requisition $requisition, User $approver, string $action, ?string $notes, int $level)
     {
         $logMessage = '';
@@ -886,6 +895,7 @@ class SampleController extends Controller
             ->withProperties($properties)
             ->log($logMessage);
     }
+
     private function processWarehouseStep(Request $request, Tracking $tracking, ?string $notes, array $items = [])
     {
         DB::beginTransaction();
@@ -945,6 +955,7 @@ class SampleController extends Controller
             return redirect()->route('approval.success')->with('card_class', 'reject')->with('title', 'System Error');
         }
     }
+
     private function handlePostApprovalFlow(Requisition $requisition)
     {
         Log::info("Approval path selesai untuk Requisition #{$requisition->id}. Memulai alur proses dinamis via TrackingPath.");
@@ -1025,6 +1036,7 @@ class SampleController extends Controller
             return $this->notifyRequesterAsCompleted($requisition);
         }
     }
+
     private function advanceWarehouseStep(Requisition $requisition)
     {
         $nextStep = Tracking::where('requisition_id', $requisition->id)
