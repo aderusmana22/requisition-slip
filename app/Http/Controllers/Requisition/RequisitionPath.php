@@ -25,8 +25,10 @@ class RequisitionPath extends Controller
         $validated = $request->validated();
         $causer = Auth::user();
 
+        // Ambil sub_category dari request
         $subCategory = $validated['sub_category_id'] ?? null;
 
+        // Validasi Duplikat: Pastikan kombinasi category dan sub_category belum ada
         $existingPath = ApprovalPath::where('category', $validated['category_id'])
             ->where('sub_category', $subCategory)
             ->exists();
@@ -49,6 +51,7 @@ class RequisitionPath extends Controller
                 throw new \RuntimeException('Failed to create approval path');
             }
 
+            // Logging Activity
             $logMessage = "Membuat alur persetujuan baru untuk {$data->category}" . ($data->sub_category ? " - {$data->sub_category}" : "") . ".";
             $properties = [
                 'category' => $data->category,
@@ -74,13 +77,10 @@ class RequisitionPath extends Controller
     {
         $approvalPath = ApprovalPath::findOrFail($id);
 
-        // Mengubah format sequence_approvers agar sesuai dengan value di Select2
-        $approverRoles = $approvalPath->sequence_approvers;
-
         return response()->json([
             'category_id' => $approvalPath->category,
             'sub_category_id' => $approvalPath->sub_category,
-            'approver_user_ids' => $approverRoles, // Kirim array of role names
+            'approver_user_ids' => $approvalPath->sequence_approvers, 
         ]);
     }
 
@@ -88,7 +88,7 @@ class RequisitionPath extends Controller
     {
         $approvalPath = ApprovalPath::findOrFail($id);
 
-        // Validasi sederhana untuk update
+        // Validasi update: hanya approvers yang boleh diubah (category/sub_category di-disable di UI)
         $validated = $request->validate([
             'approvers' => 'required|array|min:1',
             'approvers.*' => 'string',
@@ -103,7 +103,7 @@ class RequisitionPath extends Controller
                 $approvalPath->update(['sequence_approvers' => $validated['approvers']]);
             });
 
-            // [LOGGING DISEMPURNAKAN]
+            // Logging Activity
             $logMessage = "Memperbarui alur persetujuan untuk {$approvalPath->category}" . ($approvalPath->sub_category ? " - {$approvalPath->sub_category}" : "") . ".";
             $properties = [
                 'category' => $approvalPath->category,
@@ -126,6 +126,9 @@ class RequisitionPath extends Controller
         }
     }
 
+    /**
+     * Menyediakan data kategori dan sub-kategori untuk dropdown Select2 di Modal.
+     */
     public function categories()
     {
         $categories = [
@@ -133,21 +136,28 @@ class RequisitionPath extends Controller
             'Complain',
             'Free Goods',
         ];
+
+        // Sub-kategori khusus untuk kategori 'Sample'
         $subCategories = [
             'Packaging',
             'Finished Goods',
             'Special Order',
         ];
 
+        // Mengambil kombinasi path yang sudah terdaftar untuk validasi di sisi client
         $existingPaths = ApprovalPath::select('category', 'sub_category')->get();
 
-        return response()->json(['categories' => $categories, 'subCategories' => $subCategories, 'existingPaths' => $existingPaths]);
+        return response()->json([
+            'categories' => $categories, 
+            'subCategories' => $subCategories, 
+            'existingPaths' => $existingPaths
+        ]);
     }
 
     public function approverName()
     {
-        $name = Role::pluck('name' ,'name');
-        $name['atasan'] = 'atasan';
+        $name = Role::pluck('name' ,'name')->toArray();
+        $name['atasan'] = 'atasan'; // Menambahkan opsi 'atasan' manual
         return response()->json(['approverName' => $name]);
     }
 
@@ -160,16 +170,11 @@ class RequisitionPath extends Controller
         $orderColumnIndex = $request->input('order.0.column');
         $orderDirection = $request->input('order.0.dir', 'asc');
 
-        // Dapatkan nama kolom untuk sorting dari request berdasarkan indexnya
         $orderColumnName = $request->input("columns.{$orderColumnIndex}.name");
 
-        // Hitung total data tanpa filter apa pun
         $totalData = ApprovalPath::count();
-
-        // Mulai query builder
         $query = ApprovalPath::query();
 
-        // 2. Terapkan filter pencarian jika ada input dari kotak search
         if (!empty($searchValue)) {
             $query->where(function ($q) use ($searchValue) {
                 $q->where('category', 'like', "%{$searchValue}%")
@@ -182,6 +187,8 @@ class RequisitionPath extends Controller
 
         if (!empty($orderColumnName)) {
             $query->orderBy($orderColumnName, $orderDirection);
+        } else {
+            $query->orderBy('created_at', 'desc'); // Default sorting
         }
 
         $approvalPaths = $query->offset($start)
@@ -194,19 +201,17 @@ class RequisitionPath extends Controller
                 'category' => $path->category,
                 'sub_category' => $path->sub_category,
                 'sequence_approvers' => $path->sequence_approvers,
-                'created_at' => $path->created_at,
-                'updated_at' => $path->updated_at,
+                'created_at' => $path->created_at->format('Y-m-d H:i:s'),
+                'updated_at' => $path->updated_at->format('Y-m-d H:i:s'),
             ];
         });
 
-        $response = [
+        return response()->json([
             'draw' => intval($draw),
             'recordsTotal' => $totalData,
             'recordsFiltered' => $totalFiltered,
             'data' => $data,
-        ];
-
-        return response()->json($response);
+        ]);
     }
 
     public function destroy($id)
@@ -223,7 +228,6 @@ class RequisitionPath extends Controller
                     'deleted_approvers' => $data->sequence_approvers,
                 ];
 
-                // Log dicatat SEBELUM data dihapus
                 activity()
                     ->causedBy($causer)
                     ->performedOn($data)

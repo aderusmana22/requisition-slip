@@ -22,21 +22,11 @@
         </div>
     </div>
 
-    <!--  -->
     <div class="row">
         <div class="col-12">
-            <!-- Action Bar with Enhanced Styling -->
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
-                    <!-- <h5 class="mb-1" style="color: rgb(76, 61, 61); font-weight: 700;">
-                        <i class="ph-duotone ph-users-three me-2 text-warning"></i>
-                        Approver Management
-                    </h5>
-                    <p class="text-muted mb-0 small">
-                        <i class="ph-duotone ph-info me-1"></i>
-                        Configure approval workflow and sequences
-                    </p> -->
-                </div>
+                    </div>
                 <div>
                     <button class="btn new-complain-btn" type="button" id="btn-create-approver">
                         <i class="ph-bold ph-plus"></i>
@@ -45,9 +35,7 @@
                 </div>
             </div>
 
-            <!-- Enhanced Table Container -->
             <div class="main-table-container">
-                <!-- Table Header -->
                 <div class="table-header-enhanced">
                     <h4 class="table-title">
                         <i class="ph-duotone ph-list-checks"></i>
@@ -58,7 +46,6 @@
                     </p>
                 </div>
 
-                <!-- Table Content -->
                 <div class="table-responsive">
                     <table class="w-100 display" id="approvertable">
                         <thead>
@@ -76,7 +63,6 @@
         </div>
     </div>
 
-    <!-- modal create approver -->
     <div class="modal fade" id="ApproverModal" aria-hidden="true" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content border-0 shadow-lg" style="border-radius: 15px; overflow: hidden;">
@@ -103,7 +89,6 @@
                             <label for="sub_category_id" class="form-label fw-bold text-secondary">Sub Category</label>
                             <select class="form-select" id="sub_category_id" name="sub_category_id">
                             </select>
-                            <input type="hidden" name="sub_category_id" id="hidden_sub_category_id" disabled>
                             <div class="invalid-feedback" data-error-for="sub_category_id"></div>
                         </div>
 
@@ -174,6 +159,7 @@
                 icon,
                 showCancelButton: true,
                 confirmButtonColor,
+                confirmButtonColor,
                 cancelButtonColor,
                 confirmButtonText,
                 cancelButtonText,
@@ -184,6 +170,12 @@
         $(document).ready(function () {
             let allSubCategories = [];
             let existingPaths = [];
+            
+            // Definisi Sub Category statis untuk Free Goods
+            const freeGoodsSubOptions = [
+                { id: 'SNM_PATH', text: 'SNM_PATH' },
+                { id: 'NON_SNM_PATH', text: 'NON_SNM_PATH' }
+            ];
 
             // === Initialize Select2 ===
             $('#approvers, #category_id, #sub_category_id').select2({
@@ -211,17 +203,17 @@
 
                 if (isEditMode) return;
 
-                // Reset dan disable pilihan selanjutnya
-                subCategorySelect.val(null).trigger('change');
+                // Reset state
+                subCategorySelect.val(null).empty().trigger('change');
                 approversSelect.val(null).trigger('change').prop('disabled', true);
 
-                if (selectedCategory === 'Complain' || selectedCategory === 'Free Goods') {
+                if (selectedCategory === 'Complain') {
                     subCategorySelect.prop('disabled', true);
-                    // Langsung aktifkan approver jika tidak ada sub-category
                     approversSelect.prop('disabled', false);
-                } else if (selectedCategory === 'Sample') {
-                    subCategorySelect.prop('disabled', false); // Aktifkan sub-category
-
+                } 
+                else if (selectedCategory === 'Sample') {
+                    subCategorySelect.prop('disabled', false);
+                    
                     const subCategoryData = allSubCategories.map(subCat => {
                         const pathExists = existingPaths.some(path =>
                             path.category === selectedCategory && path.sub_category === subCat.value
@@ -229,7 +221,7 @@
                         return { id: subCat.value, text: subCat.text, disabled: pathExists };
                     });
 
-                    subCategorySelect.empty().select2({
+                    subCategorySelect.select2({
                         theme: 'bootstrap-5',
                         dropdownParent: $('#ApproverModal'),
                         placeholder: 'Select a sub-category',
@@ -237,14 +229,35 @@
                     });
                     subCategorySelect.val(null).trigger('change');
                 }
+                else if (selectedCategory === 'Free Goods') {
+                    // REVISI: Handle Free Goods dengan SNM_PATH dan NON_SNM_PATH
+                    subCategorySelect.prop('disabled', false);
+                    
+                    const freeGoodsData = freeGoodsSubOptions.map(opt => {
+                        const pathExists = existingPaths.some(path =>
+                            path.category === 'Free Goods' && path.sub_category === opt.id
+                        );
+                        return { id: opt.id, text: opt.text, disabled: pathExists };
+                    });
+
+                    subCategorySelect.select2({
+                        theme: 'bootstrap-5',
+                        dropdownParent: $('#ApproverModal'),
+                        placeholder: 'Select a sub-category (SNM/NON-SNM)',
+                        data: freeGoodsData
+                    });
+                    subCategorySelect.val(null).trigger('change');
+                }
             });
 
             $('#sub_category_id').on('change', function() {
                 let selectedSubCategory = $(this).val();
+                let selectedCategory = $('#category_id').val();
                 let approversSelect = $('#approvers');
 
-                // Aktifkan approver hanya jika sub-category sudah dipilih
-                if (selectedSubCategory) {
+                // Aktifkan approver jika sub-category sudah dipilih, 
+                // atau jika kategorinya Complain (yang memang tidak butuh sub)
+                if (selectedSubCategory || selectedCategory === 'Complain') {
                     approversSelect.prop('disabled', false);
                 } else {
                     approversSelect.val(null).trigger('change').prop('disabled', true);
@@ -293,8 +306,6 @@
                     success: function (data) {
                         let approverSelect = $('#approvers');
                         approverSelect.empty();
-
-                        console.log(data.approverName);
 
                         if (data.approverName) {
                             $.each(data.approverName, function (key, value) {
@@ -397,11 +408,10 @@
 
             // === Modal: Show for Create ===
             $('#btn-create-approver').on('click', function () {
-                resetFormState(); // Gunakan helper function
+                resetFormState(); 
                 $('#ApproverForm').attr('data-mode', 'create');
                 $('#ApproverForm').attr('action', '{{ route("approvers.store") }}');
 
-                // [MODIFIKASI] Atur state awal saat modal create dibuka
                 $('#sub_category_id').prop('disabled', true);
                 $('#approvers').prop('disabled', true);
 
@@ -428,9 +438,17 @@
                             $('#ApproverForm').attr('action', updateUrl);
 
                             $('#category_id').val(data.category_id).trigger('change').prop('disabled', true);
-                            $('#sub_category_id').val(data.sub_category_id).trigger('change').prop('disabled', true);
+                            
+                            // Re-init sub_category select2 if category is Free Goods during edit
+                            if (data.category_id === 'Free Goods') {
+                                $('#sub_category_id').select2({
+                                    theme: 'bootstrap-5',
+                                    dropdownParent: $('#ApproverModal'),
+                                    data: freeGoodsSubOptions
+                                });
+                            }
 
-                            // [MODIFIKASI] Pastikan field approver SELALU aktif saat mode edit
+                            $('#sub_category_id').val(data.sub_category_id).trigger('change').prop('disabled', true);
                             $('#approvers').prop('disabled', false).val(data.approver_user_ids).trigger('change');
 
                             $('#ApproverModalLabel').html('<i class="ph-duotone ph-user-gear"></i> Edit Approver Sequence');
@@ -441,9 +459,7 @@
                         }
                     });
                 } else if ($(this).hasClass('btn-danger')) {
-                    // Delete functionality
                     let approverId = $(this).data('id');
-                    // IMPORTANT: Replace with your actual destroy route
                     let deleteUrl = `/approvers/${approverId}`;
 
                     confirmDialog({
@@ -477,12 +493,10 @@
                 form.find('.is-invalid').removeClass('is-invalid');
                 form.find('.invalid-feedback').text('');
 
-                // Aktifkan kembali field yang mungkin di-disable saat edit
                 $('#category_id, #sub_category_id').prop('disabled', false);
 
-                // Reset dan disable field secara berurutan
                 $('#category_id').val(null).trigger('change');
-                $('#sub_category_id').val(null).trigger('change').prop('disabled', true);
+                $('#sub_category_id').empty().val(null).trigger('change').prop('disabled', true);
                 $('#approvers').val(null).trigger('change').prop('disabled', true);
             }
 
@@ -495,10 +509,14 @@
                 let form = $(this);
                 let url = form.attr('action');
                 let formData = new FormData(this);
-                let mode = form.attr('data-mode'); // Ambil mode form
+                let mode = form.attr('data-mode');
 
                 if (mode === 'edit') {
                     formData.append('_method', 'PUT');
+                    // Karena field disabled tidak terkirim di FormData, 
+                    // kita tambahkan manual jika diperlukan oleh backend
+                    formData.append('category_id', $('#category_id').val());
+                    formData.append('sub_category_id', $('#sub_category_id').val());
                 }
 
                 $.ajax({
@@ -511,20 +529,12 @@
                         $('#ApproverModal').modal('hide');
                         table.ajax.reload(null, false);
                         successMessage(res.message || 'Operation successful!');
-
-                        if (mode === 'create') {
-                            const newCategory = formData.get('category_id');
-                            const newSubCategory = formData.get('sub_category_id');
-
-                            // Tambahkan path baru ke array di sisi klien
-                            existingPaths.push({
-                                category: newCategory,
-                                sub_category: newSubCategory
-                            });
-                        }
+                        
+                        // Re-sync dropdown data to update existingPaths
+                        loadDropdownData();
                     },
                     error: function (xhr) {
-                        if (xhr.status === 422) { // Validation Error
+                        if (xhr.status === 422) {
                             let errors = xhr.responseJSON.errors;
                             for (let key in errors) {
                                 let input = $(`[name="${key}"], [name="${key}[]"]`);
@@ -548,11 +558,10 @@
                 });
             });
 
-            // === Delete Handler ===
+            // === Delete Handler (Old version, kept for safety) ===
             $('#approvertable').on('click', '.delete-approver-btn', function (e) {
                 e.preventDefault();
                 let approverId = $(this).data('id');
-                // IMPORTANT: Replace with your actual destroy route
                 let deleteUrl = `/approvers/${approverId}`;
 
                 confirmDialog({
@@ -581,7 +590,6 @@
 
             // Custom Tooltip Handler for Action Buttons
             function initActionTooltips() {
-                // Remove any existing event handlers to prevent duplicates
                 $(document).off('mouseenter.customTooltip mouseleave.customTooltip', '.action-btn-hover');
 
                 $(document).on('mouseenter.customTooltip', '.action-btn-hover', function(e) {
@@ -593,13 +601,11 @@
                         const button = $(this);
                         let isDestroyed = false;
 
-                        // Function to update tooltip position
                         function updateTooltipPosition() {
                             if (isDestroyed || !button.is(':visible') || !tooltip.parent().length) {
                                 return;
                             }
 
-                            // Get button position
                             const buttonOffset = button.offset();
                             if (!buttonOffset) return;
 
@@ -611,18 +617,12 @@
                             const windowHeight = $(window).height();
                             const scrollTop = $(window).scrollTop();
 
-                            // Calculate position
                             let left = buttonOffset.left + (buttonWidth / 2) - (tooltipWidth / 2);
                             let top = buttonOffset.top - tooltipHeight - 12;
 
-                            // Horizontal bounds checking
-                            if (left < 10) {
-                                left = 10;
-                            } else if (left + tooltipWidth > windowWidth - 10) {
-                                left = windowWidth - tooltipWidth - 10;
-                            }
+                            if (left < 10) { left = 10; } 
+                            else if (left + tooltipWidth > windowWidth - 10) { left = windowWidth - tooltipWidth - 10; }
 
-                            // Vertical bounds checking
                             if (top < scrollTop + 10) {
                                 top = buttonOffset.top + buttonHeight + 12;
                                 tooltip.addClass('below');
@@ -638,38 +638,20 @@
                             });
                         }
 
-                        // Initial positioning
-                        setTimeout(() => {
-                            updateTooltipPosition();
-                        }, 10);
+                        setTimeout(() => { updateTooltipPosition(); }, 10);
+                        setTimeout(() => { if (!isDestroyed) { tooltip.addClass('show'); } }, 100);
 
-                        // Show tooltip with delay
-                        setTimeout(() => {
-                            if (!isDestroyed) {
-                                tooltip.addClass('show');
-                            }
-                        }, 100);
-
-                        // Store tooltip element and update function
                         button.data('tooltip-element', tooltip);
                         button.data('update-tooltip-position', updateTooltipPosition);
                         button.data('tooltip-destroyed', false);
 
-                        // Create unique namespace for this tooltip
                         const tooltipId = 'tooltip_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
                         button.data('tooltip-id', tooltipId);
 
-                        // Listen for scroll events with throttling
                         let scrollTimeout;
                         function throttledUpdate() {
-                            if (scrollTimeout) {
-                                clearTimeout(scrollTimeout);
-                            }
-                            scrollTimeout = setTimeout(() => {
-                                if (!isDestroyed) {
-                                    updateTooltipPosition();
-                                }
-                            }, 10);
+                            if (scrollTimeout) { clearTimeout(scrollTimeout); }
+                            scrollTimeout = setTimeout(() => { if (!isDestroyed) { updateTooltipPosition(); } }, 10);
                         }
 
                         $(window).on('scroll.' + tooltipId + ' resize.' + tooltipId, throttledUpdate);
@@ -677,16 +659,13 @@
                         $('.table-responsive').on('scroll.' + tooltipId, throttledUpdate);
                         $('#approvertable_wrapper').on('scroll.' + tooltipId, throttledUpdate);
 
-                        // Store cleanup function
                         button.data('tooltip-cleanup', function() {
                             isDestroyed = true;
                             $(window).off('.' + tooltipId);
                             $('.dataTables_scrollBody').off('.' + tooltipId);
                             $('.table-responsive').off('.' + tooltipId);
                             $('#approvertable_wrapper').off('.' + tooltipId);
-                            if (scrollTimeout) {
-                                clearTimeout(scrollTimeout);
-                            }
+                            if (scrollTimeout) { clearTimeout(scrollTimeout); }
                         });
                     }
                 });
@@ -698,33 +677,15 @@
 
                     if (tooltip) {
                         button.data('tooltip-destroyed', true);
-
                         tooltip.removeClass('show');
-                        setTimeout(() => {
-                            tooltip.remove();
-                        }, 200);
-
-                        // Execute cleanup
-                        if (cleanup) {
-                            cleanup();
-                        }
-
-                        // Clear all data
-                        button.removeData('tooltip-element');
-                        button.removeData('update-tooltip-position');
-                        button.removeData('tooltip-id');
-                        button.removeData('tooltip-cleanup');
-                        button.removeData('tooltip-destroyed');
+                        setTimeout(() => { tooltip.remove(); }, 200);
+                        if (cleanup) { cleanup(); }
+                        button.removeData(['tooltip-element', 'update-tooltip-position', 'tooltip-id', 'tooltip-cleanup', 'tooltip-destroyed']);
                     }
                 });
             }
 
-            // Initialize tooltips after DataTable is ready
-            table.on('draw', function() {
-                initActionTooltips();
-            });
-
-            // Initialize tooltips for the first load
+            table.on('draw', function() { initActionTooltips(); });
             initActionTooltips();
         });
     </script>
