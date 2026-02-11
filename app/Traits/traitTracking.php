@@ -63,7 +63,7 @@ trait traitTracking
                 if ($user) {
                     $logs->push([
                         'requisition_id'   => $requisitionId,
-                        'current_position' => $user->name, // Simpan nama user untuk ditampilkan
+                        'current_position' => $user->name, 
                         'approver_nik'     => $user->nik,
                         'last_updated'     => null,
                         'notes'            => null,

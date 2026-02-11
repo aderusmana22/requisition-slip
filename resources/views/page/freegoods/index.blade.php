@@ -311,7 +311,8 @@
     <script src="{{ asset('assets/vendor/select/select2.min.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        const isHcdUser = {{ $isHcd ? 'true' : 'false' }};
+        // Cek apakah user adalah Sales User (passed from controller)
+        const isSalesUser = {{ $isSales ? 'true' : 'false' }};
 
         function successMessage(message) {
             Swal.fire({ icon: 'success', title: 'Success', text: message, timer: 1500, showConfirmButton: true });
@@ -426,10 +427,12 @@
                 const costCenterInput = $('#cost_center');
                 const costCenterHelp = $('#cost_center_help');
 
-                if (isHcdUser) {
+                // Logic Revisi: Jika BUKAN Sales, maka Auto-Filled 313 dan ReadOnly
+                if (!isSalesUser) {
                     costCenterInput.val('313').prop('readonly', true);
-                    costCenterHelp.text('Auto-assigned for HCD');
+                    costCenterHelp.text('Auto-assigned for Non-Sales');
                 } else {
+                    // Jika Sales, boleh edit
                     costCenterInput.val('').prop('readonly', false);
                     costCenterHelp.text('');
                 }
@@ -590,7 +593,8 @@
                 $('#request_date').val(data.request_date);
                 $('#objectives').val(data.objectives);
 
-                if (isHcdUser) {
+                // Logic Revisi: Jika bukan Sales, Cost Center ReadOnly (313)
+                if (!isSalesUser) {
                     $('#cost_center').prop('readonly', true);
                 } else {
                     $('#cost_center').prop('readonly', false);

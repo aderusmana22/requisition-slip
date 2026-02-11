@@ -94,14 +94,6 @@ class FreeGoodsController extends Controller
         }
     }
 
-    private function isHcdDepartment($user)
-    {
-        $deptName = strtoupper($user->department->name ?? '');
-        return str_contains($deptName, 'HUMAN CAPITAL') || 
-               str_contains($deptName, 'HCD') || 
-               str_contains($deptName, 'HRD');
-    }
-
     private function isSalesDepartment($user)
     {
         $deptCode = $user->department->code ?? '';
@@ -125,10 +117,12 @@ class FreeGoodsController extends Controller
     {
         $user = Auth::user();
         $userDepartmentName = $user->department?->name ?? null;
-        $isHcd = $this->isHcdDepartment($user);
+        
+        // REVISI: Cek apakah Sales atau bukan untuk keperluan UI
+        $isSales = $this->isSalesDepartment($user);
 
         return view('page.freegoods.index', compact(
-            'userDepartmentName', 'isHcd'
+            'userDepartmentName', 'isSales'
         ));
     }
 
@@ -234,12 +228,16 @@ class FreeGoodsController extends Controller
             $user = User::with('atasan', 'department')->find(Auth::id());
             
             $finalAccount = '5300';
-            if ($this->isHcdDepartment($user)) {
+            
+            // REVISI LOGIKA COST CENTER:
+            // Jika BUKAN Sales, maka otomatis '313'. Jika Sales, ambil dari input.
+            if (!$this->isSalesDepartment($user)) {
                 $finalCostCenter = '313';
             } else {
                 $finalCostCenter = $validated['cost_center'] ?? null;
             }
 
+            // Penentuan Path Approval
             if ($this->isSalesDepartment($user)) {
                 $pathSubCategory = 'SNM_PATH';
                 $subCategoryLabel = 'SnM Request';
@@ -353,7 +351,9 @@ class FreeGoodsController extends Controller
         try {
             $user = User::find(Auth::id());
             
-            if ($this->isHcdDepartment($user)) {
+            // REVISI LOGIKA COST CENTER (UPDATE):
+            // Jika BUKAN Sales, paksa '313'
+            if (!$this->isSalesDepartment($user)) {
                 $validated['cost_center'] = '313';
             }
 
