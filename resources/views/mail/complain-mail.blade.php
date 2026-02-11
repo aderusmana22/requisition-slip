@@ -434,20 +434,7 @@
                                                                     style="border-radius: 4px;">
                                                                     <a href="{{ $approveLink }}"
                                                                         style="display: inline-block; padding: 12px 25px; font-family: Arial, sans-serif; font-size: 14px; color: #ffffff; text-decoration: none; font-weight: bold; border: 1px solid #28a745; border-radius: 4px; mso-padding-alt: 12px 25px;">✅
-                                                                        Quick Approve</a>
-                                                                </td>
-                                                            </tr>
-                                                        </table>
-                                                    </td>
-                                                    <td style="padding: 0 5px;">
-                                                        <table border="0" cellpadding="0" cellspacing="0"
-                                                            style="border-collapse: collapse;">
-                                                            <tr>
-                                                                <td align="center" bgcolor="#dc3545"
-                                                                    style="border-radius: 4px;">
-                                                                    <a href="{{ $rejectLink }}"
-                                                                        style="display: inline-block; padding: 12px 25px; font-family: Arial, sans-serif; font-size: 14px; color: #ffffff; text-decoration: none; font-weight: bold; border: 1px solid #dc3545; border-radius: 4px; mso-padding-alt: 12px 25px;">❌
-                                                                        Quick Reject</a>
+                                                                        Approve not Review</a>
                                                                 </td>
                                                             </tr>
                                                         </table>
@@ -460,7 +447,20 @@
                                                                     style="border-radius: 4px;">
                                                                     <a href="{{ $approveWithReviewLink }}"
                                                                         style="display: inline-block; padding: 12px 25px; font-family: Arial, sans-serif; font-size: 14px; color: #ffffff; text-decoration: none; font-weight: bold; border: 1px solid #007bff; border-radius: 4px; mso-padding-alt: 12px 25px;">📝
-                                                                        Review with Notes</a>
+                                                                        Approve with Review</a>
+                                                                </td>
+                                                            </tr>
+                                                        </table>
+                                                    </td>
+                                                    <td style="padding: 0 5px;">
+                                                        <table border="0" cellpadding="0" cellspacing="0"
+                                                            style="border-collapse: collapse;">
+                                                            <tr>
+                                                                <td align="center" bgcolor="#dc3545"
+                                                                    style="border-radius: 4px;">
+                                                                    <a href="{{ $rejectLink }}"
+                                                                        style="display: inline-block; padding: 12px 25px; font-family: Arial, sans-serif; font-size: 14px; color: #ffffff; text-decoration: none; font-weight: bold; border: 1px solid #dc3545; border-radius: 4px; mso-padding-alt: 12px 25px;">❌
+                                                                        Not Approve</a>
                                                                 </td>
                                                             </tr>
                                                         </table>

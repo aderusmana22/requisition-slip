@@ -36,10 +36,6 @@ class SampleController extends Controller
 {
     use traitRequisition;
     use traitTracking;
-
-    /**
-     * Menampilkan halaman utama Sample Requisition.
-     */
     public function index()
     {
         $customers = Customer::all();
@@ -73,10 +69,6 @@ class SampleController extends Controller
             'customers', 'materialTypes', 'allowedSubCategories',
             'generatedSrs', 'userAccount', 'userDepartmentName'));
     }
-
-    /**
-     * Menyediakan data untuk DataTables.
-     */
     public function getData(Request $request)
     {
         $user = Auth::user();
@@ -215,10 +207,6 @@ class SampleController extends Controller
             ->rawColumns(['no_srs', 'requester_info', 'sub_category', 'route_to', 'status', 'action'])
             ->make(true);
     }
-
-    /**
-     * Membuat requisition baru.
-     */
     public function store(StoreSampleRequisitionRequest $request)
     {
         DB::beginTransaction();
@@ -336,10 +324,6 @@ class SampleController extends Controller
             return response()->json(['success' => false, 'message' => 'Terjadi kesalahan sistem.'], 500);
         }
     }
-
-    /**
-     * Mengupdate requisition yang ada, baik untuk edit biasa maupun submit form QA.
-     */
     public function update(UpdateSampleRequisitionRequest $request, $id)
     {
         $requisition = Requisition::findOrFail($id);
@@ -435,10 +419,6 @@ class SampleController extends Controller
             return response()->json(['success' => false, 'message' => 'Terjadi kesalahan sistem.'], 500);
         }
     }
-
-    /**
-     * Membatalkan requisition.
-     */
     public function recallRequisition(Request $request, $id)
     {
         $request->validate([
@@ -525,10 +505,6 @@ class SampleController extends Controller
             return response()->json(['success' => false, 'message' => 'A system error occurred.'], 500);
         }
     }
-
-    /**
-     * Menampilkan form respons dari link email (approval, review, QA form, etc.).
-     */
     public function showResponseForm(Request $request, $token)
     {
         $action = $request->query('action');
@@ -558,10 +534,6 @@ class SampleController extends Controller
 
         return view('page.sample.links.response-form', compact('token', 'action', 'originalAction', 'requisition', 'pageTitle', 'isQaForm', 'isWarehouseProcess'));
     }
-
-    /**
-     * Memproses semua jenis aksi dari form respons email.
-     */
     public function processApproval(Request $request)
     {
         $validated = $request->validate([
@@ -631,7 +603,6 @@ class SampleController extends Controller
         // [TAMBAHAN] Return default jika lolos semua pengecekan (seharusnya tidak sampai sini jika normal)
         return redirect()->route('approval.success')->with('card_class', 'reject')->with('title', 'Unknown Error');
     }
-
     private function notifyRelevantUsers(User $targetUser, Notification $notification)
     {
         // 1. Kirim notifikasi ke pengguna target utama.
@@ -651,10 +622,6 @@ class SampleController extends Controller
             }
         }
     }
-
-    /**
-     * Menangani submit form QA/QM.
-     */
     private function processQaFormSubmit(Tracking $tracking, array $validated)
     {
         DB::beginTransaction();
@@ -715,9 +682,6 @@ class SampleController extends Controller
         }
     }
 
-    /**
-     * Memproses satu langkah persetujuan (approve/reject).
-     */
     private function processApprovalStep(Request $request, ApprovalLog $approvalLog, string $action, ?string $notes)
     {
         DB::beginTransaction();
@@ -804,8 +768,6 @@ class SampleController extends Controller
         }
     }
 
-    // --- [BARU] HELPER FUNCTIONS FOR processApprovalStep ---
-
     private function handleRejection(Requisition $requisition, ApprovalLog $approvalLog, User $approver, ?string $notes)
     {
         $requisition->update(['status' => 'Rejected', 'route_to' => '-']);
@@ -857,8 +819,6 @@ class SampleController extends Controller
         }
         return ['type' => 'finished'];
     }
-
-    // --- [BARU] HELPER FUNCTIONS FOR NOTIFICATIONS ---
 
     private function notifyRequesterOfRejection(Requisition $requisition, User $approver)
     {
@@ -912,7 +872,6 @@ class SampleController extends Controller
         }
     }
 
-    // --- [BARU] HELPER FUNCTION FOR LOGGING ---
     private function logApprovalActivity(Requisition $requisition, User $approver, string $action, ?string $notes, int $level)
     {
         $logMessage = '';
@@ -937,9 +896,6 @@ class SampleController extends Controller
             ->log($logMessage);
     }
 
-    /**
-     * Memproses satu langkah di gudang (warehouse).
-     */
     private function processWarehouseStep(Request $request, Tracking $tracking, ?string $notes, array $items = [])
     {
         DB::beginTransaction();
@@ -1000,9 +956,6 @@ class SampleController extends Controller
         }
     }
 
-    /**
-     * Menangani alur kerja SETELAH semua approval manajerial selesai.
-     */
     private function handlePostApprovalFlow(Requisition $requisition)
     {
         Log::info("Approval path selesai untuk Requisition #{$requisition->id}. Memulai alur proses dinamis via TrackingPath.");
@@ -1084,9 +1037,6 @@ class SampleController extends Controller
         }
     }
 
-    /**
-     * Memajukan proses ke langkah gudang berikutnya atau menyelesaikan jika sudah selesai.
-     */
     private function advanceWarehouseStep(Requisition $requisition)
     {
         $nextStep = Tracking::where('requisition_id', $requisition->id)
@@ -1117,10 +1067,6 @@ class SampleController extends Controller
 
         return $this->notifyRequesterAsCompleted($requisition);
     }
-
-    /**
-     * Mengubah status menjadi 'Completed' dan mengirim notifikasi ke requester.
-     */
     private function notifyRequesterAsCompleted(Requisition $requisition)
     {
         $requisition->load('requester', 'approvalLogs.approver');
@@ -1151,10 +1097,6 @@ class SampleController extends Controller
         Log::info("Requisition #{$requisition->id} selesai. Notifikasi dikirim ke requester.");
         return 'Completed';
     }
-
-    /**
-     * Helper untuk membuat nomor SRS baru.
-     */
     private function generateSrsNumber()
     {
         $prefix = 'S';
@@ -1165,10 +1107,6 @@ class SampleController extends Controller
         $runningNumber = $lastRequisition ? (int)substr($lastRequisition->no_srs, -3) + 1 : 1;
         return $currentPrefix . ' ' . sprintf('%03d', $runningNumber);
     }
-
-    /**
-     * Helper untuk mencari user berdasarkan nama step proses (Nama User).
-     */
     private function findUserForStep(string $stepName)
     {
         try {
@@ -1188,26 +1126,19 @@ class SampleController extends Controller
             return null;
         }
     }
-
-    /**
-     * Helper untuk mencari user gudang berdasarkan nama atau NIK fallback.
-     */
     private function findWarehouseUser(string $name, string $fallbackNik)
     {
         return User::where('name', 'like', '%' . $name . '%')->first() ?? User::where('nik', $fallbackNik)->first();
     }
-
     public function getAllItemMasters()
     {
         return response()->json(ItemMaster::select('id', 'item_master_code', 'item_master_name', 'unit')->get());
     }
-
     public function getItemDetailsByProducts(Request $request)
     {
         $request->validate(['product_ids' => 'required|array']);
         return response()->json(ItemDetail::whereIn('item_master_id', $request->product_ids)->get());
     }
-
     public function show($id)
     {
         $requisition = Requisition::with([
@@ -1305,7 +1236,6 @@ class SampleController extends Controller
 
         return response()->json($responseData);
     }
-
     public function edit($id)
     {
         $requisition = Requisition::with([
@@ -1328,17 +1258,14 @@ class SampleController extends Controller
 
         return response()->json($responseData);
     }
-
     public function showSuccessPage()
     {
         return session('title') ? view('page.sample.links.response-success') : redirect('/');
     }
-
     public function reportsPage()
     {
         return view('page.sample.report.index');
     }
-
     public function printMultipleReport(Request $request)
     {
         $request->validate([
@@ -1369,7 +1296,6 @@ class SampleController extends Controller
 
         return $pdf->stream('Bulk-RS-Sample-' . now()->format('Y-m-d') . '.pdf');
     }
-
     public function printReportByEmail($id)
     {
         $requisition = Requisition::findOrFail($id);
@@ -1396,7 +1322,6 @@ class SampleController extends Controller
         // 5. Download
         return $pdf->download('Requisition-'.$requisition->no_srs.'.pdf');
     }
-
     public function getReportsData(Request $request)
     {
         $query = Requisition::with(['requester', 'customer'])
@@ -1421,16 +1346,11 @@ class SampleController extends Controller
 
         return DataTables::of($query)->make(true);
     }
-
-    /**
-     * Menampilkan halaman daftar logs untuk user yang login.
-     */
     public function logPage()
     {
         // Fungsi ini hanya me-return view. Logika ada di getlogsData().
         return view('page.sample.log.index');
     }
-
     public function getLogData()
     {
         $query = Activity::with(['causer', 'subject'])
@@ -1563,16 +1483,11 @@ class SampleController extends Controller
             ->rawColumns(['log_name', 'event', 'subject_info', 'causer_info', 'subject_id'])
             ->make(true);
     }
-
-    /**
-     * Menampilkan halaman daftar approval untuk user yang login.
-     */
     public function approvalPage()
     {
         // Fungsi ini hanya me-return view. Logika ada di getApprovalData().
         return view('page.sample.approval.index');
     }
-
     public function getApprovalData()
     {
         $currentUser = Auth::user();
@@ -1722,7 +1637,6 @@ class SampleController extends Controller
             ->rawColumns(['requester', 'no_srs', 'sub_category', 'level', 'status', 'approver', 'action'])
             ->make(true);
     }
-
     public function resendApprovalEmail(Request $request, $token)
     {
         // Cari log approval yang masih pending berdasarkan token LAMA

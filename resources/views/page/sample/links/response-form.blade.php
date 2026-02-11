@@ -152,8 +152,8 @@
             <div class="left-column">
                 <div class="card">
                     <div class="card-header main-header">
-                        <h4 class="mb-0">Free Goods Requisition Approval</h4>
-                        <p class="mb-0 opacity-75">FG No: {{ $requisition->no_srs }}</p>
+                        <h4 class="mb-0">Sample Requisition Approval</h4>
+                        <p class="mb-0 opacity-75">Sample No: {{ $requisition->no_srs }}</p>
                     </div>
                     <div class="card-body p-4 p-md-5">
                         <h5 class="section-title"><i class="fas fa-file-invoice"></i> Requisition Details</h5>
