@@ -259,8 +259,8 @@
                             <div class="info-value">{{ $requisition->cost_center ?? '-' }}</div>
                         </div>
                         <div class="col-md-4">
-                            <div class="info-label">Objectives</div>
-                            <div class="info-value">{{ $requisition->objectives ?? '-' }}</div>
+                            <div class="info-label">Reason for Replacement</div>
+                            <div class="info-value">{{ $requisition->reason_for_replacement ?? '-' }}</div>
                         </div>
                     </div>
 
@@ -297,6 +297,27 @@
                                 @endforeach
                             </tbody>
                         </table>
+                    </div>
+                    @endif
+
+                    @if($requisition->complainImages && $requisition->complainImages->count() > 0)
+                    <h5 class="section-title mt-5"><i class="fas fa-images"></i> Complain Images</h5>
+                    <div class="row g-3">
+                        @foreach($requisition->complainImages as $img)
+                        <div class="col-6 col-md-3">
+                            <div class="card h-100 border-0 shadow-sm image-clickable hover-effect" 
+                                data-image-src="{{ asset('storage/' . $img->image_path) }}" 
+                                style="cursor: pointer; transition: transform 0.2s;">
+                                <img src="{{ asset('storage/' . $img->image_path) }}" 
+                                    class="card-img-top" 
+                                    alt="Evidence" 
+                                    style="height: 120px; object-fit: cover; border-radius: 8px;">
+                                <div class="card-body p-2 text-center">
+                                    <small class="text-primary fw-bold"><i class="fas fa-search-plus"></i> View Full</small>
+                                </div>
+                            </div>
+                        </div>
+                        @endforeach
                     </div>
                     @endif
 
@@ -375,6 +396,30 @@
         </div>
     </div>
 
+    <div class="modal fade" id="imagePreviewModal" tabindex="-1" aria-labelledby="imagePreviewModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-xl">
+            <div class="modal-content bg-transparent border-0 position-relative">
+                
+                <button type="button" class="btn btn-danger rounded-circle shadow-lg position-absolute" 
+                        data-bs-dismiss="modal" 
+                        aria-label="Close" 
+                        style="width: 45px; height: 45px; top: -15px; right: 0px; z-index: 1060; display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-times fs-4"></i>
+                </button>
+
+                <div class="modal-body text-center p-0 mt-2">
+                    <img id="modalFullImage" src="" alt="Full Evidence" class="img-fluid rounded shadow-lg" style="max-height: 85vh; object-fit: contain; background-color: rgba(0,0,0,0.8);">
+                </div>
+                
+                <div class="modal-footer border-0 justify-content-center pt-3">
+                    <a id="downloadImageBtn" href="" download class="btn btn-primary px-4 shadow-lg" style="z-index: 1060;">
+                        <i class="fas fa-download me-2"></i> Download Image
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="processing-overlay" id="processingOverlay">
         <div class="spinner-border" role="status"></div>
         <p class="mt-3">Processing your response...</p>
@@ -392,6 +437,36 @@
             const rejectRadio = document.getElementById('reject');
             const notesTextarea = document.getElementById('notes');
             const notesHelpText = document.getElementById('notes-help-text');
+            const imageCards = document.querySelectorAll('.image-clickable');
+            const modalFullImage = document.getElementById('modalFullImage');
+            const downloadImageBtn = document.getElementById('downloadImageBtn');
+            let imageModal;
+
+            if (document.getElementById('imagePreviewModal')) {
+                imageModal = new bootstrap.Modal(document.getElementById('imagePreviewModal'));
+            }
+
+            imageCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    // Ambil source gambar dari attribute data
+                    const imgSrc = this.getAttribute('data-image-src');
+                    
+                    // Set ke elemen di dalam modal
+                    modalFullImage.src = imgSrc;
+                    downloadImageBtn.href = imgSrc; // Set untuk tombol download
+                    
+                    // Tampilkan modal
+                    if(imageModal) imageModal.show();
+                });
+                
+                // Tambahkan efek hover dinamis (Opsional)
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'scale(1.03)';
+                });
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'scale(1)';
+                });
+            });
 
             // --- FUNGSI VALIDASI ---
             const validateForm = () => {

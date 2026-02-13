@@ -69,6 +69,7 @@ class SampleController extends Controller
             'customers', 'materialTypes', 'allowedSubCategories',
             'generatedSrs', 'userAccount', 'userDepartmentName'));
     }
+
     public function getData(Request $request)
     {
         $user = Auth::user();
@@ -207,6 +208,7 @@ class SampleController extends Controller
             ->rawColumns(['no_srs', 'requester_info', 'sub_category', 'route_to', 'status', 'action'])
             ->make(true);
     }
+
     public function store(StoreSampleRequisitionRequest $request)
     {
         DB::beginTransaction();
@@ -324,6 +326,7 @@ class SampleController extends Controller
             return response()->json(['success' => false, 'message' => 'Terjadi kesalahan sistem.'], 500);
         }
     }
+
     public function update(UpdateSampleRequisitionRequest $request, $id)
     {
         $requisition = Requisition::findOrFail($id);
@@ -419,6 +422,7 @@ class SampleController extends Controller
             return response()->json(['success' => false, 'message' => 'Terjadi kesalahan sistem.'], 500);
         }
     }
+
     public function recallRequisition(Request $request, $id)
     {
         $request->validate([
@@ -505,6 +509,7 @@ class SampleController extends Controller
             return response()->json(['success' => false, 'message' => 'A system error occurred.'], 500);
         }
     }
+
     public function showResponseForm(Request $request, $token)
     {
         $action = $request->query('action');
@@ -534,6 +539,7 @@ class SampleController extends Controller
 
         return view('page.sample.links.response-form', compact('token', 'action', 'originalAction', 'requisition', 'pageTitle', 'isQaForm', 'isWarehouseProcess'));
     }
+
     public function processApproval(Request $request)
     {
         $validated = $request->validate([
@@ -603,6 +609,7 @@ class SampleController extends Controller
         // [TAMBAHAN] Return default jika lolos semua pengecekan (seharusnya tidak sampai sini jika normal)
         return redirect()->route('approval.success')->with('card_class', 'reject')->with('title', 'Unknown Error');
     }
+
     private function notifyRelevantUsers(User $targetUser, Notification $notification)
     {
         // 1. Kirim notifikasi ke pengguna target utama.
@@ -622,6 +629,7 @@ class SampleController extends Controller
             }
         }
     }
+
     private function processQaFormSubmit(Tracking $tracking, array $validated)
     {
         DB::beginTransaction();
@@ -1067,6 +1075,7 @@ class SampleController extends Controller
 
         return $this->notifyRequesterAsCompleted($requisition);
     }
+
     private function notifyRequesterAsCompleted(Requisition $requisition)
     {
         $requisition->load('requester', 'approvalLogs.approver');
@@ -1097,6 +1106,7 @@ class SampleController extends Controller
         Log::info("Requisition #{$requisition->id} selesai. Notifikasi dikirim ke requester.");
         return 'Completed';
     }
+
     private function generateSrsNumber()
     {
         $prefix = 'S';
@@ -1107,6 +1117,7 @@ class SampleController extends Controller
         $runningNumber = $lastRequisition ? (int)substr($lastRequisition->no_srs, -3) + 1 : 1;
         return $currentPrefix . ' ' . sprintf('%03d', $runningNumber);
     }
+
     private function findUserForStep(string $stepName)
     {
         try {
@@ -1126,19 +1137,23 @@ class SampleController extends Controller
             return null;
         }
     }
+
     private function findWarehouseUser(string $name, string $fallbackNik)
     {
         return User::where('name', 'like', '%' . $name . '%')->first() ?? User::where('nik', $fallbackNik)->first();
     }
+
     public function getAllItemMasters()
     {
         return response()->json(ItemMaster::select('id', 'item_master_code', 'item_master_name', 'unit')->get());
     }
+
     public function getItemDetailsByProducts(Request $request)
     {
         $request->validate(['product_ids' => 'required|array']);
         return response()->json(ItemDetail::whereIn('item_master_id', $request->product_ids)->get());
     }
+
     public function show($id)
     {
         $requisition = Requisition::with([
@@ -1236,6 +1251,7 @@ class SampleController extends Controller
 
         return response()->json($responseData);
     }
+
     public function edit($id)
     {
         $requisition = Requisition::with([
@@ -1258,14 +1274,17 @@ class SampleController extends Controller
 
         return response()->json($responseData);
     }
+
     public function showSuccessPage()
     {
         return session('title') ? view('page.sample.links.response-success') : redirect('/');
     }
+
     public function reportsPage()
     {
         return view('page.sample.report.index');
     }
+
     public function printMultipleReport(Request $request)
     {
         $request->validate([
@@ -1296,6 +1315,7 @@ class SampleController extends Controller
 
         return $pdf->stream('Bulk-RS-Sample-' . now()->format('Y-m-d') . '.pdf');
     }
+
     public function printReportByEmail($id)
     {
         $requisition = Requisition::findOrFail($id);
@@ -1322,6 +1342,7 @@ class SampleController extends Controller
         // 5. Download
         return $pdf->download('Requisition-'.$requisition->no_srs.'.pdf');
     }
+
     public function getReportsData(Request $request)
     {
         $query = Requisition::with(['requester', 'customer'])
@@ -1346,11 +1367,13 @@ class SampleController extends Controller
 
         return DataTables::of($query)->make(true);
     }
+
     public function logPage()
     {
         // Fungsi ini hanya me-return view. Logika ada di getlogsData().
         return view('page.sample.log.index');
     }
+
     public function getLogData()
     {
         $query = Activity::with(['causer', 'subject'])
@@ -1483,11 +1506,13 @@ class SampleController extends Controller
             ->rawColumns(['log_name', 'event', 'subject_info', 'causer_info', 'subject_id'])
             ->make(true);
     }
+
     public function approvalPage()
     {
         // Fungsi ini hanya me-return view. Logika ada di getApprovalData().
         return view('page.sample.approval.index');
     }
+
     public function getApprovalData()
     {
         $currentUser = Auth::user();
@@ -1616,7 +1641,7 @@ class SampleController extends Controller
 
                     $approveNoReviewBtn = '<button type="button" class="btn btn-sm btn-success action-btn" data-token="' . $token . '" data-action="approve" data-srs="' . $srs . '" data-bs-toggle="tooltip" title="Approve (No Review)"><i class="ph-bold ph-thumbs-up text-white"></i></button>';
                     $approveWithReviewBtn = '<button type="button" class="btn btn-sm btn-primary action-btn-modal" data-id="' . $requisitionId . '" data-token="' . $token . '" data-action="review" data-srs="' . $srs . '" data-bs-toggle="tooltip" title="Approve with Review"><i class="ph-bold ph-note-pencil text-white"></i></button>';
-                    $rejectBtn = '<button type="button" class="btn btn-sm btn-danger action-btn-modal" data-id="' . $requisitionId . '" data-token="' . $token . '" data-action="reject" data-srs="' . $srs . '" data-bs-toggle="tooltip" title="Reject"><i class="ph-bold ph-thumbs-down text-white"></i></button>';
+                    $rejectBtn = '<button type="button" class="btn btn-sm btn-danger action-btn-modal" data-id="' . $requisitionId . '" data-token="' . $token . '" data-action="reject" data-srs="' . $srs . '" data-bs-toggle="tooltip" title="Reject"><i class="ph-bold ph-x-circle text-white"></i></button>';
                     $resendBtn = ''; // Inisialisasi sebagai string kosong
                     if ($currentUser->hasRole('super-admin')) {
                         $resendBtn = '<button type="button" class="btn btn-sm btn-warning btn-resend-email" data-token="' . $log->token . '" data-bs-toggle="tooltip" title="Resend Email Notification"><i class="ph-bold ph-paper-plane-tilt text-dark"></i></button>';
@@ -1637,6 +1662,7 @@ class SampleController extends Controller
             ->rawColumns(['requester', 'no_srs', 'sub_category', 'level', 'status', 'approver', 'action'])
             ->make(true);
     }
+
     public function resendApprovalEmail(Request $request, $token)
     {
         // Cari log approval yang masih pending berdasarkan token LAMA

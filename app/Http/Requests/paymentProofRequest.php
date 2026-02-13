@@ -24,7 +24,7 @@ class paymentProofRequest extends FormRequest
         return [
             'complain_id' => 'required|exists:requisitions,id',
             'payment_date' => 'required|date',
-            'payment_document' => 'required|file|mimes:jpeg,jpg,png,pdf|max:1024'
+            'payment_document' => 'required|file|mimes:jpeg,jpg,png|max:1024'
         ];
     }
 
@@ -37,7 +37,7 @@ class paymentProofRequest extends FormRequest
             'payment_date.date' => 'Payment date must be a valid date.',
             'payment_document.required' => 'Payment document is required.',
             'payment_document.file' => 'Payment document must be a file.',
-            'payment_document.mimes' => 'Payment document must be a JPEG, JPG, PNG, or PDF file.',
+            'payment_document.mimes' => 'Payment document must be an image (JPEG, JPG, or PNG).',
             'payment_document.max' => 'Payment document size must not exceed 1MB.'
         ];
     }

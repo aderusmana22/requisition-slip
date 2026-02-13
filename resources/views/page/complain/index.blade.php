@@ -546,11 +546,11 @@
                                 Payment Document <span class="text-danger">*</span>
                             </label>
                             <input type="file" class="form-control" id="payment_document" name="payment_document"
-                                   accept="image/*,.pdf" required>
+                                accept="image/jpeg, image/jpg, image/png" required>
                             <div class="form-text">
                                 <small class="text-muted">
                                     <i class="ph-duotone ph-info me-1"></i>
-                                    Supported formats: JPG, PNG, PDF. Maximum size: 1MB
+                                    Supported formats: JPG, JPEG, PNG. Maximum size: 1MB
                                 </small>
                             </div>
                             <div class="invalid-feedback" id="payment_document_error"></div>
@@ -717,6 +717,7 @@
 
             // Cache untuk menyimpan inputan jika ddilakukan render
             let qtyCache = {};
+            let selectedImageFiles = new DataTransfer();
 
             $(' #statusFilter').select2({
                 theme: 'bootstrap-5',
@@ -1178,7 +1179,7 @@
             $('#payment_document').on('change', function() {
                 const file = this.files[0];
                 const maxSize = 1 * 1024 * 1024; // 1MB in bytes
-                const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+                const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
 
                 // Clear previous errors
                 $('#payment_document_error').text('');
@@ -1196,7 +1197,7 @@
 
                     // Validate file type
                     if (!allowedTypes.includes(file.type)) {
-                        $('#payment_document_error').text('Only JPG, PNG, and PDF files are allowed');
+                        $('#payment_document_error').text('Only JPG, JPEG, and PNG images are allowed');
                         $(this).addClass('is-invalid');
                         this.value = '';
                         return;
@@ -1285,8 +1286,8 @@
                                 <div class="info-card">
                                     <div class="info-row">
                                         <div class="info-label">
-                                            <i class="ph-duotone ph-file-pdf text-danger"></i>
-                                            Payment Document:
+                                            <i class="ph-duotone ph-image text-primary"></i>
+                                            Payment Proof Image:
                                         </div>
                                         <div class="info-value">
                                             <a href="${window.location.origin}/storage/${payment.document_url}"
@@ -1803,6 +1804,7 @@
                 $('#complineForm .is-invalid').removeClass('is-invalid');
 
                 // Reset image preview
+                selectedImageFiles = new DataTransfer();
                 $('#imagePreviewContainer').addClass('d-none');
                 $('#imagePreviewList').empty();
 
@@ -2017,90 +2019,115 @@
                 })
 
                 // Handle image preview and validation
-                $('#complain_images').on('change', function(e) {
-                    const files = e.target.files;
-                    const previewContainer = $('#imagePreviewContainer');
-                    const previewList = $('#imagePreviewList');
-                    const maxSize = 1 * 1024 * 1024; // 1MB in bytes
-                    const maxFiles = 10; // Maximum 10 files
-                    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+                function renderImagePreviews() {
+    const previewContainer = $('#imagePreviewContainer');
+    const previewList = $('#imagePreviewList');
+    previewList.empty();
 
-                    // Clear previous errors
-                    $('[data-error-for="complain_images"]').text('');
-                    $(this).removeClass('is-invalid');
-                    previewList.empty();
+    if (selectedImageFiles.files.length === 0) {
+        previewContainer.addClass('d-none');
+        document.getElementById('complain_images').files = selectedImageFiles.files; // pastikan input benar-benar kosong
+        return;
+    }
 
-                    if (files.length === 0) {
-                        previewContainer.addClass('d-none');
-                        return;
-                    }
+    previewContainer.removeClass('d-none');
 
-                    // Validate number of files
-                    if (files.length > maxFiles) {
-                        $('[data-error-for="complain_images"]').text(`Maksimal ${maxFiles} gambar yang dapat diupload.`);
-                        $(this).addClass('is-invalid');
-                        previewContainer.addClass('d-none');
-                        // Clear the input
-                        this.value = '';
-                        return;
-                    }
+    // Render ulang semua file yang ada di DataTransfer
+    Array.from(selectedImageFiles.files).forEach((file, index) => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const previewHtml = `
+                <div class="col-md-3 mb-3">
+                    <div class="card position-relative border-0 shadow-sm">
+                        <button type="button" class="btn btn-danger btn-sm position-absolute remove-image-btn shadow" 
+                                data-index="${index}" 
+                                style="top: -8px; right: -8px; border-radius: 50%; width: 26px; height: 26px; padding: 0; display: flex; align-items: center; justify-content: center; z-index: 10;">
+                            <i class="ph-bold ph-x"></i>
+                        </button>
+                        
+                        <img src="${e.target.result}" class="card-img-top rounded" style="height: 120px; object-fit: cover; border: 1px solid #dee2e6;">
+                        <div class="card-body p-2 text-center">
+                            <small class="text-muted d-block text-truncate" title="${file.name}"><strong>${file.name}</strong></small>
+                            <small class="text-muted">${(file.size / 1024 / 1024).toFixed(2)} MB</small>
+                        </div>
+                    </div>
+                </div>
+            `;
+            previewList.append(previewHtml);
+        };
+        reader.readAsDataURL(file);
+    });
+}
 
-                    let validFiles = [];
-                    let hasError = false;
+// 2. Event Listener saat user memilih gambar
+$('#complain_images').on('change', function(e) {
+    const newFiles = e.target.files;
+    const maxSize = 1 * 1024 * 1024; // 1MB
+    const maxFiles = 10;
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
 
-                    for (let i = 0; i < files.length; i++) {
-                        const file = files[i];
+    // Clear previous errors
+    $('[data-error-for="complain_images"]').text('');
+    $(this).removeClass('is-invalid');
 
-                        // Validate file size
-                        if (file.size > maxSize) {
-                            $('[data-error-for="complain_images"]').text(`File "${file.name}" terlalu besar. Ukuran maksimal adalah 1MB.`);
-                            $(this).addClass('is-invalid');
-                            hasError = true;
-                            break;
-                        }
+    if (newFiles.length === 0) return;
 
-                        // Validate file type
-                        if (!allowedTypes.includes(file.type)) {
-                            $('[data-error-for="complain_images"]').text(`File "${file.name}" tidak didukung. Hanya file JPG, PNG, dan GIF yang diperbolehkan.`);
-                            $(this).addClass('is-invalid');
-                            hasError = true;
-                            break;
-                        }
+    // Cek apakah total file melebihi batas (file yang sudah ada + file baru)
+    if (selectedImageFiles.files.length + newFiles.length > maxFiles) {
+        $('[data-error-for="complain_images"]').text(`Maksimal ${maxFiles} gambar yang dapat diupload. Anda sudah memilih ${selectedImageFiles.files.length} gambar.`);
+        $(this).addClass('is-invalid');
+        this.files = selectedImageFiles.files; // kembalikan nilai input seperti semula
+        return;
+    }
 
-                        validFiles.push(file);
-                    }
+    // Filter dan tambahkan file baru ke dalam antrean
+    for (let i = 0; i < newFiles.length; i++) {
+        const file = newFiles[i];
 
-                    if (hasError) {
-                        previewContainer.addClass('d-none');
-                        // Clear the input
-                        this.value = '';
-                        return;
-                    }
+        if (file.size > maxSize) {
+            $('[data-error-for="complain_images"]').text(`File "${file.name}" terlalu besar (Max 1MB).`);
+            $(this).addClass('is-invalid');
+            break; // Stop loop jika ada error
+        }
 
-                    // Show previews for valid files
-                    if (validFiles.length > 0) {
-                        previewContainer.removeClass('d-none');
+        if (!allowedTypes.includes(file.type)) {
+            $('[data-error-for="complain_images"]').text(`File "${file.name}" tidak didukung. Hanya JPG, PNG, GIF.`);
+            $(this).addClass('is-invalid');
+            break; // Stop loop jika ada error
+        }
 
-                        validFiles.forEach((file, index) => {
-                            const reader = new FileReader();
-                            reader.onload = function(e) {
-                                const previewHtml = `
-                                    <div class="col-md-3 mb-3">
-                                        <div class="card">
-                                            <img src="${e.target.result}" class="card-img-top" style="height: 150px; object-fit: cover;">
-                                            <div class="card-body p-2">
-                                                <small class="text-muted">${file.name}</small><br>
-                                                <small class="text-muted">${(file.size / 1024 / 1024).toFixed(2)} MB</small>
-                                            </div>
-                                        </div>
-                                    </div>
-                                `;
-                                previewList.append(previewHtml);
-                            };
-                            reader.readAsDataURL(file);
-                        });
-                    }
-                });
+        // AKUMULASI: Tambahkan file yang lolos validasi ke memori
+        selectedImageFiles.items.add(file);
+    }
+
+    // Wajib: Sinkronkan memori (DataTransfer) kita kembali ke input HTML
+    this.files = selectedImageFiles.files;
+
+    // Tampilkan ulang preview
+    renderImagePreviews();
+});
+
+// 3. Event Listener untuk tombol hapus (X) gambar
+$(document).on('click', '.remove-image-btn', function() {
+    const indexToRemove = $(this).data('index');
+    
+    // Pindahkan semua file KECUALI yang dihapus ke DataTransfer baru
+    const dt = new DataTransfer();
+    const currentFiles = selectedImageFiles.files;
+    
+    for (let i = 0; i < currentFiles.length; i++) {
+        if (i !== indexToRemove) {
+            dt.items.add(currentFiles[i]);
+        }
+    }
+    
+    // Perbarui variabel global dan input file HTML
+    selectedImageFiles = dt;
+    document.getElementById('complain_images').files = selectedImageFiles.files;
+    
+    // Render ulang UI
+    renderImagePreviews();
+});
             });
 
             // === Submit Form ===

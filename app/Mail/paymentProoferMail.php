@@ -17,13 +17,12 @@ class paymentProoferMail extends Mailable
     use Queueable, SerializesModels;
     
     public $requisition;
+    public $uploadLink;
 
-    /**
-     * Create a new message instance.
-     */
-    public function __construct(Requisition $requisition)
+    public function __construct($requisition, $uploadLink) 
     {
         $this->requisition = $requisition;
+        $this->uploadLink = $uploadLink;
     }
 
     /**
@@ -45,6 +44,7 @@ class paymentProoferMail extends Mailable
             view: 'mail.payment-proofer-mail',
             with: [
                 'requisition' => $this->requisition,
+                'uploadLink' => $this->uploadLink,
             ]
         );
     }

@@ -47,6 +47,9 @@ Route::post('/complain/warehouse/process', [ComplainController::class, 'processW
 Route::get('/complain/warehouse/update', [ComplainController::class, 'showWarehouseUpdatePage'])->name('complain.warehouse.update');
 Route::post('/complain/warehouse/update', [ComplainController::class, 'updateWarehouseApproval'])->name('complain.warehouse.update.process');
 Route::get('/complain/warehouse/report/{id}', [ComplainController::class, 'warehouseReport'])->name('complain.warehouse.report');
+Route::get('/complain/public-upload/{id}', [ComplainController::class, 'showPublicPaymentUpload'])->name('complain.public.upload.view');
+Route::post('/complain/public-upload/{id}', [ComplainController::class, 'storePublicPaymentProof'])->name('complain.public.upload.store');
+
 
 // --- Approval Link dari Email (Sample Requisition) ---
 Route::get('/approval/response/{token}', [SampleController::class, 'showResponseForm'])->name('approval.response');

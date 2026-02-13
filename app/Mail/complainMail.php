@@ -27,11 +27,12 @@ class complainMail extends Mailable
     public $approveLink;
     public $approveWithReviewLink;
     public $rejectLink;
+    public $tracking;
 
     /**
      * Create a new message instance.
      */
-    public function __construct(User $approver, Requisition $requisition, ApprovalLog $approvalLog, $approveLink, $approveWithReviewLink, $rejectLink)
+    public function __construct(User $approver, Requisition $requisition, ApprovalLog $approvalLog, $approveLink, $approveWithReviewLink, $rejectLink, $tracking = null)
     {
         $this->approver = $approver;
         $this->requisition = $requisition;
@@ -39,6 +40,7 @@ class complainMail extends Mailable
         $this->approveLink = $approveLink;
         $this->approveWithReviewLink = $approveWithReviewLink;
         $this->rejectLink = $rejectLink;
+        $this->tracking = $tracking;
     }
 
     /**
@@ -58,6 +60,15 @@ class complainMail extends Mailable
     {
         return new Content(
             view: 'mail.complain-mail',
+            with: [
+                'approver' => $this->approver,
+                'requisition' => $this->requisition,
+                'approvalLog' => $this->approvalLog,
+                'approveLink' => $this->approveLink,
+                'approveWithReviewLink' => $this->approveWithReviewLink,
+                'rejectLink' => $this->rejectLink,
+                'tracking' => $this->tracking,
+            ]
         );
     }
 

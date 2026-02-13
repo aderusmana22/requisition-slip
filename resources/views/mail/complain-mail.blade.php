@@ -38,13 +38,7 @@
                             <div
                                 style="font-size: 15px; color: #2c3e50; margin-bottom: 25px; padding: 15px; background-color: #f8f9fa; border-radius: 4px; border-left: 4px solid #cc982f;">
                                 <strong>Hello {{ $approver->name }},</strong><br>
-                                You have received a new requisition approval request. Please review the details below
-                                and
-                                provide your decision.
-                                <div
-                                    style="display: inline-block; background-color: #cc982f; color: white; padding: 6px 12px; border-radius: 15px; font-weight: 600; font-size: 12px; margin-top: 10px; mso-padding-alt: 6px 12px;">
-                                    📋 Approval Level: {{ $tracking->current_position ?? 'N/A' }}
-                                </div>
+                                You have received a new requisition approval request. Please review the details below and provide your decision.
                             </div>
 
                             <div style="margin-bottom: 30px;">
@@ -136,10 +130,10 @@
                                                         style="background: white; padding: 12px; border-radius: 6px; border: 1px solid #e9ecef;">
                                                         <div
                                                             style="font-weight: 600; color: #495057; font-size: 12px; margin-bottom: 5px;">
-                                                            Current Position</div>
+                                                            Reason for Replacement</div>
                                                         <div
                                                             style="color: #2c3e50; font-size: 14px; word-break: break-word;">
-                                                            {{ $tracking->current_position ?? 'N/A' }}</div>
+                                                            {{ $requisition->reason_for_replacement ?? 'N/A' }}</div>
                                                     </td>
                                                 </tr>
                                             </table>
@@ -269,31 +263,6 @@
                             </div>
                             @endif
 
-                            @if($requisition->objectives)
-                            <div style="margin-bottom: 30px;">
-                                <table width="100%" cellpadding="0" cellspacing="0" border="0" align="center"
-                                    style="border-collapse: collapse;">
-                                    <tr>
-                                        <td style="padding: 0 0 5px 0;">
-                                            <p
-                                                style="font-size: 12px; font-weight: 700; color: #4b5563; text-transform: uppercase; border-bottom: 2px solid #e5e7eb; padding-bottom: 5px; margin: 0;">
-                                                🎯 Objectives</p>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td style="padding: 7px 0;">
-                                            <div
-                                                style="background: #f8f9fa; padding: 15px; border-radius: 4px; border: 1px solid #e9ecef;">
-                                                <p
-                                                    style="margin: 0; color: #2c3e50; font-size: 14px; line-height: 1.6;">
-                                                    {{ $requisition->objectives }}</p>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </table>
-                            </div>
-                            @endif
-
                             @if($requisition->requisitionItems && $requisition->requisitionItems->count() > 0)
                             <div style="margin-bottom: 30px;">
                                 <table width="100%" cellpadding="0" cellspacing="0" border="0" align="center"
@@ -342,8 +311,7 @@
                                                     <tbody>
                                                         @foreach($requisition->requisitionItems as $item)
                                                         @php
-                                                        $detail = $item->itemMaster->ItemDetails->firstWhere('id',
-                                                        $item->item_detail_id);
+                                                        $detail = $item->itemMaster->ItemDetails->firstWhere('id', $item->item_detail_id);
                                                         $row_bg = $loop->even ? '#f8f9fa' : 'white';
                                                         @endphp
                                                         @if($detail)
@@ -368,8 +336,7 @@
                                                                 {{ $item->quantity_issued }}</td>
                                                             <td
                                                                 style="padding: 10px 8px; border: 1px solid #e9ecef; font-size: 12px; text-align: center;">
-                                                                {{ date('j/n/y', strtotime($item->batch_number)) ?? '-'
-                                                                }}</td>
+                                                                {{ $item->batch_number ?? '-' }}</td>
                                                             <td
                                                                 style="padding: 10px 8px; border: 1px solid #e9ecef; font-size: 12px; text-align: center;">
                                                                 {{ $item->remarks ?? '-' }}</td>

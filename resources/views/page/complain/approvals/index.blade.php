@@ -258,7 +258,7 @@
 
     <!-- Modal Review -->
     <div class="modal fade" id="reviewModal" tabindex="-1" aria-labelledby="reviewModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header modal-header-enhanced">
                     <h5 class="modal-title modal-title-enhanced" id="reviewModalLabel">
@@ -267,87 +267,137 @@
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body bg-light">
                     <form id="reviewForm">
                         <input type="hidden" id="review_token" name="token">
                         <input type="hidden" id="review_id" name="id">
 
-                        <!-- Request Info Display -->
-                        <div class="card mb-4">
-                            <div class="card-header bg-light">
-                                <h6 class="mb-0">
-                                    <i class="ph-duotone ph-info me-2"></i>
-                                    Request Information
+                        <div class="card mb-4 border-0 shadow-sm">
+                            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0 fw-bold text-primary">
+                                    <i class="ph-duotone ph-file-text me-2"></i>
+                                    Requisition Summary
                                 </h6>
+                                <span id="review_status" class="fs-6"></span>
                             </div>
                             <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <p class="mb-2"><strong>Requisition ID:</strong> <span id="review_requisition_id"></span></p>
-                                        <p class="mb-2"><strong>Customer:</strong> <span id="review_customer"></span></p>
+                                <div class="row g-3 mb-4 pb-3 border-bottom">
+                                    <div class="col-md-3">
+                                        <span class="text-muted d-block small mb-1">SRS No.</span>
+                                        <strong id="review_requisition_id"></strong>
                                     </div>
-                                    <div class="col-md-6">
-                                        <p class="mb-2"><strong>Status:</strong> <span id="review_status"></span></p>
-                                        <p class="mb-2"><strong>Date:</strong> <span id="review_date"></span></p>
+                                    <div class="col-md-3">
+                                        <span class="text-muted d-block small mb-1">Request Date</span>
+                                        <strong id="review_date"></strong>
                                     </div>
+                                    <div class="col-md-3">
+                                        <span class="text-muted d-block small mb-1">Requester</span>
+                                        <strong id="review_requester"></strong>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <span class="text-muted d-block small mb-1">Department</span>
+                                        <strong id="review_department"></strong>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <span class="text-muted d-block small mb-1">Customer</span>
+                                        <strong id="review_customer"></strong>
+                                    </div>
+                                    <div class="col-md-8">
+                                        <span class="text-muted d-block small mb-1">Address</span>
+                                        <strong id="review_address"></strong>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <span class="text-muted d-block small mb-1">Account</span>
+                                        <strong id="review_account"></strong>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <span class="text-muted d-block small mb-1">Cost Center</span>
+                                        <strong id="review_cost_center"></strong>
+                                    </div>
+                                    <div class="col-12 mt-3">
+                                        <span class="text-muted d-block small mb-1">Reason for Complain</span>
+                                        <div class="p-3 bg-light rounded" id="review_objectives" style="border: 1px dashed #ccc; min-height: 40px; color: #333;"></div>
+                                    </div>
+                                </div>
+
+                                <h6 class="fw-bold mb-3"><i class="ph-duotone ph-cubes text-primary me-2"></i>Product Details</h6>
+                                <div class="table-responsive mb-4">
+                                    <table class="table table-bordered table-sm table-hover align-middle" style="font-size: 0.85rem;">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Material Type</th>
+                                                <th>Code</th>
+                                                <th>Name</th>
+                                                <th class="text-center">Unit</th>
+                                                <th class="text-center">QTY Req</th>
+                                                <th class="text-center">QTY Iss</th>
+                                                <th>Batch Number</th>
+                                                <th>Remarks</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="review_product_table_body">
+                                            </tbody>
+                                    </table>
+                                </div>
+
+                                <div id="review_images_section" style="display:none;">
+                                    <h6 class="fw-bold mb-3"><i class="ph-duotone ph-images text-primary me-2"></i>Evidence Images</h6>
+                                    <div class="row g-2" id="review_images_container">
+                                         </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Decision Section -->
-                        <div class="mb-4">
-                            <label class="form-label fw-bold">
-                                <i class="ph-duotone ph-check-circle me-2"></i>
-                                Your Decision <span class="text-danger">*</span>
-                            </label>
-                            <div class="d-flex flex-column gap-2">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="status" id="approve_radio" value="approve" required>
-                                    <label class="form-check-label text-success fw-medium" for="approve_radio">
-                                        <i class="ph-duotone ph-check-circle me-1"></i>
-                                        Approve
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body">
+                                <div class="mb-4">
+                                    <label class="form-label fw-bold">
+                                        <i class="ph-duotone ph-check-circle me-2"></i>
+                                        Your Decision <span class="text-danger">*</span>
                                     </label>
+                                    <div class="d-flex gap-4 p-3 rounded" style="background-color: #f8f9fa;">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="status" id="approve_radio" value="approve" required>
+                                            <label class="form-check-label text-success fw-medium" for="approve_radio">
+                                                <i class="ph-duotone ph-check-circle me-1"></i> Approve
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="status" id="approve_with_review_radio" value="approve_with_review" required>
+                                            <label class="form-check-label text-info fw-medium" for="approve_with_review_radio">
+                                                <i class="ph-duotone ph-note-pencil me-1"></i> Approve with Review
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="status" id="reject_radio" value="reject" required>
+                                            <label class="form-check-label text-danger fw-medium" for="reject_radio">
+                                                <i class="ph-duotone ph-x-circle me-1"></i> Reject
+                                            </label>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="status" id="approve_with_review_radio" value="approve_with_review" required>
-                                    <label class="form-check-label text-info fw-medium" for="approve_with_review_radio">
-                                        <i class="ph-duotone ph-check-circle me-1"></i>
-                                        Approve with Review
-                                    </label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="status" id="reject_radio" value="reject" required>
-                                    <label class="form-check-label text-danger fw-medium" for="reject_radio">
-                                        <i class="ph-duotone ph-x-circle me-1"></i>
-                                        Reject
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
 
-                        <!-- Notes Section -->
-                        <div class="mb-4" id="notes_section" style="display: none;">
-                            <label for="review_notes" class="form-label fw-bold">
-                                <i class="ph-duotone ph-note-pencil me-2"></i>
-                                Notes/Comments
-                                <span class="text-danger" id="notes_required_indicator">*</span>
-                            </label>
-                            <textarea class="form-control" id="review_notes" name="notes" rows="4"
-                                placeholder="Enter your notes or comments here..."></textarea>
-                            <div class="form-text">
-                                <span id="notes_help_text">Notes are required for this action.</span>
+                                <div class="mb-2" id="notes_section" style="display: none;">
+                                    <label for="review_notes" class="form-label fw-bold">
+                                        <i class="ph-duotone ph-chat-text me-2"></i>
+                                        Notes/Comments
+                                        <span class="text-danger" id="notes_required_indicator">*</span>
+                                    </label>
+                                    <textarea class="form-control" id="review_notes" name="notes" rows="4" placeholder="Enter your notes or comments here..."></textarea>
+                                    <div class="form-text">
+                                        <span id="notes_help_text">Notes are required for this action.</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </form>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        <i class="ph-duotone ph-x me-1"></i>
-                        Cancel
+                <div class="modal-footer bg-white">
+                    <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">
+                        <i class="ph-duotone ph-x me-1"></i> Cancel
                     </button>
-                    <button type="button" class="btn btn-primary" id="submitReview">
-                        <i class="ph-duotone ph-paper-plane-tilt me-1"></i>
-                        Submit Review
+                    <button type="button" class="btn btn-primary px-4 shadow-sm" id="submitReview">
+                        <i class="ph-duotone ph-paper-plane-tilt me-1"></i> Submit Review
                     </button>
                 </div>
             </div>
@@ -601,20 +651,93 @@
                 success: (data) => {
                     $('#review_token').val(token);
                     $('#review_id').val(requisitionId);
+
+                    // --- 1. POPULATE BASIC INFO ---
                     $('#review_requisition_id').text(data.no_srs || data.requisition_number || 'N/A');
                     $('#review_customer').text(data.customer?.name || 'N/A');
-                    $('#review_status').text(data.status || 'Pending');
+                    $('#review_address').text(data.customer?.address || 'N/A');
+                    $('#review_requester').text(data.requester?.name || 'N/A');
+                    $('#review_department').text(data.requester?.department?.name || 'N/A');
+                    $('#review_account').text(data.account || '-');
+                    $('#review_cost_center').text(data.cost_center || '-');
+                    $('#review_objectives').text(data.reason_for_replacement || 'No specific reason provided.');
 
+                    // Format Status Badge
+                    let statusClass = 'bg-secondary';
+                    if(data.status === 'Pending') statusClass = 'bg-warning text-dark';
+                    else if(data.status === 'In Progress') statusClass = 'bg-info text-white';
+                    else if(data.status === 'Approved') statusClass = 'bg-success';
+                    else if(data.status === 'Rejected') statusClass = 'bg-danger';
+                    
+                    $('#review_status').html(`<span class="badge ${statusClass} px-3 py-2">${data.status || 'Pending'}</span>`);
+
+                    // Format Date
                     const date = data.request_date || data.created_at;
-                    if (date) {
-                        const formattedDate = new Date(date).toLocaleDateString('en-GB', {
-                            day: '2-digit', month: 'short', year: 'numeric'
+                    $('#review_date').text(date ? new Date(date).toLocaleDateString('en-GB', {
+                        day: '2-digit', month: 'short', year: 'numeric'
+                    }) : 'N/A');
+
+                    // --- 2. POPULATE PRODUCT TABLE ---
+                    const items = data.requisition_items || [];
+                    let productHtml = '';
+                    if (items.length > 0) {
+                        items.forEach(item => {
+                            const detail = item.item_master?.item_details?.find(d => d.id === item.item_detail_id) || {};
+                            
+                            // Badge color logic for material
+                            let materialBadge = 'bg-secondary';
+                            if(detail.material_type === 'Raw') materialBadge = 'bg-primary';
+                            else if(detail.material_type === 'Semi-Finished') materialBadge = 'bg-warning text-dark';
+                            else if(detail.material_type === 'Finished') materialBadge = 'bg-success';
+
+                            productHtml += `
+                                <tr>
+                                    <td><span class="badge ${materialBadge}">${detail.material_type || '-'}</span></td>
+                                    <td class="fw-medium">${detail.item_detail_code || '-'}</td>
+                                    <td>${detail.item_detail_name || '-'}</td>
+                                    <td class="text-center"><span class="badge bg-light text-dark border">${detail.unit || '-'}</span></td>
+                                    <td class="text-center fw-bold text-warning">${item.quantity_required || 0}</td>
+                                    <td class="text-center fw-bold text-success">${item.quantity_issued || 0}</td>
+                                    <td>${item.batch_number || '-'}</td>
+                                    <td>${item.remarks || '-'}</td>
+                                </tr>
+                            `;
                         });
-                        $('#review_date').text(formattedDate);
                     } else {
-                        $('#review_date').text('N/A');
+                        productHtml = `<tr><td colspan="8" class="text-center text-muted py-3">No products found.</td></tr>`;
+                    }
+                    $('#review_product_table_body').html(productHtml);
+
+                    // --- 3. POPULATE IMAGES EVIDENCE ---
+                    const images = data.complain_images || [];
+                    const imgContainer = $('#review_images_container');
+                    const imgSection = $('#review_images_section');
+
+                    if (images.length > 0) {
+                        let imgHtml = '';
+                        images.forEach((img, index) => {
+                            const imgUrl = `{{ asset('storage') }}/${img.image_path}`;
+                            imgHtml += `
+                                <div class="col-md-2 col-4 mb-2">
+                                    <div class="card h-100 border p-1 bg-white shadow-sm hover-effect">
+                                        <img src="${imgUrl}" 
+                                             class="card-img-top image-clickable rounded" 
+                                             style="height: 100px; object-fit: cover; cursor: pointer;" 
+                                             data-image-src="${imgUrl}" 
+                                             data-image-title="Evidence ${index + 1}"
+                                             alt="Evidence">
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        imgContainer.html(imgHtml);
+                        imgSection.show();
+                    } else {
+                        imgContainer.html('');
+                        imgSection.hide();
                     }
 
+                    // Reset form actions & pop up modal
                     $('#reviewForm')[0].reset();
                     updateNotesRequirement();
 
@@ -757,12 +880,11 @@
                     },
                     {
                         data: 'requisition_details.updated_at',
-                        render: (data) => {
+                        render: (data, type, row) => {
                             if (type === 'sort' || type === 'type') {
                                 return data;
                             }
 
-                            // Jika type 'display', baru format ke teks "ago"
                             if (!data) return 'N/A';
 
                             const diffInSeconds = Math.floor((new Date() - new Date(data)) / 1000);

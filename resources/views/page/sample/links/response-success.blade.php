@@ -135,7 +135,7 @@
         @if(session('no_srs'))
         <div class="details-box">
             <div class="detail-item">
-                <span class="detail-label">FG Number:</span>
+                <span class="detail-label">Sample Number:</span>
                 <span class="detail-value">{{ session('no_srs') }}</span>
             </div>
             <div class="detail-item">

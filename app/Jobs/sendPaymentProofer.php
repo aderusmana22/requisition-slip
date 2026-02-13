@@ -14,13 +14,15 @@ class sendPaymentProofer implements ShouldQueue
 {
     use Queueable;
     protected Requisition $requisition;
+    protected string $uploadLink;
 
     /**
      * Create a new job instance.
      */
-    public function __construct(Requisition $requisition)
+    public function __construct(Requisition $requisition, string $uploadLink)
     {
         $this->requisition = $requisition;
+        $this->uploadLink = $uploadLink;
     }
 
     /**
@@ -38,7 +40,7 @@ class sendPaymentProofer implements ShouldQueue
 
             // Kirim email peringatan payment proof required
             Log::info("Sending payment proof required email to: {$requester->email} for requisition: {$this->requisition->id}");
-            Mail::to($requester->email)->send(new paymentProoferMail($this->requisition));
+            Mail::to($requester->email)->send(new paymentProoferMail($this->requisition, $this->uploadLink));
             
         } catch (\Exception $e) {
             Log::error("Failed to send payment proofer email: " . $e->getMessage());

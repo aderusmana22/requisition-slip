@@ -78,7 +78,7 @@
 
         /* [WARNA] Override Text Primary ke warna tema Sample */
         .text-primary {
-            color: #b8871a !important; 
+            color: #b8871a !important;
         }
 
         /* [WARNA] Tombol Primary tema Sample */
@@ -144,7 +144,7 @@
 </head>
 
 <body>
-    <form id="responseForm" action="{{ route('fg.approval.process') }}" method="POST">
+    <form id="responseForm" action="{{ route('approval-sample.process-form') }}" method="POST">
         @csrf
         <input type="hidden" name="token" value="{{ $token }}">
 
@@ -204,10 +204,10 @@
                                         <th>Item Name</th>
                                         <th style="width: 90px;">Unit</th>
                                         <th style="width: 125px;" class="text-center">Qty Required</th>
-                                        
+
                                         {{-- Header Qty Issued (Muncul jika action = update_qty) --}}
                                         <th class="text-center" style="width: 125px;">
-                                            Qty Issued 
+                                            Qty Issued
                                             @if($action === 'update_qty')
                                                 <span class="text-danger">*</span>
                                             @endif
@@ -224,11 +224,11 @@
                                         <td class="text-center">
                                             {{-- Input Enabled HANYA jika action = update_qty --}}
                                             @if($action === 'update_qty')
-                                                <input type="number" 
+                                                <input type="number"
                                                     class="form-control form-control-sm text-center fw-bold"
                                                     style="min-width: 80px;"
-                                                    name="items[{{ $item->id }}]" 
-                                                    value="{{ $item->quantity_issued > 0 ? $item->quantity_issued : '' }}" 
+                                                    name="items[{{ $item->id }}]"
+                                                    value="{{ $item->quantity_issued > 0 ? $item->quantity_issued : '' }}"
                                                     placeholder="0"
                                                     min="0"
                                                     max="{{ $item->quantity_required }}"
@@ -252,7 +252,7 @@
                 <div class="card action-card">
                     <div class="card-body p-4">
                         <h5 class="section-title">
-                            <i class="fas fa-edit"></i> 
+                            <i class="fas fa-edit"></i>
                             @php
                                 $actionName = ucwords(str_replace('_', ' ', $action));
                                 if($action === 'submit' && $isWarehouseProcess) $actionName = 'Submit';
@@ -275,14 +275,14 @@
                                 <div class="d-grid">
                                     <button type="submit" class="btn btn-success btn-lg" id="submitBtn">Confirm Submit</button>
                                 </div>
-                            
+
                             @elseif ($action === 'review')
                                 <div class="alert alert-primary">
                                     <strong>Submit with Notes:</strong> Please provide notes/remarks regarding this step.
                                 </div>
                                 <div class="mb-3">
                                     <label for="notes" class="form-label"><strong>Notes/Reason: <span class="text-danger">*</span></strong></label>
-                                    
+
                                     <div class="alert alert-warning d-flex align-items-start p-2 mb-2" role="alert" style="font-size: 0.8rem;">
                                         <i class="fas fa-exclamation-triangle mt-1 me-2"></i>
                                         <div>
@@ -304,7 +304,7 @@
 
                                 <div class="mb-3">
                                     <label for="notes" class="form-label"><strong>Notes: <span class="text-danger">*</span></strong></label>
-                                    
+
                                     <div class="alert alert-warning d-flex align-items-start p-2 mb-2" role="alert" style="font-size: 0.8rem;">
                                         <i class="fas fa-exclamation-triangle mt-1 me-2"></i>
                                         <div>
@@ -341,7 +341,7 @@
                             </div>
                             <div class="mb-3">
                                 <label for="notes" class="form-label"><strong>Notes/Reason:</strong></label>
-                                
+
                                 <div class="alert alert-warning d-flex align-items-start p-2 mb-2" role="alert" style="font-size: 0.8rem;">
                                     <i class="fas fa-exclamation-triangle mt-1 me-2"></i>
                                     <div>
@@ -375,19 +375,19 @@
             const form = document.getElementById('responseForm');
             const overlay = document.getElementById('processingOverlay');
             const submitBtn = document.getElementById('submitBtn');
-            
+
             const isWarehouseProcess = {{ $isWarehouseProcess ? 'true' : 'false' }};
             const isQuickAction = ('{{ $action }}' === 'approve') || ('{{ $action }}' === 'submit' && isWarehouseProcess);
 
             // Validasi Input Angka (Qty) untuk Update Qty Warehouse
             if ('{{ $action }}' === 'update_qty') {
                 const qtyInputs = document.querySelectorAll('input[name^="items"]');
-                
+
                 qtyInputs.forEach(input => {
                     input.addEventListener('input', function() {
                         let value = this.value;
-                        value = value.replace(/[^0-9]/g, ''); 
-                        
+                        value = value.replace(/[^0-9]/g, '');
+
                         if (value.length > 1 && value.startsWith('0')) {
                             value = parseInt(value, 10).toString();
                         }
@@ -409,7 +409,7 @@
                         let invalidMessage = '';
 
                         const inputs = document.querySelectorAll('input[name^="items"]');
-                        
+
                         inputs.forEach(input => {
                             const val = input.value;
                             if (val === '') {
@@ -440,7 +440,7 @@
             if (isQuickAction) {
                 overlay.style.display = 'flex';
                 form.submit();
-            } 
+            }
             else if (form && submitBtn) {
                 form.addEventListener('submit', function (event) {
                     event.preventDefault();
@@ -470,11 +470,11 @@
                     });
                 });
             }
-            
+
             if (!isWarehouseProcess) {
                 const reviewRadio = document.getElementById('action_review');
                 const rejectRadio = document.getElementById('action_reject');
-                
+
                 const updateSubmitButton = () => {
                     if (reviewRadio && reviewRadio.checked) {
                         submitBtn.textContent = 'Submit Approve';
@@ -484,7 +484,7 @@
                         submitBtn.classList.remove('btn-primary'); submitBtn.classList.add('btn-danger');
                     }
                 };
-                
+
                 if(reviewRadio && rejectRadio){
                     reviewRadio.addEventListener('change', updateSubmitButton);
                     rejectRadio.addEventListener('change', updateSubmitButton);

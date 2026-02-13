@@ -10,7 +10,7 @@ use Illuminate\Queue\SerializesModels;
 use App\Models\Requisition\Requisition;
 use App\Models\Requisition\ApprovalLog;
 use App\Models\User;
-use Illuminate\Support\Facades\Notification;
+use App\Models\Requisition\Tracking;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\complainMail;
 
@@ -41,6 +41,11 @@ class sendMailComplain implements ShouldQueue
         $requisitionWithPayments = Requisition::with(['payments', 'customer', 'requester'])
             ->find($this->requisition->id);
 
+        $tracking = Tracking::where('requisition_id', $this->requisition->id)
+            ->whereNotNull('token')
+            ->orderBy('id', 'asc')
+            ->first();
+
         $approveLink = route('approval.process.direct', [
             'id' => $this->approvalLog->requisition_id,
             'token' => $this->approvalLog->token,
@@ -64,7 +69,8 @@ class sendMailComplain implements ShouldQueue
             $this->approvalLog,
             $approveLink,
             $approveWithReviewLink,
-            $rejectLink
+            $rejectLink,
+            $tracking   
         ));
     }
 }

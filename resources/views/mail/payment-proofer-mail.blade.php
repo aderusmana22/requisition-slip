@@ -193,7 +193,7 @@
                                             <tr>
                                                 <td align="center" bgcolor="#28a745"
                                                     style="border-radius: 4px; background: #28a745; /* Fallback */ background-image: linear-gradient(135deg, #28a745 0%, #218838 100%);">
-                                                    <a href="{{ route('complain-form.index') }}" target="_blank"
+                                                    <a href="{{ $uploadLink ?? '#' }}" target="_blank"
                                                         style="display: inline-block; padding: 12px 25px; font-family: Arial, sans-serif; font-size: 14px; color: #ffffff !important; text-decoration: none; font-weight: bold; border: 1px solid #28a745; border-radius: 4px; mso-padding-alt: 12px 25px;">
                                                         Upload Payment Proof Now
                                                     </a>

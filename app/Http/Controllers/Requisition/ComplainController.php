@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Requisition;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\paymentProofRequest;
 use App\Http\Requests\StoreComplainRequest;
-use App\Jobs\sendComplain;
 use App\Jobs\sendMailComplain;
 use App\Jobs\sendPaymentProofer;
 use App\Jobs\sendPrintBatchMail;
@@ -14,7 +13,6 @@ use App\Jobs\sendWarehouseCompletion;
 use App\Models\Master\Customer;
 use App\Models\Master\ItemMaster;
 use App\Models\Requisition\ApprovalLog;
-use App\Models\Requisition\ApprovalPath;
 use App\Models\Requisition\ComplainImage;
 use App\Models\Requisition\Payment;
 use App\Models\Requisition\Requisition;
@@ -31,7 +29,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Models\Master\Revision;
-use function Pest\Laravel\json;
+use Illuminate\Support\Facades\URL;
 
 class ComplainController extends Controller
 {
@@ -345,7 +343,7 @@ class ComplainController extends Controller
         try {
             $complain = Requisition::with([
                 'customer',
-                'requester',
+                'requester.department',
                 'requisitionItems.itemMaster.ItemDetails',
                 'approvalLogs.approver',
                 'payments',
@@ -611,7 +609,8 @@ class ComplainController extends Controller
                     if ($approvalLog->approver->hasRole('head-QA')) {
                         $requisition->status = 'payment proof';
                         $requisition->save();
-                        sendPaymentProofer::dispatch($requisition);
+                        $uploadLink = URL::signedRoute('complain.public.upload.view', ['id' => $requisition->id], now()->addDays(7));
+                        sendPaymentProofer::dispatch($requisition, $uploadLink);
 
                         // Kirim notifikasi payment proof required ke requester
                         if ($rejectedBy && $requester) {
@@ -912,7 +911,7 @@ class ComplainController extends Controller
             }
 
             // Get requisition with related data
-            $requisition = Requisition::with(['customer', 'requisitionItems.itemMaster.ItemDetails'])
+            $requisition = Requisition::with(['customer', 'requisitionItems.itemMaster.ItemDetails', 'complainImages'])
                 ->find($id);
 
             if (!$requisition) {
@@ -930,6 +929,77 @@ class ComplainController extends Controller
                 'errorType' => 'server_error'
             ]);
         }
+    }
+
+    public function storePublicPaymentProof(Request $request, $id)
+    {
+        if (!$request->hasValidSignature()) {
+            return response()->json(['message' => 'Invalid link signature'], 403);
+        }
+
+        $request->validate([
+            'payment_date' => 'required|date',
+            'payment_document' => 'required|file|mimes:png,jpg,jpeg|max:1024', // Max 1MB, Images only
+        ], [
+            'payment_document.max' => 'File size must not exceed 1MB.',
+            'payment_document.mimes' => 'Only PNG, JPG, JPEG files are allowed.',
+        ]);
+
+        try {
+            DB::transaction(function() use ($request, $id) {
+                $requisition = Requisition::findOrFail($id);
+
+                if ($requisition->status !== 'payment proof') {
+                    throw new \Exception('Status invalid for upload.');
+                }
+
+                $file = $request->file('payment_document');
+                $fileName = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+                $filePath = $file->storeAs('payment_proofs', $fileName, 'public');
+
+                Payment::create([
+                    'requisition_id' => $id,
+                    'payment_date' => $request->payment_date,
+                    'document_url' => $filePath,
+                ]);
+
+                $requisition->status = 'In Progress';
+                $requisition->save();
+
+                // Cari level terakhir yang reject untuk notifikasi balik
+                $currentLevel = $requisition->approvalLogs()
+                    ->where('status', 'Rejected')
+                    ->orderBy('level', 'desc')
+                    ->value('level');
+
+                // Kirim notifikasi email ke approver bahwa bukti sudah diupload
+                $this->mailOtherLevel($id, $currentLevel, false);
+            });
+
+            return response()->json(['message' => 'Payment proof uploaded successfully!'], 200);
+
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 500);
+        }
+    }
+
+    public function showPublicPaymentUpload(Request $request, $id)
+    {
+        // Validasi Signed Route (agar aman)
+        if (!$request->hasValidSignature()) {
+            abort(403, 'Link expired or invalid.');
+        }
+
+        $requisition = Requisition::with('customer')->findOrFail($id);
+
+        if ($requisition->status !== 'payment proof') {
+            return view('page.complain.links.approval-invalid', [
+                'message' => 'This requisition does not require payment proof anymore.',
+                'errorType' => 'invalid_status'
+            ]);
+        }
+
+        return view('page.complain.links.public-payment-upload', compact('requisition'));
     }
 
     /**
