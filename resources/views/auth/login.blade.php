@@ -40,7 +40,7 @@
             </div>
             <div class="col-lg-6 form-contentbox">
                 <div class="form-container">
-                    <form method="POST" action="{{ route('login') }}" class="app-form rounded-control">
+                    <form method="POST" action="{{ route('login.store') }}" class="app-form rounded-control">
                         @csrf
                         <div class="row">
                             <div class="col-12">

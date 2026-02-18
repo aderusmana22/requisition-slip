@@ -233,5 +233,14 @@ Route::group(['middleware' => ['role:super-admin|admin']], function () {
     Route::post('/master/revision/update', [RevisionController::class, 'update'])->name('master.revision.update');
     Route::get('/master/revision/getdata', [RevisionController::class, 'getrevisiondata'])->name('master.revision.getdata');
 
+     Route::get('/master/tracking-path', [TrackingPathController::class, 'index'])->name('tracking-path.index');
+    Route::get('/master/tracking-path/list', [TrackingPathController::class, 'approverList'])->name('tracking-path.list');
+    Route::post('/master/tracking-path', [TrackingPathController::class, 'store'])->name('tracking-path.store');
+    Route::get('/master/tracking-path/{id}/edit', [TrackingPathController::class, 'edit'])->name('tracking-path.edit');
+    Route::put('/master/tracking-path/{id}', [TrackingPathController::class, 'update'])->name('tracking-path.update');
+    Route::delete('/master/tracking-path/{id}', [TrackingPathController::class, 'destroy'])->name('tracking-path.destroy');
+    Route::get('/master/tracking-path/categories', [TrackingPathController::class, 'categories'])->name('tracking-path.categories');
+    Route::get('/master/tracking-path/approver-name', [TrackingPathController::class, 'approverName'])->name('tracking-path.approverName');
+
 });
 require __DIR__ . '/auth.php';
