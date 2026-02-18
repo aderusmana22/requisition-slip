@@ -47,7 +47,7 @@
             <div class="filter-container">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     {{-- Filter Date Range --}}
-                    <div class="d-flex align-items-center gap-2">
+                    <div class="d-none d-md-flex align-items-center gap-2">
                         <label class="text-muted flex-shrink-0 fw-bold">Filter by Request Date:</label>
                         <div id="reportrange" class="form-control" style="width: 250px; cursor: pointer;">
                             <i class="ph-bold ph-calendar"></i>&nbsp;

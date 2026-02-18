@@ -34,7 +34,7 @@
             <!-- Action Bar -->
             <div class="filter-container">
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <div class="d-flex align-items-center gap-2">
+                    <div class="d-none d-md-flex align-items-center gap-2">
                         <label class="text-muted flex-shrink-0 fw-bold">Filter by date:</label>
 
                         <select id="dateFilter" class="form-select select2-styled" style="width:200px;">

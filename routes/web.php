@@ -126,8 +126,8 @@ Route::middleware('auth')->group(function () {
 
         // Halaman Approval & Report & Log (dashboard)
         Route::get('/approval', [FreeGoodsController::class, 'approvalPage'])->name('approval');
-        Route::get('/reports', [FreeGoodsController::class, 'reports'])->name('reports');
-        Route::get('/log', [FreeGoodsController::class, 'log'])->name('log');
+        Route::get('/fg-reports', [FreeGoodsController::class, 'reports'])->name('reports');
+        Route::get('/fg-log', [FreeGoodsController::class, 'log'])->name('log');
 
         Route::post('/{id}/recall', [FreeGoodsController::class, 'recallRequisition'])->name('recall');
 
@@ -175,10 +175,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/getapproverdata/{id?}', [ComplainApprovalController::class, 'getData'])->name('get.approver.data');
         Route::post('/approval/resend/{token}', [ComplainApprovalController::class, 'resendApprovalEmail'])->name('complain.approval.resend');
 
-        Route::get('/reports', [ComplainController::class, 'reports'])->name('complain.reports');
+        Route::get('/complain-reports', [ComplainController::class, 'reports'])->name('complain.reports');
         Route::post('/report/print-bulk', [ComplainController::class, 'printBulkReport'])->name('report.print.bulk');
 
-        Route::get('/log', [ComplainLogController::class, 'index'])->name('complain.log');
+        Route::get('/complain-log', [ComplainLogController::class, 'index'])->name('complain.log');
         Route::get('/log.data', [ComplainLogController::class, 'getData'])->name('complain.log.data');
     });
 
