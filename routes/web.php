@@ -15,6 +15,7 @@ use App\Http\Controllers\Requisition\ComplainApprovalController;
 use App\Http\Controllers\Requisition\ComplainController;
 use App\Http\Controllers\Requisition\ComplainLogController;
 use App\Http\Controllers\Requisition\FreeGoodsController;
+use App\Http\Controllers\Requisition\ItemController;
 use App\Http\Controllers\Requisition\RequisitionPath;
 use App\Http\Controllers\Requisition\SampleController;
 use App\Models\Requisition\Requisition;
