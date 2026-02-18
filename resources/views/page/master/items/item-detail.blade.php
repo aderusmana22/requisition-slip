@@ -48,7 +48,7 @@
                         <thead>
                             <tr>
                                 <th>No</th>
-                                @unless(isset($itemMaster))
+                                @unless (isset($itemMaster))
                                     <th>Item Master</th>
                                 @endunless
                                 <th>Code</th>
@@ -81,11 +81,11 @@
                             <label for="item_master_select" class="form-label">Item Master</label>
                             <select id="item_master_select" class="form-control">
                                 @php $masters = $itemMasters ?? collect(); @endphp
-                                @if($masters->isEmpty())
+                                @if ($masters->isEmpty())
                                     <option disabled selected>No Item Masters available</option>
                                 @else
                                     <option disabled selected value="">-- Select Item Master --</option>
-                                    @foreach($masters as $im)
+                                    @foreach ($masters as $im)
                                         <option value="{{ $im->id }}">{{ $im->item_master_name }}</option>
                                     @endforeach
                                 @endif
@@ -121,7 +121,8 @@
 
                         <div class="mb-3">
                             <label for="net_weight" class="form-label">Net Weight</label>
-                            <input type="number" step="0.01" class="form-control" id="net_weight" name="net_weight">
+                            <input type="number" step="0.01" class="form-control" id="net_weight"
+                                name="net_weight">
                             <div class="invalid-feedback" data-error-for="net_weight"></div>
                         </div>
                     </form>
@@ -136,7 +137,10 @@
 
     @push('scripts')
         <script src="https://unpkg.com/@phosphor-icons/web"></script>
-
+        <!-- Select2 -->
+        <script src="{{ asset('assets/vendor/select/select2.min.js') }}"></script>
+        <!--js-->
+        <script src="{{ asset('assets') }}/js/select.js"></script>
         <script>
             $(document).ready(function() {
                 $.ajaxSetup({
@@ -161,7 +165,7 @@
                     itemId + '/details';
                 const editUrlAllPrefix = "{{ url('master/items/details') }}"; // /master/items/details/{id}/edit
                 const editUrlPerItemPrefix = "{{ url('master/items') }}" + '/' + (itemId ?? '') +
-                '/details'; // /master/items/{itemId}/details/{id}/edit
+                    '/details'; // /master/items/{itemId}/details/{id}/edit
                 const updateUrlAllPrefix = "{{ url('master/items/details') }}"; // /master/items/details/{id}
                 const updateUrlPerItemPrefix = "{{ url('master/items') }}" + '/' + (itemId ?? '') + '/details';
                 const deleteUrlAllPrefix = "{{ url('master/items/details') }}";

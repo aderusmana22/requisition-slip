@@ -117,7 +117,10 @@
 
     @push('scripts')
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-
+    <!-- Select2 -->
+    <script src="{{ asset('assets/vendor/select/select2.min.js') }}"></script>
+    <!--js-->
+    <script src="{{ asset('assets') }}/js/select.js"></script>
     <script>
         function successMessage(message, title = 'Success', timer = 1500) {
             Swal.fire({ icon: 'success', title: title, text: message, timer: timer, showConfirmButton: false });
