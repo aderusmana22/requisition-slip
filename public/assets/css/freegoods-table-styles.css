@@ -59,14 +59,21 @@
    BUTTONS
    ======================================== */
 
-.btn-primary-theme, .new-sample-btn, .new-freegoods-btn, .modal-footer .btn-secondary {
+.btn-primary-theme,
+.new-sample-btn,
+.new-freegoods-btn,
+.modal-footer .btn-secondary {
     background: linear-gradient(135deg, var(--fg-primary) 0%, var(--fg-secondary) 100%) !important;
     border: none !important;
     color: white !important;
     box-shadow: 0 2px 8px rgba(58, 107, 53, 0.3);
     transition: all 0.3s ease;
 }
-.btn-primary-theme:hover, .new-sample-btn:hover, .new-freegoods-btn:hover, .modal-footer .btn-secondary:hover {
+
+.btn-primary-theme:hover,
+.new-sample-btn:hover,
+.new-freegoods-btn:hover,
+.modal-footer .btn-secondary:hover {
     background: linear-gradient(135deg, #4a8b45 0%, var(--fg-primary) 100%) !important;
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(58, 107, 53, 0.4);
@@ -78,18 +85,22 @@
     border: none !important;
     color: white !important;
 }
+
 .btn-secondary:hover {
     background: linear-gradient(135deg, #4f4f4f 0%, var(--fg-dark-bg) 100%) !important;
     color: white !important;
 }
 
-.btn-light-secondary, .modal-footer .btn-danger {
+.btn-light-secondary,
+.modal-footer .btn-danger {
     background-color: #f0f2f5 !important;
     border: 1px solid #dcdcdc !important;
     color: #495057 !important;
     font-weight: 600 !important;
 }
-.btn-light-secondary:hover, .modal-footer .btn-danger:hover {
+
+.btn-light-secondary:hover,
+.modal-footer .btn-danger:hover {
     background-color: #e9ecef !important;
     border-color: #c8c8c8 !important;
     color: #212529 !important;
@@ -99,6 +110,7 @@
     background: var(--fg-danger) !important;
     border-color: var(--fg-danger) !important;
 }
+
 .btn-danger:hover {
     background: #8b3634 !important;
     border-color: #8b3634 !important;
@@ -109,7 +121,8 @@
    FORMS & INPUTS
    ======================================== */
 
-.form-control:focus, .form-select:focus,
+.form-control:focus,
+.form-select:focus,
 .select2-container--bootstrap-5 .select2-selection--single:focus,
 .select2-container--bootstrap-5 .select2-selection--multiple:focus {
     border-color: var(--fg-primary) !important;
@@ -148,10 +161,12 @@
     align-items: center;
     font-size: 1.5rem;
 }
+
 .table-title .ph-list {
     margin-right: 12px;
     font-size: 1.1em;
 }
+
 .table-subtitle {
     color: rgba(255, 255, 255, 0.85);
     margin-top: 4px;
@@ -171,10 +186,14 @@
     padding-left: 40px !important;
     height: 44px;
 }
+
 .dataTables_filter input:focus {
     background-color: white !important;
 }
-.dataTables_filter label, .dataTables_length label, .dataTables_info {
+
+.dataTables_filter label,
+.dataTables_length label,
+.dataTables_info {
     font-weight: 600;
     color: var(--fg-dark-text);
 }
@@ -191,6 +210,7 @@
     vertical-align: middle !important;
     text-align: center !important;
 }
+
 .main-table-container table.dataTable thead th:last-child {
     border-right: none !important;
 }
@@ -254,6 +274,7 @@
     cursor: not-allowed;
     background-color: #f7f7f7 !important;
 }
+
 /* ========================================
    ACTION BUTTONS & BADGES
    ======================================== */
@@ -265,18 +286,21 @@
     padding: 0.4em 0.8em !important;
     border-radius: 50rem !important;
     border: none !important;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
 }
 
 .badge-fg-no {
     background: var(--badge-blue-gradient) !important;
 }
+
 .badge-category {
     background: var(--badge-cyan-gradient) !important;
 }
+
 .badge-route-to {
     background: var(--badge-gold-gradient) !important;
 }
+
 .badge-status-pending {
     background: var(--badge-orange-gradient) !important;
 }
@@ -299,6 +323,7 @@
     gap: 0.4rem;
     white-space: nowrap;
 }
+
 .requester-badge i {
     font-size: 1.2em;
 }
@@ -314,6 +339,7 @@
     background: var(--badge-cyan-gradient) !important;
     box-shadow: 0 2px 8px rgba(34, 211, 238, 0.3) !important;
 }
+
 .action-btn-group .btn-info:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(34, 211, 238, 0.4) !important;
@@ -323,6 +349,7 @@
     background: linear-gradient(135deg, #a94442 0%, #8b3634 100%) !important;
     box-shadow: 0 2px 8px rgba(169, 68, 66, 0.3) !important;
 }
+
 .action-btn-group .btn-danger:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(169, 68, 66, 0.4) !important;
@@ -332,8 +359,18 @@
    VIEW MODAL & TRACKER
    ======================================== */
 
-.view-modal-card { border: none; border-radius: .75rem; box-shadow: 0 4px 12px rgba(0,0,0, .08); margin-bottom: 1.5rem !important; }
-.view-modal-card-header h5 { color: var(--fg-primary); font-weight: 600; margin-bottom: 0; }
+.view-modal-card {
+    border: none;
+    border-radius: .75rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, .08);
+    margin-bottom: 1.5rem !important;
+}
+
+.view-modal-card-header h5 {
+    color: var(--fg-primary);
+    font-weight: 600;
+    margin-bottom: 0;
+}
 
 .view-modal-card .card-header h5 {
     color: #d8e468 !important;
@@ -342,14 +379,17 @@
 .tracker-line-progress {
     background: linear-gradient(135deg, var(--fg-primary) 0%, var(--fg-secondary) 100%);
 }
+
 .tracker-step.completed .tracker-icon {
     background: linear-gradient(135deg, var(--fg-primary) 0%, var(--fg-secondary) 100%);
     border-color: var(--fg-secondary);
 }
+
 .tracker-step.active .tracker-icon {
     background-color: var(--fg-primary);
     border-color: var(--fg-primary);
 }
+
 .tracker-step.rejected .tracker-icon {
     background-color: var(--fg-danger);
     border-color: var(--fg-danger);
@@ -368,17 +408,78 @@
     border: 2px solid rgba(58, 107, 53, 0.4) !important;
     animation: pulse 1.5s infinite;
 }
-@keyframes pulse { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }
 
-.action-btn-group .btn { padding: 8px 10px; border-radius: 8px; font-size: 0.85em; font-weight: 600; transition: all 0.3s ease; border: none; position: relative; overflow: hidden; }
-.action-btn-group .btn::before { content: ''; position: absolute; top: 50%; left: 50%; width: 0; height: 0; background: rgba(255, 255, 255, 0.3); border-radius: 50%; transition: all 0.3s ease; transform: translate(-50%, -50%); }
-.action-btn-group .btn:hover::before { width: 100px; height: 100px; }
+@keyframes pulse {
+    0% {
+        opacity: 0.6;
+    }
 
-@keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-.main-table-container, .dataTables_wrapper, .d-flex.justify-content-between.align-items-center.mb-4 { animation: fadeInUp 0.8s ease-out forwards; opacity: 0; animation-fill-mode: forwards; }
+    50% {
+        opacity: 1;
+    }
 
-.modal.fade .modal-dialog { transition: transform 0.4s ease-out, opacity 0.4s ease-out; transform: translate(0, -50px) scale(0.95); }
-.modal.show .modal-dialog { transform: translate(0, 0) scale(1); }
+    100% {
+        opacity: 0.6;
+    }
+}
+
+.action-btn-group .btn {
+    padding: 8px 10px;
+    border-radius: 8px;
+    font-size: 0.85em;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border: none;
+    position: relative;
+    overflow: hidden;
+}
+
+.action-btn-group .btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    transform: translate(-50%, -50%);
+}
+
+.action-btn-group .btn:hover::before {
+    width: 100px;
+    height: 100px;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.main-table-container,
+.dataTables_wrapper,
+.d-flex.justify-content-between.align-items-center.mb-4 {
+    animation: fadeInUp 0.8s ease-out forwards;
+    opacity: 0;
+    animation-fill-mode: forwards;
+}
+
+.modal.fade .modal-dialog {
+    transition: transform 0.4s ease-out, opacity 0.4s ease-out;
+    transform: translate(0, -50px) scale(0.95);
+}
+
+.modal.show .modal-dialog {
+    transform: translate(0, 0) scale(1);
+}
 
 .action-tooltip {
     position: absolute;
@@ -396,6 +497,7 @@
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
     border: 1px solid rgba(58, 107, 53, 0.5);
 }
+
 .action-tooltip::after {
     content: '';
     position: absolute;
@@ -405,35 +507,130 @@
     border: 6px solid transparent;
     border-top-color: var(--fg-dark-bg);
 }
-.action-tooltip.show { opacity: 1; }
 
-.modal-xl { max-width: 80vw !important; }
-.modal-body { max-height: calc(100vh - 210px); overflow-y: auto; }
-.view-label { color: #6c757d; font-size: 0.85rem; margin-bottom: .25rem; display: block; }
-.view-data { font-weight: 600; color: #212529; margin-bottom: 0; }
-.tracker-container { display: flex; justify-content: space-between; position: relative; padding: 10px 0; }
-.tracker-line { position: absolute; top: 16px; left: 5%; right: 5%; height: 3px; background-color: #e9ecef; z-index: 1; }
-.tracker-step { position: relative; z-index: 3; text-align: center; width: 16%; }
-.tracker-icon { width: 30px; height: 30px; border-radius: 50%; background-color: #ced4da; color: #fff; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; border: 2px solid #ced4da; transition: all 0.3s ease; }
+.action-tooltip.show {
+    opacity: 1;
+}
+
+.modal-xl {
+    max-width: 80vw !important;
+}
+
+.modal-body {
+    max-height: calc(100vh - 210px);
+    overflow-y: auto;
+}
+
+/* Make modals full-screen on small devices */
+@media (max-width: 767.98px) {
+    .modal-dialog {
+        margin: 0 !important;
+        max-width: 100% !important;
+        width: 100% !important;
+        height: 100% !important;
+    }
+
+    /* Let the entire modal content be scrollable within the viewport so
+       the footer is reachable by scrolling (not fixed/sticky) */
+    .modal-content {
+        max-height: calc(100vh - 20px) !important;
+        border-radius: 0 !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+    }
+
+    /* Allow modal body to grow naturally inside .modal-content. Do not
+       force an internal scroll that keeps footer fixed; let the parent
+       .modal-content handle scrolling. */
+    .modal-body {
+        max-height: none !important;
+        overflow: visible !important;
+    }
+
+    .modal.fade .modal-dialog,
+    .modal.show .modal-dialog {
+        transform: none !important;
+    }
+}
+
+.view-label {
+    color: #6c757d;
+    font-size: 0.85rem;
+    margin-bottom: .25rem;
+    display: block;
+}
+
+.view-data {
+    font-weight: 600;
+    color: #212529;
+    margin-bottom: 0;
+}
+
+.tracker-container {
+    display: flex;
+    justify-content: space-between;
+    position: relative;
+    padding: 10px 0;
+}
+
+.tracker-line {
+    position: absolute;
+    top: 16px;
+    left: 5%;
+    right: 5%;
+    height: 3px;
+    background-color: #e9ecef;
+    z-index: 1;
+}
+
+.tracker-step {
+    position: relative;
+    z-index: 3;
+    text-align: center;
+    width: 16%;
+}
+
+.tracker-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: #ced4da;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 8px;
+    border: 2px solid #ced4da;
+    transition: all 0.3s ease;
+}
 
 .tracker-label {
     font-size: 0.8rem;
     font-weight: 600;
     color: #495057;
 }
-.tracker-step.completed .tracker-label, .tracker-step.active .tracker-label {
+
+.tracker-step.completed .tracker-label,
+.tracker-step.active .tracker-label {
     color: #212529;
 }
+
 .tracker-details {
     font-size: 0.75rem;
     margin-top: 5px;
     min-height: 30px;
 }
+
 .loading-overlay {
-    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     background-color: rgba(255, 255, 255, 0.85);
     z-index: 10;
-    display: flex; flex-direction: column;
+    display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     border-radius: .75rem;

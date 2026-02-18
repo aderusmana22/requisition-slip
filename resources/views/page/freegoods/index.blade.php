@@ -48,8 +48,8 @@
     <div class="row">
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <div class="d-flex align-items-center gap-2">
-                    <span class="text-muted fw-bold">Filter by:</span>
+                <div class="d-none d-md-flex align-items-center gap-2 mb-3 mb-md-0">
+                    <span class="text-muted fw-bold"><i class="ph-bold ph-funnel"></i> Filter by:</span>
                     <select id="statusFilter" class="form-select select2" style="width: 200px;">
                         <option value="all">All Statuses</option>
                         <option value="Pending">Pending</option>

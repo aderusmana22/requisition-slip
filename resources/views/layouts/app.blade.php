@@ -456,20 +456,6 @@
             </ul>
         </div>
 
-        <div class="offcanvas-footer">
-            <div class="d-flex gap-2">
-                <button type="button" class="btn btn-danger w-100" onclick="resetCustomizer()">Reset</button>
-                <a type="button" class="btn btn-success w-100"
-                    href="https://themeforest.net/user/la-themes/portfolio" target="_blank">Buy Now</a>
-            </div>
-            <div class="d-flex gap-2 mt-2">
-                <a type="button" class="btn btn-primary w-100" href="mailto:teqlathemes@gmail.com"
-                    target="_blank">Support</a>
-                <a type="button" class="btn btn-dark w-100" href="document.html" target="_blank">Document</a>
-            </div>
-
-        </div>
-
     </div> --}}
 
     <!-- latest jquery-->
@@ -489,9 +475,6 @@
     <!-- App js-->
     <script src="{{ asset('assets') }}/js/script.js"></script>
 
-    <!-- Customizer js-->
-    <script src="{{ asset('assets') }}/js/customizer.js"></script>
-
     {{-- SweetAlert2 --}}
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -501,7 +484,7 @@
     @stack('scripts')
 
     {{-- // weather js --}}
-    <script>
+    {{-- <script>
         $.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -547,7 +530,7 @@
         }, function(error) {
             console.error("Geolocation error:", error);
         });
-    </script>
+    </script> --}}
 </body>
 
 </html>

@@ -43,9 +43,9 @@
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 {{-- Grup Filter di Kiri --}}
-                <div class="d-flex align-items-center gap-2">
+                <div class="d-none d-md-flex align-items-center gap-2 mb-3 mb-md-0">
                     {{-- [PERBAIKAN] Tambahkan judul/label yang jelas --}}
-                    <span class="text-muted fw-bold">Filter by:</span>
+                    <span class="text-muted fw-bold me-1"><i class="ph-bold ph-funnel"></i> Filter by:</span>
 
                     <select id="subCategoryFilter" class="form-select select2" style="width: 220px;">
                         <option value="all">All Sub Categories</option>
@@ -115,7 +115,7 @@
     {{-- Create/Edit Modal --}}
     <div class="modal fade" id="sampleModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static"
         data-bs-keyboard="false">
-        <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-dialog modal-dialog-centered modal-xl" style="width: 100%">
             <div class="modal-content">
                 <div class="loading-overlay" style="display: none;">
                     <div class="spinner-border" style="width: 3rem; height: 3rem;" role="status">

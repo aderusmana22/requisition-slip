@@ -11,7 +11,7 @@
 
                 <ul class="d-flex align-items-center">
 
-                    <li class="header-cloud">
+                    {{-- <li class="header-cloud">
                         <a aria-controls="cloudoffcanvasTops" class="head-icon" data-bs-target="#cloudoffcanvasTops"
                             data-bs-toggle="offcanvas" href="#" role="button">
                             <i class="iconoir-dew-point text-primary f-s-26 me-1"></i>
@@ -28,16 +28,16 @@
                                 </div>
                             </div>
                         </div>
-                    </li>
+                    </li> --}}
 
-                    <li class="header-dark">
+                    {{-- <li class="header-dark">
                         <div class="sun-logo head-icon">
                             <i class="iconoir-sun-light"></i>
                         </div>
                         <div class="moon-logo head-icon">
                             <i class="iconoir-half-moon"></i>
                         </div>
-                    </li>
+                    </li> --}}
 
                     <li class="header-notification">
                         <a aria-controls="notificationcanvasRight" class="d-block head-icon position-relative"

@@ -17,9 +17,9 @@
                     <i class="ti ti-plus me-1"></i> Buat Requisition Slip Baru
                 </button>
                 <ul class="dropdown-menu">
-                    <li><a class="dropdown-item" href="{{ route('sample-form.create') }}">Sample</a></li>
-                    <li><a class="dropdown-item" href="{{ route('complain-form.create') }}">Complain Packaging</a></li>
-                    <li><a class="dropdown-item" href="{{ route('freegoods-form.create') }}">FreeGoods</a></li>
+                    <li><a class="dropdown-item" href="{{ route('sample-form.index') }}">Sample</a></li>
+                    <li><a class="dropdown-item" href="{{ route('complain-form.index') }}">Complain Packaging</a></li>
+                    <li><a class="dropdown-item" href="{{ route('freegoods-form.index') }}">FreeGoods</a></li>
                 </ul>
             </div>
         </div>
@@ -134,7 +134,7 @@
                 </div>
 
                 {{-- Kartu Status Lainnya (6 kartu) --}}
-                <div class="col-sm-6 mb-1">
+                <div class="col-sm-4 mb-1">
                     <div class="card h-100 ticket-card bg-light-success">
                         <div class="card-body">
                             <div class="d-flex-center bg-white mb-2" style="width: 2.8125rem; height: 2.8125rem; border-radius: .75rem;">
@@ -146,7 +146,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-sm-6 mb-1">
+                <div class="col-sm-4 mb-1">
                     <div class="card h-100 ticket-card bg-light-dark">
                         <div class="card-body">
                             <div class="d-flex-center bg-white mb-2" style="width: 2.8125rem; height: 2.8125rem; border-radius: .75rem;">
@@ -158,7 +158,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-sm-6 mb-1">
+                <div class="col-sm-4 mb-1">
                     <div class="card h-100 ticket-card bg-light-info">
                         <div class="card-body">
                             <div class="d-flex-center bg-white mb-2" style="width: 2.8125rem; height: 2.8125rem; border-radius: .75rem;">
@@ -170,7 +170,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-sm-6 mb-1">
+                <div class="col-sm-4 mb-1">
                     <div class="card h-100 ticket-card bg-light-warning">
                         <div class="card-body">
                             <div class="d-flex-center bg-white mb-2" style="width: 2.8125rem; height: 2.8125rem; border-radius: .75rem;">
@@ -182,7 +182,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-sm-6 mb-1">
+                <div class="col-sm-4 mb-1">
                     <div class="card h-100 ticket-card bg-light-danger">
                         <div class="card-body">
                             <div class="d-flex-center bg-white mb-2" style="width: 2.8125rem; height: 2.8125rem; border-radius: .75rem;">
@@ -196,7 +196,7 @@
                     </div>
                 </div>
                 {{-- [BARU] Kartu untuk Recalled --}}
-                <div class="col-sm-6 mb-1">
+                <div class="col-sm-4 mb-1">
                     <div class="card h-100 ticket-card bg-light-primary"> {{-- Style dari kartu 'created' lama --}}
                         <div class="card-body">
                             <div class="d-flex-center bg-white mb-2" style="width: 2.8125rem; height: 2.8125rem; border-radius: .75rem;">

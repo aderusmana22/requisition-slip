@@ -48,41 +48,41 @@ function setUpHorizontalHeader() {
   $(".horizontal-sidebar .show").removeClass("show");
 }
 
-$(document).on('click', '.menu-previous', function (e) {
-  let layoutOption = getLocalStorageItem("layout-option","ltr");
-  let attribute = layoutOption == 'ltr' ? 'marginLeft' : 'marginRight';
-  let currentPosition = parseInt(navBar.css(attribute));
-  if (currentPosition < 0) {
-    navBar.css(`${attribute}`, "+=" + size)
-    $(".menu-next").removeClass("d-none");
-    $(".menu-previous").removeClass("d-none");
-    if (currentPosition >= leftsideLimit) {
-      $(this).addClass("d-none");
-    }
-  }
-})
+// $(document).on('click', '.menu-previous', function (e) {
+//   let layoutOption = getLocalStorageItem("layout-option","ltr");
+//   let attribute = layoutOption == 'ltr' ? 'marginLeft' : 'marginRight';
+//   let currentPosition = parseInt(navBar.css(attribute));
+//   if (currentPosition < 0) {
+//     navBar.css(`${attribute}`, "+=" + size)
+//     $(".menu-next").removeClass("d-none");
+//     $(".menu-previous").removeClass("d-none");
+//     if (currentPosition >= leftsideLimit) {
+//       $(this).addClass("d-none");
+//     }
+//   }
+// })
 
-$(document).on('click', '.menu-next', function (e) {
-  let layoutOption = getLocalStorageItem("layout-option","ltr");
-  let attribute = layoutOption == 'ltr' ? 'marginLeft' : 'marginRight';
-  let currentPosition = parseInt(navBar.css(attribute));
-  if (currentPosition >= maxNavbarLimit) {
-    $(".menu-next").removeClass("d-none");
-    $(".menu-previous").removeClass("d-none");
-    navBar.css(`${attribute}`, "-=" + size)
-    if (currentPosition - parseInt(size) <= maxNavbarLimit) {
-      $(this).addClass("d-none");
-    }
-  }
-})
+// $(document).on('click', '.menu-next', function (e) {
+//   let layoutOption = getLocalStorageItem("layout-option","ltr");
+//   let attribute = layoutOption == 'ltr' ? 'marginLeft' : 'marginRight';
+//   let currentPosition = parseInt(navBar.css(attribute));
+//   if (currentPosition >= maxNavbarLimit) {
+//     $(".menu-next").removeClass("d-none");
+//     $(".menu-previous").removeClass("d-none");
+//     navBar.css(`${attribute}`, "-=" + size)
+//     if (currentPosition - parseInt(size) <= maxNavbarLimit) {
+//       $(this).addClass("d-none");
+//     }
+//   }
+// })
 
-$(function () {
-  setUpHorizontalHeader();
-  let themeMode = getLocalStorageItem('theme-mode', 'light')
-  setTimeout(() => {
-    $('body').addClass(`${themeMode}`)
-  }, 1000);
-});
+// $(function () {
+//   setUpHorizontalHeader();
+//   let themeMode = getLocalStorageItem('theme-mode', 'light')
+//   setTimeout(() => {
+//     $('body').addClass(`${themeMode}`)
+//   }, 1000);
+// });
 
 
 // >>-- 02 Flag  Icon Js --<<
@@ -242,19 +242,19 @@ function myFunction() {
 
 // >>-- 11 Dark mode js --<<
 
-document.querySelector(".header-dark").addEventListener("click", () => {
-  document.querySelector(".sun-logo").classList.toggle("sun");
-  document.querySelector(".moon-logo").classList.toggle("moon");
-  if ($('body').hasClass("dark")) {
-    document.body.classList.remove("dark")
-    document.body.classList.add("light")
-    setLocalStorageItem('theme-mode', 'light')
-  } else {
-    document.body.classList.remove("light")
-    document.body.classList.add("dark")
-    setLocalStorageItem('theme-mode', 'dark')
-  }
-})
+// document.querySelector(".header-dark").addEventListener("click", () => {
+//   document.querySelector(".sun-logo").classList.toggle("sun");
+//   document.querySelector(".moon-logo").classList.toggle("moon");
+//   if ($('body').hasClass("dark")) {
+//     document.body.classList.remove("dark")
+//     document.body.classList.add("light")
+//     setLocalStorageItem('theme-mode', 'light')
+//   } else {
+//     document.body.classList.remove("light")
+//     document.body.classList.add("dark")
+//     setLocalStorageItem('theme-mode', 'dark')
+//   }
+// })
 function appendHtml() {
   var div = document.getElementsByClassName('app-wrapper');
   div.innerHTML += '<p>This is some HTML code</p>';
