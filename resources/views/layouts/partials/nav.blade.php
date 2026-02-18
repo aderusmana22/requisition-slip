@@ -21,7 +21,7 @@
             <li class="menu-title"><span>Master Data</span></li>
             <li>
                 <a aria-expanded="false" class="" data-bs-toggle="collapse" href="#master-data">
-                    <i class="iconoir-database"></i> Master Data
+                    <i class="iconoir-database-stats"></i> Master Data
                 </a>
                 <ul class="collapse" id="master-data">
                     <li><a href="{{ route('users.index') }}">Users</a></li>
@@ -33,7 +33,7 @@
             </li>
             <li>
                 <a aria-expanded="false" class="" data-bs-toggle="collapse" href="#master-management">
-                    <i class="iconoir-database"></i> Master Management
+                    <i class="iconoir-database-settings"></i> Master Management
                 </a>
                 <ul class="collapse" id="master-management">
                     <li><a href="{{ route('requisition.path') }}">Approval Path</a></li>
@@ -69,7 +69,7 @@
             <li class="menu-title"><span>Requisition Slip Approval</span></li>
             <li>
                 <a aria-expanded="false" class="" data-bs-toggle="collapse" href="#requisition-slip-approval">
-                    <i class="iconoir-stats-report"></i> Requisition Slip Approval
+                    <i class="iconoir-clipboard-check"></i> Requisition Slip Approval
                 </a>
                 <ul class="collapse" id="requisition-slip-approval">
                     <li><a href="{{ route('sample-form.approval') }}">Sample Approval</a></li>
@@ -80,7 +80,7 @@
             <li class="menu-title"><span>Requisition Slip Approval</span></li>
             <li>
                 <a aria-expanded="false" class="" data-bs-toggle="collapse" href="#requisition-slip-log">
-                    <i class="iconoir-stats-report"></i> Requisition Slip Log
+                    <i class="iconoir-list"></i> Requisition Slip Log
                 </a>
                 <ul class="collapse" id="requisition-slip-log">
                     <li><a href="{{ route('sample-form.log') }}">Sample Log</a></li>
