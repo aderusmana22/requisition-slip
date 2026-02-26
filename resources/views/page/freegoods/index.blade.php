@@ -89,6 +89,7 @@
                                 <th class="text-center">Category</th>
                                 <th class="text-center">Route To</th>
                                 <th class="text-center">Status</th>
+                                <th class="d-none">Updated At</th>
                                 <th class="text-center">Action</th>
                             </tr>
                         </thead>
@@ -371,9 +372,11 @@
                     { data: 'sub_category', name: 'requisitions.sub_category', className: 'text-center align-middle' },
                     { data: 'route_to', name: 'requisitions.route_to', className: 'text-center align-middle' },
                     { data: 'status', name: 'requisitions.status', className: 'text-center align-middle' },
+                    { data: 'updated_at', name: 'requisitions.updated_at', visible: false, searchable: false },
                     { data: 'action', name: 'action', orderable: false, searchable: false, className: 'text-center align-middle' }
                 ],
-                order: [[3, 'desc']] 
+                // Default order: latest updated first
+                order: [[7, 'desc']] 
             });
 
             $('#statusFilter').on('change', function() { table.ajax.reload(); });
@@ -757,7 +760,7 @@
                         const approverName = (log.approver && log.approver.name) ? log.approver.name : 'Approver';
                         let noteHtml = '';
                         if (log.notes && log.notes !== 'Approved via quick action link.') {
-                            noteHtml = `<div class="tracker-note text-muted small">${log.notes}</div>`;
+                            noteHtml = `<div class="tracker-note text-muted small">Notes : ${log.notes}</div>`;
                         }
                         stepElement.find('.tracker-details').html(
                             `<div class="tracker-user text-warning"></div>` + noteHtml

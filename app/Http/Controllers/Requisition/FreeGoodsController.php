@@ -137,8 +137,9 @@ class FreeGoodsController extends Controller
                 'requisitions.id',
                 'requisitions.no_srs',
                 'requisitions.requester_nik',
-                'requisitions.request_date',
-                'requisitions.created_at',
+                'requisitions.request_date', 
+                'requisitions.created_at', 
+                'requisitions.updated_at',
                 'requisitions.cost_center',
                 'requisitions.sub_category',
                 'requisitions.route_to',
@@ -147,6 +148,8 @@ class FreeGoodsController extends Controller
                 'users.name as requester_name',
                 'users.avatar'
             );
+        // Default ordering by latest update to ensure newest rows appear first
+        $query->orderBy('requisitions.created_at', 'desc');
 
         if ($request->filled('status') && $request->status !== 'all') {
             $query->where('requisitions.status', $request->status);
