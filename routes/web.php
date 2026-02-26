@@ -125,7 +125,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [FreeGoodsController::class, 'index'])->name('index');
 
         // Halaman Approval & Report & Log (dashboard)
-        Route::get('/approval', [FreeGoodsController::class, 'approvalPage'])->name('approval');
+        Route::get('/fg-approval', [FreeGoodsController::class, 'approvalPage'])->name('approval');
         Route::get('/fg-reports', [FreeGoodsController::class, 'reports'])->name('reports');
         Route::get('/fg-log', [FreeGoodsController::class, 'log'])->name('log');
 
@@ -171,7 +171,7 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/test-warehouse/{id}', [ComplainController::class, 'testWarehouseTracking'])->name('complain.test.warehouse');
 
-        Route::get('/approval', [ComplainApprovalController::class, 'index'])->name('complain.approval');
+        Route::get('/complain-approval', [ComplainApprovalController::class, 'index'])->name('complain.approval');
         Route::get('/getapproverdata/{id?}', [ComplainApprovalController::class, 'getData'])->name('get.approver.data');
         Route::post('/approval/resend/{token}', [ComplainApprovalController::class, 'resendApprovalEmail'])->name('complain.approval.resend');
 
