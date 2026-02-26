@@ -11,7 +11,7 @@ use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Mail\Mailables\Address;
 
-class MailFreeGoods extends Mailable
+class mailFreeGoods extends Mailable
 {
     use Queueable, SerializesModels;
 

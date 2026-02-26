@@ -5,12 +5,11 @@ namespace App\Traits;
 use App\Models\Requisition\ApprovalLog;
 use App\Models\Requisition\ApprovalPath;
 use App\Models\User;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 
 trait ApprovalTrait
 {
-    /**
+     /**
      * Generate approval logs dari approval path.
      *
      * @param  \App\Models\User  $requester
@@ -29,12 +28,36 @@ trait ApprovalTrait
         }
 
         $approvalPath = $query->firstOrFail(); 
-        
-        $targetSequence = collect($approvalPath->sequence_approvers); 
+
+        // Debug: log what path and sequence arrived to the trait
+        try {
+            Log::info("approvalTrait::generateApprovalLogs called", [
+                'requisition_id' => $requisitionId,
+                'category' => $category,
+                'path_sub_category' => $pathSubCategory,
+                'approval_path_id' => $approvalPath->id ?? null,
+                'sequence_approvers_raw' => $approvalPath->sequence_approvers,
+                'requester_nik' => $requester->nik ?? null,
+                'requester_atasan_nik' => $requester->atasan_nik ?? null,
+            ]);
+        } catch (\Exception $e) {
+            Log::warning('approvalTrait: failed to log input data: ' . $e->getMessage());
+        }
+
+        $targetSequence = collect($approvalPath->sequence_approvers);
         $logs = collect();
 
-        foreach ($targetSequence as $approverStep) {
-            $level = $approverStep['level'] ?? 10; 
+        foreach ($targetSequence as $idx => $approverStep) {
+            // Accept legacy formats: string entries like "head-HCD", "BC", or "atasan"
+            if (!is_array($approverStep)) {
+                $approverStep = [
+                    'level' => ($idx + 1),
+                    'type'  => ($approverStep === 'atasan') ? 'atasan' : 'role',
+                    'value' => ($approverStep === 'atasan') ? null : $approverStep,
+                ];
+            }
+
+            $level = $approverStep['level'] ?? ($idx + 1);
             $approverType = strtolower($approverStep['type'] ?? '');
             $approverValue = $approverStep['value'] ?? null;
             $approverNik = null;

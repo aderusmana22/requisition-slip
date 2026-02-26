@@ -2,7 +2,6 @@
 
 namespace App\Jobs;
 
-use App\Mail\MailFreeGoods; 
 use App\Models\Requisition\Requisition;
 use App\Models\User;
 use Illuminate\Bus\Queueable;
@@ -49,7 +48,7 @@ class sendFreeGoods implements ShouldQueue
                 $dataForMail['review_url'] = route('fg.approval.response', ['token' => $this->token, 'action' => 'review']);
             }
 
-            Mail::to($this->recipient->email)->send(new mailFreeGoods($requisition, $this->recipient, $dataForMail));
+            Mail::to($this->recipient->email)->send(new \App\Mail\mailFreeGoods($requisition, $this->recipient, $dataForMail));
 
             Log::info("Email (Tipe: {$mailType}) untuk Requisition #{$requisition->id} berhasil dikirim ke {$this->recipient->email}.");
 
