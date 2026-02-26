@@ -471,7 +471,7 @@ class FreeGoodsController extends Controller
                     'avatar' => null,
                     'action' => 'Completed Step',
                     'notes' => $tracking->notes,
-                    'timestamp' => $tracking->last_updated->toDateTimeString(),
+                    'timestamp' => Carbon::parse($tracking->last_updated)->toDateTimeString(),
                 ];
             }
         }
@@ -1084,7 +1084,6 @@ class FreeGoodsController extends Controller
         // Ambil step teratas yang belum selesai
         $nextStep = Tracking::where('requisition_id', $requisition->id)
             ->whereNull('last_updated')
-            ->orderBy('ordering', 'asc') // Pakai ordering atau id
             ->orderBy('id', 'asc')
             ->first();
 

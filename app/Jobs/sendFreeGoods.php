@@ -46,12 +46,12 @@ class sendFreeGoods implements ShouldQueue
             } elseif ($mailType === 'warehouse_process') {
                 $dataForMail['submit_url'] = route('fg.approval.response', ['token' => $this->token, 'action' => 'submit']);
                 $dataForMail['review_url'] = route('fg.approval.response', ['token' => $this->token, 'action' => 'review']);
+                $dataForMail['update_qty_url'] = route('fg.approval.response', ['token' => $this->token, 'action' => 'update_qty']);
             }
 
             Mail::to($this->recipient->email)->send(new \App\Mail\mailFreeGoods($requisition, $this->recipient, $dataForMail));
 
             Log::info("Email (Tipe: {$mailType}) untuk Requisition #{$requisition->id} berhasil dikirim ke {$this->recipient->email}.");
-
         } catch (\Exception $e) {
             Log::error("Gagal mengirim email untuk Requisition #{$requisition->id}. Error: " . $e->getMessage() . " on line " . $e->getLine());
         }

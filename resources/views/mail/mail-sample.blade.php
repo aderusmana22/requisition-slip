@@ -265,7 +265,7 @@
                             <table align="center" border="0" cellpadding="0" cellspacing="0"
                                 style="margin: 0 auto; border-collapse: collapse;">
                                 <tr>
-                                    <td style="padding: 0 5px;">
+                                    {{-- <td style="padding: 0 5px;">
                                         <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse;">
                                             <tr>
                                                 <td align="center" bgcolor="#28a745" style="border-radius: 4px;">
@@ -286,7 +286,7 @@
                                                 </td>
                                             </tr>
                                         </table>
-                                    </td>
+                                    </td> --}}
                                     <td style="padding: 0 5px;">
                                         <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse;">
                                             <tr>

@@ -8,6 +8,7 @@ use App\Models\Requisition\ApprovalPath; // [UPDATE] Model ini digunakan untuk m
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Spatie\Permission\Models\Role;
 
 class TrackingPathController extends Controller
@@ -96,6 +97,8 @@ class TrackingPathController extends Controller
 
         // Validasi sederhana untuk update
         $validated = $request->validate([
+             'category_id' => 'required|string',
+            'sub_category_id' => 'nullable|string',
             'approvers' => 'required|array|min:1',
             'approvers.*' => 'string',
             'print_batch' => 'string|nullable',
@@ -103,13 +106,35 @@ class TrackingPathController extends Controller
 
         $causer = Auth::user();
 
+         $subCategory = $validated['sub_category_id'] ?? null;
+
+        $existingPath = TrackingPath::where('category', $validated['category_id'])
+            ->where('sub_category', $subCategory)
+            ->where('id', '!=', $approvalPath->id)
+            ->exists();
+
+        if ($existingPath) {
+            return response()->json(['message' => 'Error: An approval path for this category and sub-category already exists.'], 422);
+        }
+
         try {
             $oldApprovers = $approvalPath->sequence_approvers;
             $oldPrintBatch = $approvalPath->print_batch ?? null;
 
-            DB::transaction(function () use ($validated, $approvalPath) {
-                $approvalPath->update(['sequence_approvers' => $validated['approvers'], 'print_batch' => $validated['print_batch'] ?? null]);
+            Log::info('TrackingPath update requested', ['id' => $approvalPath->id, 'old' => ['approvers' => $oldApprovers, 'print_batch' => $oldPrintBatch], 'validated' => $validated]);
+
+            DB::transaction(function () use ($validated, $approvalPath, $subCategory) {
+                $approvalPath->fill([
+                    'category' => $validated['category_id'],
+                    'sub_category' => $subCategory,
+                    'sequence_approvers' => $validated['approvers'],
+                    'print_batch' => $validated['print_batch'] ?? null,
+                ])->save();
             });
+
+            // reload fresh
+            $approvalPath->refresh();
+            Log::info('TrackingPath after update', ['id' => $approvalPath->id, 'new' => ['approvers' => $approvalPath->sequence_approvers, 'print_batch' => $approvalPath->print_batch]]);
 
             // Logging
             $logMessage = "Memperbarui alur persetujuan untuk {$approvalPath->category}" . ($approvalPath->sub_category ? " - {$approvalPath->sub_category}" : "") . ".";

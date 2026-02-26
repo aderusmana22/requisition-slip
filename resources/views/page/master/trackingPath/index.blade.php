@@ -240,41 +240,15 @@
 
                 // === Dynamic Sub-Category Handling ===
                 $('#category_id').on('change', function() {
-                    const selectedCategory = $(this).val();
-                    const selectedSubCategory = $('#sub_category_id').val();
-                    updatePathWarning(selectedCategory, selectedSubCategory);
-
-                    // Disable sub-category if category is not 'Sample'
-                    if (selectedCategory && selectedCategory.toLowerCase() !== 'sample') {
-                        $('#sub_category_id').val(null).trigger('change').prop('disabled', true);
-                    } else {
-                        $('#sub_category_id').prop('disabled', false);
-                    }
+                    // Always allow selecting sub-category; frontend no longer forces disable by category
+                    $('#sub_category_id').prop('disabled', false);
                 });
 
                 $('#sub_category_id').on('change', function() {
-                    const selectedCategory = $('#category_id').val();
-                    const selectedSubCategory = $(this).val();
-                    updatePathWarning(selectedCategory, selectedSubCategory);
+                    // no-op: sub-category change doesn't need path-exists warning
                 });
 
-                function updatePathWarning(category, subCategory) {
-                    $('#path-exists-warning').remove();
-
-                    if (!category) return;
-
-                    const pathExists = existingPaths.some(path =>
-                        path.category === category &&
-                        (path.sub_category === subCategory || (subCategory === '' && path.sub_category ===
-                            null))
-                    );
-
-                    if (pathExists) {
-                        const warningHtml =
-                            '<div id="path-exists-warning" class="alert alert-warning mt-2"><i class="ph ph-warning"></i> An approval path for this category already exists.</div>';
-                        $('#ApproverForm').prepend(warningHtml);
-                    }
-                }
+                // removed updatePathWarning — path existence warning handled elsewhere if needed
 
                 // === Load ALL Dropdown Data via AJAX ===
                 function loadDropdownData() {
@@ -468,8 +442,9 @@
                         $('#btn-save').text('Save Changes');
                         $('#approver_id').val(id);
 
-                        $('#category_id').val(data.category_id).trigger('change').prop('disabled', true);
-                        $('#sub_category_id').val(data.sub_category_id).trigger('change').prop('disabled', true);
+                        // allow changing category and sub-category while editing
+                        $('#category_id').val(data.category_id).trigger('change').prop('disabled', false);
+                        $('#sub_category_id').val(data.sub_category_id).trigger('change').prop('disabled', false);
                         $('#approvers').val(null).trigger('change');
 
                         if (data.approver_user_ids && Array.isArray(data.approver_user_ids)) {

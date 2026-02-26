@@ -136,7 +136,7 @@
                     <h3 class="action-title">Process Required</h3>
                     <p class="action-subtitle">Please proceed with the <strong>{{ $process_step }}</strong> step.</p>
                     <div>
-                        <a href="{{ $review_url ?? $submit_url ?? '#' }}" class="btn btn-process">Process Requisition</a>
+                        <a href="{{ $update_qty_url ?? '#' }}" class="btn btn-process">Update Qty Issue</a>
                     </div>
                 @else
                     <h3 class="action-title">Approval Action Required</h3>

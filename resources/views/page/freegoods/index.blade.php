@@ -237,27 +237,27 @@
                                     <small class="view-label">Sub Category</small>
                                     <p class="view-data" id="view_sub_category">General Request</p>
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-md-6">
                                     <small class="view-label">Request Date</small>
                                     <p class="view-data" id="view_request_date">-</p>
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-md-6">
                                     <small class="view-label">Recipient</small>
                                     <p class="view-data" id="view_recipient_name">-</p>
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-md-6">
                                     <small class="view-label">Address</small>
                                     <p class="view-data" id="view_recipient_address">-</p>
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-md-6">
                                     <small class="view-label">Account</small>
                                     <p class="view-data" id="view_account">-</p>
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-md-6">
                                     <small class="view-label">Cost Center</small>
                                     <p class="view-data" id="view_cost_center">-</p>
                                 </div>
-                                <div class="col-md-12">
+                                <div class="col-md-6">
                                     <small class="view-label">Objectives</small>
                                     <p class="view-data fst-italic fw-normal" id="view_objectives">-</p>
                                 </div>
@@ -754,8 +754,13 @@
                     if (stepIndex > -1 && log.status === 'Approved') {
                         const stepElement = $(`.tracker-step[data-step-id="${stepId}"]`);
                         stepElement.addClass('completed');
+                        const approverName = (log.approver && log.approver.name) ? log.approver.name : 'Approver';
+                        let noteHtml = '';
+                        if (log.notes && log.notes !== 'Approved via quick action link.') {
+                            noteHtml = `<div class="tracker-note text-muted small">${log.notes}</div>`;
+                        }
                         stepElement.find('.tracker-details').html(
-                            `<div class="tracker-user text-warning">${log.approver.name}</div>` 
+                            `<div class="tracker-user text-warning"></div>` + noteHtml
                         );
                         lastCompletedIndex = Math.max(lastCompletedIndex, stepIndex);
                     }
