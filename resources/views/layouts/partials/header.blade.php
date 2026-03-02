@@ -85,7 +85,7 @@
                         </a>
 
                         <div aria-labelledby="profilecanvasRight"
-                            class="offcanvas offcanvas-end header-profile-canvas" id="profilecanvasRight"
+                            class="offcanvas offcanvas-end header-profile-canvas" id="profilecanvasRight" style="max-height: 200px"
                             tabindex="-1">
                             <div class="offcanvas-body app-scroll">
                                 <ul class="">
