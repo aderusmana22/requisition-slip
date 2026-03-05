@@ -14,7 +14,8 @@
         <div class="col-12">
             <h4 class="main-title">Users List</h4>
             <ul class="app-line-breadcrumbs mb-3">
-                <li><a class="f-s-14 f-w-500" href="#"><i class="ph-duotone ph-address-book f-s-16"></i> Master Data</a></li>
+                <li><a class="f-s-14 f-w-500" href="#"><i class="ph-duotone ph-address-book f-s-16"></i> Master
+                        Data</a></li>
                 <li class="active"><a class="f-s-14 f-w-500" href="#">Users List</a></li>
             </ul>
         </div>
@@ -25,7 +26,8 @@
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div></div>
                 <div>
-                    <button class="btn btn-primary-custom" type="button" data-bs-toggle="modal" data-bs-target="#userModal" id="btn-create-user">
+                    <button class="btn btn-primary-custom" type="button" data-bs-toggle="modal"
+                        data-bs-target="#userModal" id="btn-create-user">
                         <i class="ph-bold ph-plus"></i>
                         <span>Add User</span>
                     </button>
@@ -63,12 +65,14 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg" style="border-radius: 15px; overflow: hidden;">
                 <div class="modal-header-enhanced p-4 d-flex justify-content-between align-items-center"
-                     style="background: linear-gradient(135deg, #584D3C 0%, #9F956C 100%); color: white;">
-                    <h5 class="modal-title fw-bold d-flex align-items-center" id="userModalLabel" style="font-size: 1.25rem;">
+                    style="background: linear-gradient(135deg, #584D3C 0%, #9F956C 100%); color: white;">
+                    <h5 class="modal-title fw-bold d-flex align-items-center" id="userModalLabel"
+                        style="font-size: 1.25rem;">
                         <i class="ph ph-users me-2" style="font-size: 1.5rem;"></i>
                         <span>Create User</span>
                     </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
                 </div>
 
                 <form id="userForm" enctype="multipart/form-data">
@@ -78,14 +82,17 @@
                             <div class="col-12 text-center mb-3">
                                 <div class="position-relative d-inline-block">
                                     <img id="avatarPreview" src="{{ asset('assets/images/logo/sinarmeadow.png') }}"
-                                        alt="Avatar Preview" class="img-fluid rounded-circle shadow-sm border border-2 border-light"
+                                        alt="Avatar Preview"
+                                        class="img-fluid rounded-circle shadow-sm border border-2 border-light"
                                         style="width: 100px; height: 100px; object-fit: cover;">
-                                    <label for="avatar" class="position-absolute bottom-0 end-0 bg-white rounded-circle p-1 shadow-sm cursor-pointer"
-                                           style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
+                                    <label for="avatar"
+                                        class="position-absolute bottom-0 end-0 bg-white rounded-circle p-1 shadow-sm cursor-pointer"
+                                        style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
                                         <i class="ph ph-camera text-primary"></i>
                                     </label>
                                 </div>
-                                <input type="file" class="d-none" id="avatar" name="avatar" accept="image/*" onchange="previewAvatar(event)">
+                                <input type="file" class="d-none" id="avatar" name="avatar" accept="image/*"
+                                    onchange="previewAvatar(event)">
                                 <div class="small text-muted mt-2">Click icon to upload photo</div>
                             </div>
 
@@ -119,6 +126,19 @@
                                 <input type="password" class="form-control" id="password" name="password"
                                     autocomplete="new-password" placeholder="Leave blank to keep current">
                             </div>
+
+                            <div class="col-12 col-md-12">
+                                <div class="select_info">
+                                    <label for="atasan_nik" class="form-label">Atasan</label>
+                                    <select class="form-select" style="width: 100%" id="atasan_nik"
+                                        name="atasan_nik">
+                                        <option value="">-- Pilih Atasan (Bisa kosong) --</option>
+                                        @foreach ($atasans ?? [] as $nik => $name)
+                                            <option value="{{ $nik }}">{{ $name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
                             <div class="col-12">
                                 <label for="roles" class="form-label fw-bold text-secondary">Roles</label>
                                 <select class="select-basic-multiple-four form-select" style="width: 100%"
@@ -138,7 +158,8 @@
                         </div>
                     </div>
                     <div class="modal-footer border-0 px-4 pb-4">
-                        <button class="btn btn-light text-secondary fw-bold px-4" data-bs-dismiss="modal" type="button">Cancel</button>
+                        <button class="btn btn-light text-secondary fw-bold px-4" data-bs-dismiss="modal"
+                            type="button">Cancel</button>
                         <button class="btn btn-primary-custom px-4 shadow-sm" type="submit" id="saveUserBtn">
                             <i class="ph ph-floppy-disk me-2"></i> Save Changes
                         </button>
@@ -268,6 +289,12 @@
                     placeholder: "Pilih Roles"
                 });
 
+                $('#atasan_nik').select2({
+                    dropdownParent: $('#userModal'),
+                    placeholder: "Pilih Atasan",
+                    allowClear: true
+                });
+
                 // === Avatar Preview ===
                 window.previewAvatar = function(event) {
                     const input = event.target;
@@ -286,6 +313,7 @@
                     $('#password').val('');
                     $('#avatarPreview').attr('src', '{{ asset('assets/images/logo/sinarmeadow.png') }}');
                     $('#roles').val(null).trigger('change');
+                    $('#atasan_nik').val(null).trigger('change');
 
                     $('#userForm').attr('data-mode', 'create').removeAttr('data-id');
 
@@ -309,6 +337,12 @@
                     $('#email').val(btn.data('email'));
                     $('#password').val('');
                     $('#roles').val(btn.data('roles')).trigger('change');
+                     // set atasan if available
+                    if (btn.data('atasan_nik')) {
+                        $('#atasan_nik').val(btn.data('atasan_nik')).trigger('change');
+                    } else {
+                        $('#atasan_nik').val(null).trigger('change');
+                    }
 
                     let avatar = btn.data('avatar');
                     if (avatar) {
@@ -394,10 +428,12 @@
                                 },
                                 success: function(res) {
                                     $('#users-table').DataTable().ajax.reload(null, false);
-                                    successMessage(res.message || 'User deleted successfully!');
+                                    successMessage(res.message ||
+                                        'User deleted successfully!');
                                 },
                                 error: function(xhr) {
-                                    errorMessage(xhr.responseJSON?.message || 'Failed to delete user');
+                                    errorMessage(xhr.responseJSON?.message ||
+                                        'Failed to delete user');
                                 }
                             });
                         } else {

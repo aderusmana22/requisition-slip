@@ -27,8 +27,11 @@ class UserController extends Controller
     {
         $departments = Department::all();
         $roles = Role::all();
+        
+        $user = User::pluck('name', 'id');
+        $atasans = User::pluck('name', 'nik');
 
-        return view('page.master.users.index', compact('roles', 'departments'));
+        return view('page.master.users.index', compact('roles', 'departments', 'user', 'atasans'));
     }
 
     public function getData()
@@ -73,6 +76,7 @@ class UserController extends Controller
                             data-name="' . e($user->name) . '"
                             data-email="' . e($user->email) . '"
                             data-department_id="' . $user->department_id . '"
+                            data-atasan_nik="' . e($user->atasan_nik) . '"
                             data-roles=\'' . json_encode($roles) . '\'
                             data-avatar="' . $user->avatar . '"
                             data-status="' . $user->status . '"
@@ -105,11 +109,12 @@ class UserController extends Controller
             'email' => 'required|email|max:255|unique:users,email',
             'password' => 'required|string|min:8|max:20',
             'department_id' => 'required|exists:departments,id',
+            'atasan_nik' => 'nullable|exists:users,nik',
             'roles' => 'nullable|array',
             'roles.*' => 'exists:roles,name', // pakai id, bukan name
         ]);
 
-         $avatarPath = null;
+        $avatarPath = null;
 
         if ($request->hasFile('avatar')) {
             // ambil ekstensi file (jpg/png/dll)
@@ -131,19 +136,20 @@ class UserController extends Controller
             'username' => $request->username,
             'name' => $request->name,
             'email' => $request->email,
+            'atasan_nik' => $request->atasan_nik,
             'password' => Hash::make($request->password),
             'department_id' => $request->department_id,
             'status' => 'active',
             'avatar' => $avatarPath,
         ]);
 
-            $user->syncRoles($request->roles);
+        $user->syncRoles($request->roles);
 
-            activity()
-                ->causedBy(Auth::user())
-                ->performedOn($user)
-                ->event('users')
-                ->log('Created a new user');
+        activity()
+            ->causedBy(Auth::user())
+            ->performedOn($user)
+            ->event('users')
+            ->log('Created a new user');
 
         // Return JSON for AJAX
         return response()->json(['success' => true, 'message' => 'User created successfully!']);
@@ -157,6 +163,7 @@ class UserController extends Controller
             'username' => 'required|string|max:255|unique:users,username,' . $user->id,
             'name' => 'required|string|max:255',
             'password' => 'nullable|string|min:8|max:20',
+            'atasan_nik' => 'nullable|exists:users,nik',
             'roles' => 'required|array',
             'roles.*' => 'exists:roles,name',
             'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
@@ -171,6 +178,7 @@ class UserController extends Controller
             'username',
             'name',
             'email',
+            'atasan_nik',
             'position_id',
             'department_id',
             'status',
@@ -181,7 +189,7 @@ class UserController extends Controller
             $data['password'] = Hash::make($request->password);
         }
 
-           // Menangani unggahan avatar dengan nama file NIK
+        // Menangani unggahan avatar dengan nama file NIK
         if ($request->hasFile('avatar')) {
             $allAvatarFiles = Storage::disk('public')->files('avatar');
 
@@ -215,14 +223,14 @@ class UserController extends Controller
         $user->syncRoles($request->roles);
 
         activity()
-           ->causedBy(Auth::user())
-           ->performedOn($user)
-           ->event('users')
-           ->withProperties([
-               'old' => array_merge($oldData, ['roles' => $oldRoles]),
-               'new' => array_merge($user->getChanges(), ['roles' => $request->roles])
+            ->causedBy(Auth::user())
+            ->performedOn($user)
+            ->event('users')
+            ->withProperties([
+                'old' => array_merge($oldData, ['roles' => $oldRoles]),
+                'new' => array_merge($user->getChanges(), ['roles' => $request->roles])
             ])
-           ->log('Updated user data');
+            ->log('Updated user data');
 
         return response()->json([
             'success' => true,
@@ -246,10 +254,10 @@ class UserController extends Controller
         $user->delete();
 
         activity()
-           ->causedBy(Auth::user())
-           ->event('users')
-           ->withProperties(['deleted_data' => $oldData])
-           ->log('Deleted a user');
+            ->causedBy(Auth::user())
+            ->event('users')
+            ->withProperties(['deleted_data' => $oldData])
+            ->log('Deleted a user');
 
         // Return JSON for AJAX
         return response()->json(['success' => true, 'message' => 'User deleted successfully!']);

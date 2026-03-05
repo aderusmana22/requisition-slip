@@ -153,7 +153,7 @@
                                     </div>
                                     <div class="col-md-4">
                                         <label for="request_date" class="form-label">Request Date<i class="text-danger">*</i></label>
-                                        <input type="date" class="form-control" id="request_date" name="request_date" value="{{ date('Y-m-d') }}">
+                                        <input type="date" class="form-control" id="request_date" name="request_date" value="{{ date('Y-m-d') }}" readonly>
                                     </div>
                                     <div class="col-md-4">
                                         <label for="cost_center" class="form-label">Cost Center</label>

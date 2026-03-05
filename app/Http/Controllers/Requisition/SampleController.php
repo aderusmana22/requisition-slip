@@ -55,7 +55,7 @@ class SampleController extends Controller
                 $allowedSubCategories[] = 'Finished Goods';
                 $allowedSubCategories[] = 'Special Order';
             }
-            if ($userDepartmentName === 'QM & HSE') {
+            if ($userDepartmentName === 'Quality Management') {
                 $allowedSubCategories[] = 'Finished Goods';
             }
             if ($userDepartmentName === 'R&D') {
