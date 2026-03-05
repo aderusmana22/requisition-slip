@@ -329,9 +329,12 @@
 
                     <!-- PRODUCT ITEM -->
                     <table class="bordered">
+                        @php
+                            $reqDept = $requisitions->requester->department->name ?? '';
+                            $isRndOrQa = in_array($reqDept, ['R&D', 'QM & HSE']);
+                        @endphp
                         <thead>
                             <tr>
-                                {{-- [BARU] Tampilkan kolom Material Type jika sub category adalah Packaging --}}
                                 @if($requisitions->sub_category == 'Packaging')
                                     <th style="width: 12%;">MATERIAL TYPE</th>
                                     <th style="width: 12%;">PRODUCT CODE</th>
@@ -339,11 +342,17 @@
                                     <th style="width: 15%;">PRODUCT CODE</th>
                                 @endif
                                 <th>PRODUCT NAME</th>
+
+                                @if($isRndOrQa)
+                                    <th style="width: 10%;">BATCH NO</th> @endif
+
                                 <th style="width: 8%;">UNIT</th>
                                 <th style="width: 8%;">QTY REQUIRED</th>
                                 <th style="width: 8%;">QTY ISSUED</th>
                                 <th style="width: 15%;">OBJECTIVES</th>
-                                <th style="width: 15%;">Estimasi Potensi (Remarks in Carton)</th>
+
+                                @if(!$isRndOrQa)
+                                    <th style="width: 15%;">Estimasi Potensi (Remarks in Carton)</th> @endif
                             </tr>
                         </thead>
 
@@ -355,46 +364,38 @@
                             @endphp
 
                             @foreach($requisitions->requisitionItems as $item)
-                            <tr>
-                                {{-- [MODIFIKASI] Logika untuk menampilkan data berdasarkan sub_category --}}
-                                @if($requisitions->sub_category == 'Packaging')
-                                    <td class="text-center">{{ $item->material_type ?? '-' }}</td>
-                                    <td class="text-center">{{ $item->itemDetail->item_detail_code ?? '-' }}</td>
-                                    <td class="text-center">{{ $item->itemDetail->item_detail_name ?? '-' }}</td>
-                                    <td class="text-center">{{ $item->itemDetail->unit ?? '-' }}</td>
-                                @else
-                                    {{-- Ini adalah blok untuk 'Finished Goods' & 'Special Order' --}}
-                                    <td class="text-center">{{ $item->itemMaster->item_master_code ?? '-' }}</td>
-                                    <td class="text-center">{{ $item->itemMaster->item_master_name ?? '-' }}</td>
-                                    <td class="text-center">{{ $item->itemMaster->unit ?? '-' }}</td>
-                                @endif
+                                <tr>
+                                    <td class="text-center">{{ $item->itemMaster->unit ?? ($item->itemDetail->unit ?? '-') }}</td>
 
-                                <td class="text-center">{{ $item->quantity_required }}</td>
-                                <td class="text-center">{{ $item->quantity_issued > 0 ? $item->quantity_issued : '' }}</td>
+                                    @if($isRndOrQa)
+                                        <td class="text-center">{{ $item->batch_number ?? '-' }}</td> @endif
 
-                                {{-- Kolom Objectives dan Estimasi tetap sama, digabung dengan rowspan --}}
-                                @if($loop->first)
-                                    <td class="notes-column text-center" rowspan="{{ $totalRows }}">{{ $requisitions->objectives }}</td>
-                                    <td class="notes-column text-center" rowspan="{{ $totalRows }}">{{ $requisitions->estimated_potential }}</td>
-                                @endif
-                            </tr>
-                            @endforeach
+                                    <td class="text-center">{{ $item->quantity_required }}</td>
+                                    <td class="text-center">{{ $item->quantity_issued > 0 ? $item->quantity_issued : '' }}</td>
 
-                            {{-- Logika untuk baris kosong tetap sama --}}
-                            @for ($i = $itemCount; $i < $minRows; $i++)
-                            <tr>
-                                @if($requisitions->sub_category == 'Packaging')
-                                    <td>&nbsp;</td> {{-- Kolom ekstra untuk Material Type --}}
-                                @endif
-                                <td>&nbsp;</td> <td></td> <td></td> <td></td> <td></td>
+                                    @if($loop->first)
+                                        <td class="notes-column text-center" rowspan="{{ $totalRows }}">{{ $requisitions->objectives }}</td>
+                                        @if(!$isRndOrQa)
+                                            <td class="notes-column text-center" rowspan="{{ $totalRows }}">{{ $requisitions->estimated_potential }}</td>
+                                        @endif
+                                    @endif
+                                </tr>
+                                @endforeach
 
-                                {{-- Pastikan kolom rowspan hanya dirender sekali jika tidak ada item sama sekali --}}
-                                @if($itemCount == 0 && $i == 0)
-                                    <td class="notes-column text-center" rowspan="{{ $totalRows }}">{{ $requisitions->objectives }}</td>
-                                    <td class="notes-column text-center" rowspan="{{ $totalRows }}">{{ $requisitions->estimated_potential }}</td>
-                                @endif
-                            </tr>
-                            @endfor
+                                @for ($i = $itemCount; $i < $minRows; $i++)
+                                <tr>
+                                    @if($requisitions->sub_category == 'Packaging') <td>&nbsp;</td> @endif
+                                    <td>&nbsp;</td> <td></td>
+                                    @if($isRndOrQa) <td></td> @endif <td></td> <td></td> <td></td>
+
+                                    @if($itemCount == 0 && $i == 0)
+                                        <td class="notes-column text-center" rowspan="{{ $totalRows }}">{{ $requisitions->objectives }}</td>
+                                        @if(!$isRndOrQa)
+                                            <td class="notes-column text-center" rowspan="{{ $totalRows }}">{{ $requisitions->estimated_potential }}</td>
+                                        @endif
+                                    @endif
+                                </tr>
+                                @endfor
                         </tbody>
                     </table>
                 </td>

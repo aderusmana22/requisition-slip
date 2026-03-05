@@ -146,6 +146,10 @@
 <body>
     <form id="responseForm" action="{{ route('approval-sample.process-form') }}" method="POST">
         @csrf
+        @php
+            $requesterDept = $requisition->requester->department->name ?? '';
+            $isRndOrQa = in_array($requesterDept, ['R&D', 'QM & HSE']);
+        @endphp
         <input type="hidden" name="token" value="{{ $token }}">
 
         <div class="main-container">
@@ -187,10 +191,12 @@
                                 <div class="info-label">Objectives</div>
                                 <div class="info-value">{{ $requisition->objectives }}</div>
                             </div>
+                            @if(!$isRndOrQa)
                             <div class="col-md-4">
                                 <div class="info-label">Estimated Potential</div>
                                 <div class="info-value">{{ $requisition->estimated_potential }}</div>
                             </div>
+                            @endif
                         </div>
 
                         {{-- BAGIAN 2: DETAIL ITEM --}}
@@ -204,14 +210,15 @@
                                         <th>Item Name</th>
                                         <th style="width: 90px;">Unit</th>
                                         <th style="width: 125px;" class="text-center">Qty Required</th>
-
-                                        {{-- Header Qty Issued (Muncul jika action = update_qty) --}}
                                         <th class="text-center" style="width: 125px;">
                                             Qty Issued
                                             @if($action === 'update_qty')
                                                 <span class="text-danger">*</span>
                                             @endif
                                         </th>
+                                        @if($isRndOrQa)
+                                            <th class="text-center" style="width: 120px;">Batch No</th>
+                                        @endif
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -222,7 +229,6 @@
                                         <td>{{ $item->itemMaster->unit ?? '-' }}</td>
                                         <td class="text-center">{{ $item->quantity_required }}</td>
                                         <td class="text-center">
-                                            {{-- Input Enabled HANYA jika action = update_qty --}}
                                             @if($action === 'update_qty')
                                                 <input type="number"
                                                     class="form-control form-control-sm text-center fw-bold"
@@ -238,6 +244,9 @@
                                                 {{ $item->quantity_issued > 0 ? $item->quantity_issued : '-' }}
                                             @endif
                                         </td>
+                                        @if($isRndOrQa)
+                                            <td class="text-center">{{ $item->batch_number ?? '-' }}</td>
+                                        @endif
                                     </tr>
                                     @endforeach
                                 </tbody>

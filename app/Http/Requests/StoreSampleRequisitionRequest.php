@@ -29,6 +29,8 @@ class StoreSampleRequisitionRequest extends FormRequest
 
         $user = Auth::user();
         $userAccount = $user->department->code ?? null;
+        $userDepartmentName = $user->department->name ?? null;
+        $isRndOrQa = in_array($userDepartmentName, ['R&D', 'QM & HSE']);
         $allowedSubCategories = [];
 
         if ($user->roles()->where('name', 'super-admin')->exists()) {
@@ -52,10 +54,11 @@ class StoreSampleRequisitionRequest extends FormRequest
             'cost_center'           => 'nullable|string|max:255',
             'request_date'          => 'required|date',
             'objectives'            => 'required|string',
-            'estimated_potential'   => 'required|string',
+            'estimated_potential'   => $isRndOrQa ? 'nullable|string' : 'required|string',
             'print_batch'           => 'required_if:sub_category,Packaging|boolean',
 
             'items'                         => 'required|array|min:1',
+            'items.*.batch_number'          => 'nullable|string',
             'items.*.quantity_required'     => 'required|integer|min:1',
             // 'items.*.quantity_issued'       => 'required|integer|min:0',
 
@@ -127,6 +130,7 @@ class StoreSampleRequisitionRequest extends FormRequest
             'items.min' => 'At least one item must be added.',
             'items.*.quantity_required.required' => 'Qty Required must be filled for each item.',
             'items.*.quantity_required.min' => 'Qty Required must be at least 1.',
+            'items.*.batch_number.required' => 'Batch Number is required for each item.',
 
             // Pesan untuk Special Order
             'end_date.required_if' => 'Sample Completion Date is required for Special Orders.',

@@ -44,6 +44,7 @@ class SampleController extends Controller
         $user = Auth::user();
         $userAccount = $user->department->code ?? null;
         $userDepartmentName = $user->department?->name ?? null;
+        $isRndOrQa = in_array($userDepartmentName, ['R&D', 'QM & HSE']);
         $allowedSubCategories = [];
 
         if ($user->hasRole('super-admin')) {
@@ -67,7 +68,7 @@ class SampleController extends Controller
 
         return view('page.sample.index', compact(
             'customers', 'materialTypes', 'allowedSubCategories',
-            'generatedSrs', 'userAccount', 'userDepartmentName'));
+            'generatedSrs', 'userAccount', 'userDepartmentName', 'isRndOrQa'));
     }
 
     public function getData(Request $request)
@@ -242,8 +243,9 @@ class SampleController extends Controller
                             'item_master_id' => $itemDetail->item_master_id,
                             'item_detail_id' => $itemDetail->id,
                             'material_type' => $itemDetail->material_type,
+                            'batch_number' => $itemData['batch_number'] ?? null,
                             'quantity_required' => $itemData['quantity_required'],
-                            'quantity_issued' => 0, // Set default 0 saat pembuatan
+                            'quantity_issued' => 0,
                         ]);
                     }
                 }
@@ -253,8 +255,9 @@ class SampleController extends Controller
                         'requisition_id' => $requisition->id,
                         'item_master_id' => $itemMasterId,
                         'material_type' => $validated['sub_category'],
+                        'batch_number' => $itemData['batch_number'] ?? null,
                         'quantity_required' => $itemData['quantity_required'],
-                        'quantity_issued' => 0, // Set default 0 saat pembuatan
+                        'quantity_issued' => 0,
                     ]);
                 }
             }
@@ -629,7 +632,6 @@ class SampleController extends Controller
             }
         }
     }
-
     private function processQaFormSubmit(Tracking $tracking, array $validated)
     {
         DB::beginTransaction();
@@ -1158,7 +1160,7 @@ class SampleController extends Controller
     {
         $requisition = Requisition::with([
             'customer:id,name,address',
-            'requester:nik,name,email,avatar',
+            'requester.department',
             'requisitionItems.itemMaster:id,item_master_code,item_master_name,unit',
             'requisitionItems.itemDetail:id,item_detail_code,item_detail_name,unit',
             'requisitionSpecial',

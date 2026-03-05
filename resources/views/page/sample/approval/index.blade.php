@@ -67,7 +67,7 @@
                                 <div class="col-md-3"><small class="view-label">Account</small><p class="view-data" id="view_account">-</p></div>
                                 <div class="col-md-3"><small class="view-label">Cost Center</small><p class="view-data" id="view_cost_center">-</p></div>
                                 <div class="col-md-3"><small class="view-label">Objectives</small><p class="view-data" id="view_objectives">-</p></div>
-                                <div class="col-md-3"><small class="view-label">Estimated Potential</small><p class="view-data" id="view_estimated_potential">-</p></div>
+                                <div class="col-md-3" id="view_estimated_potential_container"><small class="view-label">Estimated Potential</small><p class="view-data" id="view_estimated_potential">-</p></div>
                             </div>
                         </div>
                     </div>
@@ -86,6 +86,7 @@
                                             <th>Unit</th>
                                             <th class="text-center">Qty Required</th>
                                             <th class="text-center">Qty Issued</th>
+                                            <th class="view-batch-column text-center">Batch Number</th>
                                         </tr>
                                     </thead>
                                     <tbody id="view-items-tbody"></tbody>
@@ -245,6 +246,19 @@
                     $('#view_cost_center').text(data.cost_center || '-');
                     $('#view_objectives').text(data.objectives || '-');
                     $('#view_estimated_potential').text(data.estimated_potential || '-');
+                    let isViewRndQa = false;
+                    if (data.requester && data.requester.department) {
+                        const dept = data.requester.department.name;
+                        isViewRndQa = (dept === 'R&D' || dept === 'QM & HSE');
+                    }
+
+                    if (isViewRndQa) {
+                        $('#view_estimated_potential_container').hide();
+                        $('.view-batch-column').show();
+                    } else {
+                        $('#view_estimated_potential_container').show();
+                        $('.view-batch-column').hide();
+                    }
                     const viewItemTbody = $('#view-items-tbody');
                     const viewTable = viewItemTbody.closest('table');
                     viewItemTbody.empty();
@@ -263,11 +277,12 @@
                                 unit = item.item_master.unit;
                             }
                             const materialTypeCell = isPackaging ? `<td class="material-type-column">${item.material_type}</td>` : '';
-                            const newRow = `<tr>${materialTypeCell}<td>${itemCode}</td><td>${itemName}</td><td>${unit}</td><td class="text-center">${item.quantity_required}</td><td class="text-center">${item.quantity_issued || '-'}</td></tr>`;
+                            const batchCell = `<td class="text-center view-batch-column" ${isViewRndQa ? '' : 'style="display:none;"'}>${item.batch_number || '-'}</td>`;
+                            const newRow = `<tr>${materialTypeCell}<td>${itemCode}</td><td>${itemName}</td><td>${unit}</td><td class="text-center">${item.quantity_required}</td><td class="text-center">${item.quantity_issued || '-'}</td>${batchCell}</tr>`;
                             viewItemTbody.append(newRow);
                         });
                     } else {
-                        const colspan = isPackaging ? 6 : 5;
+                        const colspan = isPackaging ? 7 : 6;
                         viewItemTbody.html(`<tr><td colspan="${colspan}" class="text-center">No items have been added.</td></tr>`);
                     }
                     const specialOrderSection = $('#view-special-order-section');

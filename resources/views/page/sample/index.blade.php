@@ -203,12 +203,9 @@
                                             rows="2"></textarea>
                                         <div class="invalid-feedback" id="objectives_error"></div>
                                     </div>
-                                    <div class="col-md-6">
-                                        <label for="estimated_potential" class="form-label">Estimated Potential<i
-                                                class="text-danger">*</i></label>
-                                        <textarea class="form-control" id="estimated_potential" name="estimated_potential"
-                                            placeholder="e.g.: High, Medium, Low, Others: Specify Here"
-                                            rows="2"></textarea>
+                                    <div class="col-md-6" id="estimated_potential_container">
+                                        <label for="estimated_potential" class="form-label">Estimated Potential<i class="text-danger">*</i></label>
+                                        <textarea class="form-control" id="estimated_potential" name="estimated_potential" rows="2"></textarea>
                                         <div class="invalid-feedback" id="estimated_potential_error"></div>
                                     </div>
                                 </div>
@@ -304,7 +301,7 @@
                                                 <th>Item Name</th>
                                                 <th>Unit</th>
                                                 <th style="width: 15%;">Qty Required</th>
-                                                <!-- <th style="width: 15%;">Qty Issued</th> -->
+                                                <th class="batch-number-column" style="display:none; width: 15%;">Batch Number</th>
                                             </tr>
                                         </thead>
                                         <tbody id="requisition-items-tbody">
@@ -616,7 +613,7 @@
                                     <small class="view-label">Objectives</small>
                                     <p class="view-data" id="view_objectives">-</p>
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-md-3" id="view_estimated_potential_container">
                                     <small class="view-label">Estimated Potential</small>
                                     <p class="view-data" id="view_estimated_potential">-</p>
                                 </div>
@@ -640,6 +637,7 @@
                                             <th>Unit</th>
                                             <th class="text-center">Qty Required</th>
                                             <th class="text-center">Qty Issued</th>
+                                            <th class="view-batch-column text-center" style="display:none;">Batch Number</th>
                                         </tr>
                                     </thead>
                                     <tbody id="view-items-tbody"></tbody>
@@ -738,7 +736,6 @@
     <script src="{{ asset('assets/vendor/select/select2.min.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        // --- Unchanged JS from original file ---
         let nextSrsNumber = "{{ $generatedSrs }}";
 
         function successMessage(message) {
@@ -781,6 +778,19 @@
 
             const urlParams = new URLSearchParams(window.location.search);
             const highlightId = urlParams.get('highlight_id');
+
+            const isRndOrQaUser = @json($isRndOrQa ?? false);
+            let showBatchAndHidePotential = isRndOrQaUser;
+
+            function applyRndQaRules() {
+                if (showBatchAndHidePotential) {
+                    $('#estimated_potential_container').hide();
+                    $('.batch-number-column').show();
+                } else {
+                    $('#estimated_potential_container').show();
+                    $('.batch-number-column').hide();
+                }
+            }
 
             function initSelect2() {
                 function formatSubCategory(option) {
@@ -909,7 +919,7 @@
                     // Cek apakah ID baris ini sama dengan highlight_id dari URL
                     if (highlightId && data.id == highlightId) {
                         $(row).addClass('highlight-animate'); // Tambahkan class animasi
-                        
+
                         // Scroll ke baris tersebut setelah tabel selesai digambar
                         setTimeout(() => {
                             $('html, body').animate({
@@ -966,6 +976,10 @@
                 $('#requisition-items-tbody').html(
                     '<tr id="no-items-row"><td colspan="6" class="text-center">No items have been added yet.</td></tr>'
                 );
+
+                // --- FIX 1: Terapkan aturan QA/R&D saat form direset ---
+                showBatchAndHidePotential = isRndOrQaUser;
+                applyRndQaRules();
 
                 clearValidationErrors();
                 $('#requisition-form-details').hide();
@@ -1119,13 +1133,15 @@
 
                         itemDetails.forEach(detail => {
                             if (!existingItemDetailIds.has(String(detail.id))) {
+                                const batchInput = `<td class="batch-number-column" ${showBatchAndHidePotential ? '' : 'style="display:none;"'}><input type="text" class="form-control" name="items[${detail.id}][batch_number]" placeholder="e.g., 09 SEP 25 2437 M1"></td>`;
                                 const newRow = `
                                     <tr id="item-row-detail-${detail.id}" data-master-id="${detail.item_master_id}" data-material-type="${detail.material_type}">
-                                        <td><span class="badge bg-info">${detail.material_type}</span></td>
+                                        <td class="material-type-column"><span class="badge bg-info">${detail.material_type}</span></td>
                                         <td>${detail.item_detail_code}</td>
                                         <td>${detail.item_detail_name}</td>
                                         <td>${detail.unit}</td>
                                         <td><input type="number" class="form-control" name="items[${detail.id}][quantity_required]" min="1"></td>
+                                        ${batchInput}
                                     </tr>`;
                                 tbody.append(newRow);
                             }
@@ -1140,7 +1156,7 @@
                 });
             });
 
-            // --- [NEW] Handler untuk menghapus produk dari $('#product_select') (Packaging) ---
+            // --- Handler untuk menghapus produk dari $('#product_select') (Packaging) ---
             $('#product_select').on('select2:unselect', function(e) {
                 const unselectedMasterId = e.params.data.id;
                 // Hapus semua baris item detail yang berelasi dengan item master yang di-unselect
@@ -1187,35 +1203,37 @@
             });
 
             $('#btn-add-items-master').on('click', function () {
-                    const selectedMasterIds = $('#product_select_fg').val();
-                    if (!selectedMasterIds || selectedMasterIds.length === 0) {
-                        warningMessage('Please select a product first.');
-                        return;
-                    }
-                    $.ajax({
-                        url: "{{ route('sample.getAllItemMasters') }}",
-                        method: 'GET',
-                        success: function (allMasters) {
-                            const tbody = $('#requisition-items-tbody');
-                            $('#no-items-row').remove();
-                            const selectedMasters = allMasters.filter(m => selectedMasterIds.includes(String(m.id)));
+                const selectedMasterIds = $('#product_select_fg').val();
+                if (!selectedMasterIds || selectedMasterIds.length === 0) {
+                    warningMessage('Please select a product first.');
+                    return;
+                }
+                $.ajax({
+                    url: "{{ route('sample.getAllItemMasters') }}",
+                    method: 'GET',
+                    success: function (allMasters) {
+                        const tbody = $('#requisition-items-tbody');
+                        $('#no-items-row').remove();
+                        const selectedMasters = allMasters.filter(m => selectedMasterIds.includes(String(m.id)));
 
-                            selectedMasters.forEach(master => {
-                                if ($(`#item-row-master-${master.id}`).length === 0) {
-                                    // [FIX] Baris ini tidak lagi membuat sel <td> untuk Material Type
-                                    const newRow = `
-                                        <tr id="item-row-master-${master.id}" data-master-id="${master.id}">
-                                            <td>${master.item_master_code}</td>
-                                            <td>${master.item_master_name}</td>
-                                            <td>${master.unit}</td>
-                                            <td><input type="number" class="form-control" name="items[${master.id}][quantity_required]" min="1"></td>
-                                        </tr>`;
-                                    tbody.append(newRow);
-                                }
-                            });
-                        }
-                    });
+                        selectedMasters.forEach(master => {
+                            if ($(`#item-row-master-${master.id}`).length === 0) {
+                                const batchInput = `<td class="batch-number-column" ${showBatchAndHidePotential ? '' : 'style="display:none;"'}><input type="text" class="form-control" name="items[${master.id}][batch_number]" placeholder="e.g., 09 SEP 25 2437 M1"></td>`;
+                                // PENGHAPUSAN KOLOM MATERIAL TYPE UNTUK FG/SO AGAR KOLOM SEJAJAR
+                                const newRow = `
+                                    <tr id="item-row-master-${master.id}" data-master-id="${master.id}">
+                                        <td>${master.item_master_code}</td>
+                                        <td>${master.item_master_name}</td>
+                                        <td>${master.unit}</td>
+                                        <td><input type="number" class="form-control" name="items[${master.id}][quantity_required]" min="1"></td>
+                                        ${batchInput}
+                                    </tr>`;
+                                tbody.append(newRow);
+                            }
+                        });
+                    }
                 });
+            });
 
             $('#product_select_fg').on('select2:unselect', function (e) {
                 const unselectedMasterId = e.params.data.id;
@@ -1231,100 +1249,99 @@
 
             $('#sampleForm').on('submit', function (e) {
                 e.preventDefault(); // Menghentikan submit form default
-                    const form = this; // Menyimpan konteks form untuk digunakan nanti
+                const form = this; // Menyimpan konteks form untuk digunakan nanti
 
-                    // --- 1. Ambil beberapa data kunci untuk ditampilkan di pop-up konfirmasi ---
-                    const subCategory = $('#sub_category option:selected').text().trim();
-                    const customerName = $('#customer_id option:selected').text().trim();
-                    const noSrs = $('#no_srs').val();
-                    const requestDate = $('#request_date').val();
+                // --- 1. Ambil beberapa data kunci untuk ditampilkan di pop-up konfirmasi ---
+                const subCategory = $('#sub_category option:selected').text().trim();
+                const customerName = $('#customer_id option:selected').text().trim();
+                const noSrs = $('#no_srs').val();
+                const requestDate = $('#request_date').val();
 
-                        // --- 2. Tampilkan SweetAlert untuk konfirmasi ---
-                        Swal.fire({
-                            title: 'Konfirmasi Pengajuan',
-                            html: `Anda akan mengajukan Requisition dengan ringkasan data berikut:
-                                <ul class="text-start mt-3" style="list-style: none; padding-left: 0;">
-                                    <li style="padding: 5px 0;"><strong>Sub Kategori:</strong> ${subCategory || '<i>Belum dipilih</i>'}</li>
-                                    <li style="padding: 5px 0;"><strong>SRS No.:</strong> ${noSrs}</li>
-                                    <li style="padding: 5px 0;"><strong>Customer:</strong> ${customerName || '<i>Belum dipilih</i>'}</li>
-                                    <li style="padding: 5px 0;"><strong>Tgl. Request:</strong> ${requestDate}</li>
-                                </ul>
-                                <hr>
-                                <b class="text-danger">Pastikan semua data yang Anda masukkan sudah benar.</b>`,
-                            icon: 'question',
-                            showCancelButton: true,
-                            confirmButtonColor: '#3085d6',
-                            cancelButtonColor: 'rgba(248, 0, 0, 1)',
-                            confirmButtonText: 'Ya, Data Sudah Benar!',
-                            cancelButtonText: 'Batal, Cek Lagi'
-                        }).then((result) => {
-                            if (result.isConfirmed) {
-                                const mode = $(form).attr('data-mode');
-                                const id = $(form).attr('data-id');
-                                const currentSubCategory = $('#sub_category').val();
+                // --- 2. Tampilkan SweetAlert untuk konfirmasi ---
+                Swal.fire({
+                    title: 'Konfirmasi Pengajuan',
+                    html: `Anda akan mengajukan Requisition dengan ringkasan data berikut:
+                        <ul class="text-start mt-3" style="list-style: none; padding-left: 0;">
+                            <li style="padding: 5px 0;"><strong>Sub Kategori:</strong> ${subCategory || '<i>Belum dipilih</i>'}</li>
+                            <li style="padding: 5px 0;"><strong>SRS No.:</strong> ${noSrs}</li>
+                            <li style="padding: 5px 0;"><strong>Customer:</strong> ${customerName || '<i>Belum dipilih</i>'}</li>
+                            <li style="padding: 5px 0;"><strong>Tgl. Request:</strong> ${requestDate}</li>
+                        </ul>
+                        <hr>
+                        <b class="text-danger">Pastikan semua data yang Anda masukkan sudah benar.</b>`,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: 'rgba(248, 0, 0, 1)',
+                    confirmButtonText: 'Ya, Data Sudah Benar!',
+                    cancelButtonText: 'Batal, Cek Lagi'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        const mode = $(form).attr('data-mode');
+                        const id = $(form).attr('data-id');
+                        const currentSubCategory = $('#sub_category').val();
 
-                                function submitForm(formData) {
-                                const submitBtn = $('#saveSampleBtn');
-                                const overlay = $('#sampleModal .loading-overlay');
-                                overlay.show();
-                                submitBtn.prop('disabled', true);
+                        function submitForm(formData) {
+                            const submitBtn = $('#saveSampleBtn');
+                            const overlay = $('#sampleModal .loading-overlay');
+                            overlay.show();
+                            submitBtn.prop('disabled', true);
 
-                                let url = (mode === 'edit') ? `/sample-form/${id}` : "{{ route('sample-form.store') }}";
-                                if (mode === 'edit') {
-                                    formData.append('_method', 'PUT');
-                                }
+                            let url = (mode === 'edit') ? `/sample-form/${id}` : "{{ route('sample-form.store') }}";
+                            if (mode === 'edit') {
+                                formData.append('_method', 'PUT');
+                            }
 
-                                $.ajax({
-                                    url: url,
-                                    method: 'POST',
-                                    data: formData,
-                                    processData: false,
-                                    contentType: false,
-                                    success: function(res) {
-                                        if (res.success) {
-                                            $('#sampleModal').modal('hide');
-                                            successMessage(res.message);
-                                            table.ajax.reload(null, false);
+                            $.ajax({
+                                url: url,
+                                method: 'POST',
+                                data: formData,
+                                processData: false,
+                                contentType: false,
+                                success: function(res) {
+                                    if (res.success) {
+                                        $('#sampleModal').modal('hide');
+                                        successMessage(res.message);
+                                        table.ajax.reload(null, false);
 
-                                            const openFormId = urlParams.get('open_form');
-                                            if (openFormId) {
-                                                setTimeout(function() {
-                                                    const qaButton = $(`.btn-qa-form[data-id="${openFormId}"]`);
-                                                    if (qaButton.length) {
-                                                        qaButton.click();
-                                                    } else {
-                                                        console.warn(`Tombol QA untuk requisition ID ${openFormId} tidak ditemukan.`);
-                                                    }
-                                                }, 500);
-                                            }
-                                        }
-                                    },
-
-                                    error: function (xhr) {
-                                        if (xhr.status === 422) {
-                                            const errors = xhr.responseJSON.errors;
-                                            let itemErrorMessages = new Set();
-                                            clearValidationErrors();
-                                            for (const key in errors) {
-                                                const errorMsg = errors[key][0];
-                                                if (key.startsWith('items.')) {
-                                                    itemErrorMessages.add(errorMsg);
+                                        const openFormId = urlParams.get('open_form');
+                                        if (openFormId) {
+                                            setTimeout(function() {
+                                                const qaButton = $(`.btn-qa-form[data-id="${openFormId}"]`);
+                                                if (qaButton.length) {
+                                                    qaButton.click();
                                                 } else {
-                                                    const field = $(`#${key}`);
-                                                    const errorDiv = $(`#${key}_error`);
-                                                    field.addClass('is-invalid');
-                                                    errorDiv.text(errorMsg).show();
-                                                    if (field.hasClass('select2-styled')) {
-                                                        field.next('.select2-container').find('.select2-selection').css('border-color', '#dc3545');
-                                                    }
+                                                    console.warn(`Tombol QA untuk requisition ID ${openFormId} tidak ditemukan.`);
+                                                }
+                                            }, 500);
+                                        }
+                                    }
+                                },
+                                error: function (xhr) {
+                                    if (xhr.status === 422) {
+                                        const errors = xhr.responseJSON.errors;
+                                        let itemErrorMessages = new Set();
+                                        clearValidationErrors();
+                                        for (const key in errors) {
+                                            const errorMsg = errors[key][0];
+                                            if (key.startsWith('items.')) {
+                                                itemErrorMessages.add(errorMsg);
+                                            } else {
+                                                const field = $(`#${key}`);
+                                                const errorDiv = $(`#${key}_error`);
+                                                field.addClass('is-invalid');
+                                                errorDiv.text(errorMsg).show();
+                                                if (field.hasClass('select2-styled')) {
+                                                    field.next('.select2-container').find('.select2-selection').css('border-color', '#dc3545');
                                                 }
                                             }
-                                            if (itemErrorMessages.size > 0) {
-                                                $('#items_error').show().html(Array.from(itemErrorMessages).join('<br>'));
-                                            }
-                                        } else {
-                                            errorMessage(xhr.responseJSON?.message || 'Terjadi kesalahan pada sistem.');
                                         }
+                                        if (itemErrorMessages.size > 0) {
+                                            $('#items_error').show().html(Array.from(itemErrorMessages).join('<br>'));
+                                        }
+                                    } else {
+                                        errorMessage(xhr.responseJSON?.message || 'Terjadi kesalahan pada sistem.');
+                                    }
                                 },
                                 complete: function() {
                                     overlay.hide();
@@ -1346,7 +1363,6 @@
                                 denyButtonColor: '#6c757d',
                             }).then((batchResult) => {
                                 if (batchResult.isConfirmed) {
-
                                     if (userDepartmentName === 'R&D') {
                                         Swal.fire({
                                             icon: 'warning',
@@ -1363,13 +1379,11 @@
                                                 submitForm(formData);
                                             }
                                         });
-
                                     } else {
                                         let formData = new FormData(form);
                                         formData.append('print_batch', '1');
                                         submitForm(formData);
                                     }
-
                                 } else if (batchResult.isDenied) {
                                     let formData = new FormData(form);
                                     formData.append('print_batch', '0');
@@ -1463,8 +1477,6 @@
             });
 
             function populateForm(data, mode = null) {
-                // $('#sampleForm').attr('data-mode', 'edit').attr('data-id', data.id);
-
                 if (mode === 'qa_mode') {
                     // Sembunyikan form utama & pilihan sub-kategori yang interaktif
                     $('.row.g-3.mb-3').hide(); // Menyembunyikan baris "Select Sub Category"
@@ -1488,9 +1500,6 @@
                     $('#customer_id').prop('disabled', false);
                     $('#sub_category_hidden').removeAttr('name');
                     $('#customer_id_hidden').removeAttr('name');
-                    // if ($('#sampleForm').attr('data-mode') === 'edit') {
-                    //     $('#saveSampleBtn').text('Save Changes');
-                    // }
                     $('.sm-field').prop('disabled', false);
                     $('.qa-field').prop('disabled', true);
                     $('#saveSampleBtn').prop('disabled', false);
@@ -1578,21 +1587,29 @@
                                 unit = item.item_master.unit;
                             }
 
-                             if (itemCode !== 'N/A') {
-                                    const materialTypeCell = isPackaging
-                                    ? `<td class="material-type-column"><span class="badge bg-info">${item.material_type}</span></td>`
+                            if (data.requester && data.requester.department) {
+                                const dept = data.requester.department.name;
+                                showBatchAndHidePotential = (dept === 'R&D' || dept === 'QM & HSE');
+                            }
+                            applyRndQaRules();
+
+                            if (itemCode !== 'N/A') {
+                                const materialTypeCell = isPackaging
+                                    ? `<td class="material-type-column"><span class="badge bg-info">${materialType}</span></td>`
                                     : '';
 
-                                const inputId = isPackaging ? item.item_detail_id : item.item_master_id;
-                                const inputName = `items[${id}]`;
+                                // --- FIX PLACEHOLDER BATCH: Diubah mengikuti gambar ---
+                                const batchValue = item.batch_number || '';
+                                const batchInput = `<td class="batch-number-column" ${showBatchAndHidePotential ? '' : 'style="display:none;"'}><input type="text" class="form-control" name="items[${id}][batch_number]" value="${batchValue}" placeholder="e.g., 09 SEP 25 2437 M1"></td>`;
 
                                 const newRow = `
-                                    <tr id="item-row-${type}-${id}" data-master-id="${masterId}" data-material-type="${item.material_type || ''}">
+                                    <tr id="item-row-${type}-${id}" data-master-id="${masterId}">
                                         ${materialTypeCell}
                                         <td>${itemCode}</td>
                                         <td>${itemName}</td>
                                         <td>${unit}</td>
-                                        <td><input type="number" class="form-control" name="${inputName}[quantity_required]" value="${item.quantity_required || ''}" min="1"></td>
+                                        <td><input type="number" class="form-control" name="items[${id}][quantity_required]" value="${item.quantity_required || ''}" min="1"></td>
+                                        ${batchInput}
                                     </tr>`;
                                 itemTbody.append(newRow);
                             }
@@ -1699,7 +1716,6 @@
             }
 
             function populateViewForm(data) {
-                // --- (Bagian atas fungsi yang mengisi detail tidak berubah) ---
                 $('#view_sub_category').text(data.sub_category || '-');
                 $('#view_customer_name').text(data.customer ? data.customer.name : '-');
                 $('#view_customer_address').text(data.customer ? data.customer.address : '-');
@@ -1710,11 +1726,27 @@
                 $('#view_objectives').text(data.objectives || '-');
                 $('#view_estimated_potential').text(data.estimated_potential || '-');
 
+                // --- FIX 5: Set variable isViewRndQa sebelum table body diproses ---
+                let isViewRndQa = false;
+                if (data.requester && data.requester.department) {
+                    const dept = data.requester.department.name;
+                    isViewRndQa = (dept === 'R&D' || dept === 'QM & HSE');
+                }
+
+                if (isViewRndQa) {
+                    $('#view_estimated_potential_container').hide();
+                    $('.view-batch-column').show();
+                } else {
+                    $('#view_estimated_potential_container').show();
+                    $('.view-batch-column').hide();
+                }
+
                 const viewItemTbody = $('#view-items-tbody');
                 const viewTable = viewItemTbody.closest('table');
                 viewItemTbody.empty();
                 const isPackaging = data.sub_category === 'Packaging';
                 viewTable.find('th.material-type-column').toggle(isPackaging);
+
                 if (data.requisition_items && data.requisition_items.length > 0) {
                     data.requisition_items.forEach(item => {
                         let itemCode = 'N/A', itemName = 'N/A', unit = 'N/A';
@@ -1728,13 +1760,18 @@
                             unit = item.item_master.unit;
                         }
                         const materialTypeCell = isPackaging ? `<td class="material-type-column">${item.material_type}</td>` : '';
-                        const newRow = `<tr>${materialTypeCell}<td>${itemCode}</td><td>${itemName}</td><td>${unit}</td><td class="text-center">${item.quantity_required}</td><td class="text-center">${item.quantity_issued || '-'}</td></tr>`;
+
+                        // --- FIX 5: Masukkan sel batch ke dalam baris dengan benar ---
+                        const batchCell = `<td class="text-center view-batch-column" ${isViewRndQa ? '' : 'style="display:none;"'}>${item.batch_number || '-'}</td>`;
+
+                        const newRow = `<tr>${materialTypeCell}<td>${itemCode}</td><td>${itemName}</td><td>${unit}</td><td class="text-center">${item.quantity_required}</td><td class="text-center">${item.quantity_issued || '-'}</td>${batchCell}</tr>`;
                         viewItemTbody.append(newRow);
                     });
                 } else {
                     const colspan = isPackaging ? 6 : 5;
                     viewItemTbody.html(`<tr><td colspan="${colspan}" class="text-center">No items have been added.</td></tr>`);
                 }
+
                 const specialOrderSection = $('#view-special-order-section');
                 const qaSection = $('#view-qa-section');
                 if (data.sub_category === 'Special Order' && data.requisition_special) {
@@ -1760,6 +1797,7 @@
                     specialOrderSection.hide();
                     qaSection.hide();
                 }
+
                 const status = data.status;
                 let badgeClass = 'bg-secondary';
                 if (['Submitted', 'Pending'].includes(status)) badgeClass = 'bg-primary';
@@ -1884,7 +1922,7 @@
                         const activeStepElement = trackerContainer.find('.tracker-step').eq(nextStepIndex);
                         activeStepElement.addClass('active');
 
-                        // [FIX 2] Mengubah teks pada langkah aktif agar lebih informatif
+                        // Mengubah teks pada langkah aktif agar lebih informatif
                         if (data.route_to) {
                             activeStepElement.find('.tracker-details').html(
                                 `<div class="tracker-user" style="color: #ffc107; font-weight: 500;">
@@ -1901,7 +1939,7 @@
                     $('#tracker-progress').css('width', progressPercentage + '%');
                 }
 
-                // --- (Bagian history log tidak berubah) ---
+                // --- History Log ---
                 const historyContainer = $('#history-log-container');
                 historyContainer.empty();
                 if (data.history && data.history.length > 0) {
@@ -2000,7 +2038,7 @@
                 });
             });
 
-            // [MODIFIKASI] Handler untuk menampilkan modal SweetAlert untuk Recall Notes
+            // Handler untuk menampilkan modal SweetAlert untuk Recall Notes
             $(document).on('click', '.btn-recall-modal', function () {
                 const requisitionId = $(this).data('id');
                 const srsNumber = $(this).data('srs');
@@ -2094,7 +2132,6 @@
                     url: `/sample-form/${id}/edit`,
                     type: 'GET',
                     success: function(response) {
-                        // resetForm(); // <<< INI JUGA BARIS YANG SALAH DAN SUDAH DIHAPUS
                         $('#sampleModalLabel').text('Complete QM & HSE Form');
                         $('#sampleForm').attr('data-id', id).attr('data-mode', 'edit');
 
@@ -2118,10 +2155,9 @@
 
             const openFormId = urlParams.get('open_form');
             if (openFormId) {
-                $(`.btn-qa-form[data-id="${openForm-id}"]`).click();
+                $(`.btn-qa-form[data-id="${openFormId}"]`).click();
             }
         });
-
     </script>
     @endpush
 </x-app-layout>
