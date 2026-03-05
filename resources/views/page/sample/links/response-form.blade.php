@@ -148,7 +148,7 @@
         @csrf
         @php
             $requesterDept = $requisition->requester->department->name ?? '';
-            $isRndOrQa = in_array($requesterDept, ['R&D', 'QM & HSE']);
+            $isRndOrQa = in_array($requesterDept, ['R&D', 'Quality Management']);
         @endphp
         <input type="hidden" name="token" value="{{ $token }}">
 

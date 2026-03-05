@@ -30,7 +30,7 @@ class StoreSampleRequisitionRequest extends FormRequest
         $user = Auth::user();
         $userAccount = $user->department->code ?? null;
         $userDepartmentName = $user->department->name ?? null;
-        $isRndOrQa = in_array($userDepartmentName, ['R&D', 'QM & HSE']);
+        $isRndOrQa = in_array($userDepartmentName, ['R&D', 'Quality Management']);
         $allowedSubCategories = [];
 
         if ($user->roles()->where('name', 'super-admin')->exists()) {

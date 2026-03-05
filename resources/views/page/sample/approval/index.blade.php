@@ -249,7 +249,7 @@
                     let isViewRndQa = false;
                     if (data.requester && data.requester.department) {
                         const dept = data.requester.department.name;
-                        isViewRndQa = (dept === 'R&D' || dept === 'QM & HSE');
+                        isViewRndQa = (dept === 'R&D' || dept === 'Quality Management');
                     }
 
                     if (isViewRndQa) {

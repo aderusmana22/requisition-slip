@@ -44,7 +44,7 @@ class SampleController extends Controller
         $user = Auth::user();
         $userAccount = $user->department->code ?? null;
         $userDepartmentName = $user->department?->name ?? null;
-        $isRndOrQa = in_array($userDepartmentName, ['R&D', 'QM & HSE']);
+        $isRndOrQa = in_array($userDepartmentName, ['R&D', 'Quality Management']);
         $allowedSubCategories = [];
 
         if ($user->hasRole('super-admin')) {
@@ -366,12 +366,12 @@ class SampleController extends Controller
                             'notes'   => 'Form has been completed by QA via internal system.',
                             'details' => $validated,
                         ])
-                        ->log('Submitted the QA/QM & HSE form via internal system.');
+                        ->log('Submitted the Quality Management form via internal system.');
                 }
 
                 // 3. Ubah status Requisition menjadi Completed & Kirim Notifikasi
                 $this->notifyRequesterAsCompleted($requisition);
-                $message = 'QM & HSE form has been successfully submitted and Requisition completed.';
+                $message = 'Quality Management form has been successfully submitted and Requisition completed.';
 
             } else { // Jika tidak, ini adalah edit biasa oleh requester
                 $requisition->update($validated);
@@ -656,7 +656,7 @@ class SampleController extends Controller
                 'last_updated' => now(),
                 'notes' => 'Form has been completed by QA.']);
 
-            $headQaUser = User::whereHas('department', fn ($q) => $q->where('name', 'QM & HSE'))
+            $headQaUser = User::whereHas('department', fn ($q) => $q->where('name', 'Quality Management'))
                               ->whereHas('roles', fn ($q) => $q->where('name', 'head-QA'))
                               ->first();
             activity()
@@ -669,7 +669,7 @@ class SampleController extends Controller
                     'notes'   => 'Form has been completed by QA.',
                     'details' => $validated,
                 ])
-                ->log('Submitted the QA/QM & HSE form.');
+                ->log('Submitted the Quality Management form.');
 
             $this->notifyRequesterAsCompleted($tracking->requisition);
             DB::commit();
@@ -687,7 +687,7 @@ class SampleController extends Controller
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Gagal saat submit form QM & HSE: ' . $e->getMessage());
+            Log::error('Gagal saat submit form Quality Management: ' . $e->getMessage());
             return redirect()->route('approval.success')->with('card_class', 'reject')->with('title', 'System Error');
         }
     }

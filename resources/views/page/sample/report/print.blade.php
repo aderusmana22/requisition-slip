@@ -331,7 +331,7 @@
                     <table class="bordered">
                         @php
                             $reqDept = $requisitions->requester->department->name ?? '';
-                            $isRndOrQa = in_array($reqDept, ['R&D', 'QM & HSE']);
+                            $isRndOrQa = in_array($reqDept, ['R&D', 'Quality Management']);
                         @endphp
                         <thead>
                             <tr>
